@@ -20,10 +20,17 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { Provider } from "@shared/schema";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch featured providers (limit to 3 for the landing page)
+  const { data: featuredProviders, isLoading: providersLoading } = useQuery<Provider[]>({
+    queryKey: ['/api/providers', { limit: 3 }],
+  });
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -157,93 +164,85 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Little Scholars Montessori",
-                location: "Upper East Side, Manhattan",
-                rating: "4.9",
-                reviews: "47",
-                type: "Montessori",
-                ages: "2-6",
-                price: "$2,400",
-                features: ["Organic Meals", "Small Classes"],
-              },
-              {
-                name: "Rainbow Bridge Academy",
-                location: "Midtown West, Manhattan",
-                rating: "4.7",
-                reviews: "23",
-                type: "Arts Focus",
-                ages: "3-5",
-                price: "$2,100",
-                features: ["Bilingual", "Extended Hours"],
-              },
-              {
-                name: "Central Park Kids Club",
-                location: "Upper West Side, Manhattan",
-                rating: "4.8",
-                reviews: "31",
-                type: "Outdoor Focus",
-                ages: "1-6",
-                price: "$2,800",
-                features: ["Extended Hours", "Transportation"],
-              },
-            ].map((provider, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
-                  <img
-                    src={`https://images.unsplash.com/photo-${
-                      index === 0 
-                        ? "1576085898323-218337e3e43c" 
-                        : index === 1 
-                        ? "1503454537195-1dcabb73ffb9" 
-                        : "1578662996442-48f60103fc96"
-                    }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
-                    alt={provider.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1">{provider.name}</h3>
-                  <p className="text-gray-600 text-sm mb-3">{provider.location}</p>
-                  
-                  <div className="flex items-center mb-3">
-                    <div className="flex items-center mr-2">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className={`text-yellow-400 ${i < Math.floor(Number(provider.rating)) ? '★' : '☆'}`}>
-                          ★
-                        </span>
+          {providersLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[...Array(3)].map((_, index) => (
+                <Card key={index} className="animate-pulse">
+                  <div className="aspect-[4/3] bg-gray-200 rounded-t-lg"></div>
+                  <CardContent className="p-6">
+                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4 w-1/2"></div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-8 bg-gray-200 rounded w-20"></div>
+                      <div className="h-8 bg-gray-200 rounded w-24"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredProviders?.map((provider, index) => (
+                <Card key={provider.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+                  <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
+                    <img
+                      src={`https://images.unsplash.com/photo-${
+                        index === 0 
+                          ? "1576085898323-218337e3e43c" 
+                          : index === 1 
+                          ? "1503454537195-1dcabb73ffb9" 
+                          : "1578662996442-48f60103fc96"
+                      }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
+                      alt={provider.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-1">{provider.name}</h3>
+                    <p className="text-gray-600 text-sm mb-3">{provider.borough}, {provider.city}</p>
+                    
+                    <div className="flex items-center mb-3">
+                      <div className="flex items-center mr-2">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className={`text-yellow-400 ${i < Math.floor(provider.rating || 0) ? '★' : '☆'}`}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-600">
+                        {provider.rating || 'New'} ({provider.reviewCount || 0} reviews)
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Badge variant="secondary">Ages {provider.ageRangeMin}-{provider.ageRangeMax}</Badge>
+                      <Badge variant="outline">{provider.type}</Badge>
+                      {provider.features?.slice(0, 2).map((feature) => (
+                        <Badge key={feature} variant="outline" className="text-xs">
+                          {feature}
+                        </Badge>
                       ))}
                     </div>
-                    <span className="text-sm text-gray-600">
-                      {provider.rating} ({provider.reviews} reviews)
-                    </span>
-                  </div>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge variant="secondary">Ages {provider.ages}</Badge>
-                    <Badge variant="outline">{provider.type}</Badge>
-                    {provider.features.map((feature) => (
-                      <Badge key={feature} variant="outline" className="text-xs">
-                        {feature}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-2xl font-bold text-gray-900">{provider.price}</span>
-                      <span className="text-gray-600">/month</span>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="text-2xl font-bold text-gray-900">${provider.priceMin || '0'}</span>
+                        <span className="text-gray-600">/month</span>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setLocation(`/search?provider=${provider.id}`)}
+                        className="shrink-0"
+                      >
+                        View Details
+                      </Button>
                     </div>
-                    <Button size="sm" onClick={() => setLocation("/search")}>
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Button size="lg" onClick={() => setLocation("/search")}>

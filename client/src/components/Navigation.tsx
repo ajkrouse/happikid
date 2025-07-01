@@ -25,11 +25,11 @@ export default function Navigation() {
       <div className="flex items-center space-x-8">
         {navItems.map((item) => (
           <Link key={item.href} href={item.href}>
-            <a className={`text-sm font-medium transition-colors hover:text-primary ${
+            <span className={`text-sm font-medium transition-colors hover:text-primary cursor-pointer ${
               location === item.href ? "text-primary" : "text-gray-600"
             }`}>
               {item.label}
-            </a>
+            </span>
           </Link>
         ))}
       </div>
@@ -66,10 +66,10 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/">
-            <a className="flex items-center">
+            <div className="flex items-center cursor-pointer">
               <Heart className="h-6 w-6 text-primary mr-2" />
               <span className="text-xl font-bold text-gray-900">HappiKid</span>
-            </a>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -89,14 +89,14 @@ export default function Navigation() {
                 <div className="flex flex-col space-y-6 mt-6">
                   {navItems.map((item) => (
                     <Link key={item.href} href={item.href}>
-                      <a 
-                        className={`text-lg font-medium transition-colors hover:text-primary ${
+                      <span 
+                        className={`text-lg font-medium transition-colors hover:text-primary cursor-pointer ${
                           location === item.href ? "text-primary" : "text-gray-600"
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.label}
-                      </a>
+                      </span>
                     </Link>
                   ))}
                   
