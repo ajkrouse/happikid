@@ -18,7 +18,7 @@ import {
   Instagram,
   Linkedin
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { Provider } from "@shared/schema";
@@ -26,6 +26,17 @@ import type { Provider } from "@shared/schema";
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentTypeIndex, setCurrentTypeIndex] = useState(0);
+  
+  const childcareTypes = ["daycare", "after-school program", "camp", "private school"];
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTypeIndex((prev) => (prev + 1) % childcareTypes.length);
+    }, 2000); // Change every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch featured providers (limit to 3 for the landing page)
   const { data: featuredProviders, isLoading: providersLoading } = useQuery<Provider[]>({
@@ -59,7 +70,9 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Find Perfect <span className="text-primary">Childcare</span>
+              Find Perfect <span className="text-primary transition-all duration-500 ease-in-out">
+                {childcareTypes[currentTypeIndex]}
+              </span>
               <br />for Your Family
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">

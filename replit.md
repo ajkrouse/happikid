@@ -140,7 +140,13 @@ HappiKid is a full-stack web application that connects parents with childcare pr
 - Connection pooling for production scalability
 
 ## Changelog
-- July 01, 2025. Initial setup
+- July 01, 2025: Initial setup
+- July 01, 2025: Updated to MVP version based on new PRD requirements
+  - Fixed search button styling consistency between logged-in and non-logged-in states
+  - Implemented unique provider-specific images for each brand
+  - Added sticky navigation header for better UX
+  - Added rotating childcare type text in hero section (daycare, after-school program, camp, private school)
+  - Updated provider data with accurate real-world information from public sources
 
 ## User Preferences
 

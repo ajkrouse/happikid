@@ -96,20 +96,20 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo }:
         <img
           src={`https://images.unsplash.com/photo-${
             provider.name.includes('Bright Horizons') 
-              ? "1503454537195-1dcabb73ffb9" // Modern daycare classroom
+              ? "1544377193-33dcf4d68fb5" // Bright modern daycare
               : provider.name.includes('Learning Experience') 
-              ? "1576085898323-218337e3e43c" // Interactive learning environment
+              ? "1503454537195-1dcabb73ffb9" // Learning classroom
               : provider.name.includes('Little Sunshine') 
-              ? "1609720198099-72549b4e3b9e" // Small children playing
+              ? "1471286174890-9c112511cf19" // Sunny children's space
               : provider.name.includes('Montessori') 
-              ? "1578662996442-48f60103fc96" // Montessori-style materials
+              ? "1578662996442-48f60103fc96" // Montessori materials
               : provider.name.includes('Camp') 
-              ? "1517457373958-4da2339cb0c1" // Outdoor camp activities
+              ? "1517457373958-4da2339cb0c1" // Outdoor activities
               : provider.name.includes('Private School') || provider.name.includes('School')
-              ? "1580582932534-fd5c78b3c593" // School classroom
+              ? "1498050108023-c5d6c8987976" // Private school
               : provider.type === 'afterschool'
-              ? "1517457373958-4da2339cb0c1" // After school activities
-              : "1576085898323-218337e3e43c" // Default classroom
+              ? "1517457373958-4da2339cb0c1" // After school
+              : "1503454537195-1dcabb73ffb9" // Default classroom
           }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
           alt={provider.name}
           className="w-full h-full object-cover"
