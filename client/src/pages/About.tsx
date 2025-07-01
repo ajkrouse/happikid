@@ -1,0 +1,229 @@
+import Navigation from "@/components/Navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  Heart, 
+  Shield, 
+  Users, 
+  Clock, 
+  Search, 
+  MessageCircle,
+  Star,
+  ChevronRight
+} from "lucide-react";
+
+export default function About() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+            About <span className="text-primary">HappiKid</span>
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            We're transforming how families find quality childcare in the NYC tri-state area. 
+            Our mission is to make the overwhelming process of choosing childcare simple, transparent, and confident.
+          </p>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
+              <p className="text-lg text-gray-600 mb-6">
+                Every parent deserves to find the perfect childcare for their family without the stress, 
+                endless research, and uncertainty that typically comes with the process.
+              </p>
+              <p className="text-lg text-gray-600 mb-8">
+                HappiKid centralizes verified provider information, real parent reviews, and smart search 
+                technology to help you make confident decisions in minutes, not hours.
+              </p>
+              <div className="flex items-center text-primary font-semibold">
+                <Heart className="h-5 w-5 mr-2" />
+                <span>Making childcare discovery joyful for families</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <Card className="text-center p-6">
+                <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
+                  <Users className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">1,000+</h3>
+                <p className="text-gray-600 text-sm">Verified Providers</p>
+              </Card>
+              <Card className="text-center p-6">
+                <div className="bg-secondary-100 p-4 rounded-full inline-block mb-4">
+                  <MessageCircle className="h-8 w-8 text-secondary-500" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">5,000+</h3>
+                <p className="text-gray-600 text-sm">Parent Reviews</p>
+              </Card>
+              <Card className="text-center p-6">
+                <div className="bg-accent-100 p-4 rounded-full inline-block mb-4">
+                  <Clock className="h-8 w-8 text-accent-500" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">90%</h3>
+                <p className="text-gray-600 text-sm">Time Saved</p>
+              </Card>
+              <Card className="text-center p-6">
+                <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
+                  <Star className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">4.9</h3>
+                <p className="text-gray-600 text-sm">Average Rating</p>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">How HappiKid Works</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Finding quality childcare has never been easier
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-primary p-4 rounded-2xl inline-block mb-6">
+                <Search className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">1. Search Naturally</h3>
+              <p className="text-gray-600">
+                Use everyday language to describe what you're looking for. 
+                Our smart search understands your needs and preferences.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-secondary-500 p-4 rounded-2xl inline-block mb-6">
+                <Shield className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">2. Browse Verified Options</h3>
+              <p className="text-gray-600">
+                Every provider is verified through public records and background checks. 
+                See real photos, reviews, and detailed information.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-accent-500 p-4 rounded-2xl inline-block mb-6">
+                <MessageCircle className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">3. Connect & Decide</h3>
+              <p className="text-gray-600">
+                Contact providers directly, schedule tours, and make confident decisions 
+                based on comprehensive, trustworthy information.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Values Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Values</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="bg-primary-50 p-4 rounded-full inline-block mb-4">
+                <Shield className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-3">Trust & Safety</h3>
+              <p className="text-gray-600 text-sm">
+                Every provider is thoroughly verified and backgrounds checked for your peace of mind.
+              </p>
+            </Card>
+
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="bg-secondary-50 p-4 rounded-full inline-block mb-4">
+                <Users className="h-6 w-6 text-secondary-500" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-3">Community First</h3>
+              <p className="text-gray-600 text-sm">
+                Built by parents, for parents. Real reviews from real families in your community.
+              </p>
+            </Card>
+
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="bg-accent-50 p-4 rounded-full inline-block mb-4">
+                <Search className="h-6 w-6 text-accent-500" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-3">Simplicity</h3>
+              <p className="text-gray-600 text-sm">
+                Complex decisions made simple through intuitive design and smart technology.
+              </p>
+            </Card>
+
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="bg-primary-50 p-4 rounded-full inline-block mb-4">
+                <Heart className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-3">Empathy</h3>
+              <p className="text-gray-600 text-sm">
+                We understand the challenges of parenting and strive to make your life easier.
+              </p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-primary to-primary-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Ready to Find Your Perfect Childcare?
+          </h2>
+          <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of families who have found their ideal childcare through HappiKid.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              size="lg" 
+              variant="secondary"
+              className="bg-white text-primary hover:bg-gray-50"
+              onClick={() => window.location.href = "/search"}
+            >
+              Start Searching
+              <ChevronRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-white text-white hover:bg-white hover:text-primary"
+              onClick={() => window.location.href = "/dashboard"}
+            >
+              List Your Program
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <Heart className="h-6 w-6 text-primary mr-2" />
+            <span className="text-xl font-bold">HappiKid</span>
+          </div>
+          <p className="text-gray-400">
+            Making childcare discovery joyful for families in the NYC tri-state area.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}

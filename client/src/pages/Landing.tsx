@@ -69,7 +69,7 @@ export default function Landing() {
                 <Input
                   type="text"
                   placeholder="Try: 'Montessori daycare near Central Park for 3-year-old' or 'After-school programs with pickup in Brooklyn'"
-                  className="w-full pl-14 pr-6 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary h-16 shadow-lg"
+                  className="w-full pl-14 pr-32 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary h-16 shadow-lg"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}

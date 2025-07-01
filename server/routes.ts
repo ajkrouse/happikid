@@ -5,9 +5,186 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertProviderSchema, insertReviewSchema, insertInquirySchema } from "@shared/schema";
 import { z } from "zod";
 
+// Sample data function for testing
+async function addSampleData() {
+  try {
+    // Check if we already have providers
+    const existingProviders = await storage.getProviders({ limit: 1 });
+    if (existingProviders.length > 0) {
+      return; // Sample data already exists
+    }
+
+    // Add sample providers based on real NYC childcare facilities
+    const sampleProviders = [
+      {
+        userId: null,
+        name: "Bright Horizons at Chelsea",
+        description: "Premier childcare center offering full-time care with a research-based curriculum. Our experienced teachers create a warm, nurturing environment where children can learn and grow. We focus on school readiness, social-emotional development, and creative expression.",
+        address: "300 W 23rd St",
+        borough: "Manhattan",
+        city: "New York",
+        state: "NY",
+        zipCode: "10011",
+        phone: "(212) 555-0123",
+        email: "chelsea@brighthorizons.com",
+        website: "brighthorizons.com/chelsea",
+        type: "daycare" as const,
+        ageRangeMin: 6,
+        ageRangeMax: 72,
+        capacity: 120,
+        hoursOfOperation: "7:00 AM - 6:30 PM",
+        pricing: "$2,800 - $3,200 per month",
+        isActive: true,
+        features: ["Organic meals", "Outdoor playground", "STEM programs", "Music classes", "Swimming pool"],
+        latitude: 40.7430,
+        longitude: -73.9970,
+        rating: 4.8,
+        reviewCount: 127,
+      },
+      {
+        userId: null, 
+        name: "The Learning Experience - Park Slope",
+        description: "Innovative early childhood education center featuring L.E.A.P. curriculum and state-of-the-art facilities. We provide a safe, loving environment where children develop confidence and school readiness skills.",
+        address: "89 7th Ave",
+        borough: "Brooklyn",
+        city: "Brooklyn",
+        state: "NY",
+        zipCode: "11215",
+        phone: "(718) 555-0456",
+        email: "parkslope@thelearningexperience.com",
+        website: "thelearningexperience.com",
+        type: "daycare" as const,
+        ageRangeMin: 6,
+        ageRangeMax: 60,
+        capacity: 90,
+        hoursOfOperation: "6:30 AM - 6:30 PM",
+        pricing: "$2,200 - $2,800 per month",
+        isActive: true,
+        features: ["Interactive whiteboards", "Coding for kids", "Yoga", "Language immersion", "Art studio"],
+        latitude: 40.6736,
+        longitude: -73.9796,
+        rating: 4.6,
+        reviewCount: 89,
+      },
+      {
+        userId: null,
+        name: "Little Sunshine's Playhouse & Preschool",
+        description: "Award-winning preschool and daycare providing exceptional early childhood education in a nurturing environment. Our proprietary curriculum combines academics with character development.",
+        address: "1245 Northern Blvd",
+        borough: "Queens",
+        city: "Astoria", 
+        state: "NY",
+        zipCode: "11102",
+        phone: "(718) 555-0789",
+        email: "astoria@littlesunshine.com",
+        website: "littlesunshine.com",
+        type: "daycare" as const,
+        ageRangeMin: 6,
+        ageRangeMax: 72,
+        capacity: 150,
+        hoursOfOperation: "6:00 AM - 7:00 PM",
+        pricing: "$1,900 - $2,500 per month",
+        isActive: true,
+        features: ["Reggio Emilia approach", "Indoor playground", "Healthy meals", "Music & movement", "Science lab"],
+        latitude: 40.7648,
+        longitude: -73.9442,
+        rating: 4.7,
+        reviewCount: 156,
+      },
+      {
+        userId: null,
+        name: "Bronx Academy of Science After-School",
+        description: "Comprehensive after-school program focusing on STEM education and homework assistance. Our certified teachers provide individualized attention in a safe, structured environment.",
+        address: "456 E 149th St",
+        borough: "Bronx",
+        city: "Bronx",
+        state: "NY", 
+        zipCode: "10455",
+        phone: "(718) 555-0321",
+        email: "afterschool@bronxacademy.org",
+        website: "bronxacademyofscience.org",
+        type: "afterschool" as const,
+        ageRangeMin: 60,
+        ageRangeMax: 144,
+        capacity: 60,
+        hoursOfOperation: "3:00 PM - 6:00 PM",
+        pricing: "$800 - $1,200 per month",
+        isActive: true,
+        features: ["Homework help", "STEM projects", "Sports activities", "Art programs", "Field trips"],
+        latitude: 40.8176,
+        longitude: -73.9183,
+        rating: 4.5,
+        reviewCount: 72,
+      },
+      {
+        userId: null,
+        name: "Staten Island Summer Discovery Camp",
+        description: "Action-packed summer camp offering outdoor adventures, arts & crafts, swimming, and team sports. Our experienced counselors create memorable experiences while keeping children active and engaged.",
+        address: "789 Victory Blvd",
+        borough: "Staten Island",
+        city: "Staten Island",
+        state: "NY",
+        zipCode: "10301",
+        phone: "(718) 555-0654",
+        email: "info@sisummerdiscovery.com",
+        website: "sisummerdiscovery.com",
+        type: "camp" as const,
+        ageRangeMin: 48,
+        ageRangeMax: 144,
+        capacity: 200,
+        hoursOfOperation: "8:00 AM - 4:00 PM (Summer only)",
+        pricing: "$300 - $450 per week",
+        isActive: true,
+        features: ["Swimming pool", "Sports courts", "Nature trails", "Arts & crafts", "Field trips"],
+        latitude: 40.6278,
+        longitude: -74.0776,
+        rating: 4.4,
+        reviewCount: 93,
+      },
+      {
+        userId: null,
+        name: "Montessori School of Manhattan",
+        description: "Authentic Montessori education serving children from toddler through elementary. Our certified Montessori teachers create prepared environments that foster independence and love of learning.",
+        address: "234 E 73rd St",
+        borough: "Manhattan",
+        city: "New York",
+        state: "NY",
+        zipCode: "10021",
+        phone: "(212) 555-0987",
+        email: "admissions@montessorimanhattan.edu",
+        website: "montessorimanhattan.edu",
+        type: "school" as const,
+        ageRangeMin: 18,
+        ageRangeMax: 132,
+        capacity: 80,
+        hoursOfOperation: "8:30 AM - 3:30 PM",
+        pricing: "$35,000 - $42,000 per year",
+        isActive: true,
+        features: ["Montessori method", "Mixed-age classrooms", "Outdoor learning", "Foreign language", "Music program"],
+        latitude: 40.7708,
+        longitude: -73.9635,
+        rating: 4.9,
+        reviewCount: 68,
+      }
+    ];
+
+    // Insert sample providers
+    for (const provider of sampleProviders) {
+      await storage.createProvider(provider);
+    }
+
+    console.log("Sample data added successfully");
+  } catch (error) {
+    console.error("Error adding sample data:", error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Add sample data for testing
+  await addSampleData();
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {

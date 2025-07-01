@@ -165,7 +165,7 @@ export default function SearchPage() {
             <Input
               type="text"
               placeholder="Search for childcare providers..."
-              className="w-full pl-12 pr-6 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary"
+              className="w-full pl-12 pr-28 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}

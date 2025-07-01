@@ -96,31 +96,35 @@ export class DatabaseStorage implements IStorage {
     limit?: number;
     offset?: number;
   }): Promise<Provider[]> {
-    let query = db.select().from(providers).where(eq(providers.isActive, true));
+    let conditions: any[] = [eq(providers.isActive, true)];
 
     if (filters?.type) {
-      query = query.where(eq(providers.type, filters.type as any));
+      conditions.push(eq(providers.type, filters.type as any));
     }
 
     if (filters?.borough) {
-      query = query.where(eq(providers.borough, filters.borough));
+      conditions.push(eq(providers.borough, filters.borough));
     }
 
     if (filters?.search) {
-      query = query.where(
+      conditions.push(
         sql`${providers.name} ILIKE ${`%${filters.search}%`} OR ${providers.description} ILIKE ${`%${filters.search}%`}`
       );
     }
 
     if (filters?.ageRangeMin !== undefined) {
-      query = query.where(sql`${providers.ageRangeMax} >= ${filters.ageRangeMin}`);
+      conditions.push(sql`${providers.ageRangeMax} >= ${filters.ageRangeMin}`);
     }
 
     if (filters?.ageRangeMax !== undefined) {
-      query = query.where(sql`${providers.ageRangeMin} <= ${filters.ageRangeMax}`);
+      conditions.push(sql`${providers.ageRangeMin} <= ${filters.ageRangeMax}`);
     }
 
-    query = query.orderBy(desc(providers.rating), desc(providers.reviewCount));
+    let query = db
+      .select()
+      .from(providers)
+      .where(and(...conditions))
+      .orderBy(desc(providers.rating), desc(providers.reviewCount));
 
     if (filters?.limit) {
       query = query.limit(filters.limit);

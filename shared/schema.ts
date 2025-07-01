@@ -41,7 +41,7 @@ export const users = pgTable("users", {
 // Provider profiles
 export const providers = pgTable("providers", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
   name: varchar("name").notNull(),
   description: text("description"),
   address: text("address").notNull(),
