@@ -179,18 +179,50 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
             {/* Provider Images */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <img
-                src="https://images.unsplash.com/photo-1576085898323-218337e3e43c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300"
+                src={`https://images.unsplash.com/photo-${
+                  currentProvider.name.includes('Bright Horizons') 
+                    ? "1503454537195-1dcabb73ffb9" // Modern daycare classroom
+                    : currentProvider.name.includes('Learning Experience') 
+                    ? "1576085898323-218337e3e43c" // Interactive learning environment
+                    : currentProvider.name.includes('Little Sunshine') 
+                    ? "1609720198099-72549b4e3b9e" // Small children playing
+                    : currentProvider.name.includes('Montessori') 
+                    ? "1578662996442-48f60103fc96" // Montessori-style materials
+                    : currentProvider.name.includes('Camp') 
+                    ? "1517457373958-4da2339cb0c1" // Outdoor camp activities
+                    : "1576085898323-218337e3e43c" // Default classroom
+                }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300`}
                 alt={currentProvider.name}
                 className="rounded-lg object-cover h-48 w-full"
               />
               <img
-                src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300"
-                alt="Classroom"
+                src={`https://images.unsplash.com/photo-${
+                  currentProvider.name.includes('Bright Horizons') 
+                    ? "1509025000627-b0b02b30bf7b" // Bright modern playroom
+                    : currentProvider.name.includes('Learning Experience') 
+                    ? "1571019613454-1cb2f99b2d8b" // Educational toys and games
+                    : currentProvider.name.includes('Little Sunshine') 
+                    ? "1517457373958-4da2339cb0c1" // Outdoor play area
+                    : currentProvider.name.includes('Montessori') 
+                    ? "1596496050827-8299e0220ac1" // Montessori workspace
+                    : "1503454537195-1dcabb73ffb9" // Default classroom
+                }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300`}
+                alt="Activity Area"
                 className="rounded-lg object-cover h-48 w-full"
               />
               <img
-                src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300"
-                alt="Playground"
+                src={`https://images.unsplash.com/photo-${
+                  currentProvider.name.includes('Bright Horizons') 
+                    ? "1507003211169-0a1dd7ef0a50" // Modern school building
+                    : currentProvider.name.includes('Learning Experience') 
+                    ? "1533749047139-c6d377e1bc89" // Science/learning space
+                    : currentProvider.name.includes('Little Sunshine') 
+                    ? "1471286174890-9c112511cf19" // Sunny outdoor space
+                    : currentProvider.name.includes('Montessori') 
+                    ? "1498050108023-c5d6c8987976" // Natural materials
+                    : "1578662996442-48f60103fc96" // Default playground
+                }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300`}
+                alt="Learning Space"
                 className="rounded-lg object-cover h-48 w-full"
               />
             </div>

@@ -94,7 +94,23 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo }:
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onViewDetails?.(provider)}>
       <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
         <img
-          src="https://images.unsplash.com/photo-1576085898323-218337e3e43c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400"
+          src={`https://images.unsplash.com/photo-${
+            provider.name.includes('Bright Horizons') 
+              ? "1503454537195-1dcabb73ffb9" // Modern daycare classroom
+              : provider.name.includes('Learning Experience') 
+              ? "1576085898323-218337e3e43c" // Interactive learning environment
+              : provider.name.includes('Little Sunshine') 
+              ? "1609720198099-72549b4e3b9e" // Small children playing
+              : provider.name.includes('Montessori') 
+              ? "1578662996442-48f60103fc96" // Montessori-style materials
+              : provider.name.includes('Camp') 
+              ? "1517457373958-4da2339cb0c1" // Outdoor camp activities
+              : provider.name.includes('Private School') || provider.name.includes('School')
+              ? "1580582932534-fd5c78b3c593" // School classroom
+              : provider.type === 'afterschool'
+              ? "1517457373958-4da2339cb0c1" // After school activities
+              : "1576085898323-218337e3e43c" // Default classroom
+          }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
           alt={provider.name}
           className="w-full h-full object-cover"
         />
