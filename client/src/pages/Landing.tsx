@@ -31,13 +31,8 @@ export default function Landing() {
   const childcareTypes = ["Daycare", "After-School Program", "Camp", "Private School"];
   
   useEffect(() => {
-    console.log('Setting up rotation interval, childcareTypes:', childcareTypes);
     const interval = setInterval(() => {
-      setCurrentTypeIndex((prev) => {
-        const next = (prev + 1) % childcareTypes.length;
-        console.log('Rotating from index', prev, 'to', next, 'type:', childcareTypes[next]);
-        return next;
-      });
+      setCurrentTypeIndex((prev) => (prev + 1) % childcareTypes.length);
     }, 2000); // Change every 2 seconds
     
     return () => clearInterval(interval);
@@ -75,15 +70,16 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Find Perfect <span className="text-primary inline-block relative overflow-hidden" style={{ height: '1.2em', minWidth: '300px' }}>
+              Find Perfect{" "}
+              <span className="text-primary inline-block relative overflow-hidden align-baseline" style={{ height: '1.2em', minWidth: '280px', verticalAlign: 'baseline' }}>
                 <span 
-                  className="absolute left-0 top-0 transition-transform duration-500 ease-in-out w-full"
+                  className="absolute left-0 top-0 transition-transform duration-500 ease-in-out"
                   style={{ 
                     transform: `translateY(-${currentTypeIndex * 100}%)`,
                   }}
                 >
                   {childcareTypes.map((type, index) => (
-                    <span key={type} className="block whitespace-nowrap" style={{ height: '1.2em', lineHeight: '1.2' }}>
+                    <span key={type} className="block whitespace-nowrap text-left" style={{ height: '1.2em', lineHeight: '1.2' }}>
                       {type}
                     </span>
                   ))}
@@ -218,16 +214,18 @@ export default function Landing() {
                     <img
                       src={`https://images.unsplash.com/photo-${
                         provider.name.includes('Bright Horizons') 
-                          ? "1503454537195-1dcabb73ffb9" // Modern daycare classroom
+                          ? "1544716503-0ee4e9e4ded8" // Modern daycare facility
                           : provider.name.includes('Learning Experience') 
-                          ? "1576085898323-218337e3e43c" // Interactive learning environment
+                          ? "1497486238291-00e5a4c6e7c8" // Interactive classroom
                           : provider.name.includes('Little Sunshine') 
-                          ? "1609720198099-72549b4e3b9e" // Small children playing
+                          ? "1563100064-9e99797bfda6" // Sunny children's space
                           : provider.name.includes('Montessori') 
-                          ? "1578662996442-48f60103fc96" // Montessori-style materials
+                          ? "1509062522261-04b8acb0f830" // Educational materials
+                          : provider.name.includes('Bronx Academy') 
+                          ? "1580582932084-08106ac57255" // School building exterior
                           : provider.name.includes('Camp') 
-                          ? "1517457373958-4da2339cb0c1" // Outdoor camp activities
-                          : "1576085898323-218337e3e43c" // Default classroom
+                          ? "1551632436-cbf8dd35adfa" // Summer camp activities
+                          : "1497486238291-00e5a4c6e7c8" // Default classroom
                       }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
                       alt={provider.name}
                       className="w-full h-full object-cover"
@@ -263,10 +261,10 @@ export default function Landing() {
                     <div className="flex justify-between items-center">
                       <div>
                         <span className="text-2xl font-bold text-gray-900">
-                          {provider.pricing ? provider.pricing.split(' - ')[0] : 'Call for pricing'}
+                          {provider.monthlyPrice ? `$${provider.monthlyPrice}` : 'Call for pricing'}
                         </span>
                         <span className="text-gray-600">
-                          {provider.pricing?.includes('month') ? '' : '/month'}
+                          {provider.monthlyPrice ? '/month' : ''}
                         </span>
                       </div>
                       <Button 

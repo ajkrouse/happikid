@@ -181,16 +181,18 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
               <img
                 src={`https://images.unsplash.com/photo-${
                   currentProvider.name.includes('Bright Horizons') 
-                    ? "1503454537195-1dcabb73ffb9" // Modern daycare classroom
+                    ? "1544716503-0ee4e9e4ded8" // Modern daycare facility
                     : currentProvider.name.includes('Learning Experience') 
-                    ? "1576085898323-218337e3e43c" // Interactive learning environment
+                    ? "1497486238291-00e5a4c6e7c8" // Interactive classroom
                     : currentProvider.name.includes('Little Sunshine') 
-                    ? "1609720198099-72549b4e3b9e" // Small children playing
+                    ? "1563100064-9e99797bfda6" // Sunny children's space
                     : currentProvider.name.includes('Montessori') 
-                    ? "1578662996442-48f60103fc96" // Montessori-style materials
+                    ? "1509062522261-04b8acb0f830" // Educational materials
+                    : currentProvider.name.includes('Bronx Academy') 
+                    ? "1580582932084-08106ac57255" // School building exterior
                     : currentProvider.name.includes('Camp') 
-                    ? "1517457373958-4da2339cb0c1" // Outdoor camp activities
-                    : "1576085898323-218337e3e43c" // Default classroom
+                    ? "1551632436-cbf8dd35adfa" // Summer camp activities
+                    : "1497486238291-00e5a4c6e7c8" // Default classroom
                 }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300`}
                 alt={currentProvider.name}
                 className="rounded-lg object-cover h-48 w-full"
