@@ -171,7 +171,7 @@ export default function SearchPage() {
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
             <Button 
-              className="absolute right-2 top-2 px-6 py-1 rounded-lg font-medium"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 rounded-lg font-medium"
               onClick={handleSearch}
             >
               Search

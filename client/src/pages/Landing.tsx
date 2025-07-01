@@ -188,11 +188,17 @@ export default function Landing() {
                   <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
                     <img
                       src={`https://images.unsplash.com/photo-${
-                        index === 0 
-                          ? "1576085898323-218337e3e43c" 
-                          : index === 1 
-                          ? "1503454537195-1dcabb73ffb9" 
-                          : "1578662996442-48f60103fc96"
+                        provider.name.includes('Bright Horizons') 
+                          ? "1503454537195-1dcabb73ffb9" // Modern daycare classroom
+                          : provider.name.includes('Learning Experience') 
+                          ? "1576085898323-218337e3e43c" // Interactive learning environment
+                          : provider.name.includes('Little Sunshine') 
+                          ? "1609720198099-72549b4e3b9e" // Small children playing
+                          : provider.name.includes('Montessori') 
+                          ? "1578662996442-48f60103fc96" // Montessori-style materials
+                          : provider.name.includes('Camp') 
+                          ? "1517457373958-4da2339cb0c1" // Outdoor camp activities
+                          : "1576085898323-218337e3e43c" // Default classroom
                       }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
                       alt={provider.name}
                       className="w-full h-full object-cover"
@@ -227,8 +233,12 @@ export default function Landing() {
 
                     <div className="flex justify-between items-center">
                       <div>
-                        <span className="text-2xl font-bold text-gray-900">${provider.priceMin || '0'}</span>
-                        <span className="text-gray-600">/month</span>
+                        <span className="text-2xl font-bold text-gray-900">
+                          {provider.pricing ? provider.pricing.split(' - ')[0] : 'Call for pricing'}
+                        </span>
+                        <span className="text-gray-600">
+                          {provider.pricing?.includes('month') ? '' : '/month'}
+                        </span>
                       </div>
                       <Button 
                         size="sm" 

@@ -45,7 +45,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
   const hasActiveFilters = filters.type || filters.borough || filters.ageRange || filters.priceRange || (filters.features && filters.features.length > 0);
 
   return (
-    <Card className="sticky top-24">
+    <Card className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Refine Your Search</CardTitle>
