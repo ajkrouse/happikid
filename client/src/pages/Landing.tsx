@@ -28,7 +28,7 @@ export default function Landing() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentTypeIndex, setCurrentTypeIndex] = useState(0);
   
-  const childcareTypes = ["daycare", "after-school program", "camp", "private school"];
+  const childcareTypes = ["Daycare", "After-School Program", "Camp", "Private School"];
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -70,8 +70,19 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Find Perfect <span className="text-primary transition-all duration-500 ease-in-out">
-                {childcareTypes[currentTypeIndex]}
+              Find Perfect <span className="text-primary inline-block relative h-[1.2em] overflow-hidden align-baseline">
+                <span 
+                  className="absolute transition-transform duration-500 ease-in-out"
+                  style={{ 
+                    transform: `translateY(-${currentTypeIndex * 100}%)`,
+                  }}
+                >
+                  {childcareTypes.map((type, index) => (
+                    <span key={type} className="block h-[1.2em] leading-[1.2]">
+                      {type}
+                    </span>
+                  ))}
+                </span>
               </span>
               <br />for Your Family
             </h1>

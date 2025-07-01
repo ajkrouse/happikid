@@ -145,7 +145,7 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Fixed search button styling consistency between logged-in and non-logged-in states
   - Implemented unique provider-specific images for each brand
   - Added sticky navigation header for better UX
-  - Added rotating childcare type text in hero section (daycare, after-school program, camp, private school)
+  - Added rotating childcare type text in hero section with smooth scrolling animation (Daycare, After-School Program, Camp, Private School)
   - Updated provider data with accurate real-world information from public sources
 
 ## User Preferences
