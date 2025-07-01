@@ -31,12 +31,17 @@ export default function Landing() {
   const childcareTypes = ["Daycare", "After-School Program", "Camp", "Private School"];
   
   useEffect(() => {
+    console.log('Setting up rotation interval, childcareTypes:', childcareTypes);
     const interval = setInterval(() => {
-      setCurrentTypeIndex((prev) => (prev + 1) % childcareTypes.length);
+      setCurrentTypeIndex((prev) => {
+        const next = (prev + 1) % childcareTypes.length;
+        console.log('Rotating from index', prev, 'to', next, 'type:', childcareTypes[next]);
+        return next;
+      });
     }, 2000); // Change every 2 seconds
     
     return () => clearInterval(interval);
-  }, []);
+  }, [childcareTypes.length]);
 
   // Fetch featured providers (limit to 3 for the landing page)
   const { data: featuredProviders, isLoading: providersLoading } = useQuery<Provider[]>({
@@ -70,15 +75,15 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Find Perfect <span className="text-primary inline-block relative h-[1.2em] overflow-hidden align-baseline">
+              Find Perfect <span className="text-primary inline-block relative overflow-hidden" style={{ height: '1.2em', minWidth: '300px' }}>
                 <span 
-                  className="absolute transition-transform duration-500 ease-in-out"
+                  className="absolute left-0 top-0 transition-transform duration-500 ease-in-out w-full"
                   style={{ 
                     transform: `translateY(-${currentTypeIndex * 100}%)`,
                   }}
                 >
                   {childcareTypes.map((type, index) => (
-                    <span key={type} className="block h-[1.2em] leading-[1.2]">
+                    <span key={type} className="block whitespace-nowrap" style={{ height: '1.2em', lineHeight: '1.2' }}>
                       {type}
                     </span>
                   ))}
