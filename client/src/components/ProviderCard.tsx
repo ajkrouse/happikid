@@ -14,9 +14,10 @@ interface ProviderCardProps {
   provider: Provider;
   onViewDetails?: (provider: Provider) => void;
   onRequestInfo?: (provider: Provider) => void;
+  onAddToComparison?: (provider: Provider) => void;
 }
 
-export default function ProviderCard({ provider, onViewDetails, onRequestInfo }: ProviderCardProps) {
+export default function ProviderCard({ provider, onViewDetails, onRequestInfo, onAddToComparison }: ProviderCardProps) {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -166,11 +167,23 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo }:
             className="cursor-pointer hover:bg-gray-200"
             onClick={(e) => {
               e.stopPropagation();
-              const ageGroup = Math.floor(provider.ageRangeMin / 12);
-              setLocation(`/search?ageRange=${ageGroup}+`);
+              const ageInYears = Math.floor(provider.ageRangeMin / 12);
+              
+              let ageGroupValue;
+              if (ageInYears < 1) {
+                ageGroupValue = "infants";
+              } else if (ageInYears < 3) {
+                ageGroupValue = "toddlers";
+              } else if (ageInYears < 5) {
+                ageGroupValue = "preschool";
+              } else {
+                ageGroupValue = "school-age";
+              }
+              
+              setLocation(`/search?ageRange=${ageGroupValue}`);
             }}
           >
-            Ages {provider.ageRangeMin}-{provider.ageRangeMax}
+            Ages {Math.floor(provider.ageRangeMin / 12)}+
           </Badge>
           <Badge 
             className={`${getBoroughColor(provider.borough)} cursor-pointer hover:opacity-80`}
@@ -208,6 +221,18 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo }:
             )}
           </div>
           <div className="flex space-x-2">
+            {onAddToComparison && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToComparison(provider);
+                }}
+              >
+                Compare
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

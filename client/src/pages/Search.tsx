@@ -312,28 +312,13 @@ export default function SearchPage() {
                 : "space-y-6"
               }>
                 {providers.map((provider: Provider) => (
-                  <div key={provider.id} className="relative">
-                    <ProviderCard
-                      provider={provider}
-                      onViewDetails={handleProviderClick}
-                      onRequestInfo={handleRequestInfo}
-                    />
-                    
-                    {/* Quick action buttons */}
-                    <div className="absolute top-2 left-2 flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToComparison(provider);
-                        }}
-                        className="bg-white/90 hover:bg-white text-xs"
-                      >
-                        Compare
-                      </Button>
-                    </div>
-                  </div>
+                  <ProviderCard
+                    key={provider.id}
+                    provider={provider}
+                    onViewDetails={handleProviderClick}
+                    onRequestInfo={handleRequestInfo}
+                    onAddToComparison={handleAddToComparison}
+                  />
                 ))}
               </div>
             )}

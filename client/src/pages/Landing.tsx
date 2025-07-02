@@ -72,8 +72,20 @@ export default function Landing() {
 
   const handleAgeClick = (provider: Provider) => {
     // Navigate to search with age range filter based on the provider's min age
-    const ageGroup = Math.floor(provider.ageRangeMin / 12);
-    setLocation(`/search?ageRange=${ageGroup}+`);
+    const ageInYears = Math.floor(provider.ageRangeMin / 12);
+    
+    let ageGroupValue;
+    if (ageInYears < 1) {
+      ageGroupValue = "infants";
+    } else if (ageInYears < 3) {
+      ageGroupValue = "toddlers";
+    } else if (ageInYears < 5) {
+      ageGroupValue = "preschool";
+    } else {
+      ageGroupValue = "school-age";
+    }
+    
+    setLocation(`/search?ageRange=${ageGroupValue}`);
   };
 
   const handleTypeClick = (type: string) => {
@@ -83,6 +95,16 @@ export default function Landing() {
 
   const handleQuickFilter = (type: string) => {
     setLocation(`/search?type=${type}`);
+  };
+
+  const getTypeLabel = (type: string) => {
+    const labels = {
+      daycare: "Daycare",
+      afterschool: "After-School Program",
+      camp: "Summer Camp",
+      school: "Private School",
+    };
+    return labels[type as keyof typeof labels] || type;
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -361,7 +383,7 @@ export default function Landing() {
                           handleTypeClick(provider.type);
                         }}
                       >
-                        {provider.type}
+                        {getTypeLabel(provider.type)}
                       </Badge>
                       {provider.features?.slice(0, 2).map((feature) => (
                         <Badge 
