@@ -92,9 +92,9 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
           {[1, 2, 3, 4, 5].map((i) => (
             <span 
               key={i} 
-              className={`text-lg ${i <= dollarSigns ? 'text-gray-800' : 'text-gray-300'}`}
+              className={`text-lg font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
             >
-              💰
+              $
             </span>
           ))}
         </div>
@@ -229,7 +229,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                     : currentProvider.name.includes('Learning Experience') 
                     ? "1578662996442-48f60103fc96" // Learning activities
                     : currentProvider.name.includes('Little Sunshine') 
-                    ? "1578662996442-48f60103fc96" // Classroom setting
+                    ? "1571019613454-1cb2f99b2d8b" // Local daycare - warm environment
                     : currentProvider.name.includes('Montessori') 
                     ? "1503454537195-1dcabb73ffb9" // Educational materials
                     : currentProvider.name.includes('Bronx Academy') 

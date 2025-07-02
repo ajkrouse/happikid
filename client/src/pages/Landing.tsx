@@ -28,7 +28,7 @@ export default function Landing() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentTypeIndex, setCurrentTypeIndex] = useState(0);
   
-  const childcareTypes = ["Daycare", "After-School Program", "Camp", "Private School"];
+  const childcareTypes = ["Daycare", "After-School Program", "Summer Camp", "Private School"];
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -93,9 +93,9 @@ export default function Landing() {
         {[1, 2, 3, 4, 5].map((i) => (
           <span 
             key={i} 
-            className={`text-sm ${i <= dollarSigns ? 'text-gray-800' : 'text-gray-300'}`}
+            className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
           >
-            💰
+            $
           </span>
         ))}
       </div>
@@ -111,21 +111,25 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Find Perfect{" "}
-              <span className="text-primary inline-block relative overflow-hidden text-left" style={{ height: '1.2em', minWidth: '350px', verticalAlign: 'top' }}>
-                {childcareTypes.map((type, index) => (
-                  <span 
-                    key={type} 
-                    className={`absolute left-0 top-0 transition-opacity duration-300 ease-in-out ${
-                      index === currentTypeIndex ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    style={{ height: '1.2em', lineHeight: '1.2' }}
-                  >
-                    {type}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                  <span>Find The Perfect{" "}</span>
+                  <span className="text-primary inline-block relative overflow-hidden text-left ml-3" style={{ height: '1.2em', minWidth: '280px', verticalAlign: 'top' }}>
+                    {childcareTypes.map((type, index) => (
+                      <span 
+                        key={type} 
+                        className={`absolute left-0 top-0 transition-opacity duration-300 ease-in-out ${
+                          index === currentTypeIndex ? 'opacity-100' : 'opacity-0'
+                        }`}
+                        style={{ height: '1.2em', lineHeight: '1.2' }}
+                      >
+                        {type}
+                      </span>
+                    ))}
                   </span>
-                ))}
-              </span>
-              <br />for Your Family
+                </div>
+                <div>For Your Family</div>
+              </div>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
               Discover daycares, after-school programs, camps, and private schools in the NYC tri-state area. 
@@ -254,18 +258,18 @@ export default function Landing() {
                     <img
                       src={`https://images.unsplash.com/photo-${
                         provider.name.includes('Bright Horizons') 
-                          ? "1503454537195-1dcabb73ffb9" // Children playing
+                          ? "1503454537195-1dcabb73ffb9" // Premium daycare - colorful classroom
                           : provider.name.includes('Learning Experience') 
-                          ? "1578662996442-48f60103fc96" // Learning activities
+                          ? "1578662996442-48f60103fc96" // Educational franchise - learning activities
                           : provider.name.includes('Little Sunshine') 
-                          ? "1578662996442-48f60103fc96" // Classroom setting
+                          ? "1571019613454-1cb2f99b2d8b" // Local daycare - warm environment
                           : provider.name.includes('Montessori') 
-                          ? "1503454537195-1dcabb73ffb9" // Educational materials
+                          ? "1594736797933-d0501ba2fe65" // Montessori - organized learning materials
                           : provider.name.includes('Bronx Academy') 
-                          ? "1571019613454-1cb2f99b2d8b" // School building
+                          ? "1580582932447-ad4e4feba160" // After-school - study space
                           : provider.name.includes('Camp') 
-                          ? "1551632436-cbf8dd35adfa" // Summer activities
-                          : "1503454537195-1dcabb73ffb9" // Default children playing
+                          ? "1503454537195-1dcabb73ffb9" // Summer camp - outdoor fun
+                          : "1503454537195-1dcabb73ffb9" // Default
                       }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
                       alt={provider.name}
                       className="w-full h-full object-cover"
@@ -273,12 +277,12 @@ export default function Landing() {
                   </div>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold text-gray-900 mb-1">{provider.name}</h3>
-                    <p className="text-gray-600 text-sm mb-3">{provider.borough}, {provider.city}</p>
+                    <p className="text-gray-600 text-sm mb-3">{provider.borough}, NYC</p>
                     
                     <div className="flex items-center mb-3">
                       <div className="flex items-center mr-2">
                         {[...Array(5)].map((_, i) => (
-                          <span key={i} className={`text-yellow-400 ${i < Math.floor(provider.rating || 0) ? '★' : '☆'}`}>
+                          <span key={i} className={`${i < Math.floor(provider.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`}>
                             ★
                           </span>
                         ))}
