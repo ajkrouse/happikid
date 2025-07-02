@@ -110,23 +110,21 @@ export default function Landing() {
       <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 text-center">
-              <div className="flex flex-col items-center space-y-2">
-                <div className="flex items-center justify-center flex-wrap">
-                  <span className="mr-3">Find The Perfect</span>
-                  <span className="text-primary inline-block relative text-center" style={{ height: '1.2em', minWidth: '320px' }}>
-                    {childcareTypes.map((type, index) => (
-                      <span 
-                        key={type} 
-                        className={`absolute left-1/2 top-0 transform -translate-x-1/2 transition-opacity duration-300 ease-in-out whitespace-nowrap ${
-                          index === currentTypeIndex ? 'opacity-100' : 'opacity-0'
-                        }`}
-                        style={{ height: '1.2em', lineHeight: '1.2' }}
-                      >
-                        {type}
-                      </span>
-                    ))}
-                  </span>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 text-center">
+              <div className="flex flex-col items-center space-y-1">
+                <div>Find The Perfect</div>
+                <div className="text-primary relative text-center" style={{ height: '1.2em', minWidth: '280px' }}>
+                  {childcareTypes.map((type, index) => (
+                    <span 
+                      key={type} 
+                      className={`absolute left-1/2 top-0 transform -translate-x-1/2 transition-opacity duration-300 ease-in-out whitespace-nowrap ${
+                        index === currentTypeIndex ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      style={{ height: '1.2em', lineHeight: '1.2' }}
+                    >
+                      {type}
+                    </span>
+                  ))}
                 </div>
                 <div>For Your Family</div>
               </div>
@@ -264,11 +262,11 @@ export default function Landing() {
                           : provider.name.includes('Little Sunshine') 
                           ? "1571019613454-1cb2f99b2d8b" // Happy children - warm local daycare
                           : provider.name.includes('Montessori') 
-                          ? "1503454537195-1dcabb73ffb9" // Kids with educational materials - montessori style
+                          ? "1594736797933-d0501ba2fe65" // Kids with educational materials - montessori style
                           : provider.name.includes('Bronx Academy') 
-                          ? "1578662996442-48f60103fc96" // Children studying - after school program
+                          ? "1580582932447-ad4e4feba160" // Children studying - after school program
                           : provider.name.includes('Camp') 
-                          ? "1503454537195-1dcabb73ffb9" // Kids outdoor activities - summer camp
+                          ? "1554994751-2dff3f5b51e1" // Kids outdoor activities - summer camp
                           : "1503454537195-1dcabb73ffb9" // Default kids playing
                       }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
                       alt={provider.name}
@@ -291,7 +289,7 @@ export default function Landing() {
                           } else if (i === fullStars && partialStar > 0) {
                             return (
                               <span key={i} className="relative">
-                                <span className="text-gray-300">★</span>
+                                <span className="text-gray-500">★</span>
                                 <span 
                                   className="absolute left-0 top-0 text-yellow-400 overflow-hidden"
                                   style={{ width: `${partialStar * 100}%` }}
@@ -301,7 +299,7 @@ export default function Landing() {
                               </span>
                             );
                           } else {
-                            return <span key={i} className="text-gray-300">★</span>;
+                            return <span key={i} className="text-gray-500">★</span>;
                           }
                         })}
                       </div>
