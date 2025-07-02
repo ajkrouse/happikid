@@ -89,13 +89,13 @@ export default function Landing() {
     
     const dollarSigns = getCostLevel(provider);
     return (
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((i) => (
           <span 
             key={i} 
-            className={`text-xl font-bold ${i <= dollarSigns ? 'text-gray-900' : 'text-gray-300'}`}
+            className={`text-sm ${i <= dollarSigns ? 'text-gray-800' : 'text-gray-300'}`}
           >
-            $
+            💰
           </span>
         ))}
       </div>
@@ -113,18 +113,17 @@ export default function Landing() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Find Perfect{" "}
               <span className="text-primary inline-block relative overflow-hidden text-left" style={{ height: '1.2em', minWidth: '350px', verticalAlign: 'top' }}>
-                <span 
-                  className="absolute left-0 top-0 transition-transform duration-500 ease-in-out"
-                  style={{ 
-                    transform: `translateY(-${currentTypeIndex * 100}%)`,
-                  }}
-                >
-                  {childcareTypes.map((type, index) => (
-                    <span key={type} className="block whitespace-nowrap text-left" style={{ height: '1.2em', lineHeight: '1.2' }}>
-                      {type}
-                    </span>
-                  ))}
-                </span>
+                {childcareTypes.map((type, index) => (
+                  <span 
+                    key={type} 
+                    className={`absolute left-0 top-0 transition-opacity duration-300 ease-in-out ${
+                      index === currentTypeIndex ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    style={{ height: '1.2em', lineHeight: '1.2' }}
+                  >
+                    {type}
+                  </span>
+                ))}
               </span>
               <br />for Your Family
             </h1>
@@ -257,11 +256,11 @@ export default function Landing() {
                         provider.name.includes('Bright Horizons') 
                           ? "1503454537195-1dcabb73ffb9" // Children playing
                           : provider.name.includes('Learning Experience') 
-                          ? "1509062522261-04b8acb0f830" // Learning activities
+                          ? "1578662996442-48f60103fc96" // Learning activities
                           : provider.name.includes('Little Sunshine') 
                           ? "1578662996442-48f60103fc96" // Classroom setting
                           : provider.name.includes('Montessori') 
-                          ? "1497486238291-00e5a4c6e7c8" // Educational materials
+                          ? "1503454537195-1dcabb73ffb9" // Educational materials
                           : provider.name.includes('Bronx Academy') 
                           ? "1571019613454-1cb2f99b2d8b" // School building
                           : provider.name.includes('Camp') 

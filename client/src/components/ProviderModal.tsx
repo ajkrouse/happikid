@@ -88,17 +88,17 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     const dollarSigns = getCostLevel(provider);
     return (
       <>
-        <div className="flex items-center justify-center gap-1 mb-2">
+        <div className="flex items-center justify-center gap-0.5 mb-2">
           {[1, 2, 3, 4, 5].map((i) => (
             <span 
               key={i} 
-              className={`text-2xl font-bold ${i <= dollarSigns ? 'text-gray-900' : 'text-gray-300'}`}
+              className={`text-lg ${i <= dollarSigns ? 'text-gray-800' : 'text-gray-300'}`}
             >
-              $
+              💰
             </span>
           ))}
         </div>
-        <div className="text-gray-600 text-sm">relative cost</div>
+        <div className="text-gray-600 text-sm">cost level</div>
       </>
     );
   };
@@ -227,11 +227,11 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                   currentProvider.name.includes('Bright Horizons') 
                     ? "1503454537195-1dcabb73ffb9" // Children playing
                     : currentProvider.name.includes('Learning Experience') 
-                    ? "1509062522261-04b8acb0f830" // Learning activities
+                    ? "1578662996442-48f60103fc96" // Learning activities
                     : currentProvider.name.includes('Little Sunshine') 
                     ? "1578662996442-48f60103fc96" // Classroom setting
                     : currentProvider.name.includes('Montessori') 
-                    ? "1497486238291-00e5a4c6e7c8" // Educational materials
+                    ? "1503454537195-1dcabb73ffb9" // Educational materials
                     : currentProvider.name.includes('Bronx Academy') 
                     ? "1571019613454-1cb2f99b2d8b" // School building
                     : currentProvider.name.includes('Camp') 
