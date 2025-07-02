@@ -45,12 +45,29 @@ export default function SearchPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const q = urlParams.get('q');
     const type = urlParams.get('type');
+    const features = urlParams.get('features');
+    const cost = urlParams.get('cost');
     
     if (q) {
       setSearchQuery(q);
     }
     if (type) {
       setFilters(prev => ({ ...prev, type }));
+    }
+    if (features) {
+      // Split features by comma and set as array
+      setFilters(prev => ({ ...prev, features: features.split(',') }));
+    }
+    if (cost) {
+      // Map cost level to price range
+      const costToPrice: { [key: string]: string } = {
+        '1': '0-1000',
+        '2': '1000-2000', 
+        '3': '2000-3000',
+        '4': '3000+',
+        '5': '3000+'
+      };
+      setFilters(prev => ({ ...prev, priceRange: costToPrice[cost] }));
     }
   }, []);
 
@@ -60,7 +77,8 @@ export default function SearchPage() {
       search: searchQuery,
       type: filters.type,
       borough: filters.borough,
-      // Convert age range and price range to query params
+      features: filters.features?.join(','),
+      priceRange: filters.priceRange,
       limit: 20,
       offset: 0,
     }],

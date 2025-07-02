@@ -49,9 +49,9 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Refine Your Search</CardTitle>
-          <div className="w-20">
+          <div className="w-20 h-8 flex items-center justify-end">
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={onClearFilters} className="w-full">
+              <Button variant="ghost" size="sm" onClick={onClearFilters} className="text-xs px-2 py-1 h-6">
                 Clear All
               </Button>
             )}
@@ -158,14 +158,30 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
           </Label>
           <div className="space-y-3">
             {[
-              "Organic Meals",
-              "Bilingual Program", 
-              "Extended Hours",
-              "Outdoor Playground",
-              "Transportation",
-              "Music Program",
-              "Art Classes",
-              "Swimming Pool",
+              "Interactive whiteboards",
+              "Coding for kids",
+              "Yoga",
+              "Language immersion",
+              "Art studio",
+              "Reggio Emilia approach",
+              "Indoor playground",
+              "Healthy meals",
+              "Music & movement",
+              "Science lab",
+              "Homework help",
+              "STEM projects",
+              "Sports activities",
+              "Art programs",
+              "Field trips",
+              "Swimming pool",
+              "Sports courts",
+              "Nature trails",
+              "Arts & crafts",
+              "Montessori method",
+              "Mixed-age classrooms",
+              "Outdoor learning",
+              "Foreign language",
+              "Music program",
             ].map((feature) => (
               <div key={feature} className="flex items-center space-x-2">
                 <Checkbox

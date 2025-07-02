@@ -206,6 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         borough,
         ageRangeMin,
         ageRangeMax,
+        features,
         search,
         limit = 20,
         offset = 0
@@ -216,6 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         borough: borough as string,
         ageRangeMin: ageRangeMin ? parseInt(ageRangeMin as string) : undefined,
         ageRangeMax: ageRangeMax ? parseInt(ageRangeMax as string) : undefined,
+        features: features ? (features as string).split(',') : undefined,
         search: search as string,
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),

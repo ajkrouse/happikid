@@ -18,7 +18,7 @@ import {
   type InsertProviderImage,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, sql, like, inArray } from "drizzle-orm";
+import { eq, and, or, desc, asc, sql, like, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -118,6 +118,14 @@ export class DatabaseStorage implements IStorage {
 
     if (filters?.ageRangeMax !== undefined) {
       conditions.push(sql`${providers.ageRangeMin} <= ${filters.ageRangeMax}`);
+    }
+
+    if (filters?.features && filters.features.length > 0) {
+      // Check if any of the requested features exist in the provider's features array
+      const featureConditions = filters.features.map(feature => 
+        sql`${providers.features} @> ${JSON.stringify([feature])}`
+      );
+      conditions.push(or(...featureConditions));
     }
 
     let query = db
