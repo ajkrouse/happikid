@@ -136,7 +136,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             <h3 className="text-xl font-semibold text-gray-900 mb-1">{provider.name}</h3>
             <p className="text-gray-600 flex items-center text-sm">
               <MapPin className="h-4 w-4 mr-1" />
-              {provider.borough}, {provider.city}
+              {provider.borough}, {provider.city === provider.borough ? 'NYC' : provider.city}
             </p>
           </div>
         </div>
