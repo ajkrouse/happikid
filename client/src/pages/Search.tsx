@@ -368,6 +368,7 @@ export default function SearchPage() {
         isOpen={showComparisonModal}
         onClose={() => setShowComparisonModal(false)}
         onSelectProvider={handleSelectProvider}
+        onRemoveProvider={handleRemoveFromComparison}
       />
     </div>
   );
