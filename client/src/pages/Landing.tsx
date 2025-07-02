@@ -258,7 +258,7 @@ export default function Landing() {
                         provider.name.includes('Bright Horizons') 
                           ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children in modern daycare
                           : provider.name.includes('Learning Experience') 
-                          ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children learning activities
+                          ? "https://images.pexels.com/photos/8613102/pexels-photo-8613102.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children educational learning
                           : provider.name.includes('Little Sunshine') 
                           ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Happy children playing
                           : provider.name.includes('Montessori') 
