@@ -110,7 +110,7 @@ export default function Landing() {
       <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 text-center">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 text-center">
               <div className="flex flex-col items-center space-y-1">
                 <div>Find The Perfect</div>
                 <div className="text-primary relative text-center" style={{ height: '1.2em', minWidth: '280px' }}>
@@ -256,18 +256,18 @@ export default function Landing() {
                     <img
                       src={`https://images.unsplash.com/photo-${
                         provider.name.includes('Bright Horizons') 
-                          ? "1503454537195-1dcabb73ffb9" // Kids playing together - premium daycare
+                          ? "1577036897019-86bd8a9ec2b0" // Bright modern daycare classroom
                           : provider.name.includes('Learning Experience') 
-                          ? "1578662996442-48f60103fc96" // Children learning activities - educational focus
+                          ? "1571019613454-1cb2f99b2d8b" // Children learning with books and materials
                           : provider.name.includes('Little Sunshine') 
-                          ? "1571019613454-1cb2f99b2d8b" // Happy children - warm local daycare
+                          ? "1503454537195-1dcabb73ffb9" // Happy young children playing
                           : provider.name.includes('Montessori') 
-                          ? "1594736797933-d0501ba2fe65" // Kids with educational materials - montessori style
+                          ? "1580582932447-ad4e4feba160" // Montessori wooden learning materials
                           : provider.name.includes('Bronx Academy') 
-                          ? "1580582932447-ad4e4feba160" // Children studying - after school program
+                          ? "1554994751-2dff3f5b51e1" // After school homework time
                           : provider.name.includes('Camp') 
-                          ? "1554994751-2dff3f5b51e1" // Kids outdoor activities - summer camp
-                          : "1503454537195-1dcabb73ffb9" // Default kids playing
+                          ? "1578662996442-48f60103fc96" // Summer camp outdoor activities
+                          : "1503454537195-1dcabb73ffb9" // Default children playing
                       }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
                       alt={provider.name}
                       className="w-full h-full object-cover"
