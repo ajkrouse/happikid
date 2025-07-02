@@ -262,11 +262,11 @@ export default function Landing() {
                           : provider.name.includes('Little Sunshine') 
                           ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Happy children playing
                           : provider.name.includes('Montessori') 
-                          ? "https://images.pexels.com/photos/8613087/pexels-photo-8613087.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children with educational materials
+                          ? "https://images.pexels.com/photos/8613106/pexels-photo-8613106.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children with Montessori materials
                           : provider.name.includes('Bronx Academy') 
-                          ? "https://images.pexels.com/photos/8613225/pexels-photo-8613225.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children studying together
+                          ? "https://images.pexels.com/photos/8613090/pexels-photo-8613090.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children after school learning
                           : provider.name.includes('Camp') 
-                          ? "https://images.pexels.com/photos/8613264/pexels-photo-8613264.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children outdoor activities
+                          ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children summer camp activities
                           : "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Default children
                       }
                       alt={provider.name}
