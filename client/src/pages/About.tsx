@@ -203,7 +203,7 @@ export default function About() {
             <Button 
               size="lg" 
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-primary"
+              className="border-primary text-primary bg-white hover:bg-primary hover:text-white"
               onClick={() => window.location.href = "/dashboard"}
             >
               List Your Program

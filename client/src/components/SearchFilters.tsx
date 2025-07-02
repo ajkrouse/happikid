@@ -49,11 +49,13 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Refine Your Search</CardTitle>
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={onClearFilters}>
-              Clear All
-            </Button>
-          )}
+          <div className="w-20">
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={onClearFilters} className="w-full">
+                Clear All
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

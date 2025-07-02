@@ -271,7 +271,10 @@ export default function Landing() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {featuredProviders?.map((provider, index) => (
                 <Card key={provider.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-                  <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
+                  <div 
+                    className="aspect-[4/3] relative overflow-hidden rounded-t-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => handleViewDetails(provider)}
+                  >
                     <img
                       src={
                         provider.name.includes('Bright Horizons') 
