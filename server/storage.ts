@@ -122,8 +122,9 @@ export class DatabaseStorage implements IStorage {
 
     if (filters?.features && filters.features.length > 0) {
       // Check if any of the requested features exist in the provider's features array
+      // Convert array to text and use LIKE for simple containment check
       const featureConditions = filters.features.map(feature => 
-        sql`${providers.features} @> ${JSON.stringify([feature])}`
+        sql`array_to_string(${providers.features}, ',') ILIKE ${`%${feature}%`}`
       );
       conditions.push(or(...featureConditions));
     }

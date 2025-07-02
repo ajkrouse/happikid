@@ -94,23 +94,21 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo }:
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onViewDetails?.(provider)}>
       <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
         <img
-          src={`https://images.unsplash.com/photo-${
+          src={
             provider.name.includes('Bright Horizons') 
-              ? "1544377193-33dcf4d68fb5" // Bright modern daycare
+              ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children in modern daycare
               : provider.name.includes('Learning Experience') 
-              ? "1503454537195-1dcabb73ffb9" // Learning classroom
+              ? "https://images.pexels.com/photos/8613097/pexels-photo-8613097.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children in classroom setting
               : provider.name.includes('Little Sunshine') 
-              ? "1471286174890-9c112511cf19" // Sunny children's space
+              ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Happy children playing
               : provider.name.includes('Montessori') 
-              ? "1578662996442-48f60103fc96" // Montessori materials
+              ? "https://images.pexels.com/photos/8613106/pexels-photo-8613106.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children with Montessori materials
+              : provider.name.includes('Bronx Academy') 
+              ? "https://images.pexels.com/photos/8613090/pexels-photo-8613090.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children after school learning
               : provider.name.includes('Camp') 
-              ? "1517457373958-4da2339cb0c1" // Outdoor activities
-              : provider.name.includes('Private School') || provider.name.includes('School')
-              ? "1498050108023-c5d6c8987976" // Private school
-              : provider.type === 'afterschool'
-              ? "1517457373958-4da2339cb0c1" // After school
-              : "1503454537195-1dcabb73ffb9" // Default classroom
-          }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
+              ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children summer camp activities
+              : "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Default children
+          }
           alt={provider.name}
           className="w-full h-full object-cover"
         />

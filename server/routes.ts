@@ -223,6 +223,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         offset: parseInt(offset as string),
       };
 
+      // Debug logging
+      if (filters.features && filters.features.length > 0) {
+        console.log('Filtering by features:', filters.features);
+      }
+
       const providers = await storage.getProviders(filters);
       res.json(providers);
     } catch (error) {
