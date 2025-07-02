@@ -263,9 +263,30 @@ export default function ComparisonModal({
     const engagementLevel = Math.min(usedExamples.length, 4);
     const maxExamples = baseCount + engagementLevel * 3;
     
-    return allPriorityExamples
-      .filter(example => !usedExamples.includes(example))
-      .slice(0, maxExamples);
+    // Filter out examples that are currently in the priorities text
+    const currentPriorities = preferences.priorities.toLowerCase();
+    const availableExamples = allPriorityExamples.filter(example => 
+      !currentPriorities.includes(example.toLowerCase())
+    );
+    
+    return availableExamples.slice(0, maxExamples);
+  };
+
+  // Track when priorities are cleared and add back to examples
+  const handlePriorityChange = (value: string) => {
+    const previousPriorities = preferences.priorities.toLowerCase();
+    const newPriorities = value.toLowerCase();
+    
+    // Check if any priorities were removed
+    usedExamples.forEach(example => {
+      if (previousPriorities.includes(example.toLowerCase()) && 
+          !newPriorities.includes(example.toLowerCase())) {
+        // This example was removed, take it out of usedExamples
+        setUsedExamples(prev => prev.filter(used => used !== example));
+      }
+    });
+    
+    setPreferences(prev => ({ ...prev, priorities: value }));
   };
 
   const getDataSourceIcon = (source: string) => {
@@ -287,10 +308,13 @@ export default function ComparisonModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto" aria-describedby="comparison-description">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold">Compare Providers</DialogTitle>
+            <p id="comparison-description" className="sr-only">
+              Compare childcare providers side by side with personalized match scores and detailed criteria analysis.
+            </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleShareComparison}>
                 <Share2 className="h-4 w-4 mr-2" />
@@ -329,7 +353,7 @@ export default function ComparisonModal({
                     id="priorities"
                     placeholder="e.g., Small class sizes, late pickup hours, STEM curriculum, close to subway, outdoor playground, vegetarian meals..."
                     value={preferences.priorities}
-                    onChange={(e) => setPreferences(prev => ({ ...prev, priorities: e.target.value }))}
+                    onChange={(e) => handlePriorityChange(e.target.value)}
                     className={`mt-1 transition-all duration-200 ${
                       !preferences.priorities 
                         ? 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-200' 
@@ -337,46 +361,47 @@ export default function ComparisonModal({
                     }`}
                     rows={3}
                   />
-                  {preferences.priorities && (
+                  
+                  {/* Status message */}
+                  {preferences.priorities ? (
                     <div className="text-xs text-green-600 flex items-center">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Great! Now you'll see personalized match scores above.
                     </div>
-                  )}
-                  {!preferences.priorities && (
-                    <div className="space-y-2">
-                      <div className="text-xs text-gray-500 flex items-center">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        The more specific you are, the better we can match you with providers.
-                      </div>
-                      <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                        <div className="text-xs font-medium text-blue-800 mb-1">
-                          Try these examples {usedExamples.length > 0 && `(${getAvailableExamples().length} more unlocked)`}:
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {getAvailableExamples().map((example) => (
-                            <button
-                              key={example}
-                              onClick={() => {
-                                const current = preferences.priorities;
-                                const newValue = current ? `${current}, ${example}` : example;
-                                setPreferences(prev => ({ ...prev, priorities: newValue }));
-                                setUsedExamples(prev => [...prev, example]);
-                              }}
-                              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
-                            >
-                              + {example}
-                            </button>
-                          ))}
-                        </div>
-                        {usedExamples.length > 0 && (
-                          <div className="mt-2 text-xs text-blue-600">
-                            💡 Keep adding priorities to unlock more specialized options!
-                          </div>
-                        )}
-                      </div>
+                  ) : (
+                    <div className="text-xs text-gray-500 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      The more specific you are, the better we can match you with providers.
                     </div>
                   )}
+                  
+                  {/* Persistent Priority Examples */}
+                  <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-2">
+                    <div className="text-xs font-medium text-blue-800 mb-1">
+                      Try these examples {usedExamples.length > 0 && `(${getAvailableExamples().length} more unlocked)`}:
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {getAvailableExamples().map((example) => (
+                        <button
+                          key={example}
+                          onClick={() => {
+                            const current = preferences.priorities;
+                            const newValue = current ? `${current}, ${example}` : example;
+                            setPreferences(prev => ({ ...prev, priorities: newValue }));
+                            setUsedExamples(prev => [...prev, example]);
+                          }}
+                          className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
+                        >
+                          + {example}
+                        </button>
+                      ))}
+                    </div>
+                    {usedExamples.length > 0 && (
+                      <div className="mt-2 text-xs text-blue-600">
+                        💡 Keep adding priorities to unlock more specialized options!
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="space-y-4">
@@ -433,28 +458,29 @@ export default function ComparisonModal({
           </Card>
         )}
 
+        {/* Data Source Legend */}
+        <div className="bg-gray-50 rounded p-2 mb-4">
+          <div className="text-xs font-medium text-gray-600 mb-1">Data Sources:</div>
+          <div className="flex items-center space-x-4 text-xs">
+            <div className="flex items-center">
+              <Home className="h-3 w-3 text-blue-600 mr-1" />
+              <span className="text-gray-600">Provider Info</span>
+            </div>
+            <div className="flex items-center">
+              <Shield className="h-3 w-3 text-green-600 mr-1" />
+              <span className="text-gray-600">Public Records</span>
+            </div>
+            <div className="flex items-center">
+              <Star className="h-3 w-3 text-purple-600 mr-1" />
+              <span className="text-gray-600">Parent Reviews</span>
+            </div>
+          </div>
+        </div>
+
         {/* Provider Header Row */}
         <div className="grid grid-cols-12 gap-4 mb-4">
           <div className="col-span-3">
-            <h4 className="font-semibold text-gray-700 mb-2">Criteria</h4>
-            {/* Data Source Legend */}
-            <div className="bg-gray-50 rounded p-2">
-              <div className="text-xs font-medium text-gray-600 mb-1">Data Sources:</div>
-              <div className="space-y-1 text-xs">
-                <div className="flex items-center">
-                  <Home className="h-3 w-3 text-blue-600 mr-1" />
-                  <span className="text-gray-600">Provider Info</span>
-                </div>
-                <div className="flex items-center">
-                  <Shield className="h-3 w-3 text-green-600 mr-1" />
-                  <span className="text-gray-600">Public Records</span>
-                </div>
-                <div className="flex items-center">
-                  <Star className="h-3 w-3 text-purple-600 mr-1" />
-                  <span className="text-gray-600">Parent Reviews</span>
-                </div>
-              </div>
-            </div>
+            <h4 className="font-semibold text-gray-700">Criteria</h4>
           </div>
           {sortedProviders.map((provider) => {
             const fitScore = calculateFitScore(provider);
