@@ -129,19 +129,13 @@ export class DatabaseStorage implements IStorage {
       conditions.push(or(...featureConditions));
     }
 
-    let query = db
+    const query = db
       .select()
       .from(providers)
       .where(and(...conditions))
-      .orderBy(desc(providers.rating), desc(providers.reviewCount));
-
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
-    }
-
-    if (filters?.offset) {
-      query = query.offset(filters.offset);
-    }
+      .orderBy(desc(providers.rating), desc(providers.reviewCount))
+      .limit(filters?.limit || 20)
+      .offset(filters?.offset || 0);
 
     return await query;
   }

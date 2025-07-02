@@ -81,6 +81,7 @@ export default function SearchPage() {
       search: searchQuery,
       type: filters.type,
       borough: filters.borough,
+      ageRange: filters.ageRange, // Send age range to backend
       features: filters.features?.join(','),
       priceRange: filters.priceRange,
       limit: 20,

@@ -204,6 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const {
         type,
         borough,
+        ageRange,
         ageRangeMin,
         ageRangeMax,
         features,
@@ -212,11 +213,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         offset = 0
       } = req.query;
 
+      // Convert age group strings to numeric ranges (in months)
+      let convertedAgeRangeMin = ageRangeMin ? parseInt(ageRangeMin as string) : undefined;
+      let convertedAgeRangeMax = ageRangeMax ? parseInt(ageRangeMax as string) : undefined;
+
+      if (ageRange) {
+        const ageGroupMap: { [key: string]: [number, number] } = {
+          'infants': [0, 12],      // 0-12 months
+          'toddlers': [12, 36],    // 1-3 years
+          'preschool': [36, 60],   // 3-5 years
+          'school-age': [60, 180]  // 5+ years
+        };
+        
+        const ageGroup = ageGroupMap[ageRange as string];
+        if (ageGroup) {
+          convertedAgeRangeMin = ageGroup[0];
+          convertedAgeRangeMax = ageGroup[1];
+        }
+      }
+
       const filters = {
         type: type as string,
         borough: borough as string,
-        ageRangeMin: ageRangeMin ? parseInt(ageRangeMin as string) : undefined,
-        ageRangeMax: ageRangeMax ? parseInt(ageRangeMax as string) : undefined,
+        ageRangeMin: convertedAgeRangeMin,
+        ageRangeMax: convertedAgeRangeMax,
         features: features ? (features as string).split(',') : undefined,
         search: search as string,
         limit: parseInt(limit as string),
@@ -224,9 +244,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Debug logging
-      if (filters.features && filters.features.length > 0) {
-        console.log('Filtering by features:', filters.features);
-      }
+      console.log('Provider filters received:', {
+        type: filters.type,
+        borough: filters.borough,
+        ageRangeMin: filters.ageRangeMin,
+        ageRangeMax: filters.ageRangeMax,
+        features: filters.features,
+        search: filters.search,
+        originalAgeRange: ageRange
+      });
 
       const providers = await storage.getProviders(filters);
       res.json(providers);
