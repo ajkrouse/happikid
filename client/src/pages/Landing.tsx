@@ -254,21 +254,21 @@ export default function Landing() {
                 <Card key={provider.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                   <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
                     <img
-                      src={`https://images.unsplash.com/photo-${
+                      src={
                         provider.name.includes('Bright Horizons') 
-                          ? "1577036897019-86bd8a9ec2b0" // Bright modern daycare classroom
+                          ? "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Daycare classroom
                           : provider.name.includes('Learning Experience') 
-                          ? "1571019613454-1cb2f99b2d8b" // Children learning with books and materials
+                          ? "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Children learning
                           : provider.name.includes('Little Sunshine') 
-                          ? "1503454537195-1dcabb73ffb9" // Happy young children playing
+                          ? "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Happy children
                           : provider.name.includes('Montessori') 
-                          ? "1580582932447-ad4e4feba160" // Montessori wooden learning materials
+                          ? "https://images.unsplash.com/photo-1580582932447-ad4e4feba160?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Educational materials
                           : provider.name.includes('Bronx Academy') 
-                          ? "1554994751-2dff3f5b51e1" // After school homework time
+                          ? "https://images.unsplash.com/photo-1554994751-2dff3f5b51e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // After school
                           : provider.name.includes('Camp') 
-                          ? "1578662996442-48f60103fc96" // Summer camp outdoor activities
-                          : "1503454537195-1dcabb73ffb9" // Default children playing
-                      }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
+                          ? "https://images.unsplash.com/photo-1577036897019-86bd8a9ec2b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Summer camp
+                          : "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Default
+                      }
                       alt={provider.name}
                       className="w-full h-full object-cover"
                     />
