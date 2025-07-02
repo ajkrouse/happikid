@@ -254,21 +254,21 @@ export default function Landing() {
                 <Card key={provider.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                   <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
                     <img
-                      src={
+                      src={`https://picsum.photos/600/400?random=${
                         provider.name.includes('Bright Horizons') 
-                          ? "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Children playing in daycare
+                          ? "1" // Daycare environment
                           : provider.name.includes('Learning Experience') 
-                          ? "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Children learning together
+                          ? "2" // Learning activities
                           : provider.name.includes('Little Sunshine') 
-                          ? "https://images.unsplash.com/photo-1616400619175-5beda3a17896?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Happy young children playing
+                          ? "3" // Playful environment
                           : provider.name.includes('Montessori') 
-                          ? "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Children with educational materials
+                          ? "4" // Educational setting
                           : provider.name.includes('Bronx Academy') 
-                          ? "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Children studying after school
+                          ? "5" // After school
                           : provider.name.includes('Camp') 
-                          ? "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Children at summer camp
-                          : "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Default children
-                      }
+                          ? "6" // Summer camp
+                          : "7" // Default
+                      }`}
                       alt={provider.name}
                       className="w-full h-full object-cover"
                     />
