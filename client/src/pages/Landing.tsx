@@ -254,21 +254,21 @@ export default function Landing() {
                 <Card key={provider.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                   <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
                     <img
-                      src={`https://picsum.photos/600/400?random=${
+                      src={
                         provider.name.includes('Bright Horizons') 
-                          ? "1" // Daycare environment
+                          ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children in modern daycare
                           : provider.name.includes('Learning Experience') 
-                          ? "2" // Learning activities
+                          ? "https://images.pexels.com/photos/8613102/pexels-photo-8613102.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children learning activities
                           : provider.name.includes('Little Sunshine') 
-                          ? "3" // Playful environment
+                          ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Happy children playing
                           : provider.name.includes('Montessori') 
-                          ? "4" // Educational setting
+                          ? "https://images.pexels.com/photos/8613087/pexels-photo-8613087.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children with educational materials
                           : provider.name.includes('Bronx Academy') 
-                          ? "5" // After school
+                          ? "https://images.pexels.com/photos/8613225/pexels-photo-8613225.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children studying together
                           : provider.name.includes('Camp') 
-                          ? "6" // Summer camp
-                          : "7" // Default
-                      }`}
+                          ? "https://images.pexels.com/photos/8613264/pexels-photo-8613264.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children outdoor activities
+                          : "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Default children
+                      }
                       alt={provider.name}
                       className="w-full h-full object-cover"
                     />
