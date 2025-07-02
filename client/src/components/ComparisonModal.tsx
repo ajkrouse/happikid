@@ -243,17 +243,20 @@ export default function ComparisonModal({
     navigator.clipboard.writeText(shareUrl);
   };
 
-  const getDataSourceBadge = (source: string) => {
-    const badges = {
-      provider: { label: 'Provider', className: 'bg-blue-100 text-blue-800' },
-      public: { label: 'Public Data', className: 'bg-green-100 text-green-800' },
-      reviews: { label: 'Reviews', className: 'bg-purple-100 text-purple-800' }
+  const getDataSourceIcon = (source: string) => {
+    const sources = {
+      provider: { icon: Home, className: 'text-blue-600', tooltip: 'Information provided by the childcare provider' },
+      public: { icon: Shield, className: 'text-green-600', tooltip: 'Verified through public records and licensing data' },
+      reviews: { icon: Star, className: 'text-purple-600', tooltip: 'Based on parent reviews and ratings' }
     };
-    const badge = badges[source as keyof typeof badges];
+    const sourceInfo = sources[source as keyof typeof sources];
     return (
-      <Badge className={`text-xs ${badge.className}`}>
-        {badge.label}
-      </Badge>
+      <div className="group relative">
+        <sourceInfo.icon className={`h-3 w-3 ${sourceInfo.className}`} />
+        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+          {sourceInfo.tooltip}
+        </div>
+      </div>
     );
   };
 
@@ -278,23 +281,75 @@ export default function ComparisonModal({
 
         {/* Preferences Panel */}
         {showPreferencesPanel && (
-          <Card className="mb-6 border-l-4 border-l-blue-500">
+          <Card className="mb-6 border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-purple-50">
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Heart className="h-5 w-5 mr-2 text-red-500" />
-                What matters most to you?
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <Heart className="h-5 w-5 mr-2 text-red-500" />
+                  What matters most to you?
+                </h3>
+                {!preferences.priorities && (
+                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 animate-pulse">
+                    💡 Share your priorities to see match rates!
+                  </Badge>
+                )}
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="priorities">Tell us your priorities</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="priorities" className="text-sm font-medium">
+                    Tell us your priorities to get personalized match scores
+                  </Label>
                   <Textarea
                     id="priorities"
-                    placeholder="e.g., Small class sizes, late pickup, STEM focus, close to home..."
+                    placeholder="e.g., Small class sizes, late pickup hours, STEM curriculum, close to subway, outdoor playground, vegetarian meals..."
                     value={preferences.priorities}
                     onChange={(e) => setPreferences(prev => ({ ...prev, priorities: e.target.value }))}
-                    className="mt-1"
+                    className={`mt-1 transition-all duration-200 ${
+                      !preferences.priorities 
+                        ? 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-200' 
+                        : 'border-green-300 focus:border-green-500 focus:ring-green-200'
+                    }`}
+                    rows={3}
                   />
+                  {preferences.priorities && (
+                    <div className="text-xs text-green-600 flex items-center">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Great! Now you'll see personalized match scores above.
+                    </div>
+                  )}
+                  {!preferences.priorities && (
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-500 flex items-center">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        The more specific you are, the better we can match you with providers.
+                      </div>
+                      <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                        <div className="text-xs font-medium text-blue-800 mb-1">Try these examples:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {[
+                            "small class sizes",
+                            "late pickup hours",
+                            "STEM curriculum",
+                            "outdoor playground",
+                            "near subway"
+                          ].map((example) => (
+                            <button
+                              key={example}
+                              onClick={() => {
+                                const current = preferences.priorities;
+                                const newValue = current ? `${current}, ${example}` : example;
+                                setPreferences(prev => ({ ...prev, priorities: newValue }));
+                              }}
+                              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
+                            >
+                              + {example}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-4">
@@ -350,6 +405,27 @@ export default function ComparisonModal({
             </CardContent>
           </Card>
         )}
+
+        {/* Data Source Legend */}
+        <div className="bg-gray-50 rounded-lg p-3 mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700">Data Sources:</span>
+            <div className="flex items-center space-x-4 text-xs">
+              <div className="flex items-center">
+                <Home className="h-3 w-3 text-blue-600 mr-1" />
+                <span className="text-gray-600">Provider Info</span>
+              </div>
+              <div className="flex items-center">
+                <Shield className="h-3 w-3 text-green-600 mr-1" />
+                <span className="text-gray-600">Public Records</span>
+              </div>
+              <div className="flex items-center">
+                <Star className="h-3 w-3 text-purple-600 mr-1" />
+                <span className="text-gray-600">Parent Reviews</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Provider Header Row */}
         <div className="grid grid-cols-12 gap-4 mb-4">
@@ -416,10 +492,12 @@ export default function ComparisonModal({
                   : 'hover:bg-gray-50'
               }`}
             >
-              <div className="col-span-3 flex items-center">
-                <attr.icon className="h-4 w-4 mr-2 text-gray-600" />
-                <span className="font-medium text-gray-700">{attr.label}</span>
-                {getDataSourceBadge(attr.dataSource)}
+              <div className="col-span-3 flex items-center justify-between">
+                <div className="flex items-center">
+                  <attr.icon className="h-4 w-4 mr-2 text-gray-600" />
+                  <span className="font-medium text-gray-700">{attr.label}</span>
+                </div>
+                {getDataSourceIcon(attr.dataSource)}
               </div>
               
               {sortedProviders.map((provider) => (
@@ -439,10 +517,12 @@ export default function ComparisonModal({
 
         {/* Features Row */}
         <div className="grid grid-cols-12 gap-4 py-3 px-2 bg-gray-50 rounded-lg mt-4">
-          <div className="col-span-3 flex items-center">
-            <Award className="h-4 w-4 mr-2 text-gray-600" />
-            <span className="font-medium text-gray-700">Special Features</span>
-            {getDataSourceBadge('provider')}
+          <div className="col-span-3 flex items-center justify-between">
+            <div className="flex items-center">
+              <Award className="h-4 w-4 mr-2 text-gray-600" />
+              <span className="font-medium text-gray-700">Special Features</span>
+            </div>
+            {getDataSourceIcon('provider')}
           </div>
           
           {sortedProviders.map((provider) => (
