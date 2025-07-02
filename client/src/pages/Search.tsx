@@ -47,6 +47,7 @@ export default function SearchPage() {
     const type = urlParams.get('type');
     const features = urlParams.get('features');
     const cost = urlParams.get('cost');
+    const ageRange = urlParams.get('ageRange');
     
     if (q) {
       setSearchQuery(q);
@@ -68,6 +69,9 @@ export default function SearchPage() {
         '5': '3000+'
       };
       setFilters(prev => ({ ...prev, priceRange: costToPrice[cost] }));
+    }
+    if (ageRange) {
+      setFilters(prev => ({ ...prev, ageRange }));
     }
   }, []);
 

@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface ProviderCardProps {
   provider: Provider;
@@ -19,6 +20,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo }:
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Check if provider is favorited
   const { data: favoriteData } = useQuery({
@@ -159,14 +161,36 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo }:
         )}
 
         <div className="flex flex-wrap gap-2 mb-4">
-          <Badge variant="secondary">
+          <Badge 
+            variant="secondary"
+            className="cursor-pointer hover:bg-gray-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              const ageGroup = Math.floor(provider.ageRangeMin / 12);
+              setLocation(`/search?ageRange=${ageGroup}+`);
+            }}
+          >
             Ages {provider.ageRangeMin}-{provider.ageRangeMax}
           </Badge>
-          <Badge className={getBoroughColor(provider.borough)}>
+          <Badge 
+            className={`${getBoroughColor(provider.borough)} cursor-pointer hover:opacity-80`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setLocation(`/search?type=${encodeURIComponent(provider.type)}`);
+            }}
+          >
             {getTypeLabel(provider.type)}
           </Badge>
           {provider.features?.slice(0, 2).map((feature) => (
-            <Badge key={feature} variant="outline" className="text-xs">
+            <Badge 
+              key={feature} 
+              variant="outline" 
+              className="text-xs cursor-pointer hover:bg-gray-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLocation(`/search?features=${encodeURIComponent(feature)}`);
+              }}
+            >
               {feature}
             </Badge>
           ))}

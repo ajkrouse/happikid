@@ -70,6 +70,17 @@ export default function Landing() {
     setLocation(`/search?cost=${encodeURIComponent(costLevel)}`);
   };
 
+  const handleAgeClick = (provider: Provider) => {
+    // Navigate to search with age range filter based on the provider's min age
+    const ageGroup = Math.floor(provider.ageRangeMin / 12);
+    setLocation(`/search?ageRange=${ageGroup}+`);
+  };
+
+  const handleTypeClick = (type: string) => {
+    // Navigate to search with provider type filter
+    setLocation(`/search?type=${encodeURIComponent(type)}`);
+  };
+
   const handleQuickFilter = (type: string) => {
     setLocation(`/search?type=${type}`);
   };
@@ -270,11 +281,12 @@ export default function Landing() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {featuredProviders?.map((provider, index) => (
-                <Card key={provider.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-                  <div 
-                    className="aspect-[4/3] relative overflow-hidden rounded-t-lg cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => handleViewDetails(provider)}
-                  >
+                <Card 
+                  key={provider.id} 
+                  className="hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
+                  onClick={() => handleViewDetails(provider)}
+                >
+                  <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg hover:opacity-90 transition-opacity">
                     <img
                       src={
                         provider.name.includes('Bright Horizons') 
@@ -331,16 +343,35 @@ export default function Landing() {
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <Badge variant="secondary">
+                      <Badge 
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-gray-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAgeClick(provider);
+                        }}
+                      >
                         Ages {Math.floor(provider.ageRangeMin / 12)}+
                       </Badge>
-                      <Badge variant="outline">{provider.type}</Badge>
+                      <Badge 
+                        variant="outline"
+                        className="cursor-pointer hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTypeClick(provider.type);
+                        }}
+                      >
+                        {provider.type}
+                      </Badge>
                       {provider.features?.slice(0, 2).map((feature) => (
                         <Badge 
                           key={feature} 
                           variant="outline" 
                           className="text-xs cursor-pointer hover:bg-gray-100"
-                          onClick={() => handleFeatureClick(feature)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFeatureClick(feature);
+                          }}
                         >
                           {feature}
                         </Badge>
@@ -350,13 +381,19 @@ export default function Landing() {
                     <div className="flex justify-between items-center">
                       <div 
                         className="cursor-pointer hover:text-blue-600"
-                        onClick={() => handleCostClick(provider)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCostClick(provider);
+                        }}
                       >
                         {renderCostDisplay(provider)}
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => handleViewDetails(provider)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewDetails(provider);
+                        }}
                         className="shrink-0"
                       >
                         More Details
