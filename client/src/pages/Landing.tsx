@@ -61,12 +61,8 @@ export default function Landing() {
     }
   };
 
-  // Function to get relative cost indicator based on provider type and characteristics
-  const getCostIndicator = (provider: Provider) => {
-    if (provider.monthlyPrice) {
-      return `$${provider.monthlyPrice}`;
-    }
-    
+  // Function to get relative cost level based on provider type and characteristics
+  const getCostLevel = (provider: Provider) => {
     // Assign relative cost based on typical pricing patterns
     let dollarSigns = 2; // Default to moderate cost
     
@@ -77,7 +73,33 @@ export default function Landing() {
     else if (provider.name.includes('Bronx Academy')) dollarSigns = 4; // Private school premium
     else if (provider.name.includes('Camp')) dollarSigns = 2; // Summer camps typically moderate
     
-    return '$'.repeat(dollarSigns);
+    return dollarSigns;
+  };
+
+  // Function to render cost display
+  const renderCostDisplay = (provider: Provider) => {
+    if (provider.monthlyPrice) {
+      return (
+        <>
+          <span className="text-2xl font-bold text-gray-900">${provider.monthlyPrice}</span>
+          <span className="text-gray-600">/month</span>
+        </>
+      );
+    }
+    
+    const dollarSigns = getCostLevel(provider);
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <span 
+            key={i} 
+            className={`text-xl font-bold ${i <= dollarSigns ? 'text-gray-900' : 'text-gray-300'}`}
+          >
+            $
+          </span>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -90,7 +112,7 @@ export default function Landing() {
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Find Perfect{" "}
-              <span className="text-primary inline-block relative overflow-hidden" style={{ height: '1.2em', minWidth: '300px', verticalAlign: 'top' }}>
+              <span className="text-primary inline-block relative overflow-hidden text-left" style={{ height: '1.2em', minWidth: '350px', verticalAlign: 'top' }}>
                 <span 
                   className="absolute left-0 top-0 transition-transform duration-500 ease-in-out"
                   style={{ 
@@ -98,7 +120,7 @@ export default function Landing() {
                   }}
                 >
                   {childcareTypes.map((type, index) => (
-                    <span key={type} className="block whitespace-nowrap" style={{ height: '1.2em', lineHeight: '1.2' }}>
+                    <span key={type} className="block whitespace-nowrap text-left" style={{ height: '1.2em', lineHeight: '1.2' }}>
                       {type}
                     </span>
                   ))}
@@ -119,7 +141,7 @@ export default function Landing() {
                 </div>
                 <Input
                   type="text"
-                  placeholder="Try: 'Montessori daycare near Central Park for 3-year-old' or 'After-school programs with pickup in Brooklyn'"
+                  placeholder="Try: 'Montessori daycare near Central Park' or 'After-school programs in Brooklyn'"
                   className="w-full pl-14 pr-32 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary h-16 shadow-lg"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -233,17 +255,17 @@ export default function Landing() {
                     <img
                       src={`https://images.unsplash.com/photo-${
                         provider.name.includes('Bright Horizons') 
-                          ? "1503454537195-1dcabb73ffb9" // Children playing in daycare
+                          ? "1503454537195-1dcabb73ffb9" // Children playing
                           : provider.name.includes('Learning Experience') 
-                          ? "1576669801775-8d80989d9fd7" // Learning activities
+                          ? "1509062522261-04b8acb0f830" // Learning activities
                           : provider.name.includes('Little Sunshine') 
-                          ? "1544716503-0ee4e9e4ded8" // Bright children's environment
+                          ? "1578662996442-48f60103fc96" // Classroom setting
                           : provider.name.includes('Montessori') 
-                          ? "1497486238291-00e5a4c6e7c8" // Educational environment
+                          ? "1497486238291-00e5a4c6e7c8" // Educational materials
                           : provider.name.includes('Bronx Academy') 
-                          ? "1580582932084-08106ac57255" // School setting
+                          ? "1571019613454-1cb2f99b2d8b" // School building
                           : provider.name.includes('Camp') 
-                          ? "1551632436-cbf8dd35adfa" // Summer camp activities
+                          ? "1551632436-cbf8dd35adfa" // Summer activities
                           : "1503454537195-1dcabb73ffb9" // Default children playing
                       }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
                       alt={provider.name}
@@ -279,12 +301,7 @@ export default function Landing() {
 
                     <div className="flex justify-between items-center">
                       <div>
-                        <span className="text-2xl font-bold text-gray-900">
-                          {getCostIndicator(provider)}
-                        </span>
-                        <span className="text-gray-600">
-                          {provider.monthlyPrice ? '/month' : ' relative cost'}
-                        </span>
+                        {renderCostDisplay(provider)}
                       </div>
                       <Button 
                         size="sm" 

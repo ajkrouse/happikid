@@ -59,12 +59,8 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     inquiryType: "info" as "info" | "tour" | "enrollment",
   });
 
-  // Function to get relative cost indicator based on provider type and characteristics
-  const getCostIndicator = (provider: any) => {
-    if (provider.monthlyPrice) {
-      return `$${provider.monthlyPrice}`;
-    }
-    
+  // Function to get relative cost level based on provider type and characteristics
+  const getCostLevel = (provider: any) => {
     // Assign relative cost based on typical pricing patterns
     let dollarSigns = 2; // Default to moderate cost
     
@@ -75,7 +71,36 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     else if (provider.name?.includes('Bronx Academy')) dollarSigns = 4; // Private school premium
     else if (provider.name?.includes('Camp')) dollarSigns = 2; // Summer camps typically moderate
     
-    return '$'.repeat(dollarSigns);
+    return dollarSigns;
+  };
+
+  // Function to render cost display
+  const renderCostDisplay = (provider: any) => {
+    if (provider.monthlyPrice) {
+      return (
+        <>
+          <div className="text-3xl font-bold text-gray-900">${provider.monthlyPrice}</div>
+          <div className="text-gray-600">per month</div>
+        </>
+      );
+    }
+    
+    const dollarSigns = getCostLevel(provider);
+    return (
+      <>
+        <div className="flex items-center justify-center gap-1 mb-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <span 
+              key={i} 
+              className={`text-2xl font-bold ${i <= dollarSigns ? 'text-gray-900' : 'text-gray-300'}`}
+            >
+              $
+            </span>
+          ))}
+        </div>
+        <div className="text-gray-600 text-sm">relative cost</div>
+      </>
+    );
   };
 
   // Fetch detailed provider data
@@ -200,17 +225,17 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
               <img
                 src={`https://images.unsplash.com/photo-${
                   currentProvider.name.includes('Bright Horizons') 
-                    ? "1503454537195-1dcabb73ffb9" // Children playing in daycare
+                    ? "1503454537195-1dcabb73ffb9" // Children playing
                     : currentProvider.name.includes('Learning Experience') 
-                    ? "1576669801775-8d80989d9fd7" // Learning activities
+                    ? "1509062522261-04b8acb0f830" // Learning activities
                     : currentProvider.name.includes('Little Sunshine') 
-                    ? "1544716503-0ee4e9e4ded8" // Bright children's environment
+                    ? "1578662996442-48f60103fc96" // Classroom setting
                     : currentProvider.name.includes('Montessori') 
-                    ? "1497486238291-00e5a4c6e7c8" // Educational environment
+                    ? "1497486238291-00e5a4c6e7c8" // Educational materials
                     : currentProvider.name.includes('Bronx Academy') 
-                    ? "1580582932084-08106ac57255" // School setting
+                    ? "1571019613454-1cb2f99b2d8b" // School building
                     : currentProvider.name.includes('Camp') 
-                    ? "1551632436-cbf8dd35adfa" // Summer camp activities
+                    ? "1551632436-cbf8dd35adfa" // Summer activities
                     : "1503454537195-1dcabb73ffb9" // Default children playing
                 }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300`}
                 alt={currentProvider.name}
@@ -321,12 +346,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                 <Card>
                   <CardContent className="p-6">
                     <div className="text-center mb-6">
-                      <div className="text-3xl font-bold text-gray-900">
-                        {getCostIndicator(currentProvider)}
-                      </div>
-                      <div className="text-gray-600">
-                        {currentProvider.monthlyPrice ? 'per month' : 'relative cost'}
-                      </div>
+                      {renderCostDisplay(currentProvider)}
                     </div>
 
                     <div className="space-y-4 mb-6">
