@@ -75,6 +75,7 @@ export default function ComparisonModal({
   const [showPreferencesPanel, setShowPreferencesPanel] = useState(true);
   const [comparisonName, setComparisonName] = useState('');
   const [savedComparisons, setSavedComparisons] = useState<any[]>([]);
+  const [usedExamples, setUsedExamples] = useState<string[]>([]);
 
   const getTypeLabel = (type: string) => {
     const labels = {
@@ -243,6 +244,30 @@ export default function ComparisonModal({
     navigator.clipboard.writeText(shareUrl);
   };
 
+  // Comprehensive priority examples that appear dynamically
+  const allPriorityExamples = [
+    // Initial basic examples
+    "small class sizes", "late pickup hours", "STEM curriculum", "outdoor playground", "near subway",
+    // Secondary examples that appear as user engages
+    "organic meals", "bilingual program", "art classes", "music lessons", "flexible scheduling",
+    "experienced teachers", "low teacher turnover", "parent communication", "field trips", "reading program",
+    // Advanced examples for engaged users
+    "Montessori approach", "play-based learning", "potty training support", "allergy management", "special needs support",
+    "religious education", "swimming lessons", "coding classes", "gardening program", "cultural diversity",
+    // Expert-level examples
+    "Reggio Emilia philosophy", "forest school approach", "mindfulness practice", "emotional intelligence", "conflict resolution"
+  ];
+
+  const getAvailableExamples = () => {
+    const baseCount = 5;
+    const engagementLevel = Math.min(usedExamples.length, 4);
+    const maxExamples = baseCount + engagementLevel * 3;
+    
+    return allPriorityExamples
+      .filter(example => !usedExamples.includes(example))
+      .slice(0, maxExamples);
+  };
+
   const getDataSourceIcon = (source: string) => {
     const sources = {
       provider: { icon: Home, className: 'text-blue-600', tooltip: 'Information provided by the childcare provider' },
@@ -251,7 +276,7 @@ export default function ComparisonModal({
     };
     const sourceInfo = sources[source as keyof typeof sources];
     return (
-      <div className="group relative">
+      <div className="group relative ml-1">
         <sourceInfo.icon className={`h-3 w-3 ${sourceInfo.className}`} />
         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
           {sourceInfo.tooltip}
@@ -325,21 +350,18 @@ export default function ComparisonModal({
                         The more specific you are, the better we can match you with providers.
                       </div>
                       <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                        <div className="text-xs font-medium text-blue-800 mb-1">Try these examples:</div>
+                        <div className="text-xs font-medium text-blue-800 mb-1">
+                          Try these examples {usedExamples.length > 0 && `(${getAvailableExamples().length} more unlocked)`}:
+                        </div>
                         <div className="flex flex-wrap gap-1">
-                          {[
-                            "small class sizes",
-                            "late pickup hours",
-                            "STEM curriculum",
-                            "outdoor playground",
-                            "near subway"
-                          ].map((example) => (
+                          {getAvailableExamples().map((example) => (
                             <button
                               key={example}
                               onClick={() => {
                                 const current = preferences.priorities;
                                 const newValue = current ? `${current}, ${example}` : example;
                                 setPreferences(prev => ({ ...prev, priorities: newValue }));
+                                setUsedExamples(prev => [...prev, example]);
                               }}
                               className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
                             >
@@ -347,6 +369,11 @@ export default function ComparisonModal({
                             </button>
                           ))}
                         </div>
+                        {usedExamples.length > 0 && (
+                          <div className="mt-2 text-xs text-blue-600">
+                            💡 Keep adding priorities to unlock more specialized options!
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -406,31 +433,28 @@ export default function ComparisonModal({
           </Card>
         )}
 
-        {/* Data Source Legend */}
-        <div className="bg-gray-50 rounded-lg p-3 mb-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Data Sources:</span>
-            <div className="flex items-center space-x-4 text-xs">
-              <div className="flex items-center">
-                <Home className="h-3 w-3 text-blue-600 mr-1" />
-                <span className="text-gray-600">Provider Info</span>
-              </div>
-              <div className="flex items-center">
-                <Shield className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-gray-600">Public Records</span>
-              </div>
-              <div className="flex items-center">
-                <Star className="h-3 w-3 text-purple-600 mr-1" />
-                <span className="text-gray-600">Parent Reviews</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Provider Header Row */}
         <div className="grid grid-cols-12 gap-4 mb-4">
           <div className="col-span-3">
-            <h4 className="font-semibold text-gray-700">Criteria</h4>
+            <h4 className="font-semibold text-gray-700 mb-2">Criteria</h4>
+            {/* Data Source Legend */}
+            <div className="bg-gray-50 rounded p-2">
+              <div className="text-xs font-medium text-gray-600 mb-1">Data Sources:</div>
+              <div className="space-y-1 text-xs">
+                <div className="flex items-center">
+                  <Home className="h-3 w-3 text-blue-600 mr-1" />
+                  <span className="text-gray-600">Provider Info</span>
+                </div>
+                <div className="flex items-center">
+                  <Shield className="h-3 w-3 text-green-600 mr-1" />
+                  <span className="text-gray-600">Public Records</span>
+                </div>
+                <div className="flex items-center">
+                  <Star className="h-3 w-3 text-purple-600 mr-1" />
+                  <span className="text-gray-600">Parent Reviews</span>
+                </div>
+              </div>
+            </div>
           </div>
           {sortedProviders.map((provider) => {
             const fitScore = calculateFitScore(provider);
@@ -492,11 +516,9 @@ export default function ComparisonModal({
                   : 'hover:bg-gray-50'
               }`}
             >
-              <div className="col-span-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <attr.icon className="h-4 w-4 mr-2 text-gray-600" />
-                  <span className="font-medium text-gray-700">{attr.label}</span>
-                </div>
+              <div className="col-span-3 flex items-center">
+                <attr.icon className="h-4 w-4 mr-2 text-gray-600" />
+                <span className="font-medium text-gray-700">{attr.label}</span>
                 {getDataSourceIcon(attr.dataSource)}
               </div>
               
@@ -517,11 +539,9 @@ export default function ComparisonModal({
 
         {/* Features Row */}
         <div className="grid grid-cols-12 gap-4 py-3 px-2 bg-gray-50 rounded-lg mt-4">
-          <div className="col-span-3 flex items-center justify-between">
-            <div className="flex items-center">
-              <Award className="h-4 w-4 mr-2 text-gray-600" />
-              <span className="font-medium text-gray-700">Special Features</span>
-            </div>
+          <div className="col-span-3 flex items-center">
+            <Award className="h-4 w-4 mr-2 text-gray-600" />
+            <span className="font-medium text-gray-700">Special Features</span>
             {getDataSourceIcon('provider')}
           </div>
           
