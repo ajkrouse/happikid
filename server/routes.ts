@@ -155,7 +155,7 @@ async function addSampleData() {
         website: "montessorimanhattan.edu",
         type: "school" as const,
         ageRangeMin: 18,
-        ageRangeMax: 132,
+        ageRangeMax: 72,
         capacity: 80,
         hoursOfOperation: "8:30 AM - 3:30 PM",
         pricing: "$35,000 - $42,000 per year",

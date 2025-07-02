@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import ProviderModal from "@/components/ProviderModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,8 @@ export default function Landing() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentTypeIndex, setCurrentTypeIndex] = useState(0);
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const childcareTypes = ["Daycare", "After-School Program", "Summer Camp", "Private School"];
   
@@ -49,6 +52,22 @@ export default function Landing() {
     } else {
       setLocation("/search");
     }
+  };
+
+  const handleViewDetails = (provider: Provider) => {
+    setSelectedProvider(provider);
+    setIsModalOpen(true);
+  };
+
+  const handleFeatureClick = (feature: string) => {
+    // Navigate to search with the feature as a filter
+    setLocation(`/search?features=${encodeURIComponent(feature)}`);
+  };
+
+  const handleCostClick = (provider: Provider) => {
+    const costLevel = getCostLevel(provider);
+    // Navigate to search with cost level filter
+    setLocation(`/search?cost=${encodeURIComponent(costLevel)}`);
   };
 
   const handleQuickFilter = (type: string) => {
@@ -309,25 +328,35 @@ export default function Landing() {
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <Badge variant="secondary">Ages {provider.ageRangeMin}-{provider.ageRangeMax}</Badge>
+                      <Badge variant="secondary">
+                        Ages {Math.floor(provider.ageRangeMin / 12)}+
+                      </Badge>
                       <Badge variant="outline">{provider.type}</Badge>
                       {provider.features?.slice(0, 2).map((feature) => (
-                        <Badge key={feature} variant="outline" className="text-xs">
+                        <Badge 
+                          key={feature} 
+                          variant="outline" 
+                          className="text-xs cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleFeatureClick(feature)}
+                        >
                           {feature}
                         </Badge>
                       ))}
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <div>
+                      <div 
+                        className="cursor-pointer hover:text-blue-600"
+                        onClick={() => handleCostClick(provider)}
+                      >
                         {renderCostDisplay(provider)}
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => setLocation(`/search?provider=${provider.id}`)}
+                        onClick={() => handleViewDetails(provider)}
                         className="shrink-0"
                       >
-                        View Details
+                        More Details
                       </Button>
                     </div>
                   </CardContent>
@@ -422,6 +451,13 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Provider Modal */}
+      <ProviderModal 
+        provider={selectedProvider}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
