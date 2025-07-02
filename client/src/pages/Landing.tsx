@@ -256,18 +256,18 @@ export default function Landing() {
                     <img
                       src={
                         provider.name.includes('Bright Horizons') 
-                          ? "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Daycare classroom
+                          ? "https://images.unsplash.com/photo-1622737133809-d95047b9e673?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Modern daycare classroom
                           : provider.name.includes('Learning Experience') 
-                          ? "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Children learning
+                          ? "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Children learning activities
                           : provider.name.includes('Little Sunshine') 
-                          ? "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Happy children
+                          ? "https://images.unsplash.com/photo-1616400619175-5beda3a17896?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Happy young children
                           : provider.name.includes('Montessori') 
-                          ? "https://images.unsplash.com/photo-1580582932447-ad4e4feba160?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Educational materials
+                          ? "https://images.unsplash.com/photo-1502781252888-9143ba7f074e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Educational toys and materials
                           : provider.name.includes('Bronx Academy') 
-                          ? "https://images.unsplash.com/photo-1554994751-2dff3f5b51e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // After school
+                          ? "https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // After school study time
                           : provider.name.includes('Camp') 
-                          ? "https://images.unsplash.com/photo-1577036897019-86bd8a9ec2b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Summer camp
-                          : "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Default
+                          ? "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Summer camp outdoor fun
+                          : "https://images.unsplash.com/photo-1622737133809-d95047b9e673?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" // Default
                       }
                       alt={provider.name}
                       className="w-full h-full object-cover"
