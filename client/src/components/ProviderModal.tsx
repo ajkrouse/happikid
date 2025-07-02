@@ -59,6 +59,25 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     inquiryType: "info" as "info" | "tour" | "enrollment",
   });
 
+  // Function to get relative cost indicator based on provider type and characteristics
+  const getCostIndicator = (provider: any) => {
+    if (provider.monthlyPrice) {
+      return `$${provider.monthlyPrice}`;
+    }
+    
+    // Assign relative cost based on typical pricing patterns
+    let dollarSigns = 2; // Default to moderate cost
+    
+    if (provider.name?.includes('Bright Horizons')) dollarSigns = 4; // Premium national chain
+    else if (provider.name?.includes('Learning Experience')) dollarSigns = 3; // Mid-premium franchise
+    else if (provider.name?.includes('Little Sunshine')) dollarSigns = 2; // Moderate local
+    else if (provider.name?.includes('Montessori')) dollarSigns = 3; // Typically higher due to specialized curriculum
+    else if (provider.name?.includes('Bronx Academy')) dollarSigns = 4; // Private school premium
+    else if (provider.name?.includes('Camp')) dollarSigns = 2; // Summer camps typically moderate
+    
+    return '$'.repeat(dollarSigns);
+  };
+
   // Fetch detailed provider data
   const { data: providerDetails, isLoading } = useQuery({
     queryKey: [`/api/providers/${provider?.id}`],
@@ -181,18 +200,18 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
               <img
                 src={`https://images.unsplash.com/photo-${
                   currentProvider.name.includes('Bright Horizons') 
-                    ? "1544716503-0ee4e9e4ded8" // Modern daycare facility
+                    ? "1503454537195-1dcabb73ffb9" // Children playing in daycare
                     : currentProvider.name.includes('Learning Experience') 
-                    ? "1497486238291-00e5a4c6e7c8" // Interactive classroom
+                    ? "1576669801775-8d80989d9fd7" // Learning activities
                     : currentProvider.name.includes('Little Sunshine') 
-                    ? "1563100064-9e99797bfda6" // Sunny children's space
+                    ? "1544716503-0ee4e9e4ded8" // Bright children's environment
                     : currentProvider.name.includes('Montessori') 
-                    ? "1509062522261-04b8acb0f830" // Educational materials
+                    ? "1497486238291-00e5a4c6e7c8" // Educational environment
                     : currentProvider.name.includes('Bronx Academy') 
-                    ? "1580582932084-08106ac57255" // School building exterior
+                    ? "1580582932084-08106ac57255" // School setting
                     : currentProvider.name.includes('Camp') 
                     ? "1551632436-cbf8dd35adfa" // Summer camp activities
-                    : "1497486238291-00e5a4c6e7c8" // Default classroom
+                    : "1503454537195-1dcabb73ffb9" // Default children playing
                 }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300`}
                 alt={currentProvider.name}
                 className="rounded-lg object-cover h-48 w-full"
@@ -302,14 +321,12 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                 <Card>
                   <CardContent className="p-6">
                     <div className="text-center mb-6">
-                      {currentProvider.monthlyPrice && (
-                        <>
-                          <div className="text-3xl font-bold text-gray-900">
-                            ${currentProvider.monthlyPrice}
-                          </div>
-                          <div className="text-gray-600">per month</div>
-                        </>
-                      )}
+                      <div className="text-3xl font-bold text-gray-900">
+                        {getCostIndicator(currentProvider)}
+                      </div>
+                      <div className="text-gray-600">
+                        {currentProvider.monthlyPrice ? 'per month' : 'relative cost'}
+                      </div>
                     </div>
 
                     <div className="space-y-4 mb-6">

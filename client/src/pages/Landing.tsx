@@ -61,6 +61,25 @@ export default function Landing() {
     }
   };
 
+  // Function to get relative cost indicator based on provider type and characteristics
+  const getCostIndicator = (provider: Provider) => {
+    if (provider.monthlyPrice) {
+      return `$${provider.monthlyPrice}`;
+    }
+    
+    // Assign relative cost based on typical pricing patterns
+    let dollarSigns = 2; // Default to moderate cost
+    
+    if (provider.name.includes('Bright Horizons')) dollarSigns = 4; // Premium national chain
+    else if (provider.name.includes('Learning Experience')) dollarSigns = 3; // Mid-premium franchise
+    else if (provider.name.includes('Little Sunshine')) dollarSigns = 2; // Moderate local
+    else if (provider.name.includes('Montessori')) dollarSigns = 3; // Typically higher due to specialized curriculum
+    else if (provider.name.includes('Bronx Academy')) dollarSigns = 4; // Private school premium
+    else if (provider.name.includes('Camp')) dollarSigns = 2; // Summer camps typically moderate
+    
+    return '$'.repeat(dollarSigns);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -71,7 +90,7 @@ export default function Landing() {
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Find Perfect{" "}
-              <span className="text-primary inline-block relative overflow-hidden align-baseline" style={{ height: '1.2em', minWidth: '280px', verticalAlign: 'baseline' }}>
+              <span className="text-primary inline-block relative overflow-hidden" style={{ height: '1.2em', minWidth: '300px', verticalAlign: 'top' }}>
                 <span 
                   className="absolute left-0 top-0 transition-transform duration-500 ease-in-out"
                   style={{ 
@@ -79,7 +98,7 @@ export default function Landing() {
                   }}
                 >
                   {childcareTypes.map((type, index) => (
-                    <span key={type} className="block whitespace-nowrap text-left" style={{ height: '1.2em', lineHeight: '1.2' }}>
+                    <span key={type} className="block whitespace-nowrap" style={{ height: '1.2em', lineHeight: '1.2' }}>
                       {type}
                     </span>
                   ))}
@@ -214,18 +233,18 @@ export default function Landing() {
                     <img
                       src={`https://images.unsplash.com/photo-${
                         provider.name.includes('Bright Horizons') 
-                          ? "1544716503-0ee4e9e4ded8" // Modern daycare facility
+                          ? "1503454537195-1dcabb73ffb9" // Children playing in daycare
                           : provider.name.includes('Learning Experience') 
-                          ? "1497486238291-00e5a4c6e7c8" // Interactive classroom
+                          ? "1576669801775-8d80989d9fd7" // Learning activities
                           : provider.name.includes('Little Sunshine') 
-                          ? "1563100064-9e99797bfda6" // Sunny children's space
+                          ? "1544716503-0ee4e9e4ded8" // Bright children's environment
                           : provider.name.includes('Montessori') 
-                          ? "1509062522261-04b8acb0f830" // Educational materials
+                          ? "1497486238291-00e5a4c6e7c8" // Educational environment
                           : provider.name.includes('Bronx Academy') 
-                          ? "1580582932084-08106ac57255" // School building exterior
+                          ? "1580582932084-08106ac57255" // School setting
                           : provider.name.includes('Camp') 
                           ? "1551632436-cbf8dd35adfa" // Summer camp activities
-                          : "1497486238291-00e5a4c6e7c8" // Default classroom
+                          : "1503454537195-1dcabb73ffb9" // Default children playing
                       }?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400`}
                       alt={provider.name}
                       className="w-full h-full object-cover"
@@ -261,10 +280,10 @@ export default function Landing() {
                     <div className="flex justify-between items-center">
                       <div>
                         <span className="text-2xl font-bold text-gray-900">
-                          {provider.monthlyPrice ? `$${provider.monthlyPrice}` : 'Call for pricing'}
+                          {getCostIndicator(provider)}
                         </span>
                         <span className="text-gray-600">
-                          {provider.monthlyPrice ? '/month' : ''}
+                          {provider.monthlyPrice ? '/month' : ' relative cost'}
                         </span>
                       </div>
                       <Button 
