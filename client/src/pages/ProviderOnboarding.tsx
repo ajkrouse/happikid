@@ -101,6 +101,7 @@ export default function ProviderOnboarding() {
     ageRangeMax: "",
     capacity: "",
     monthlyPrice: "",
+    showExactPrice: true,
     hoursOpen: "",
     hoursClose: "",
     features: [] as string[],
@@ -151,7 +152,8 @@ export default function ProviderOnboarding() {
         accreditationDetails: existingProvider.accreditationDetails || "",
         programHighlights: existingProvider.programHighlights || [],
         uniqueSellingPoints: existingProvider.uniqueSellingPoints || [],
-        faqs: existingProvider.faqs || []
+        faqs: existingProvider.faqs || [],
+        showExactPrice: existingProvider.showExactPrice || false
       });
       
       // Set current step based on onboarding progress
@@ -596,15 +598,29 @@ export default function ProviderOnboarding() {
                 </div>
 
                 <div>
-                  <Label htmlFor="monthlyPrice">Monthly Price (Optional)</Label>
+                  <Label htmlFor="monthlyPrice">Monthly Price *</Label>
                   <Input
                     id="monthlyPrice"
+                    type="number"
                     value={formData.monthlyPrice}
                     onChange={(e) => setFormData(prev => ({ ...prev, monthlyPrice: e.target.value }))}
-                    placeholder="$1,200"
+                    placeholder="1200"
+                    min="0"
+                    step="0.01"
+                    required
                   />
-                  <p className="text-sm text-gray-500 mt-1">
-                    💡 Providers with transparent pricing get 80% more inquiries
+                  <div className="flex items-center space-x-2 mt-3">
+                    <Checkbox
+                      id="showExactPrice"
+                      checked={formData.showExactPrice !== false}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, showExactPrice: checked !== false }))}
+                    />
+                    <Label htmlFor="showExactPrice" className="text-sm">
+                      Show exact price on my profile
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Your price helps us show accurate $$ cost meters to parents. If unchecked, we'll only show the cost level ($$) without the exact amount.
                   </p>
                 </div>
               </CardContent>

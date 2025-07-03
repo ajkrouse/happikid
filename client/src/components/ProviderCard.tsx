@@ -114,28 +114,63 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     return dollarSigns;
   };
 
+  // Function to get cost range based on provider characteristics
+  const getCostRange = (provider: Provider) => {
+    // Generate realistic cost ranges based on provider type and characteristics
+    const typeRanges = {
+      daycare: { min: 1800, max: 3500 },
+      afterschool: { min: 800, max: 1500 },
+      camp: { min: 1200, max: 2000 },
+      school: { min: 2500, max: 4500 }
+    };
+    
+    const baseRange = typeRanges[provider.type as keyof typeof typeRanges] || typeRanges.daycare;
+    const dollarSigns = getCostLevel(provider);
+    
+    // Adjust range based on cost level
+    const multiplier = [0.7, 0.85, 1.0, 1.3, 1.6][dollarSigns - 1] || 1.0;
+    const min = Math.round(baseRange.min * multiplier);
+    const max = Math.round(baseRange.max * multiplier);
+    
+    return { min, max };
+  };
+
   // Function to render cost display
   const renderCostDisplay = (provider: Provider) => {
-    if (provider.monthlyPrice) {
+    const dollarSigns = getCostLevel(provider);
+    const costRange = getCostRange(provider);
+    
+    if (provider.monthlyPrice && provider.showExactPrice) {
       return (
-        <>
-          <span className="text-2xl font-bold text-gray-900">${provider.monthlyPrice}</span>
-          <span className="text-gray-600">/month</span>
-        </>
+        <div className="text-left">
+          <div className="flex items-center gap-0.5 mb-1">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <span 
+                key={i} 
+                className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
+              >
+                $
+              </span>
+            ))}
+          </div>
+          <div className="text-lg font-bold text-gray-900">${provider.monthlyPrice}/month</div>
+        </div>
       );
     }
     
-    const dollarSigns = getCostLevel(provider);
     return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <span 
-            key={i} 
-            className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
-          >
-            $
-          </span>
-        ))}
+      <div className="text-left">
+        <div className="flex items-center gap-0.5 mb-1">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <span 
+              key={i} 
+              className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
+            >
+              $
+            </span>
+          ))}
+        </div>
+        <div className="text-sm text-gray-600">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}/month</div>
       </div>
     );
   };

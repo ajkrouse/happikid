@@ -18,35 +18,47 @@ const Confetti = () => {
   }>>([]);
 
   useEffect(() => {
-    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57'];
-    const newParticles = Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      x: Math.random() * window.innerWidth,
-      y: -10,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      rotation: Math.random() * 360,
-      velocity: {
-        x: (Math.random() - 0.5) * 4,
-        y: Math.random() * 3 + 2
-      }
-    }));
+    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF69B4', '#00FF7F', '#FF4500', '#BA55D3'];
     
-    setParticles(newParticles);
+    // Create multiple waves of confetti
+    const createConfettiWave = (delay = 0) => {
+      setTimeout(() => {
+        const newParticles = Array.from({ length: 150 }, (_, i) => ({
+          id: Date.now() + i,
+          x: Math.random() * window.innerWidth,
+          y: -Math.random() * 100 - 10,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          velocity: {
+            x: (Math.random() - 0.5) * 6,
+            y: Math.random() * 4 + 3
+          }
+        }));
+        
+        setParticles(prev => [...prev, ...newParticles]);
+      }, delay);
+    };
+
+    // Create multiple waves
+    createConfettiWave(0);
+    createConfettiWave(1000);
+    createConfettiWave(2000);
+    createConfettiWave(3500);
 
     const animateParticles = () => {
       setParticles(prev => prev.map(particle => ({
         ...particle,
         x: particle.x + particle.velocity.x,
         y: particle.y + particle.velocity.y,
-        rotation: particle.rotation + 2
-      })).filter(particle => particle.y < window.innerHeight + 10));
+        rotation: particle.rotation + 3
+      })).filter(particle => particle.y < window.innerHeight + 50));
     };
 
-    const interval = setInterval(animateParticles, 50);
+    const interval = setInterval(animateParticles, 30);
     const timeout = setTimeout(() => {
       clearInterval(interval);
       setParticles([]);
-    }, 4000);
+    }, 8000);
 
     return () => {
       clearInterval(interval);
@@ -105,7 +117,7 @@ export default function ProviderCelebration() {
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowConfetti(false), 4000);
+    const timer = setTimeout(() => setShowConfetti(false), 8000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -125,24 +137,39 @@ export default function ProviderCelebration() {
               <CheckCircle className="h-10 w-10 text-white" />
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-              Welcome to HappiKid! 🎉
+            <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 bg-clip-text text-transparent mb-6 animate-pulse">
+              CONGRATULATIONS! 🚀🎊
             </h1>
             
-            <p className="text-xl text-gray-600 mb-2">
-              Your provider profile is now live and ready to connect with families!
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+              You're OFFICIALLY on HappiKid! 
+            </h2>
+            
+            <p className="text-2xl text-gray-700 mb-4 font-semibold">
+              Your amazing childcare program is now LIVE and ready to reach hundreds of families!
             </p>
             
-            <Badge variant="secondary" className="bg-green-100 text-green-700 text-sm px-4 py-2">
-              Profile Complete
-            </Badge>
+            <div className="flex flex-wrap justify-center gap-4 mb-6">
+              <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-lg px-6 py-3 animate-bounce">
+                🌟 PROFILE LIVE!
+              </Badge>
+              <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-lg px-6 py-3 animate-bounce delay-100">
+                🎯 READY FOR FAMILIES!
+              </Badge>
+              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-lg px-6 py-3 animate-bounce delay-200">
+                💫 LET'S GO!
+              </Badge>
+            </div>
           </div>
 
           {/* Success Tips */}
           <div className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Tips for Success on HappiKid
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              🚀 YOUR SUCCESS GAMEPLAN
             </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Follow these proven strategies to attract more families and grow your business!
+            </p>
             
             <div className="grid md:grid-cols-2 gap-6">
               {SUCCESS_TIPS.map((tip, index) => {
@@ -216,23 +243,28 @@ export default function ProviderCelebration() {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={handleContinue} className="bg-blue-600 hover:bg-blue-700">
-              Go to Dashboard
-              <ArrowRight className="h-4 w-4 ml-2" />
+            <Button 
+              size="lg" 
+              onClick={handleContinue} 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-4 font-bold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              🚀 LAUNCH MY DASHBOARD!
+              <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
             
             <Button 
               variant="outline" 
               size="lg"
+              className="text-lg px-8 py-4 font-semibold border-2 border-blue-500 text-blue-600 hover:bg-blue-50 transition-all transform hover:scale-105"
               onClick={() => {
                 toast({
-                  title: "Profile Shared!",
-                  description: "Your profile link has been copied to clipboard",
+                  title: "🎉 Profile Shared!",
+                  description: "Your amazing profile link is ready to share with families!",
                 });
                 navigator.clipboard.writeText(window.location.origin);
               }}
             >
-              Share Your Profile
+              📢 SHARE THE EXCITEMENT!
             </Button>
           </div>
         </div>

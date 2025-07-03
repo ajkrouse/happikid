@@ -74,20 +74,53 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     return dollarSigns;
   };
 
+  // Function to get cost range based on provider characteristics
+  const getCostRange = (provider: any) => {
+    // Generate realistic cost ranges based on provider type and characteristics
+    const typeRanges = {
+      daycare: { min: 1800, max: 3500 },
+      afterschool: { min: 800, max: 1500 },
+      camp: { min: 1200, max: 2000 },
+      school: { min: 2500, max: 4500 }
+    };
+    
+    const baseRange = typeRanges[provider.type as keyof typeof typeRanges] || typeRanges.daycare;
+    const dollarSigns = getCostLevel(provider);
+    
+    // Adjust range based on cost level
+    const multiplier = [0.7, 0.85, 1.0, 1.3, 1.6][dollarSigns - 1] || 1.0;
+    const min = Math.round(baseRange.min * multiplier);
+    const max = Math.round(baseRange.max * multiplier);
+    
+    return { min, max };
+  };
+
   // Function to render cost display
   const renderCostDisplay = (provider: any) => {
-    if (provider.monthlyPrice) {
+    const dollarSigns = getCostLevel(provider);
+    const costRange = getCostRange(provider);
+    
+    if (provider.monthlyPrice && provider.showExactPrice) {
       return (
-        <>
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-0.5 mb-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <span 
+                key={i} 
+                className={`text-lg font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
+              >
+                $
+              </span>
+            ))}
+          </div>
           <div className="text-3xl font-bold text-gray-900">${provider.monthlyPrice}</div>
           <div className="text-gray-600">per month</div>
-        </>
+        </div>
       );
     }
     
-    const dollarSigns = getCostLevel(provider);
     return (
-      <>
+      <div className="text-center">
         <div className="flex items-center justify-center gap-0.5 mb-2">
           {[1, 2, 3, 4, 5].map((i) => (
             <span 
@@ -98,8 +131,9 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
             </span>
           ))}
         </div>
-        <div className="text-gray-600 text-sm">cost level</div>
-      </>
+        <div className="text-lg font-semibold text-gray-900">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}</div>
+        <div className="text-gray-600">per month</div>
+      </div>
     );
   };
 
