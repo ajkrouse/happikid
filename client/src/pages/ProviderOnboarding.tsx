@@ -245,6 +245,7 @@ export default function ProviderOnboarding() {
 
     try {
       await createProviderMutation.mutateAsync(providerData);
+      setHasUnsavedChanges(false); // Clear unsaved changes flag
       if (currentStep < ONBOARDING_STEPS.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
@@ -808,18 +809,32 @@ export default function ProviderOnboarding() {
   const completeness = calculateCompleteness();
   const currentStepInfo = ONBOARDING_STEPS[currentStep];
 
-  // Navigation warning for incomplete profile
+  // Track if there are unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Track form changes
+  useEffect(() => {
+    // Check if form has any data that's not saved
+    const hasFormData = Object.values(formData).some(value => {
+      if (Array.isArray(value)) return value.length > 0;
+      return value && value.toString().trim() !== "";
+    });
+    setHasUnsavedChanges(hasFormData && completeness < 100);
+  }, [formData, completeness]);
+
+  // Navigation warning for unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (completeness < 100) {
+      if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return 'You have unsaved changes. Are you sure you want to leave?';
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [completeness]);
+  }, [hasUnsavedChanges]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -905,7 +920,7 @@ export default function ProviderOnboarding() {
                 onClick={() => setShowPremiumModal(true)}
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                Upgrade
+                Grow Faster
               </Button>
             </div>
           </CardContent>

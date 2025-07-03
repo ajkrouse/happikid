@@ -286,16 +286,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/providers', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const providerData = insertProviderSchema.parse({ ...req.body, userId });
       
-      const provider = await storage.createProvider(providerData);
-      res.status(201).json(provider);
+      // Check if provider already exists for this user
+      const existingProviders = await storage.getProvidersByUserId(userId);
+      
+      if (existingProviders.length > 0) {
+        // Update existing provider
+        const providerId = existingProviders[0].id;
+        const providerData = insertProviderSchema.parse({ ...req.body, userId });
+        
+        const updatedProvider = await storage.updateProvider(providerId, providerData);
+        res.json(updatedProvider);
+      } else {
+        // Create new provider
+        const providerData = insertProviderSchema.parse({ ...req.body, userId });
+        
+        const provider = await storage.createProvider(providerData);
+        res.status(201).json(provider);
+      }
     } catch (error) {
-      console.error("Error creating provider:", error);
+      console.error("Error creating/updating provider:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create provider" });
+      res.status(500).json({ message: "Failed to create/update provider" });
     }
   });
 

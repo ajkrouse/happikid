@@ -176,6 +176,11 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
+  // Handle type field to allow empty string and transform to undefined for optional handling
+  type: z.string().optional().transform(val => {
+    if (val === "" || val === null || val === undefined) return undefined;
+    return val;
+  }),
   // Handle optional numeric fields properly
   monthlyPrice: z.union([z.string(), z.number(), z.null()]).optional().transform(val => {
     if (val === "" || val === null || val === undefined) return null;
