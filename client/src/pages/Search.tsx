@@ -35,18 +35,39 @@ function FavoritesSection() {
         </div>
       ) : (
         <div className="space-y-3 max-h-60 overflow-y-auto">
-          {favorites.map((favorite: any) => {
-            // Handle nested structure - check if favorite has a nested favorites property
-            const favData = favorite.favorites || favorite;
-            const provider = favData.provider;
+          {favorites.map((item: any) => {
+            // Handle Drizzle join result structure
+            // The structure can be either direct or nested depending on the join
+            let favorite, provider;
+            
+            if (item.favorites && item.providers) {
+              // Drizzle join structure: {favorites: {...}, providers: {...}}
+              favorite = item.favorites;
+              provider = item.providers;
+            } else if (item.provider) {
+              // Direct structure with nested provider
+              favorite = item;
+              provider = item.provider;
+            } else {
+              // Try to find provider data in any nested structure
+              favorite = item.favorites || item;
+              provider = favorite.provider || item.providers;
+            }
+            
+            // Safety check - if we can't find valid data, skip this item
+            if (!provider || !provider.name) {
+              console.warn('Invalid favorite item structure:', item);
+              return null;
+            }
+            
             return (
-              <div key={favData.providerId} className="bg-white border border-gray-200 rounded-lg p-3">
+              <div key={favorite.providerId || provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{provider.name}</h4>
                     <p className="text-sm text-gray-600">{provider.borough}</p>
                     <p className="text-xs text-gray-500">
-                      Saved {new Date(favData.createdAt).toLocaleDateString()}
+                      Saved {new Date(favorite.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                   <Badge variant="secondary" className="text-xs">
@@ -55,7 +76,7 @@ function FavoritesSection() {
                 </div>
               </div>
             );
-          })}
+          }).filter(Boolean)}
         </div>
       )}
     </div>
