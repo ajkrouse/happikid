@@ -18,9 +18,89 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Define item type for drag and drop
+const ItemTypes = {
+  PROVIDER: 'provider',
+};
+
+// Draggable Provider Item Component
+function DraggableProviderItem({ 
+  provider, 
+  favorite, 
+  currentGroup, 
+  onMoveProvider,
+  children 
+}: {
+  provider: any;
+  favorite: any;
+  currentGroup: string | null;
+  onMoveProvider: (providerId: number, fromGroup: string | null, toGroup: string | null) => void;
+  children: React.ReactNode;
+}) {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: ItemTypes.PROVIDER,
+    item: { providerId: provider.id, currentGroup },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }));
+
+  return (
+    <div 
+      ref={drag}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+      className="cursor-move"
+    >
+      {children}
+    </div>
+  );
+}
+
+// Drop Zone Component
+function DropZone({ 
+  groupName, 
+  onDrop, 
+  children,
+  isUngrouped = false 
+}: {
+  groupName: string | null;
+  onDrop: (providerId: number, fromGroup: string | null, toGroup: string | null) => void;
+  children: React.ReactNode;
+  isUngrouped?: boolean;
+}) {
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: ItemTypes.PROVIDER,
+    drop: (item: { providerId: number; currentGroup: string | null }) => {
+      if (item.currentGroup !== groupName) {
+        onDrop(item.providerId, item.currentGroup, groupName);
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  }));
+
+  return (
+    <div 
+      ref={drop}
+      className={`transition-colors ${
+        isOver 
+          ? isUngrouped 
+            ? 'bg-gray-100 border-2 border-dashed border-gray-400' 
+            : 'bg-blue-100 border-2 border-dashed border-blue-400'
+          : ''
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
 
 // Helper function to get full type labels
 function getTypeLabel(type: string): string {
@@ -180,6 +260,33 @@ function FavoritesSection() {
     toast({
       title: "Items moved",
       description: `${selectedArray.length} items moved to "${groupName}" group.`,
+    });
+  };
+
+  // Handle drag and drop provider movement
+  const handleDragDropMove = (providerId: number, fromGroup: string | null, toGroup: string | null) => {
+    const newGroups = { ...groups };
+    
+    // Remove from source group
+    if (fromGroup) {
+      newGroups[fromGroup] = newGroups[fromGroup].filter(id => id !== providerId);
+      if (newGroups[fromGroup].length === 0) {
+        delete newGroups[fromGroup];
+      }
+    }
+    
+    // Add to target group (null means ungrouped)
+    if (toGroup) {
+      newGroups[toGroup] = [...(newGroups[toGroup] || []), providerId];
+    }
+    
+    saveGroups(newGroups);
+    
+    const fromText = fromGroup || "ungrouped";
+    const toText = toGroup || "ungrouped";
+    toast({
+      title: "Provider moved",
+      description: `Provider moved from ${fromText} to ${toText}.`,
     });
   };
 

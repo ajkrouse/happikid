@@ -1,0 +1,32 @@
+Provider Experience
+Guided Setup
+Step-by-step onboarding that guides providers to complete and optimize their profiles (including basic info, service category, availability, pricing, licensing/accreditation, program highlights, unique selling points, media/photos, FAQs, and contact details).
+Tips/tooltips for each step that explain why a field matters (e.g., 'Photos increase parent engagement by 20%').
+Progress tracker (completeness %), with locked profile visibility until critical info is added.
+Callout for verification—trusted badge, licensing check, and how to submit documents.
+Embedded prompts to help providers write compelling descriptions (AI suggestions for uniqueness, approachable tone, etc).
+Recommendations for Visibility
+On dashboard and during setup, providers receive a prioritized checklist ('Get Found More!') tailored to their profile and market, e.g.:
+Add another program/age range
+Upload more photos
+Respond to most-asked FAQs
+Complete licensing for badge
+Gather first reviews
+Explain algorithmically how these actions help boost search and comparison rank.
+Smart notification banner or side-panel with actionable advice.
+Recommendations engine adapts in real-time as competition or parent demand changes (market fit prompts).
+Surface leaderboard or “top providers near you” for extra motivation (optional, premium).
+Insights Dashboard
+STANDARD (basic, free) dashboard features:
+Views, profile clicks, and inquiry counts (by day/week/month)
+Top comparison criteria that parents searched for vs. how your profile performs
+Common missed opportunities (e.g., '20 parents filtered for after-6pm pickup')
+Profile completeness and checklist reminders
+PREMIUM dashboard features:
+Competitive benchmarking (see how you stack up on price, schedule, ratings vs. local peers)
+Visibility insights: Ranking in searches, comparison adds, favorites, and parent engagement patterns
+Conversion tracking (inquiries → bookings)
+Parent review and sentiment analytics (highlights from open-text reviews or Q&A)
+Advanced notifications: Market alerts (e.g. 'Rising demand for STEM camps in your zip'), trending FAQs, target customer fit probes.
+Clear upsell CTA to upgrade for premium insights—a locked banner with “Unlock full insights” prompt.
+Integrate all these details into the Requirements/Provider section of the doc, making it clear which features are basic (in MVP) and which are premium (post-MVP/paid upgrade). Use bullet points or formatting to make these distinctions explicit.
