@@ -446,26 +446,25 @@ function FavoritesSection({
               
               {/* Selection UI for ungrouped items */}
               {ungroupedItems.length > 1 && (
-                <div className="flex items-center justify-between bg-white p-3 rounded-lg mb-3 border border-gray-200">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">
-                      {selectedItems.size > 0 ? `${selectedItems.size} selected` : `Select multiple to organize`}
-                    </span>
+                <div className="bg-white p-3 rounded-lg mb-3 border border-gray-200 space-y-2">
+                  <div className="text-sm text-gray-600">
+                    {selectedItems.size > 0 ? `${selectedItems.size} selected` : `Select multiple to organize`}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
                     {selectedItems.size > 0 && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setSelectedItems(new Set())}
+                        className="flex-shrink-0"
                       >
                         Clear Selection
                       </Button>
                     )}
-                  </div>
-                  <div className="flex items-center space-x-2">
                     {selectedItems.size > 0 && Object.keys(groups).length > 0 && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" className="flex-shrink-0">
                             <Users className="h-4 w-4 mr-1" />
                             Move to Group
                           </Button>
@@ -483,10 +482,11 @@ function FavoritesSection({
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
-                    {selectedItems.size > 1 && (
+                    {selectedItems.size >= 1 && (
                       <Button
                         size="sm"
                         onClick={() => setIsCreatingGroup(true)}
+                        className="flex-shrink-0"
                       >
                         <FolderPlus className="h-4 w-4 mr-1" />
                         Create Group
