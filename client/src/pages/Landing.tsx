@@ -21,8 +21,11 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Provider } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -30,6 +33,9 @@ export default function Landing() {
   const [currentTypeIndex, setCurrentTypeIndex] = useState(0);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const childcareTypes = ["Daycare", "After-School Program", "Summer Camp", "Private School"];
   
@@ -45,6 +51,33 @@ export default function Landing() {
   const { data: featuredProviders, isLoading: providersLoading } = useQuery<Provider[]>({
     queryKey: ['/api/providers', { limit: 3 }],
   });
+
+  // Create a reusable favorite toggle handler
+  const handleFavoriteToggle = (provider: Provider) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to save favorites.",
+        action: (
+          <Button 
+            size="sm" 
+            onClick={() => window.location.href = '/api/login'}
+            className="ml-2"
+          >
+            Sign In
+          </Button>
+        ),
+        duration: 5000,
+      });
+      return;
+    }
+    // For now, just show the authentication prompt - we'll implement the mutation later
+    toast({
+      title: "Feature coming soon",
+      description: "Favorites will be available after you sign in.",
+    });
+  };
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -328,6 +361,16 @@ export default function Landing() {
                       alt={provider.name}
                       className="w-full h-full object-cover"
                     />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                      onClick={handleFavoriteToggle(provider)}
+                    >
+                      <Heart 
+                        className="h-4 w-4 text-gray-600" 
+                      />
+                    </Button>
                   </div>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold text-gray-900 mb-1">{provider.name}</h3>

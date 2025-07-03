@@ -230,17 +230,19 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl">{currentProvider.name}</DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleFavoriteToggle}
-              disabled={toggleFavoriteMutation.isPending}
+            <div className="mr-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleFavoriteToggle}
+                disabled={toggleFavoriteMutation.isPending}
                 className="hover:bg-red-50"
               >
                 <Heart 
                   className={`h-5 w-5 ${isAuthenticated && isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
                 />
               </Button>
+            </div>
           </div>
         </DialogHeader>
 
