@@ -15,10 +15,11 @@ interface ProviderCardProps {
   onViewDetails?: (provider: Provider) => void;
   onRequestInfo?: (provider: Provider) => void;
   onAddToComparison?: (provider: Provider) => void;
+  onRemoveFromComparison?: (providerId: number) => void;
   isInComparison?: boolean;
 }
 
-export default function ProviderCard({ provider, onViewDetails, onRequestInfo, onAddToComparison, isInComparison = false }: ProviderCardProps) {
+export default function ProviderCard({ provider, onViewDetails, onRequestInfo, onAddToComparison, onRemoveFromComparison, isInComparison = false }: ProviderCardProps) {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -244,14 +245,15 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
               <Button
                 variant={isInComparison ? "outline" : "secondary"}
                 size="sm"
-                disabled={isInComparison}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (!isInComparison) {
+                  if (isInComparison && onRemoveFromComparison) {
+                    onRemoveFromComparison(provider.id);
+                  } else if (!isInComparison) {
                     onAddToComparison(provider);
                   }
                 }}
-                className={isInComparison ? "opacity-50 cursor-not-allowed" : ""}
+                className={isInComparison ? "hover:bg-red-50 hover:border-red-200 hover:text-red-700" : ""}
               >
                 {isInComparison ? "In Comparison" : "Compare"}
               </Button>
