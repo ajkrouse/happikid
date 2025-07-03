@@ -1,9 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Star, Phone, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Heart, MapPin, Star, Phone, Mail, Users, Plus } from "lucide-react";
 import { Provider } from "@shared/schema";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +27,17 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const [showGroupDialog, setShowGroupDialog] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [groups, setGroups] = useState<{[key: string]: number[]}>({});
+
+  // Load groups from localStorage
+  useEffect(() => {
+    const savedGroups = localStorage.getItem('favoriteGroups');
+    if (savedGroups) {
+      setGroups(JSON.parse(savedGroups));
+    }
+  }, []);
 
   // Check if provider is favorited
   const { data: favoriteData } = useQuery({
@@ -33,33 +47,91 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
 
   const isFavorite = favoriteData?.isFavorite || false;
 
-  // Toggle favorite mutation
-  const toggleFavoriteMutation = useMutation({
+  // Remove favorite mutation
+  const removeFavoriteMutation = useMutation({
     mutationFn: async () => {
-      if (isFavorite) {
-        await apiRequest("DELETE", `/api/favorites/${provider.id}`);
-      } else {
-        await apiRequest("POST", `/api/favorites/${provider.id}`);
-      }
+      await apiRequest("DELETE", `/api/favorites/${provider.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/favorites/${provider.id}/check`] });
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
       toast({
-        title: isFavorite ? "Removed from favorites" : "Added to favorites",
-        description: isFavorite 
-          ? `${provider.name} removed from your favorites.`
-          : `${provider.name} added to your favorites.`,
+        title: "Removed from favorites",
+        description: `${provider.name} removed from your favorites.`,
       });
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to update favorites. Please try again.",
+        description: "Failed to remove from favorites. Please try again.",
         variant: "destructive",
       });
     },
   });
+
+  // Add favorite mutation
+  const addFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", `/api/favorites/${provider.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/favorites/${provider.id}/check`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      setShowGroupDialog(false);
+      setNewGroupName("");
+      toast({
+        title: "Added to favorites",
+        description: `${provider.name} added to your favorites.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to add to favorites. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Save groups to localStorage
+  const saveGroups = (newGroups: {[key: string]: number[]}) => {
+    setGroups(newGroups);
+    localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
+  };
+
+  // Handle adding to existing group
+  const handleAddToGroup = (groupName: string) => {
+    const newGroups = {
+      ...groups,
+      [groupName]: [...(groups[groupName] || []), provider.id]
+    };
+    saveGroups(newGroups);
+    addFavoriteMutation.mutate();
+  };
+
+  // Handle creating new group
+  const handleCreateNewGroup = () => {
+    if (!newGroupName.trim()) {
+      toast({
+        title: "Invalid group name",
+        description: "Please enter a group name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newGroups = {
+      ...groups,
+      [newGroupName.trim()]: [provider.id]
+    };
+    saveGroups(newGroups);
+    addFavoriteMutation.mutate();
+  };
+
+  // Handle saving ungrouped
+  const handleSaveUngrouped = () => {
+    addFavoriteMutation.mutate();
+  };
 
   const handleFavoriteToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,7 +152,12 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       });
       return;
     }
-    toggleFavoriteMutation.mutate();
+
+    if (isFavorite) {
+      removeFavoriteMutation.mutate();
+    } else {
+      setShowGroupDialog(true);
+    }
   };
 
   const getTypeLabel = (type: string) => {
@@ -105,7 +182,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onViewDetails?.(provider)}>
+    <>
+      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onViewDetails?.(provider)}>
       <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
         <img
           src={
@@ -131,7 +209,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
           size="sm"
           className="absolute top-2 right-2 bg-white/80 hover:bg-white"
           onClick={handleFavoriteToggle}
-          disabled={toggleFavoriteMutation.isPending}
+          disabled={removeFavoriteMutation.isPending || addFavoriteMutation.isPending}
         >
           <Heart 
             className={`h-4 w-4 ${isAuthenticated && isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
@@ -281,5 +359,87 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
         </div>
       </CardContent>
     </Card>
+
+    {/* Group Selection Dialog */}
+    <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Save to Favorites</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            How would you like to organize "{provider.name}" in your favorites?
+          </p>
+          
+          {/* Existing Groups */}
+          {Object.keys(groups).length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Add to existing group:</Label>
+              {Object.entries(groups).map(([groupName, providerIds]) => (
+                <Button
+                  key={groupName}
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => handleAddToGroup(groupName)}
+                  disabled={addFavoriteMutation.isPending}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  {groupName} ({providerIds.length} providers)
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {/* Create New Group */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Create new group:</Label>
+            <div className="flex space-x-2">
+              <Input
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder="Enter group name..."
+                className="flex-1"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCreateNewGroup();
+                  }
+                }}
+              />
+              <Button
+                onClick={handleCreateNewGroup}
+                disabled={!newGroupName.trim() || addFavoriteMutation.isPending}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Save Ungrouped */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Or save without grouping:</Label>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={handleSaveUngrouped}
+              disabled={addFavoriteMutation.isPending}
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              Save to favorites (ungrouped)
+            </Button>
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowGroupDialog(false)}
+              disabled={addFavoriteMutation.isPending}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
