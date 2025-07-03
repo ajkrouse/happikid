@@ -35,22 +35,27 @@ function FavoritesSection() {
         </div>
       ) : (
         <div className="space-y-3 max-h-60 overflow-y-auto">
-          {favorites.map((favorite: any) => (
-            <div key={favorite.providerId} className="bg-white border border-gray-200 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{favorite.provider.name}</h4>
-                  <p className="text-sm text-gray-600">{favorite.provider.borough}</p>
-                  <p className="text-xs text-gray-500">
-                    Saved {new Date(favorite.createdAt).toLocaleDateString()}
-                  </p>
+          {favorites.map((favorite: any) => {
+            // Handle nested structure - check if favorite has a nested favorites property
+            const favData = favorite.favorites || favorite;
+            const provider = favData.provider;
+            return (
+              <div key={favData.providerId} className="bg-white border border-gray-200 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{provider.name}</h4>
+                    <p className="text-sm text-gray-600">{provider.borough}</p>
+                    <p className="text-xs text-gray-500">
+                      Saved {new Date(favData.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {provider.type}
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  {favorite.provider.type}
-                </Badge>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
