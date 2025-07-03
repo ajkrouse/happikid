@@ -10,6 +10,7 @@ import Search from "@/pages/Search";
 import About from "@/pages/About";
 import ProviderDashboard from "@/pages/ProviderDashboard";
 import ProviderOnboarding from "@/pages/ProviderOnboarding";
+import ProviderCelebration from "@/pages/ProviderCelebration";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -29,6 +30,7 @@ function Router() {
           <Route path="/search" component={Search} />
           <Route path="/provider/dashboard" component={ProviderDashboard} />
           <Route path="/provider/onboarding" component={ProviderOnboarding} />
+          <Route path="/provider/celebration" component={ProviderCelebration} />
         </>
       )}
       <Route component={NotFound} />

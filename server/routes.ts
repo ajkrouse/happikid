@@ -265,6 +265,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/providers/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid provider ID" });
+      }
+      
       const provider = await storage.getProviderWithDetails(id);
       
       if (!provider) {
