@@ -9,7 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
@@ -18,67 +21,345 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+// Helper function to get full type labels
+function getTypeLabel(type: string): string {
+  switch(type) {
+    case 'daycare': return 'Daycare Center';
+    case 'afterschool': return 'After-School Program';
+    case 'camp': return 'Summer Camp';
+    case 'school': return 'Private School';
+    default: return type;
+  }
+}
+
 // Inline FavoritesSection component
 function FavoritesSection() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [groups, setGroups] = useState<{[key: string]: number[]}>({});
+  const [itemToRemove, setItemToRemove] = useState<{favorite: any, provider: any} | null>(null);
+  
   const { data: favorites } = useQuery({
     queryKey: ["/api/favorites"],
     enabled: true,
   });
 
+  // Load groups from localStorage
+  useEffect(() => {
+    const savedGroups = localStorage.getItem('favoriteGroups');
+    if (savedGroups) {
+      setGroups(JSON.parse(savedGroups));
+    }
+  }, []);
+
+  // Save groups to localStorage
+  const saveGroups = (newGroups: {[key: string]: number[]}) => {
+    setGroups(newGroups);
+    localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
+  };
+
+  // Remove favorite mutation
+  const removeFavoriteMutation = useMutation({
+    mutationFn: async (providerId: number) => {
+      await apiRequest("DELETE", `/api/favorites/${providerId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/favorites/${itemToRemove?.provider.id}/check`] });
+      toast({
+        title: "Removed from favorites",
+        description: `${itemToRemove?.provider.name} has been removed from your favorites.`,
+      });
+      setItemToRemove(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to remove from favorites. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateGroup = () => {
+    if (!groupName.trim() || selectedItems.size === 0) {
+      toast({
+        title: "Invalid group",
+        description: "Please enter a group name and select at least one provider.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newGroups = {
+      ...groups,
+      [groupName.trim()]: Array.from(selectedItems)
+    };
+    
+    saveGroups(newGroups);
+    setGroupName("");
+    setSelectedItems(new Set());
+    setIsCreatingGroup(false);
+    
+    toast({
+      title: "Group created",
+      description: `"${groupName.trim()}" group created with ${selectedItems.size} providers.`,
+    });
+  };
+
+  const handleRemoveFromGroup = (groupName: string, providerId: number) => {
+    const newGroups = { ...groups };
+    newGroups[groupName] = newGroups[groupName].filter(id => id !== providerId);
+    
+    if (newGroups[groupName].length === 0) {
+      delete newGroups[groupName];
+    }
+    
+    saveGroups(newGroups);
+    toast({
+      title: "Removed from group",
+      description: `Provider removed from "${groupName}" group.`,
+    });
+  };
+
+  const processedFavorites = favorites ? favorites.map((item: any) => {
+    let favorite, provider;
+    
+    if (item.favorites && item.providers) {
+      favorite = item.favorites;
+      provider = item.providers;
+    } else if (item.provider) {
+      favorite = item;
+      provider = item.provider;
+    } else {
+      favorite = item.favorites || item;
+      provider = favorite.provider || item.providers;
+    }
+    
+    if (!provider || !provider.name) {
+      return null;
+    }
+    
+    return { favorite, provider };
+  }).filter(Boolean) : [];
+
+  const ungroupedItems = processedFavorites.filter(item => 
+    !Object.values(groups).flat().includes(item.provider.id)
+  );
+
   return (
-    <div className="space-y-3">
-      {!favorites || favorites.length === 0 ? (
+    <div className="space-y-4">
+      {processedFavorites.length === 0 ? (
         <div className="text-center py-6 bg-gray-50 rounded-lg">
           <Heart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
           <p className="text-gray-600 text-sm">No favorite providers yet</p>
           <p className="text-gray-500 text-xs">Click the ❤️ on provider cards to save them</p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-60 overflow-y-auto">
-          {favorites.map((item: any) => {
-            // Handle Drizzle join result structure
-            // The structure can be either direct or nested depending on the join
-            let favorite, provider;
+        <>
+          {/* Action Bar */}
+          <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">
+                {selectedItems.size > 0 ? `${selectedItems.size} selected` : `${processedFavorites.length} favorites`}
+              </span>
+              {selectedItems.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelectedItems(new Set())}
+                >
+                  Clear Selection
+                </Button>
+              )}
+            </div>
+            {selectedItems.size > 1 && (
+              <Button
+                size="sm"
+                onClick={() => setIsCreatingGroup(true)}
+              >
+                <Users className="h-4 w-4 mr-1" />
+                Create Group
+              </Button>
+            )}
+          </div>
+
+          {/* Groups */}
+          {Object.entries(groups).map(([groupName, providerIds]) => {
+            const groupItems = processedFavorites.filter(item => 
+              providerIds.includes(item.provider.id)
+            );
             
-            if (item.favorites && item.providers) {
-              // Drizzle join structure: {favorites: {...}, providers: {...}}
-              favorite = item.favorites;
-              provider = item.providers;
-            } else if (item.provider) {
-              // Direct structure with nested provider
-              favorite = item;
-              provider = item.provider;
-            } else {
-              // Try to find provider data in any nested structure
-              favorite = item.favorites || item;
-              provider = favorite.provider || item.providers;
-            }
-            
-            // Safety check - if we can't find valid data, skip this item
-            if (!provider || !provider.name) {
-              console.warn('Invalid favorite item structure:', item);
-              return null;
-            }
+            if (groupItems.length === 0) return null;
             
             return (
-              <div key={favorite.providerId || provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{provider.name}</h4>
-                    <p className="text-sm text-gray-600">{provider.borough}</p>
-                    <p className="text-xs text-gray-500">
-                      Saved {new Date(favorite.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {provider.type}
-                  </Badge>
+              <div key={groupName} className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-blue-900 flex items-center">
+                    <Users className="h-4 w-4 mr-2" />
+                    {groupName} ({groupItems.length})
+                  </h4>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      const newGroups = { ...groups };
+                      delete newGroups[groupName];
+                      saveGroups(newGroups);
+                      toast({
+                        title: "Group deleted",
+                        description: `"${groupName}" group has been deleted.`,
+                      });
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {groupItems.map(({ favorite, provider }) => (
+                    <div key={provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900">{provider.name}</h5>
+                          <p className="text-sm text-gray-600">{provider.borough}</p>
+                          <p className="text-xs text-gray-500">
+                            Saved {new Date(favorite.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {getTypeLabel(provider.type)}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleRemoveFromGroup(groupName, provider.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             );
-          }).filter(Boolean)}
-        </div>
+          })}
+
+          {/* Ungrouped Items */}
+          {ungroupedItems.length > 0 && (
+            <div className="space-y-2">
+              {Object.keys(groups).length > 0 && (
+                <h4 className="font-medium text-gray-700 mb-2">Ungrouped Favorites</h4>
+              )}
+              {ungroupedItems.map(({ favorite, provider }) => (
+                <div key={provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center flex-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.has(provider.id)}
+                        onChange={(e) => {
+                          const newSelected = new Set(selectedItems);
+                          if (e.target.checked) {
+                            newSelected.add(provider.id);
+                          } else {
+                            newSelected.delete(provider.id);
+                          }
+                          setSelectedItems(newSelected);
+                        }}
+                        className="mr-3"
+                      />
+                      <div className="flex-1">
+                        <h5 className="font-medium text-gray-900">{provider.name}</h5>
+                        <p className="text-sm text-gray-600">{provider.borough}</p>
+                        <p className="text-xs text-gray-500">
+                          Saved {new Date(favorite.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {getTypeLabel(provider.type)}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setItemToRemove({ favorite, provider })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
+
+      {/* Create Group Dialog */}
+      <Dialog open={isCreatingGroup} onOpenChange={setIsCreatingGroup}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Group</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="groupName">Group Name</Label>
+              <Input
+                id="groupName"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="Enter group name..."
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">
+                Creating group with {selectedItems.size} selected provider{selectedItems.size !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsCreatingGroup(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateGroup}>
+                Create Group
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Confirmation Dialog */}
+      <AlertDialog open={!!itemToRemove} onOpenChange={() => setItemToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from Favorites</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove "{itemToRemove?.provider.name}" from your favorites? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (itemToRemove) {
+                  removeFavoriteMutation.mutate(itemToRemove.provider.id);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
