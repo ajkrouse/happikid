@@ -116,10 +116,16 @@ function getTypeLabel(type: string): string {
 // Inline FavoritesSection component
 function FavoritesSection({ 
   setSelectedProvider, 
-  setShowProviderModal 
+  setShowProviderModal,
+  setComparisonProviders,
+  setShowSavedGroupsModal,
+  setShowComparisonModal
 }: {
   setSelectedProvider: (provider: Provider | null) => void;
   setShowProviderModal: (show: boolean) => void;
+  setComparisonProviders: (providers: Provider[]) => void;
+  setShowSavedGroupsModal: (show: boolean) => void;
+  setShowComparisonModal: (show: boolean) => void;
 }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -151,6 +157,18 @@ function FavoritesSection({
     if (savedGroups) {
       setGroups(JSON.parse(savedGroups));
     }
+  };
+
+  // Function to load a group into comparison tool
+  const handleLoadGroupIntoComparison = (groupName: string, groupProviders: Provider[]) => {
+    setComparisonProviders(groupProviders);
+    setShowSavedGroupsModal(false);
+    setShowComparisonModal(true);
+    
+    toast({
+      title: "Group loaded",
+      description: `"${groupName}" group loaded into comparison tool.`,
+    });
   };
 
   // Save groups to localStorage
@@ -354,10 +372,18 @@ function FavoritesSection({
             return (
               <div key={groupName} className="border border-blue-200 rounded-lg p-3 bg-blue-50">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-blue-900 flex items-center">
+                  <div 
+                    className="flex items-center cursor-pointer hover:text-blue-700 transition-colors flex-1"
+                    onClick={() => handleLoadGroupIntoComparison(groupName, groupItems.map(item => item.provider))}
+                  >
                     <Users className="h-4 w-4 mr-2" />
-                    {groupName} ({groupItems.length})
-                  </h4>
+                    <h4 className="font-medium text-blue-900">
+                      {groupName} ({groupItems.length})
+                    </h4>
+                    <Badge variant="outline" className="ml-2 text-xs border-blue-300 text-blue-700">
+                      Click to compare
+                    </Badge>
+                  </div>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -1099,7 +1125,7 @@ export default function SearchPage() {
       <Dialog open={showSavedGroupsModal} onOpenChange={setShowSavedGroupsModal}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>My Groups</DialogTitle>
+            <DialogTitle>My Saved Groups</DialogTitle>
             <DialogDescription>
               Organize and manage your saved providers in custom groups
             </DialogDescription>
@@ -1111,6 +1137,7 @@ export default function SearchPage() {
               <div className="text-sm text-blue-700 space-y-2">
                 <p>• <strong>Save individual providers:</strong> Click the ❤️ heart icon on any provider card</p>
                 <p>• <strong>Save comparison groups:</strong> Use "Compare & Save" to create provider groups</p>
+                <p>• <strong>Launch group comparison:</strong> Click on any group name to load it into the comparison tool</p>
                 <p>• <strong>Organize with custom names:</strong> Create groups like "Top 3 Daycares" or "Summer Camp Options"</p>
               </div>
             </div>
@@ -1120,6 +1147,9 @@ export default function SearchPage() {
               <FavoritesSection 
                 setSelectedProvider={setSelectedProvider}
                 setShowProviderModal={setShowProviderModal}
+                setComparisonProviders={setComparisonProviders}
+                setShowSavedGroupsModal={setShowSavedGroupsModal}
+                setShowComparisonModal={setShowComparisonModal}
               />
             ) : (
               <div className="text-center py-6 bg-gray-50 rounded-lg">

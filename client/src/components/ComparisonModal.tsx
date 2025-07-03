@@ -481,7 +481,7 @@ export default function ComparisonModal({
               </Button>
               <Button variant="outline" size="sm" onClick={() => setShowSavedGroups(!showSavedGroups)}>
                 <Bookmark className="h-4 w-4 mr-2" />
-                My Groups
+                My Saved Groups
               </Button>
               <Button variant="outline" size="sm" onClick={() => setShowPreferencesPanel(!showPreferencesPanel)}>
                 <Filter className="h-4 w-4 mr-2" />
