@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Grid, List, Search as SearchIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, Grid, List, Search as SearchIcon, Bookmark } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
@@ -39,6 +40,7 @@ export default function SearchPage() {
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [comparisonProviders, setComparisonProviders] = useState<Provider[]>([]);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [showSavedGroupsModal, setShowSavedGroupsModal] = useState(false);
 
   // Get search params from URL
   useEffect(() => {
@@ -224,6 +226,15 @@ export default function SearchPage() {
               </div>
               
               <div className="flex items-center space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSavedGroupsModal(true)}
+                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                >
+                  <Bookmark className="h-4 w-4 mr-2" />
+                  Saved Groups
+                </Button>
+                
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-48">
                     <SelectValue />
@@ -370,6 +381,74 @@ export default function SearchPage() {
         onSelectProvider={handleSelectProvider}
         onRemoveProvider={handleRemoveFromComparison}
       />
+
+      {/* Saved Groups Dialog */}
+      <Dialog open={showSavedGroupsModal} onOpenChange={setShowSavedGroupsModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Saved Provider Groups</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Instructions */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-800 mb-2">How to Save Provider Groups</h3>
+              <div className="text-sm text-blue-700 space-y-1">
+                <p>• Add providers to comparison using the "Add to Comparison" button on provider cards</p>
+                <p>• Open the comparison modal and click "Saved Groups" in the header</p>
+                <p>• Name your group and click "Save Group" to store your comparison</p>
+                <p>• Load saved groups here to quickly compare your favorite provider combinations</p>
+              </div>
+            </div>
+
+            {/* Current Comparison Preview */}
+            {comparisonProviders.length > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-semibold text-green-800 mb-2">Current Comparison</h3>
+                <p className="text-sm text-green-700 mb-3">
+                  You have {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} in your current comparison.
+                </p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {comparisonProviders.map((provider) => (
+                    <Badge key={provider.id} variant="secondary" className="text-xs">
+                      {provider.name}
+                    </Badge>
+                  ))}
+                </div>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    setShowSavedGroupsModal(false);
+                    setShowComparisonModal(true);
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Open Comparison to Save This Group
+                </Button>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {comparisonProviders.length === 0 && (
+              <div className="text-center py-8">
+                <Bookmark className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Saved Groups Yet
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Start by adding providers to your comparison, then save groups from the comparison modal.
+                </p>
+                <Button 
+                  onClick={() => setShowSavedGroupsModal(false)}
+                  variant="outline"
+                >
+                  Start Comparing Providers
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
