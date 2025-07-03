@@ -469,38 +469,47 @@ export default function SearchPage() {
                 </div>
               </div>
 
-              {/* Current Comparison Preview */}
-              {comparisonProviders.length > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <h4 className="font-medium text-green-800 mb-2">Current Comparison</h4>
-                  <p className="text-sm text-green-700 mb-2">
-                    {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} ready to save
-                  </p>
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {comparisonProviders.map((provider) => (
-                      <Badge key={provider.id} variant="secondary" className="text-xs">
-                        {provider.name}
-                      </Badge>
-                    ))}
+              {isAuthenticated ? (
+                <>
+                  {/* Current Comparison Preview */}
+                  {comparisonProviders.length > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <h4 className="font-medium text-green-800 mb-2">Current Comparison</h4>
+                      <p className="text-sm text-green-700 mb-2">
+                        {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} ready to save
+                      </p>
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {comparisonProviders.map((provider) => (
+                          <Badge key={provider.id} variant="secondary" className="text-xs">
+                            {provider.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setShowSavedGroupsModal(false);
+                          setShowComparisonModal(true);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 w-full"
+                      >
+                        Open Comparison to Save
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="text-center py-6 bg-gray-50 rounded-lg">
+                    <Bookmark className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600 text-sm">No saved comparison groups yet</p>
+                    <p className="text-gray-500 text-xs">Add providers to comparison first</p>
                   </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => {
-                      setShowSavedGroupsModal(false);
-                      setShowComparisonModal(true);
-                    }}
-                    className="bg-green-600 hover:bg-green-700 w-full"
-                  >
-                    Open Comparison to Save
-                  </Button>
+                </>
+              ) : (
+                <div className="text-center py-6 bg-gray-50 rounded-lg">
+                  <Bookmark className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 text-sm">Sign in to save comparison groups</p>
                 </div>
               )}
-
-              <div className="text-center py-6 bg-gray-50 rounded-lg">
-                <Bookmark className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600 text-sm">No saved comparison groups yet</p>
-                <p className="text-gray-500 text-xs">Add providers to comparison first</p>
-              </div>
             </div>
           </div>
         </DialogContent>

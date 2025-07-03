@@ -401,95 +401,110 @@ export default function ComparisonModal({
                 </Button>
               </div>
               
-              {/* Save Current Group */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Plus className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium text-blue-800">Save Current Comparison</span>
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Enter group name (e.g., 'Manhattan Options', 'Top 3 Picks')"
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button size="sm" onClick={handleSaveGroup} disabled={!newGroupName.trim()}>
-                    Save Group
+              {!isAuthenticated ? (
+                <div className="text-center py-8">
+                  <Bookmark className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Sign In Required</h4>
+                  <p className="text-gray-600 mb-4">
+                    Please sign in to save and manage comparison groups.
+                  </p>
+                  <Button onClick={() => window.location.href = '/api/login'}>
+                    Sign In
                   </Button>
                 </div>
-              </div>
-
-              {/* Saved Groups List */}
-              <div className="space-y-3">
-                {savedGroups.length === 0 ? (
-                  <div className="text-gray-500 text-center py-4">
-                    No saved groups yet. Save your current comparison to get started!
-                  </div>
-                ) : (
-                  savedGroups.map((group) => (
-                    <div key={group.id} className="bg-white border border-gray-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        {editingGroupId === group.id ? (
-                          <div className="flex gap-2 flex-1">
-                            <Input
-                              defaultValue={group.name}
-                              onBlur={(e) => handleRenameGroup(group.id, e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleRenameGroup(group.id, e.currentTarget.value);
-                                }
-                              }}
-                              className="flex-1"
-                              autoFocus
-                            />
-                          </div>
-                        ) : (
-                          <h4 className="font-medium text-gray-900">{group.name}</h4>
-                        )}
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditingGroupId(editingGroupId === group.id ? null : group.id)}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteGroup(group.id)}
-                            className="hover:bg-red-50"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="text-sm text-gray-600 mb-2">
-                        {group.providers.length} provider{group.providers.length !== 1 ? 's' : ''} • 
-                        Saved {group.createdAt.toLocaleDateString()}
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {group.providers.map((provider) => (
-                          <Badge key={provider.id} variant="secondary" className="text-xs">
-                            {provider.name}
-                          </Badge>
-                        ))}
-                      </div>
-                      
-                      <Button
-                        size="sm"
-                        onClick={() => handleLoadGroup(group)}
-                        className="w-full"
-                      >
-                        Load This Group
+              ) : (
+                <>
+                  {/* Save Current Group */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Plus className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium text-blue-800">Save Current Comparison</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter group name (e.g., 'Manhattan Options', 'Top 3 Picks')"
+                        value={newGroupName}
+                        onChange={(e) => setNewGroupName(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button size="sm" onClick={handleSaveGroup} disabled={!newGroupName.trim()}>
+                        Save Group
                       </Button>
                     </div>
-                  ))
-                )}
-              </div>
+                  </div>
+
+                  {/* Saved Groups List */}
+                  <div className="space-y-3">
+                    {savedGroups.length === 0 ? (
+                      <div className="text-gray-500 text-center py-4">
+                        No saved groups yet. Save your current comparison to get started!
+                      </div>
+                    ) : (
+                      savedGroups.map((group) => (
+                        <div key={group.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            {editingGroupId === group.id ? (
+                              <div className="flex gap-2 flex-1">
+                                <Input
+                                  defaultValue={group.name}
+                                  onBlur={(e) => handleRenameGroup(group.id, e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleRenameGroup(group.id, e.currentTarget.value);
+                                    }
+                                  }}
+                                  className="flex-1"
+                                  autoFocus
+                                />
+                              </div>
+                            ) : (
+                              <h4 className="font-medium text-gray-900">{group.name}</h4>
+                            )}
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingGroupId(editingGroupId === group.id ? null : group.id)}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteGroup(group.id)}
+                                className="hover:bg-red-50"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="text-sm text-gray-600 mb-2">
+                            {group.providers.length} provider{group.providers.length !== 1 ? 's' : ''} • 
+                            Saved {group.createdAt.toLocaleDateString()}
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {group.providers.map((provider) => (
+                              <Badge key={provider.id} variant="secondary" className="text-xs">
+                                {provider.name}
+                              </Badge>
+                            ))}
+                          </div>
+                          
+                          <Button
+                            size="sm"
+                            onClick={() => handleLoadGroup(group)}
+                            className="w-full"
+                          >
+                            Load This Group
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         )}
