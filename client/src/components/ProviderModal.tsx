@@ -207,7 +207,25 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">{currentProvider.name}</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl">{currentProvider.name}</DialogTitle>
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavoriteMutation.mutate();
+                }}
+                disabled={toggleFavoriteMutation.isPending}
+                className="hover:bg-red-50"
+              >
+                <Heart 
+                  className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                />
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         {isLoading ? (

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Grid, List, Search as SearchIcon, Bookmark } from "lucide-react";
+import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
@@ -17,6 +17,45 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Inline FavoritesSection component
+function FavoritesSection() {
+  const { data: favorites } = useQuery({
+    queryKey: ["/api/favorites"],
+    enabled: true,
+  });
+
+  return (
+    <div className="space-y-3">
+      {!favorites || favorites.length === 0 ? (
+        <div className="text-center py-6 bg-gray-50 rounded-lg">
+          <Heart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-600 text-sm">No favorite providers yet</p>
+          <p className="text-gray-500 text-xs">Click the ❤️ on provider cards to save them</p>
+        </div>
+      ) : (
+        <div className="space-y-3 max-h-60 overflow-y-auto">
+          {favorites.map((favorite: any) => (
+            <div key={favorite.providerId} className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">{favorite.provider.name}</h4>
+                  <p className="text-sm text-gray-600">{favorite.provider.borough}</p>
+                  <p className="text-xs text-gray-500">
+                    Saved {new Date(favorite.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {favorite.provider.type}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SearchPage() {
   const { isAuthenticated, user } = useAuth();
@@ -384,68 +423,85 @@ export default function SearchPage() {
 
       {/* Saved Groups Dialog */}
       <Dialog open={showSavedGroupsModal} onOpenChange={setShowSavedGroupsModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Manage Saved Provider Groups</DialogTitle>
+            <DialogTitle>My Saved Providers & Groups</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6">
-            {/* Instructions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">How to Save Provider Groups</h3>
-              <div className="text-sm text-blue-700 space-y-1">
-                <p>• Add providers to comparison using the "Add to Comparison" button on provider cards</p>
-                <p>• Open the comparison modal and click "Saved Groups" in the header</p>
-                <p>• Name your group and click "Save Group" to store your comparison</p>
-                <p>• Load saved groups here to quickly compare your favorite provider combinations</p>
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Individual Favorites */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 border-b pb-2">
+                <Heart className="h-5 w-5 text-red-500" />
+                <h3 className="text-lg font-semibold">Favorite Providers</h3>
               </div>
+              
+              <div className="bg-pink-50 border border-pink-200 rounded-lg p-3">
+                <div className="text-sm text-pink-700 space-y-1">
+                  <p>• Click the ❤️ heart icon on any provider card to save it to your favorites</p>
+                  <p>• Organize favorites into custom groups for easy access</p>
+                  <p>• Perfect for keeping track of providers you want to remember</p>
+                </div>
+              </div>
+
+              {isAuthenticated ? (
+                <FavoritesSection />
+              ) : (
+                <div className="text-center py-6 bg-gray-50 rounded-lg">
+                  <Heart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600 text-sm">Sign in to save favorite providers</p>
+                </div>
+              )}
             </div>
 
-            {/* Current Comparison Preview */}
-            {comparisonProviders.length > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 className="font-semibold text-green-800 mb-2">Current Comparison</h3>
-                <p className="text-sm text-green-700 mb-3">
-                  You have {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} in your current comparison.
-                </p>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {comparisonProviders.map((provider) => (
-                    <Badge key={provider.id} variant="secondary" className="text-xs">
-                      {provider.name}
-                    </Badge>
-                  ))}
+            {/* Saved Comparisons */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 border-b pb-2">
+                <Bookmark className="h-5 w-5 text-blue-500" />
+                <h3 className="text-lg font-semibold">Saved Comparisons</h3>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="text-sm text-blue-700 space-y-1">
+                  <p>• Add providers to comparison using "Add to Comparison" buttons</p>
+                  <p>• Open comparison modal and save your comparison groups</p>
+                  <p>• Perfect for side-by-side evaluation of multiple providers</p>
                 </div>
-                <Button 
-                  size="sm" 
-                  onClick={() => {
-                    setShowSavedGroupsModal(false);
-                    setShowComparisonModal(true);
-                  }}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Open Comparison to Save This Group
-                </Button>
               </div>
-            )}
 
-            {/* Empty State */}
-            {comparisonProviders.length === 0 && (
-              <div className="text-center py-8">
-                <Bookmark className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No Saved Groups Yet
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Start by adding providers to your comparison, then save groups from the comparison modal.
-                </p>
-                <Button 
-                  onClick={() => setShowSavedGroupsModal(false)}
-                  variant="outline"
-                >
-                  Start Comparing Providers
-                </Button>
+              {/* Current Comparison Preview */}
+              {comparisonProviders.length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <h4 className="font-medium text-green-800 mb-2">Current Comparison</h4>
+                  <p className="text-sm text-green-700 mb-2">
+                    {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} ready to save
+                  </p>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {comparisonProviders.map((provider) => (
+                      <Badge key={provider.id} variant="secondary" className="text-xs">
+                        {provider.name}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      setShowSavedGroupsModal(false);
+                      setShowComparisonModal(true);
+                    }}
+                    className="bg-green-600 hover:bg-green-700 w-full"
+                  >
+                    Open Comparison to Save
+                  </Button>
+                </div>
+              )}
+
+              <div className="text-center py-6 bg-gray-50 rounded-lg">
+                <Bookmark className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600 text-sm">No saved comparison groups yet</p>
+                <p className="text-gray-500 text-xs">Add providers to comparison first</p>
               </div>
-            )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
