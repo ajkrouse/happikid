@@ -239,9 +239,37 @@ export default function ComparisonModal({
   });
 
   const handleSaveComparison = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to save comparisons.",
+        action: (
+          <Button 
+            size="sm" 
+            onClick={() => window.location.href = '/api/login'}
+            className="ml-2"
+          >
+            Sign In
+          </Button>
+        ),
+        duration: 5000,
+      });
+      return;
+    }
+
+    if (!comparisonName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter a name for your comparison.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
     const comparison = {
       id: Date.now(),
-      name: comparisonName || `Comparison ${new Date().toLocaleDateString()}`,
+      name: comparisonName.trim(),
       providers: providers,
       preferences: preferences,
       createdAt: new Date()
@@ -252,6 +280,12 @@ export default function ComparisonModal({
     localStorage.setItem('savedComparisons', JSON.stringify(saved));
     setSavedComparisons(saved);
     setComparisonName('');
+    
+    toast({
+      title: "Comparison Saved!",
+      description: `"${comparison.name}" has been saved successfully.`,
+      duration: 3000,
+    });
   };
 
   const handleShareComparison = () => {
@@ -265,7 +299,33 @@ export default function ComparisonModal({
 
   // Saved Groups Functions
   const handleSaveGroup = () => {
-    if (!newGroupName.trim()) return;
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to save comparison groups.",
+        action: (
+          <Button 
+            size="sm" 
+            onClick={() => window.location.href = '/api/login'}
+            className="ml-2"
+          >
+            Sign In
+          </Button>
+        ),
+        duration: 5000,
+      });
+      return;
+    }
+
+    if (!newGroupName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter a name for your comparison group.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
     
     const newGroup = {
       id: Date.now().toString(),
@@ -433,10 +493,11 @@ export default function ComparisonModal({
                     </div>
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Enter group name (e.g., 'Manhattan Options', 'Top 3 Picks')"
+                        placeholder="Enter group name (required)"
                         value={newGroupName}
                         onChange={(e) => setNewGroupName(e.target.value)}
                         className="flex-1"
+                        required
                       />
                       <Button size="sm" onClick={handleSaveGroup} disabled={!newGroupName.trim()}>
                         Save Group
@@ -790,14 +851,19 @@ export default function ComparisonModal({
         <div className="flex flex-col sm:flex-row gap-4 mt-6 pt-4 border-t">
           <div className="flex-1">
             <Input
-              placeholder="Name this comparison (optional)"
+              placeholder="Name this comparison (required)"
               value={comparisonName}
               onChange={(e) => setComparisonName(e.target.value)}
+              required
             />
           </div>
           
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleSaveComparison}>
+            <Button 
+              variant="outline" 
+              onClick={handleSaveComparison}
+              disabled={!comparisonName.trim()}
+            >
               <Save className="h-4 w-4 mr-2" />
               Save Comparison
             </Button>
