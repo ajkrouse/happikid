@@ -28,7 +28,11 @@ import {
   DollarSign,
   Home,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Bookmark,
+  Edit,
+  Trash2,
+  Plus
 } from "lucide-react";
 
 interface ComparisonModalProps {
@@ -76,6 +80,17 @@ export default function ComparisonModal({
   const [comparisonName, setComparisonName] = useState('');
   const [savedComparisons, setSavedComparisons] = useState<any[]>([]);
   const [usedExamples, setUsedExamples] = useState<string[]>([]);
+  
+  // Saved Providers Groups
+  const [savedGroups, setSavedGroups] = useState<Array<{
+    id: string;
+    name: string;
+    providers: Provider[];
+    createdAt: Date;
+  }>>([]);
+  const [showSavedGroups, setShowSavedGroups] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
 
   const getTypeLabel = (type: string) => {
     const labels = {
@@ -244,6 +259,38 @@ export default function ComparisonModal({
     navigator.clipboard.writeText(shareUrl);
   };
 
+  // Saved Groups Functions
+  const handleSaveGroup = () => {
+    if (!newGroupName.trim()) return;
+    
+    const newGroup = {
+      id: Date.now().toString(),
+      name: newGroupName.trim(),
+      providers: [...providers],
+      createdAt: new Date()
+    };
+    
+    setSavedGroups(prev => [...prev, newGroup]);
+    setNewGroupName('');
+  };
+
+  const handleRenameGroup = (groupId: string, newName: string) => {
+    setSavedGroups(prev => prev.map(group => 
+      group.id === groupId ? { ...group, name: newName } : group
+    ));
+    setEditingGroupId(null);
+  };
+
+  const handleDeleteGroup = (groupId: string) => {
+    setSavedGroups(prev => prev.filter(group => group.id !== groupId));
+  };
+
+  const handleLoadGroup = (group: typeof savedGroups[0]) => {
+    // Replace current providers with saved group providers
+    providers.forEach(provider => onRemoveProvider(provider.id));
+    group.providers.forEach(provider => onSelectProvider(provider));
+  };
+
   // Comprehensive priority examples that appear dynamically
   const allPriorityExamples = [
     // Initial basic examples
@@ -277,14 +324,21 @@ export default function ComparisonModal({
     const previousPriorities = preferences.priorities.toLowerCase();
     const newPriorities = value.toLowerCase();
     
-    // Check if any priorities were removed
+    // Find examples that were removed (were in previous but not in new)
+    const removedExamples: string[] = [];
     usedExamples.forEach(example => {
       if (previousPriorities.includes(example.toLowerCase()) && 
           !newPriorities.includes(example.toLowerCase())) {
-        // This example was removed, take it out of usedExamples
-        setUsedExamples(prev => prev.filter(used => used !== example));
+        removedExamples.push(example);
       }
     });
+    
+    // Remove deleted examples from usedExamples so they appear in available examples again
+    if (removedExamples.length > 0) {
+      setUsedExamples(prev => prev.filter(used => 
+        !removedExamples.some(removed => removed.toLowerCase() === used.toLowerCase())
+      ));
+    }
     
     setPreferences(prev => ({ ...prev, priorities: value }));
   };
@@ -320,6 +374,10 @@ export default function ComparisonModal({
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowSavedGroups(!showSavedGroups)}>
+                <Bookmark className="h-4 w-4 mr-2" />
+                Saved Groups
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setShowPreferencesPanel(!showPreferencesPanel)}>
                 <Filter className="h-4 w-4 mr-2" />
                 Preferences
@@ -327,6 +385,114 @@ export default function ComparisonModal({
             </div>
           </div>
         </DialogHeader>
+
+        {/* Saved Groups Panel */}
+        {showSavedGroups && (
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Saved Provider Groups</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSavedGroups(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {/* Save Current Group */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Plus className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-blue-800">Save Current Comparison</span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter group name (e.g., 'Manhattan Options', 'Top 3 Picks')"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button size="sm" onClick={handleSaveGroup} disabled={!newGroupName.trim()}>
+                    Save Group
+                  </Button>
+                </div>
+              </div>
+
+              {/* Saved Groups List */}
+              <div className="space-y-3">
+                {savedGroups.length === 0 ? (
+                  <div className="text-gray-500 text-center py-4">
+                    No saved groups yet. Save your current comparison to get started!
+                  </div>
+                ) : (
+                  savedGroups.map((group) => (
+                    <div key={group.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        {editingGroupId === group.id ? (
+                          <div className="flex gap-2 flex-1">
+                            <Input
+                              defaultValue={group.name}
+                              onBlur={(e) => handleRenameGroup(group.id, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleRenameGroup(group.id, e.currentTarget.value);
+                                }
+                              }}
+                              className="flex-1"
+                              autoFocus
+                            />
+                          </div>
+                        ) : (
+                          <h4 className="font-medium text-gray-900">{group.name}</h4>
+                        )}
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingGroupId(editingGroupId === group.id ? null : group.id)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteGroup(group.id)}
+                            className="hover:bg-red-50"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="text-sm text-gray-600 mb-2">
+                        {group.providers.length} provider{group.providers.length !== 1 ? 's' : ''} • 
+                        Saved {group.createdAt.toLocaleDateString()}
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {group.providers.map((provider) => (
+                          <Badge key={provider.id} variant="secondary" className="text-xs">
+                            {provider.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      <Button
+                        size="sm"
+                        onClick={() => handleLoadGroup(group)}
+                        className="w-full"
+                      >
+                        Load This Group
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Preferences Panel */}
         {showPreferencesPanel && (
