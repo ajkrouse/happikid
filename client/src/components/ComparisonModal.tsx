@@ -544,7 +544,7 @@ export default function ComparisonModal({
                   {/* Persistent Priority Examples */}
                   <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-2">
                     <div className="text-xs font-medium text-blue-800 mb-1">
-                      Try these examples {usedExamples.length > 0 && `(${getAvailableExamples().length} more unlocked)`}:
+                      Try these examples:
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {getAvailableExamples().map((example) => (
@@ -659,12 +659,19 @@ export default function ComparisonModal({
                 />
                 <h3 className="font-semibold text-sm text-gray-900 mb-1">{provider.name}</h3>
                 {preferences.priorities && (
-                  <Badge 
-                    variant={calculateFitScore(provider) >= 80 ? "default" : "secondary"}
-                    className={`text-xs ${calculateFitScore(provider) >= 80 ? 'bg-green-600' : 'bg-gray-500'}`}
-                  >
-                    {calculateFitScore(provider)}% Match
-                  </Badge>
+                  <div className="flex items-center justify-center">
+                    <Badge 
+                      className={`text-xs font-medium px-2 py-1 ${
+                        calculateFitScore(provider) >= 80 
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
+                          : calculateFitScore(provider) >= 60
+                          ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {calculateFitScore(provider)}% Match
+                    </Badge>
+                  </div>
                 )}
               </div>
             </div>
