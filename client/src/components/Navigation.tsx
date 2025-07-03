@@ -16,7 +16,7 @@ export default function Navigation() {
 
   const navItems = [
     { href: "/search", label: "Find Care" },
-    { href: "/dashboard", label: "For Providers" },
+    { href: "/provider/onboarding", label: "For Providers" },
     { href: "/about", label: "About" },
   ];
 

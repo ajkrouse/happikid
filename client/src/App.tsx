@@ -9,6 +9,7 @@ import Home from "@/pages/Home";
 import Search from "@/pages/Search";
 import About from "@/pages/About";
 import ProviderDashboard from "@/pages/ProviderDashboard";
+import ProviderOnboarding from "@/pages/ProviderOnboarding";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,7 +27,8 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/search" component={Search} />
-          <Route path="/dashboard" component={ProviderDashboard} />
+          <Route path="/provider/dashboard" component={ProviderDashboard} />
+          <Route path="/provider/onboarding" component={ProviderOnboarding} />
         </>
       )}
       <Route component={NotFound} />

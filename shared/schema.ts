@@ -64,6 +64,23 @@ export const providers = pgTable("providers", {
   isActive: boolean("is_active").default(true),
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
   reviewCount: integer("review_count").default(0),
+  // Onboarding and profile completion
+  profileCompleteness: integer("profile_completeness").default(0), // Percentage
+  onboardingStep: varchar("onboarding_step").default("basic_info"),
+  isProfileVisible: boolean("is_profile_visible").default(false),
+  licenseNumber: varchar("license_number"),
+  accreditationDetails: text("accreditation_details"),
+  programHighlights: text("program_highlights").array(),
+  uniqueSellingPoints: text("unique_selling_points").array(),
+  faqs: jsonb("faqs"), // Array of {question, answer} objects
+  // Analytics fields
+  profileViews: integer("profile_views").default(0),
+  profileClicks: integer("profile_clicks").default(0),
+  inquiryCount: integer("inquiry_count").default(0),
+  comparisonAdds: integer("comparison_adds").default(0),
+  favoriteAdds: integer("favorite_adds").default(0),
+  isPremium: boolean("is_premium").default(false),
+  premiumExpiresAt: timestamp("premium_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -484,6 +484,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Provider-specific routes for onboarding and dashboard
+  app.get('/api/providers/mine', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const providers = await storage.getProvidersByUserId(userId);
+      
+      if (providers.length === 0) {
+        return res.status(404).json({ message: "No provider profile found" });
+      }
+      
+      // Return the first provider (assuming one provider per user for now)
+      res.json(providers[0]);
+    } catch (error) {
+      console.error("Error fetching user provider:", error);
+      res.status(500).json({ message: "Failed to fetch provider" });
+    }
+  });
+
+  app.post('/api/providers', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Check if user already has a provider profile
+      const existingProviders = await storage.getProvidersByUserId(userId);
+      
+      if (existingProviders.length > 0) {
+        // Update existing provider
+        const providerId = existingProviders[0].id;
+        const updateData = insertProviderSchema.partial().parse(req.body);
+        const provider = await storage.updateProvider(providerId, updateData);
+        return res.json(provider);
+      }
+      
+      // Create new provider
+      const providerData = insertProviderSchema.parse({ ...req.body, userId });
+      const provider = await storage.createProvider(providerData);
+      res.status(201).json(provider);
+    } catch (error) {
+      console.error("Error creating/updating provider:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to save provider" });
+    }
+  });
+
+  app.patch('/api/providers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Check if user owns this provider
+      const existingProvider = await storage.getProvider(id);
+      if (!existingProvider || existingProvider.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateData = insertProviderSchema.partial().parse(req.body);
+      const provider = await storage.updateProvider(id, updateData);
+      res.json(provider);
+    } catch (error) {
+      console.error("Error updating provider:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update provider" });
+    }
+  });
+
+  // Provider inquiries route
+  app.get('/api/inquiries/provider', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get the provider owned by this user
+      const providers = await storage.getProvidersByUserId(userId);
+      if (providers.length === 0) {
+        return res.json([]);
+      }
+      
+      const providerId = providers[0].id;
+      const inquiries = await storage.getInquiriesByProviderId(providerId);
+      res.json(inquiries);
+    } catch (error) {
+      console.error("Error fetching provider inquiries:", error);
+      res.status(500).json({ message: "Failed to fetch inquiries" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
