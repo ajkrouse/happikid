@@ -100,37 +100,36 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     const dollarSigns = getCostLevel(provider);
     const costRange = getCostRange(provider);
     
-    if (provider.monthlyPrice && provider.showExactPrice) {
+    // Always show the $$ meter first
+    const dollarMeter = (
+      <div className="flex items-center justify-center gap-0.5 mb-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <span 
+            key={i} 
+            className={`text-lg font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
+          >
+            $
+          </span>
+        ))}
+      </div>
+    );
+    
+    // Show exact price if available and provider wants to show it (and it's not $0)
+    const priceValue = Number(provider.monthlyPrice);
+    if (provider.monthlyPrice && priceValue > 0 && provider.showExactPrice) {
       return (
         <div className="text-center">
-          <div className="flex items-center justify-center gap-0.5 mb-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <span 
-                key={i} 
-                className={`text-lg font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
-              >
-                $
-              </span>
-            ))}
-          </div>
+          {dollarMeter}
           <div className="text-3xl font-bold text-gray-900">${provider.monthlyPrice}</div>
           <div className="text-gray-600">per month</div>
         </div>
       );
     }
     
+    // Otherwise show the estimated range
     return (
       <div className="text-center">
-        <div className="flex items-center justify-center gap-0.5 mb-2">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <span 
-              key={i} 
-              className={`text-lg font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
-            >
-              $
-            </span>
-          ))}
-        </div>
+        {dollarMeter}
         <div className="text-lg font-semibold text-gray-900">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}</div>
         <div className="text-gray-600">per month</div>
       </div>

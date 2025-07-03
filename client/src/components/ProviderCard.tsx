@@ -140,36 +140,35 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     const dollarSigns = getCostLevel(provider);
     const costRange = getCostRange(provider);
     
-    if (provider.monthlyPrice && provider.showExactPrice) {
+    // Always show the $$ meter first
+    const dollarMeter = (
+      <div className="flex items-center gap-0.5 mb-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <span 
+            key={i} 
+            className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
+          >
+            $
+          </span>
+        ))}
+      </div>
+    );
+    
+    // Show exact price if available and provider wants to show it (and it's not $0)
+    const priceValue = Number(provider.monthlyPrice);
+    if (provider.monthlyPrice && priceValue > 0 && provider.showExactPrice) {
       return (
         <div className="text-left">
-          <div className="flex items-center gap-0.5 mb-1">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <span 
-                key={i} 
-                className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
-              >
-                $
-              </span>
-            ))}
-          </div>
+          {dollarMeter}
           <div className="text-lg font-bold text-gray-900">${provider.monthlyPrice}/month</div>
         </div>
       );
     }
     
+    // Otherwise show the estimated range
     return (
       <div className="text-left">
-        <div className="flex items-center gap-0.5 mb-1">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <span 
-              key={i} 
-              className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
-            >
-              $
-            </span>
-          ))}
-        </div>
+        {dollarMeter}
         <div className="text-sm text-gray-600">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}/month</div>
       </div>
     );
