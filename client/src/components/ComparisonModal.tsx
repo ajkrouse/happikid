@@ -43,6 +43,7 @@ interface ComparisonModalProps {
   onClose: () => void;
   onSelectProvider: (provider: Provider) => void;
   onRemoveProvider: (providerId: number) => void;
+  onGroupsSaved?: () => void; // Callback to refresh saved groups
 }
 
 interface UserPreferences {
@@ -68,7 +69,8 @@ export default function ComparisonModal({
   isOpen, 
   onClose, 
   onSelectProvider,
-  onRemoveProvider 
+  onRemoveProvider,
+  onGroupsSaved
 }: ComparisonModalProps) {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -331,6 +333,15 @@ export default function ComparisonModal({
     
     setSavedGroups(prev => [...prev, newGroup]);
     setNewGroupName('');
+    
+    // Also save to favorite groups localStorage for integration with Search page
+    const existingGroups = JSON.parse(localStorage.getItem('favoriteGroups') || '{}');
+    const providerIds = providers.map(p => p.id);
+    existingGroups[newGroup.name] = providerIds;
+    localStorage.setItem('favoriteGroups', JSON.stringify(existingGroups));
+    
+    // Trigger callback to refresh groups in Search component
+    onGroupsSaved?.();
     
     // Show success toast
     toast({

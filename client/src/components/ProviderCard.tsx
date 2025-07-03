@@ -99,6 +99,47 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
   };
 
+  // Function to get relative cost level based on provider type and characteristics
+  const getCostLevel = (provider: Provider) => {
+    // Assign relative cost based on typical pricing patterns
+    let dollarSigns = 2; // Default to moderate cost
+    
+    if (provider.name.includes('Bright Horizons')) dollarSigns = 4; // Premium national chain
+    else if (provider.name.includes('Learning Experience')) dollarSigns = 3; // Mid-premium franchise
+    else if (provider.name.includes('Little Sunshine')) dollarSigns = 2; // Moderate local
+    else if (provider.name.includes('Montessori')) dollarSigns = 3; // Typically higher due to specialized curriculum
+    else if (provider.name.includes('Bronx Academy')) dollarSigns = 4; // Private school premium
+    else if (provider.name.includes('Camp')) dollarSigns = 2; // Summer camps typically moderate
+    
+    return dollarSigns;
+  };
+
+  // Function to render cost display
+  const renderCostDisplay = (provider: Provider) => {
+    if (provider.monthlyPrice) {
+      return (
+        <>
+          <span className="text-2xl font-bold text-gray-900">${provider.monthlyPrice}</span>
+          <span className="text-gray-600">/month</span>
+        </>
+      );
+    }
+    
+    const dollarSigns = getCostLevel(provider);
+    return (
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <span 
+            key={i} 
+            className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
+          >
+            $
+          </span>
+        ))}
+      </div>
+    );
+  };
+
   // Handle adding to existing group
   const handleAddToGroup = (groupName: string) => {
     const newGroups = {
@@ -309,14 +350,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
 
         <div className="flex justify-between items-center">
           <div>
-            {provider.monthlyPrice && (
-              <>
-                <span className="text-2xl font-bold text-gray-900">
-                  ${provider.monthlyPrice}
-                </span>
-                <span className="text-gray-600">/month</span>
-              </>
-            )}
+            {renderCostDisplay(provider)}
           </div>
           <div className="flex space-x-2">
             {onAddToComparison && (

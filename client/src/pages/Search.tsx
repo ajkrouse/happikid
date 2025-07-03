@@ -144,6 +144,14 @@ function FavoritesSection({
     }
   }, [favorites]); // Refresh groups when favorites data changes
 
+  // Function to refresh groups from localStorage
+  const refreshGroups = () => {
+    const savedGroups = localStorage.getItem('favoriteGroups');
+    if (savedGroups) {
+      setGroups(JSON.parse(savedGroups));
+    }
+  };
+
   // Save groups to localStorage
   const saveGroups = (newGroups: {[key: string]: number[]}) => {
     setGroups(newGroups);
@@ -709,6 +717,13 @@ export default function SearchPage() {
   const [comparisonProviders, setComparisonProviders] = useState<Provider[]>([]);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [showSavedGroupsModal, setShowSavedGroupsModal] = useState(false);
+  
+  // Function to refresh groups when comparison is saved
+  const handleGroupsSaved = () => {
+    // Force a re-render by invalidating the favorites query
+    // This will trigger the useEffect in FavoritesSection that loads groups
+    queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+  };
 
   // Get search params from URL
   useEffect(() => {
@@ -1050,6 +1065,7 @@ export default function SearchPage() {
         onClose={() => setShowComparisonModal(false)}
         onSelectProvider={handleSelectProvider}
         onRemoveProvider={handleRemoveFromComparison}
+        onGroupsSaved={handleGroupsSaved}
       />
 
       {/* Saved Groups Dialog */}
