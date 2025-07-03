@@ -915,7 +915,7 @@ export default function SearchPage() {
                   className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
                 >
                   <Bookmark className="h-4 w-4 mr-2" />
-                  Saved Groups
+                  My Groups
                 </Button>
                 
                 <Select value={sortBy} onValueChange={setSortBy}>
@@ -975,7 +975,7 @@ export default function SearchPage() {
                       onClick={handleCompareProviders}
                       disabled={comparisonProviders.length < 2}
                     >
-                      Compare Now
+                      Compare & Save
                     </Button>
                   </div>
                 </CardContent>

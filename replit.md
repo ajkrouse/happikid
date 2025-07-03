@@ -147,6 +147,12 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Added sticky navigation header for better UX
   - Added rotating childcare type text in hero section with smooth scrolling animation (Daycare, After-School Program, Camp, Private School)
   - Updated provider data with accurate real-world information from public sources
+- July 03, 2025: Unified comparison and favorite groups for simplified UX
+  - Combined comparison groups and favorite groups into single "My Groups" system
+  - Updated UI language throughout - "Compare & Save", "My Groups" instead of separate concepts
+  - Fixed tooltip positioning for data source icons with improved z-index and arrow design
+  - Added automatic group refresh when comparison modal opens
+  - Simplified user mental model from two-tier saving to unified group management
 
 ## User Preferences
 

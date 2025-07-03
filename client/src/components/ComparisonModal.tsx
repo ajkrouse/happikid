@@ -462,7 +462,7 @@ export default function ComparisonModal({
       <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto" aria-describedby="comparison-description">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold">Compare Providers</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">Compare & Save Providers</DialogTitle>
             <p id="comparison-description" className="sr-only">
               Compare childcare providers side by side with personalized match scores and detailed criteria analysis.
             </p>
@@ -473,7 +473,7 @@ export default function ComparisonModal({
               </Button>
               <Button variant="outline" size="sm" onClick={() => setShowSavedGroups(!showSavedGroups)}>
                 <Bookmark className="h-4 w-4 mr-2" />
-                Saved Groups
+                My Groups
               </Button>
               <Button variant="outline" size="sm" onClick={() => setShowPreferencesPanel(!showPreferencesPanel)}>
                 <Filter className="h-4 w-4 mr-2" />
@@ -488,7 +488,7 @@ export default function ComparisonModal({
           <Card className="mb-4">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Saved Provider Groups</h3>
+                <h3 className="text-lg font-semibold">My Saved Groups</h3>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -515,8 +515,11 @@ export default function ComparisonModal({
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Plus className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium text-blue-800">Save Current Comparison</span>
+                      <span className="font-medium text-blue-800">Save Current Comparison as Group</span>
                     </div>
+                    <p className="text-xs text-blue-700 mb-2">
+                      Create a group to organize and compare these providers later
+                    </p>
                     <div className="flex gap-2">
                       <Input
                         placeholder="Enter group name (required)"
