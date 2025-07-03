@@ -458,77 +458,75 @@ export default function ComparisonModal({
           </Card>
         )}
 
-        {/* Data Source Legend */}
-        <div className="bg-gray-50 rounded p-2 mb-4">
-          <div className="text-xs font-medium text-gray-600 mb-1">Data Sources:</div>
-          <div className="flex items-center space-x-4 text-xs">
-            <div className="flex items-center">
-              <Home className="h-3 w-3 text-blue-600 mr-1" />
-              <span className="text-gray-600">Provider Info</span>
-            </div>
-            <div className="flex items-center">
-              <Shield className="h-3 w-3 text-green-600 mr-1" />
-              <span className="text-gray-600">Public Records</span>
-            </div>
-            <div className="flex items-center">
-              <Star className="h-3 w-3 text-purple-600 mr-1" />
-              <span className="text-gray-600">Parent Reviews</span>
+        {/* Data Sources Header Row - Parallel to Provider Thumbnails */}
+        <div className="grid grid-cols-12 gap-4 mb-2">
+          <div className="col-span-3">
+            <div className="bg-gray-50 rounded p-2">
+              <div className="text-xs font-medium text-gray-600 mb-1">Data Sources:</div>
+              <div className="space-y-1 text-xs">
+                <div className="flex items-center">
+                  <Home className="h-3 w-3 text-blue-600 mr-1" />
+                  <span className="text-gray-600">Provider Info</span>
+                </div>
+                <div className="flex items-center">
+                  <Shield className="h-3 w-3 text-green-600 mr-1" />
+                  <span className="text-gray-600">Public Records</span>
+                </div>
+                <div className="flex items-center">
+                  <Star className="h-3 w-3 text-purple-600 mr-1" />
+                  <span className="text-gray-600">Parent Reviews</span>
+                </div>
+              </div>
             </div>
           </div>
+          {sortedProviders.map((provider) => (
+            <div key={provider.id} className="col-span-3 text-center">
+              <div className="bg-white rounded-lg border border-gray-200 p-3 mb-2">
+                <img
+                  src={
+                    provider.id === 7 ? "https://images.unsplash.com/photo-1609220136736-443140cffec6?w=150&h=100&fit=crop&crop=center" :
+                    provider.id === 8 ? "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=150&h=100&fit=crop&crop=center" :
+                    "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=150&h=100&fit=crop&crop=center"
+                  }
+                  alt={provider.name}
+                  className="w-full h-24 object-cover rounded-lg mb-2"
+                />
+                <h3 className="font-semibold text-sm text-gray-900 mb-1">{provider.name}</h3>
+                {preferences.priorities && (
+                  <Badge 
+                    variant={calculateFitScore(provider) >= 80 ? "default" : "secondary"}
+                    className={`text-xs ${calculateFitScore(provider) >= 80 ? 'bg-green-600' : 'bg-gray-500'}`}
+                  >
+                    {calculateFitScore(provider)}% Match
+                  </Badge>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Provider Header Row */}
+        {/* Criteria Header Row */}
         <div className="grid grid-cols-12 gap-4 mb-4">
           <div className="col-span-3">
             <h4 className="font-semibold text-gray-700">Criteria</h4>
           </div>
-          {sortedProviders.map((provider) => {
-            const fitScore = calculateFitScore(provider);
-            return (
-              <div key={provider.id} className="col-span-3 text-center relative">
-                <div className="relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full hover:bg-red-100"
-                    onClick={() => onRemoveProvider(provider.id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                  
-                  <img
-                    src="https://images.unsplash.com/photo-1576085898323-218337e3e43c?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100"
-                    alt={provider.name}
-                    className="w-full h-20 object-cover rounded-lg mb-2"
-                  />
-                  
-                  <h5 className="font-semibold text-sm text-gray-900 mb-1">{provider.name}</h5>
-                  
-                  {fitScore > 0 && (
-                    <div className="flex items-center justify-center mb-2">
-                      <Badge 
-                        className={`text-xs ${
-                          fitScore >= 80 ? 'bg-green-100 text-green-800' : 
-                          fitScore >= 60 ? 'bg-yellow-100 text-yellow-800' : 
-                          'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        <Award className="h-3 w-3 mr-1" />
-                        {fitScore}% Match
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  {fitScore >= 80 && (
-                    <Badge className="bg-green-100 text-green-800 text-xs mb-2">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Best Match
-                    </Badge>
-                  )}
-                </div>
+          {sortedProviders.map((provider) => (
+            <div key={provider.id} className="col-span-3 text-center">
+              <div className="flex gap-2 justify-center">
+                <Button size="sm" onClick={() => onSelectProvider(provider)}>
+                  Select
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => onRemoveProvider(provider.id)}
+                  className="hover:bg-red-50 hover:border-red-200"
+                >
+                  Remove
+                </Button>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
         {/* Comparison Table */}
