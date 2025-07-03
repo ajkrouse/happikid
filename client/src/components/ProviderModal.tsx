@@ -139,6 +139,27 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     },
   });
 
+  const handleFavoriteToggle = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to save favorites.",
+        action: (
+          <Button 
+            size="sm" 
+            onClick={() => window.location.href = '/api/login'}
+            className="ml-2"
+          >
+            Sign In
+          </Button>
+        ),
+        duration: 5000,
+      });
+      return;
+    }
+    toggleFavoriteMutation.mutate();
+  };
+
   // Submit inquiry mutation
   const submitInquiryMutation = useMutation({
     mutationFn: async () => {
@@ -209,22 +230,17 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl">{currentProvider.name}</DialogTitle>
-            {isAuthenticated && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavoriteMutation.mutate();
-                }}
-                disabled={toggleFavoriteMutation.isPending}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleFavoriteToggle}
+              disabled={toggleFavoriteMutation.isPending}
                 className="hover:bg-red-50"
               >
                 <Heart 
-                  className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                  className={`h-5 w-5 ${isAuthenticated && isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
                 />
               </Button>
-            )}
           </div>
         </DialogHeader>
 
