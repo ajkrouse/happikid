@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Provider } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { 
   MapPin, 
   Star, 
@@ -68,6 +70,8 @@ export default function ComparisonModal({
   onSelectProvider,
   onRemoveProvider 
 }: ComparisonModalProps) {
+  const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
   const [preferences, setPreferences] = useState<UserPreferences>({
     priorities: '',
     sortBy: 'fit',
@@ -272,6 +276,13 @@ export default function ComparisonModal({
     
     setSavedGroups(prev => [...prev, newGroup]);
     setNewGroupName('');
+    
+    // Show success toast
+    toast({
+      title: "Comparison Saved!",
+      description: `"${newGroup.name}" has been saved to your comparison groups.`,
+      duration: 3000,
+    });
   };
 
   const handleRenameGroup = (groupId: string, newName: string) => {
