@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus } from "lucide-react";
+import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
@@ -114,7 +114,13 @@ function getTypeLabel(type: string): string {
 }
 
 // Inline FavoritesSection component
-function FavoritesSection() {
+function FavoritesSection({ 
+  setSelectedProvider, 
+  setShowProviderModal 
+}: {
+  setSelectedProvider: (provider: Provider | null) => void;
+  setShowProviderModal: (show: boolean) => void;
+}) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
@@ -380,13 +386,45 @@ function FavoritesSection() {
                           <Badge variant="secondary" className="text-xs">
                             {getTypeLabel(provider.type)}
                           </Badge>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleRemoveFromGroup(groupName, provider.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleRemoveFromGroup(groupName, provider.id)}>
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Move to Ungrouped
+                              </DropdownMenuItem>
+                              {Object.keys(groups).filter(g => g !== groupName).map(otherGroup => (
+                                <DropdownMenuItem
+                                  key={otherGroup}
+                                  onClick={() => {
+                                    handleRemoveFromGroup(groupName, provider.id);
+                                    handleMoveToGroup(otherGroup, provider.id);
+                                  }}
+                                >
+                                  <Users className="h-4 w-4 mr-2" />
+                                  Move to "{otherGroup}"
+                                </DropdownMenuItem>
+                              ))}
+                              <DropdownMenuItem
+                                onClick={() => setItemToMove({ favorite, provider })}
+                              >
+                                <FolderPlus className="h-4 w-4 mr-2" />
+                                Create New Group
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => setItemToRemove({ favorite, provider })}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Remove from Favorites
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     </div>
@@ -398,60 +436,65 @@ function FavoritesSection() {
 
           {/* Ungrouped Items */}
           {ungroupedItems.length > 0 && (
-            <div className="space-y-2">
-              {Object.keys(groups).length > 0 && (
-                <h4 className="font-medium text-gray-700 mb-2">Ungrouped Favorites</h4>
-              )}
+            <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-gray-700 flex items-center">
+                  <Heart className="h-4 w-4 mr-2" />
+                  {Object.keys(groups).length > 0 ? "Ungrouped Favorites" : "My Favorites"} ({ungroupedItems.length})
+                </h4>
+              </div>
               
               {/* Selection UI for ungrouped items */}
-              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg mb-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">
-                    {selectedItems.size > 0 ? `${selectedItems.size} selected` : `${ungroupedItems.length} ungrouped`}
-                  </span>
-                  {selectedItems.size > 0 && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedItems(new Set())}
-                    >
-                      Clear Selection
-                    </Button>
-                  )}
+              {ungroupedItems.length > 1 && (
+                <div className="flex items-center justify-between bg-white p-3 rounded-lg mb-3 border border-gray-200">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">
+                      {selectedItems.size > 0 ? `${selectedItems.size} selected` : `Select multiple to organize`}
+                    </span>
+                    {selectedItems.size > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedItems(new Set())}
+                      >
+                        Clear Selection
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {selectedItems.size > 0 && Object.keys(groups).length > 0 && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            <Users className="h-4 w-4 mr-1" />
+                            Move to Group
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {Object.entries(groups).map(([groupName, providerIds]) => (
+                            <DropdownMenuItem
+                              key={groupName}
+                              onClick={() => handleMoveSelectedToGroup(groupName)}
+                            >
+                              <Users className="h-4 w-4 mr-2" />
+                              Move to "{groupName}" ({providerIds.length})
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                    {selectedItems.size > 1 && (
+                      <Button
+                        size="sm"
+                        onClick={() => setIsCreatingGroup(true)}
+                      >
+                        <FolderPlus className="h-4 w-4 mr-1" />
+                        Create Group
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {selectedItems.size > 0 && Object.keys(groups).length > 0 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline">
-                          <Users className="h-4 w-4 mr-1" />
-                          Move to Group
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {Object.entries(groups).map(([groupName, providerIds]) => (
-                          <DropdownMenuItem
-                            key={groupName}
-                            onClick={() => handleMoveSelectedToGroup(groupName)}
-                          >
-                            <Users className="h-4 w-4 mr-2" />
-                            Move to "{groupName}" ({providerIds.length})
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                  {selectedItems.size > 1 && (
-                    <Button
-                      size="sm"
-                      onClick={() => setIsCreatingGroup(true)}
-                    >
-                      <FolderPlus className="h-4 w-4 mr-1" />
-                      Create Group
-                    </Button>
-                  )}
-                </div>
-              </div>
+              )}
               {ungroupedItems.map(({ favorite, provider }) => (
                 <div key={provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
                   <div className="flex items-center justify-between">
@@ -1033,7 +1076,10 @@ export default function SearchPage() {
               </div>
 
               {isAuthenticated ? (
-                <FavoritesSection />
+                <FavoritesSection 
+                  setSelectedProvider={setSelectedProvider}
+                  setShowProviderModal={setShowProviderModal}
+                />
               ) : (
                 <div className="text-center py-6 bg-gray-50 rounded-lg">
                   <Heart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
