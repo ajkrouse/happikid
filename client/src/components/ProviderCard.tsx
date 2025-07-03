@@ -99,24 +99,24 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
   };
 
-  // Function to get relative cost level based on provider type and characteristics
-  const getCostLevel = (provider: Provider) => {
-    // Assign relative cost based on typical pricing patterns
-    let dollarSigns = 2; // Default to moderate cost
+  // Function to get relative cost level based on calculated price range midpoint
+  const getCostLevel = (provider: Provider, costRange: {min: number, max: number}) => {
+    // Calculate $$ meter based on the midpoint of the estimated cost range
+    // This provides a visual indicator of relative affordability
+    const midpoint = (costRange.min + costRange.max) / 2;
     
-    if (provider.name.includes('Bright Horizons')) dollarSigns = 4; // Premium national chain
-    else if (provider.name.includes('Learning Experience')) dollarSigns = 3; // Mid-premium franchise
-    else if (provider.name.includes('Little Sunshine')) dollarSigns = 2; // Moderate local
-    else if (provider.name.includes('Montessori')) dollarSigns = 3; // Typically higher due to specialized curriculum
-    else if (provider.name.includes('Bronx Academy')) dollarSigns = 4; // Private school premium
-    else if (provider.name.includes('Camp')) dollarSigns = 2; // Summer camps typically moderate
-    
-    return dollarSigns;
+    // Define thresholds for $$ meter (1-5 dollar signs)
+    // Based on typical NYC childcare pricing ranges
+    if (midpoint <= 1500) return 1;      // $ (most affordable)
+    else if (midpoint <= 2200) return 2; // $$
+    else if (midpoint <= 2900) return 3; // $$$
+    else if (midpoint <= 3600) return 4; // $$$$
+    else return 5;                       // $$$$$ (premium)
   };
 
   // Function to get cost range based on provider characteristics
   const getCostRange = (provider: Provider) => {
-    // Generate realistic cost ranges based on provider type and characteristics
+    // Generate realistic cost ranges based on provider type and location
     const typeRanges = {
       daycare: { min: 1800, max: 3500 },
       afterschool: { min: 800, max: 1500 },
@@ -125,10 +125,15 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     };
     
     const baseRange = typeRanges[provider.type as keyof typeof typeRanges] || typeRanges.daycare;
-    const dollarSigns = getCostLevel(provider);
     
-    // Adjust range based on cost level
-    const multiplier = [0.7, 0.85, 1.0, 1.3, 1.6][dollarSigns - 1] || 1.0;
+    // Adjust based on borough (Manhattan premium, others slightly lower)
+    let multiplier = 1.0;
+    if (provider.borough === 'Manhattan') multiplier = 1.2;
+    else if (provider.borough === 'Brooklyn') multiplier = 1.0;
+    else if (provider.borough === 'Queens') multiplier = 0.9;
+    else if (provider.borough === 'Bronx') multiplier = 0.8;
+    else if (provider.borough === 'Staten Island') multiplier = 0.85;
+    
     const min = Math.round(baseRange.min * multiplier);
     const max = Math.round(baseRange.max * multiplier);
     
@@ -137,16 +142,16 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
 
   // Function to render cost display
   const renderCostDisplay = (provider: Provider) => {
-    const dollarSigns = getCostLevel(provider);
     const costRange = getCostRange(provider);
+    const dollarSigns = getCostLevel(provider, costRange);
     
-    // Always show the $$ meter first
+    // Always show the $$ meter first (more compact spacing)
     const dollarMeter = (
-      <div className="flex items-center gap-0.5 mb-1">
+      <div className="flex items-center gap-0.5 mb-0.5">
         {[1, 2, 3, 4, 5].map((i) => (
           <span 
             key={i} 
-            className={`text-sm font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
+            className={`text-xs font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
           >
             $
           </span>
@@ -160,16 +165,18 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       return (
         <div className="text-left">
           {dollarMeter}
-          <div className="text-lg font-bold text-gray-900">${provider.monthlyPrice}/month</div>
+          <div className="text-base font-bold text-gray-900">${provider.monthlyPrice}/mo</div>
         </div>
       );
     }
     
-    // Otherwise show the estimated range
+    // Otherwise show the estimated range (more compact)
     return (
       <div className="text-left">
         {dollarMeter}
-        <div className="text-sm text-gray-600">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}/month</div>
+        <div className="text-xs text-gray-600 leading-tight">
+          ${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}/mo
+        </div>
       </div>
     );
   };
