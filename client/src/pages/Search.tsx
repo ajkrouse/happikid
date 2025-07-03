@@ -369,6 +369,7 @@ export default function SearchPage() {
                     onViewDetails={handleProviderClick}
                     onRequestInfo={handleRequestInfo}
                     onAddToComparison={handleAddToComparison}
+                    isInComparison={comparisonProviders.some(p => p.id === provider.id)}
                   />
                 ))}
               </div>

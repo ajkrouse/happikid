@@ -15,9 +15,10 @@ interface ProviderCardProps {
   onViewDetails?: (provider: Provider) => void;
   onRequestInfo?: (provider: Provider) => void;
   onAddToComparison?: (provider: Provider) => void;
+  isInComparison?: boolean;
 }
 
-export default function ProviderCard({ provider, onViewDetails, onRequestInfo, onAddToComparison }: ProviderCardProps) {
+export default function ProviderCard({ provider, onViewDetails, onRequestInfo, onAddToComparison, isInComparison = false }: ProviderCardProps) {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -63,9 +64,18 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     e.stopPropagation();
     if (!isAuthenticated) {
       toast({
-        title: "Sign in required",
+        title: "Sign In Required",
         description: "Please sign in to save favorites.",
-        variant: "destructive",
+        action: (
+          <Button 
+            size="sm" 
+            onClick={() => window.location.href = '/api/login'}
+            className="ml-2"
+          >
+            Sign In
+          </Button>
+        ),
+        duration: 5000,
       });
       return;
     }
@@ -115,19 +125,17 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
           alt={provider.name}
           className="w-full h-full object-cover"
         />
-        {isAuthenticated && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-            onClick={handleFavoriteToggle}
-            disabled={toggleFavoriteMutation.isPending}
-          >
-            <Heart 
-              className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
-            />
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+          onClick={handleFavoriteToggle}
+          disabled={toggleFavoriteMutation.isPending}
+        >
+          <Heart 
+            className={`h-4 w-4 ${isAuthenticated && isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+          />
+        </Button>
       </div>
       
       <CardContent className="p-6">
@@ -234,14 +242,18 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
           <div className="flex space-x-2">
             {onAddToComparison && (
               <Button
-                variant="secondary"
+                variant={isInComparison ? "outline" : "secondary"}
                 size="sm"
+                disabled={isInComparison}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onAddToComparison(provider);
+                  if (!isInComparison) {
+                    onAddToComparison(provider);
+                  }
                 }}
+                className={isInComparison ? "opacity-50 cursor-not-allowed" : ""}
               >
-                Compare
+                {isInComparison ? "In Comparison" : "Compare"}
               </Button>
             )}
             <Button

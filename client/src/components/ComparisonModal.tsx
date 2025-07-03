@@ -257,19 +257,15 @@ export default function ComparisonModal({
       return;
     }
 
-    if (!comparisonName.trim()) {
-      toast({
-        title: "Name Required",
-        description: "Please enter a name for your comparison.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
+    // Prompt for comparison name
+    const name = window.prompt("Enter a name for this comparison:", `Comparison ${new Date().toLocaleDateString()}`);
+    if (!name || !name.trim()) {
+      return; // User cancelled or entered empty name
     }
 
     const comparison = {
       id: Date.now(),
-      name: comparisonName.trim(),
+      name: name.trim(),
       providers: providers,
       preferences: preferences,
       createdAt: new Date()
@@ -279,7 +275,6 @@ export default function ComparisonModal({
     saved.push(comparison);
     localStorage.setItem('savedComparisons', JSON.stringify(saved));
     setSavedComparisons(saved);
-    setComparisonName('');
     
     toast({
       title: "Comparison Saved!",
@@ -849,20 +844,10 @@ export default function ComparisonModal({
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-6 pt-4 border-t">
-          <div className="flex-1">
-            <Input
-              placeholder="Name this comparison (required)"
-              value={comparisonName}
-              onChange={(e) => setComparisonName(e.target.value)}
-              required
-            />
-          </div>
-          
           <div className="flex gap-2">
             <Button 
               variant="outline" 
               onClick={handleSaveComparison}
-              disabled={!comparisonName.trim()}
             >
               <Save className="h-4 w-4 mr-2" />
               Save Comparison
