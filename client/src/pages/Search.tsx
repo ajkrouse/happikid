@@ -130,6 +130,7 @@ function FavoritesSection({
   const [itemToRemove, setItemToRemove] = useState<{favorite: any, provider: any} | null>(null);
   const [itemToMove, setItemToMove] = useState<{favorite: any, provider: any} | null>(null);
   const [newGroupForMove, setNewGroupForMove] = useState("");
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
   
   const { data: favorites } = useQuery({
     queryKey: ["/api/favorites"],
@@ -360,15 +361,7 @@ function FavoritesSection({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => {
-                      const newGroups = { ...groups };
-                      delete newGroups[groupName];
-                      saveGroups(newGroups);
-                      toast({
-                        title: "Group deleted",
-                        description: `"${groupName}" group has been deleted.`,
-                      });
-                    }}
+                    onClick={() => setGroupToDelete(groupName)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -642,6 +635,40 @@ function FavoritesSection({
               className="bg-red-600 hover:bg-red-700"
             >
               Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Group Deletion Confirmation Dialog */}
+      <AlertDialog open={!!groupToDelete} onOpenChange={() => setGroupToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Group</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the "{groupToDelete}" group? 
+              This will remove the group but keep all providers in your individual favorites. 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (groupToDelete) {
+                  const newGroups = { ...groups };
+                  delete newGroups[groupToDelete];
+                  saveGroups(newGroups);
+                  toast({
+                    title: "Group deleted",
+                    description: `"${groupToDelete}" group has been deleted.`,
+                  });
+                  setGroupToDelete(null);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Group
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

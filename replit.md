@@ -153,6 +153,9 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Fixed tooltip positioning for data source icons with improved z-index and arrow design
   - Added automatic group refresh when comparison modal opens
   - Simplified user mental model from two-tier saving to unified group management
+  - Fixed tooltip positioning to render to the right of icons to prevent clipping
+  - Added confirmation dialog before deleting entire groups in favorites manager
+  - Fixed Save Comparison button to properly save groups using unified system
 
 ## User Preferences
 
