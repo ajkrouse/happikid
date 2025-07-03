@@ -98,6 +98,24 @@ export default function ComparisonModal({
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
 
+  // Load saved groups when modal opens
+  useEffect(() => {
+    if (isOpen && isAuthenticated) {
+      // Load saved groups from localStorage
+      const savedFavoriteGroups = localStorage.getItem('favoriteGroups');
+      if (savedFavoriteGroups) {
+        const groupsObj = JSON.parse(savedFavoriteGroups);
+        const groupsArray = Object.entries(groupsObj).map(([name, providerIds]) => ({
+          id: name, // Use name as ID for now
+          name,
+          providers: [], // We'll need to fetch provider details if needed
+          createdAt: new Date() // Default creation date
+        }));
+        setSavedGroups(groupsArray);
+      }
+    }
+  }, [isOpen, isAuthenticated]);
+
   const getTypeLabel = (type: string) => {
     const labels = {
       daycare: "Daycare",
@@ -331,14 +349,15 @@ export default function ComparisonModal({
       createdAt: new Date()
     };
     
-    setSavedGroups(prev => [...prev, newGroup]);
-    setNewGroupName('');
-    
     // Also save to favorite groups localStorage for integration with Search page
     const existingGroups = JSON.parse(localStorage.getItem('favoriteGroups') || '{}');
     const providerIds = providers.map(p => p.id);
     existingGroups[newGroup.name] = providerIds;
     localStorage.setItem('favoriteGroups', JSON.stringify(existingGroups));
+    
+    // Update local state immediately to show the new group
+    setSavedGroups(prev => [...prev, newGroup]);
+    setNewGroupName('');
     
     // Trigger callback to refresh groups in Search component
     onGroupsSaved?.();
@@ -430,8 +449,9 @@ export default function ComparisonModal({
     return (
       <div className="group relative ml-1">
         <sourceInfo.icon className={`h-3 w-3 ${sourceInfo.className}`} />
-        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+        <div className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none shadow-lg">
           {sourceInfo.tooltip}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
         </div>
       </div>
     );
