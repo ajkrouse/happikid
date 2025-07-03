@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
+import Navigation from "@/components/Navigation";
 
 const ONBOARDING_STEPS = [
   { id: "basic_info", title: "Basic Information", icon: Building2 },
@@ -822,170 +823,117 @@ export default function ProviderOnboarding() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sticky HappiKid Header */}
-      <div className="sticky top-0 z-50 bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-blue-600">HappiKid</h1>
-              <div className="hidden md:block text-sm text-gray-500">Provider Setup</div>
-            </div>
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-              Step {currentStep + 1} of {ONBOARDING_STEPS.length}
-            </Badge>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex">
-        {/* Sticky Profile Completeness Sidebar */}
-        <div className="w-80 bg-white border-r sticky top-20 h-screen overflow-y-auto">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Progress</h2>
-            
-            {/* Progress Bar */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Completeness</span>
-                <span className="text-sm text-gray-600">{completeness}%</span>
-              </div>
-              <Progress value={completeness} className="mb-4" />
-              
-              {/* Step Indicators */}
-              <div className="space-y-3">
-                {ONBOARDING_STEPS.map((step, index) => {
-                  const Icon = step.icon;
-                  const isActive = index === currentStep;
-                  const isCompleted = index < currentStep;
-                  
-                  return (
-                    <div key={step.id} className={`flex items-center gap-3 p-2 rounded-lg ${
-                      isActive ? "bg-blue-50 border border-blue-200" : ""
-                    }`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isCompleted 
-                          ? "bg-green-600 text-white" 
-                          : isActive 
-                            ? "bg-blue-600 text-white" 
-                            : "bg-gray-200 text-gray-600"
-                      }`}>
-                        {isCompleted ? (
-                          <CheckCircle className="h-4 w-4" />
-                        ) : (
-                          <Icon className="h-4 w-4" />
-                        )}
-                      </div>
-                      <span className={`text-sm ${isActive ? "font-medium text-blue-900" : "text-gray-700"}`}>
-                        {step.title}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Enhanced Premium Features Card */}
-            <Card className="bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 border-2 border-yellow-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg">
-                    <Crown className="h-5 w-5 text-white" />
-                  </div>
-                  <CardTitle className="text-lg bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-                    Premium Features
-                  </CardTitle>
-                </div>
-                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1 w-fit">
-                  🚀 BOOST VISIBILITY
-                </Badge>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                    <span className="font-medium">Advanced Analytics</span>
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300">
-                    $299 Value
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                    <span className="font-medium">Priority Search Ranking</span>
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
-                    $199 Value
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                    <span className="font-medium">Competitive Insights</span>
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">
-                    $149 Value
-                  </Badge>
-                </div>
-                
-                <div className="bg-white/70 p-3 rounded-lg border border-yellow-200 mt-4">
-                  <p className="text-xs text-gray-700 mb-2 font-medium">
-                    ✨ Premium providers get 3x more inquiries
-                  </p>
-                  <p className="text-xs text-green-700 font-semibold">
-                    💰 Total Value: $647/month - Get it for $29!
-                  </p>
-                </div>
-                
-                <Button 
-                  size="sm" 
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  onClick={() => setShowPremiumModal(true)}
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Unlock Premium Features
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+      <Navigation />
+      
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Set Up Your Provider Profile
+          </h1>
+          <p className="text-gray-600">
+            Complete your profile to start connecting with families in your area
+          </p>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          {/* Page Header */}
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Set Up Your Provider Profile
-            </h2>
-            <p className="text-gray-600">
-              Complete your profile to start connecting with families in your area
-            </p>
-          </div>
-
-          {/* Step Content */}
-          {renderStepContent()}
-
-          {/* Navigation */}
-          <div className="flex justify-between mt-8">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-              className="flex items-center"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Previous
-            </Button>
+        {/* Progress Tracker */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium">Profile Completeness</span>
+              <span className="text-sm text-gray-600">{completeness}%</span>
+            </div>
+            <Progress value={completeness} className="mb-4" />
             
-            <Button
-              onClick={handleNext}
-              disabled={createProviderMutation.isPending}
-              className="flex items-center"
-            >
-              {currentStep === ONBOARDING_STEPS.length - 1 ? "Complete Setup" : "Next Step"}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </div>
+            {/* Step Indicators */}
+            <div className="flex items-center justify-between">
+              {ONBOARDING_STEPS.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = index === currentStep;
+                const isCompleted = index < currentStep;
+                
+                return (
+                  <TooltipProvider key={step.id}>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div className="flex flex-col items-center">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            isCompleted 
+                              ? "bg-green-600 text-white" 
+                              : isActive 
+                                ? "bg-blue-600 text-white" 
+                                : "bg-gray-200 text-gray-600"
+                          }`}>
+                            {isCompleted ? (
+                              <CheckCircle className="h-5 w-5" />
+                            ) : (
+                              <Icon className="h-5 w-5" />
+                            )}
+                          </div>
+                          <span className="text-xs mt-2 text-center font-medium max-w-16">
+                            {step.title}
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{step.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Premium Features Card - Compact */}
+        <Card className="mb-8 bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg">
+                  <Crown className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-yellow-900">Premium Features Available</h3>
+                  <p className="text-sm text-yellow-700">Get 3x more inquiries with advanced analytics & priority ranking</p>
+                </div>
+              </div>
+              <Button 
+                size="sm" 
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold"
+                onClick={() => setShowPremiumModal(true)}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Upgrade
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Step Content */}
+        {renderStepContent()}
+
+        {/* Navigation */}
+        <div className="flex justify-between mt-8">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+            className="flex items-center"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Previous
+          </Button>
+          
+          <Button
+            onClick={handleNext}
+            disabled={createProviderMutation.isPending}
+            className="flex items-center"
+          >
+            {currentStep === ONBOARDING_STEPS.length - 1 ? "Complete Setup" : "Next Step"}
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
         </div>
       </div>
       
