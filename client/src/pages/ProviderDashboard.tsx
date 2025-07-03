@@ -31,6 +31,7 @@ import {
   Zap
 } from "lucide-react";
 import { useLocation } from "wouter";
+import PremiumFeaturesModal from "@/components/PremiumFeaturesModal";
 
 // Mock data for demonstrations - in production these would come from real analytics
 const SAMPLE_ANALYTICS = {
@@ -98,6 +99,7 @@ export default function ProviderDashboard() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   // Check authentication and redirect if needed
   useEffect(() => {
@@ -248,7 +250,7 @@ export default function ProviderDashboard() {
               </div>
             </div>
             {!isPremium && (
-              <Button size="sm" variant="outline" className="mt-2 text-xs">
+              <Button size="sm" variant="outline" className="mt-2 text-xs" onClick={() => setShowPremiumModal(true)}>
                 Upgrade
               </Button>
             )}
@@ -302,7 +304,7 @@ export default function ProviderDashboard() {
               <p className="text-sm text-yellow-700 mb-3">
                 Get detailed insights, competitive benchmarking, and conversion tracking
               </p>
-              <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+              <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700" onClick={() => setShowPremiumModal(true)}>
                 Upgrade to Premium
               </Button>
             </div>
@@ -434,7 +436,7 @@ export default function ProviderDashboard() {
               <li>• SEO keyword opportunities</li>
               <li>• Parent behavior insights</li>
             </ul>
-            <Button className="bg-yellow-600 hover:bg-yellow-700">
+            <Button className="bg-yellow-600 hover:bg-yellow-700" onClick={() => setShowPremiumModal(true)}>
               Upgrade to Premium - $29/month
             </Button>
           </CardContent>
@@ -533,6 +535,19 @@ export default function ProviderDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <PremiumFeaturesModal 
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onUpgrade={() => {
+          // TODO: Implement subscription flow
+          toast({
+            title: "Coming Soon",
+            description: "Premium subscription features will be available soon!",
+          });
+          setShowPremiumModal(false);
+        }}
+      />
     </div>
   );
 }

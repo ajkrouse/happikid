@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import PremiumFeaturesModal from "@/components/PremiumFeaturesModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,6 +81,7 @@ export default function ProviderOnboarding() {
   const [, setLocation] = useLocation();
   
   const [currentStep, setCurrentStep] = useState(0);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -732,7 +734,7 @@ export default function ProviderOnboarding() {
                     <Badge variant="outline" className="mr-2">Premium</Badge>
                     <span>Priority in search results</span>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full mt-3">
+                  <Button variant="outline" size="sm" className="w-full mt-3" onClick={() => setShowPremiumModal(true)}>
                     Learn More
                   </Button>
                 </div>
@@ -763,6 +765,19 @@ export default function ProviderOnboarding() {
           </Button>
         </div>
       </div>
+      
+      <PremiumFeaturesModal 
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onUpgrade={() => {
+          // TODO: Implement subscription flow
+          toast({
+            title: "Coming Soon",
+            description: "Premium subscription features will be available soon!",
+          });
+          setShowPremiumModal(false);
+        }}
+      />
     </div>
   );
 }

@@ -175,6 +175,40 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
   reviewCount: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Handle optional numeric fields properly
+  monthlyPrice: z.union([z.string(), z.number(), z.null()]).optional().transform(val => {
+    if (val === "" || val === null || val === undefined) return null;
+    if (typeof val === "string") {
+      const parsed = parseFloat(val);
+      return isNaN(parsed) ? null : parsed.toString();
+    }
+    return val?.toString() || null;
+  }),
+  capacity: z.union([z.string(), z.number(), z.null()]).optional().transform(val => {
+    if (val === "" || val === null || val === undefined) return null;
+    if (typeof val === "string") {
+      const parsed = parseInt(val);
+      return isNaN(parsed) ? null : parsed;
+    }
+    return val;
+  }),
+  ageRangeMin: z.union([z.string(), z.number()]).transform(val => {
+    if (val === "" || val === null || val === undefined) return 0;
+    if (typeof val === "string") {
+      const parsed = parseInt(val);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return val;
+  }),
+  ageRangeMax: z.union([z.string(), z.number()]).transform(val => {
+    if (val === "" || val === null || val === undefined) return 18;
+    if (typeof val === "string") {
+      const parsed = parseInt(val);
+      return isNaN(parsed) ? 18 : parsed;
+    }
+    return val;
+  }),
 });
 
 export const insertReviewSchema = createInsertSchema(reviews).omit({
