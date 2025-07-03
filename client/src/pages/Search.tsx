@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
@@ -1070,97 +1070,63 @@ export default function SearchPage() {
 
       {/* Saved Groups Dialog */}
       <Dialog open={showSavedGroupsModal} onOpenChange={setShowSavedGroupsModal}>
-        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>My Saved Providers & Groups</DialogTitle>
+            <DialogTitle>My Groups</DialogTitle>
+            <DialogDescription>
+              Organize and manage your saved providers in custom groups
+            </DialogDescription>
           </DialogHeader>
           
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Individual Favorites */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 border-b pb-2">
-                <Heart className="h-5 w-5 text-red-500" />
-                <h3 className="text-lg font-semibold">Favorite Providers</h3>
+          <div className="space-y-6">
+            {/* How it works */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="text-sm text-blue-700 space-y-2">
+                <p>• <strong>Save individual providers:</strong> Click the ❤️ heart icon on any provider card</p>
+                <p>• <strong>Save comparison groups:</strong> Use "Compare & Save" to create provider groups</p>
+                <p>• <strong>Organize with custom names:</strong> Create groups like "Top 3 Daycares" or "Summer Camp Options"</p>
               </div>
-              
-              <div className="bg-pink-50 border border-pink-200 rounded-lg p-3">
-                <div className="text-sm text-pink-700 space-y-1">
-                  <p>• Click the ❤️ heart icon on any provider card to save it to your favorites</p>
-                  <p>• Organize favorites into custom groups for easy access</p>
-                  <p>• Perfect for keeping track of providers you want to remember</p>
-                </div>
-              </div>
-
-              {isAuthenticated ? (
-                <FavoritesSection 
-                  setSelectedProvider={setSelectedProvider}
-                  setShowProviderModal={setShowProviderModal}
-                />
-              ) : (
-                <div className="text-center py-6 bg-gray-50 rounded-lg">
-                  <Heart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 text-sm">Sign in to save favorite providers</p>
-                </div>
-              )}
             </div>
 
-            {/* Saved Comparisons */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 border-b pb-2">
-                <Bookmark className="h-5 w-5 text-blue-500" />
-                <h3 className="text-lg font-semibold">Saved Comparisons</h3>
+            {/* Unified Groups Display */}
+            {isAuthenticated ? (
+              <FavoritesSection 
+                setSelectedProvider={setSelectedProvider}
+                setShowProviderModal={setShowProviderModal}
+              />
+            ) : (
+              <div className="text-center py-6 bg-gray-50 rounded-lg">
+                <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600 text-sm">Sign in to save and organize providers in groups</p>
               </div>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="text-sm text-blue-700 space-y-1">
-                  <p>• Add providers to comparison using "Add to Comparison" buttons</p>
-                  <p>• Open comparison modal and save your comparison groups</p>
-                  <p>• Perfect for side-by-side evaluation of multiple providers</p>
+            )}
+
+            {/* Current Comparison Preview */}
+            {comparisonProviders.length > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-medium text-green-800 mb-2">Current Comparison</h4>
+                <p className="text-sm text-green-700 mb-2">
+                  {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} ready to save as group
+                </p>
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {comparisonProviders.map((provider) => (
+                    <Badge key={provider.id} variant="secondary" className="text-xs">
+                      {provider.name}
+                    </Badge>
+                  ))}
                 </div>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    setShowSavedGroupsModal(false);
+                    setShowComparisonModal(true);
+                  }}
+                  className="bg-green-600 hover:bg-green-700 w-full"
+                >
+                  Compare & Save as Group
+                </Button>
               </div>
-
-              {isAuthenticated ? (
-                <>
-                  {/* Current Comparison Preview */}
-                  {comparisonProviders.length > 0 && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <h4 className="font-medium text-green-800 mb-2">Current Comparison</h4>
-                      <p className="text-sm text-green-700 mb-2">
-                        {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} ready to save
-                      </p>
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {comparisonProviders.map((provider) => (
-                          <Badge key={provider.id} variant="secondary" className="text-xs">
-                            {provider.name}
-                          </Badge>
-                        ))}
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => {
-                          setShowSavedGroupsModal(false);
-                          setShowComparisonModal(true);
-                        }}
-                        className="bg-green-600 hover:bg-green-700 w-full"
-                      >
-                        Open Comparison to Save
-                      </Button>
-                    </div>
-                  )}
-
-                  <div className="text-center py-6 bg-gray-50 rounded-lg">
-                    <Bookmark className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600 text-sm">No saved comparison groups yet</p>
-                    <p className="text-gray-500 text-xs">Add providers to comparison first</p>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-6 bg-gray-50 rounded-lg">
-                  <Bookmark className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 text-sm">Sign in to save comparison groups</p>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
