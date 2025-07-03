@@ -167,6 +167,22 @@ function FavoritesSection() {
     });
   };
 
+  // Handle moving selected items to existing group
+  const handleMoveSelectedToGroup = (groupName: string) => {
+    const selectedArray = Array.from(selectedItems);
+    const newGroups = {
+      ...groups,
+      [groupName]: [...(groups[groupName] || []), ...selectedArray]
+    };
+    
+    saveGroups(newGroups);
+    setSelectedItems(new Set());
+    toast({
+      title: "Items moved",
+      description: `${selectedArray.length} items moved to "${groupName}" group.`,
+    });
+  };
+
   const processedFavorites = favorites ? favorites.map((item: any) => {
     let favorite, provider;
     
@@ -203,31 +219,7 @@ function FavoritesSection() {
       ) : (
         <>
           {/* Action Bar */}
-          <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">
-                {selectedItems.size > 0 ? `${selectedItems.size} selected` : `${processedFavorites.length} favorites`}
-              </span>
-              {selectedItems.size > 0 && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setSelectedItems(new Set())}
-                >
-                  Clear Selection
-                </Button>
-              )}
-            </div>
-            {selectedItems.size > 1 && (
-              <Button
-                size="sm"
-                onClick={() => setIsCreatingGroup(true)}
-              >
-                <Users className="h-4 w-4 mr-1" />
-                Create Group
-              </Button>
-            )}
-          </div>
+
 
           {/* Groups */}
           {Object.entries(groups).map(([groupName, providerIds]) => {
@@ -264,7 +256,13 @@ function FavoritesSection() {
                   {groupItems.map(({ favorite, provider }) => (
                     <div key={provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1">
+                        <div 
+                          className="flex-1 cursor-pointer hover:text-blue-600 transition-colors"
+                          onClick={() => {
+                            setSelectedProvider(provider);
+                            setShowProviderModal(true);
+                          }}
+                        >
                           <h5 className="font-medium text-gray-900">{provider.name}</h5>
                           <p className="text-sm text-gray-600">{provider.borough}</p>
                           <p className="text-xs text-gray-500">
@@ -297,6 +295,56 @@ function FavoritesSection() {
               {Object.keys(groups).length > 0 && (
                 <h4 className="font-medium text-gray-700 mb-2">Ungrouped Favorites</h4>
               )}
+              
+              {/* Selection UI for ungrouped items */}
+              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg mb-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">
+                    {selectedItems.size > 0 ? `${selectedItems.size} selected` : `${ungroupedItems.length} ungrouped`}
+                  </span>
+                  {selectedItems.size > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedItems(new Set())}
+                    >
+                      Clear Selection
+                    </Button>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  {selectedItems.size > 0 && Object.keys(groups).length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <Users className="h-4 w-4 mr-1" />
+                          Move to Group
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {Object.entries(groups).map(([groupName, providerIds]) => (
+                          <DropdownMenuItem
+                            key={groupName}
+                            onClick={() => handleMoveSelectedToGroup(groupName)}
+                          >
+                            <Users className="h-4 w-4 mr-2" />
+                            Move to "{groupName}" ({providerIds.length})
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  {selectedItems.size > 1 && (
+                    <Button
+                      size="sm"
+                      onClick={() => setIsCreatingGroup(true)}
+                    >
+                      <FolderPlus className="h-4 w-4 mr-1" />
+                      Create Group
+                    </Button>
+                  )}
+                </div>
+              </div>
               {ungroupedItems.map(({ favorite, provider }) => (
                 <div key={provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
                   <div className="flex items-center justify-between">
@@ -315,7 +363,13 @@ function FavoritesSection() {
                         }}
                         className="mr-3"
                       />
-                      <div className="flex-1">
+                      <div 
+                        className="flex-1 cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => {
+                          setSelectedProvider(provider);
+                          setShowProviderModal(true);
+                        }}
+                      >
                         <h5 className="font-medium text-gray-900">{provider.name}</h5>
                         <p className="text-sm text-gray-600">{provider.borough}</p>
                         <p className="text-xs text-gray-500">
