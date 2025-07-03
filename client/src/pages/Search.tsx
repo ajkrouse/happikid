@@ -10,9 +10,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X } from "lucide-react";
+import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
@@ -41,19 +42,21 @@ function FavoritesSection() {
   const [groupName, setGroupName] = useState("");
   const [groups, setGroups] = useState<{[key: string]: number[]}>({});
   const [itemToRemove, setItemToRemove] = useState<{favorite: any, provider: any} | null>(null);
+  const [itemToMove, setItemToMove] = useState<{favorite: any, provider: any} | null>(null);
+  const [newGroupForMove, setNewGroupForMove] = useState("");
   
   const { data: favorites } = useQuery({
     queryKey: ["/api/favorites"],
     enabled: true,
   });
 
-  // Load groups from localStorage
+  // Load groups from localStorage and refresh when favorites change
   useEffect(() => {
     const savedGroups = localStorage.getItem('favoriteGroups');
     if (savedGroups) {
       setGroups(JSON.parse(savedGroups));
     }
-  }, []);
+  }, [favorites]); // Refresh groups when favorites data changes
 
   // Save groups to localStorage
   const saveGroups = (newGroups: {[key: string]: number[]}) => {
@@ -122,6 +125,45 @@ function FavoritesSection() {
     toast({
       title: "Removed from group",
       description: `Provider removed from "${groupName}" group.`,
+    });
+  };
+
+  // Handle moving ungrouped item to existing group
+  const handleMoveToGroup = (groupName: string, providerId: number) => {
+    const newGroups = {
+      ...groups,
+      [groupName]: [...(groups[groupName] || []), providerId]
+    };
+    
+    saveGroups(newGroups);
+    toast({
+      title: "Moved to group",
+      description: `Provider moved to "${groupName}" group.`,
+    });
+  };
+
+  // Handle creating new group for ungrouped item
+  const handleCreateNewGroupForMove = (providerId: number) => {
+    if (!newGroupForMove.trim()) {
+      toast({
+        title: "Invalid group name",
+        description: "Please enter a group name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newGroups = {
+      ...groups,
+      [newGroupForMove.trim()]: [providerId]
+    };
+    
+    saveGroups(newGroups);
+    setNewGroupForMove("");
+    setItemToMove(null);
+    toast({
+      title: "New group created",
+      description: `Provider moved to new "${newGroupForMove.trim()}" group.`,
     });
   };
 
@@ -285,13 +327,45 @@ function FavoritesSection() {
                       <Badge variant="secondary" className="text-xs">
                         {getTypeLabel(provider.type)}
                       </Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setItemToRemove({ favorite, provider })}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      
+                      {/* Move to Group Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {Object.keys(groups).length > 0 && (
+                            <>
+                              {Object.entries(groups).map(([groupName, providerIds]) => (
+                                <DropdownMenuItem
+                                  key={groupName}
+                                  onClick={() => handleMoveToGroup(groupName, provider.id)}
+                                >
+                                  <Users className="h-4 w-4 mr-2" />
+                                  Move to "{groupName}" ({providerIds.length})
+                                </DropdownMenuItem>
+                              ))}
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => setItemToMove({ favorite, provider })}
+                          >
+                            <FolderPlus className="h-4 w-4 mr-2" />
+                            Create new group
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setItemToRemove({ favorite, provider })}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Remove from favorites
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>
@@ -360,6 +434,50 @@ function FavoritesSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Move to New Group Dialog */}
+      <Dialog open={!!itemToMove} onOpenChange={() => setItemToMove(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Group</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Create a new group for "{itemToMove?.provider.name}"
+            </p>
+            <div>
+              <Label htmlFor="newGroupForMove">Group Name</Label>
+              <Input
+                id="newGroupForMove"
+                value={newGroupForMove}
+                onChange={(e) => setNewGroupForMove(e.target.value)}
+                placeholder="Enter group name..."
+                className="mt-1"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && itemToMove) {
+                    handleCreateNewGroupForMove(itemToMove.provider.id);
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setItemToMove(null)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (itemToMove) {
+                    handleCreateNewGroupForMove(itemToMove.provider.id);
+                  }
+                }}
+                disabled={!newGroupForMove.trim()}
+              >
+                Create Group
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
