@@ -14,9 +14,12 @@ export default function Navigation() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems = [
+  const navItems = isAuthenticated ? [
     { href: "/search", label: "Find Care" },
-    { href: "/provider/onboarding", label: "For Providers" },
+    { href: "/about", label: "About" },
+  ] : [
+    { href: "/search", label: "Find Care" },
+    { href: "/providers", label: "For Providers" },
     { href: "/about", label: "About" },
   ];
 
