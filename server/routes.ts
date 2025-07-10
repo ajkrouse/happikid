@@ -250,6 +250,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Provider-specific routes (must be before /:id route)
+  app.get('/api/providers/mine', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const providers = await storage.getProvidersByUserId(userId);
+      
+      if (providers.length === 0) {
+        return res.status(404).json({ message: "No provider profile found" });
+      }
+      
+      // Return the first provider (assuming one provider per user for now)
+      res.json(providers[0]);
+    } catch (error) {
+      console.error("Error fetching user provider:", error);
+      res.status(500).json({ message: "Failed to fetch provider" });
+    }
+  });
+
   app.get('/api/providers/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -491,23 +509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Provider-specific routes for onboarding and dashboard
-  app.get('/api/providers/mine', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const providers = await storage.getProvidersByUserId(userId);
-      
-      if (providers.length === 0) {
-        return res.status(404).json({ message: "No provider profile found" });
-      }
-      
-      // Return the first provider (assuming one provider per user for now)
-      res.json(providers[0]);
-    } catch (error) {
-      console.error("Error fetching user provider:", error);
-      res.status(500).json({ message: "Failed to fetch provider" });
-    }
-  });
+
 
   app.post('/api/providers', isAuthenticated, async (req: any, res) => {
     try {
