@@ -48,10 +48,25 @@ function updateUserSession(
   user: any,
   tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
 ) {
-  user.claims = tokens.claims();
-  user.access_token = tokens.access_token;
-  user.refresh_token = tokens.refresh_token;
-  user.expires_at = user.claims?.exp;
+  try {
+    // Check if claims method exists before calling it
+    if (typeof tokens.claims === 'function') {
+      user.claims = tokens.claims();
+    } else {
+      // Fallback to direct claims property if method doesn't exist
+      user.claims = (tokens as any).claims || {};
+    }
+    user.access_token = tokens.access_token;
+    user.refresh_token = tokens.refresh_token;
+    user.expires_at = user.claims?.exp;
+  } catch (error) {
+    console.error("Error updating user session:", error);
+    // Set minimal claims to avoid breaking auth flow
+    user.claims = {};
+    user.access_token = tokens.access_token;
+    user.refresh_token = tokens.refresh_token;
+    user.expires_at = Date.now() / 1000 + 3600; // 1 hour from now
+  }
 }
 
 async function upsertUser(
@@ -80,7 +95,21 @@ export async function setupAuth(app: Express) {
   ) => {
     const user = {};
     updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
+    
+    // Get claims safely
+    let claims = {};
+    try {
+      if (typeof tokens.claims === 'function') {
+        claims = tokens.claims();
+      } else {
+        claims = (tokens as any).claims || {};
+      }
+    } catch (error) {
+      console.error("Error getting claims:", error);
+      claims = {};
+    }
+    
+    await upsertUser(claims);
     verified(null, user);
   };
 

@@ -1,0 +1,49 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+8:04:49 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Login with returnTo: /provider/onboarding
+Storing returnTo in session: /provider/onboarding
+Provider filters received: {
+  type: undefined,
+  borough: undefined,
+  ageRangeMin: undefined,
+  ageRangeMax: undefined,
+  features: undefined,
+  search: undefined,
+  originalAgeRange: undefined
+}
+Session saved before auth
+express deprecated req.host: Use req.hostname instead file:/home/runner/workspace/node_modules/openid-client/build/passport.js:224:49
+8:04:58 PM [express] GET /api/auth/user 401 in 47ms :: {"message":"Unauthorized"}
+8:04:58 PM [express] GET /api/auth/user 304 in 74ms :: {"id":"44462262","email":"dvt@mythmvp.com","f…
+8:04:58 PM [express] GET /api/login 302 in 70ms
+8:04:58 PM [express] GET /api/providers 304 in 146ms :: [{"id":7,"userId":null,"name":"Montessori Sc…
+8:04:58 PM [express] GET /api/providers/mine 404 in 75ms :: {"message":"No provider profile found"}
+8:05:03 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}
+Provider filters received: {
+  type: undefined,
+  borough: undefined,
+  ageRangeMin: undefined,
+  ageRangeMax: undefined,
+  features: undefined,
+  search: undefined,
+  originalAgeRange: undefined
+}
+8:05:03 PM [express] GET /api/providers 200 in 27ms :: [{"id":7,"userId":null,"name":"Montessori Sch…
+/home/runner/workspace/server/replitAuth.ts:51
+  user.claims = tokens.claims();
+                       ^
+
+
+TypeError: tokens.claims is not a function
+    at updateUserSession (/home/runner/workspace/server/replitAuth.ts:51:24)
+    at Strategy.verify (/home/runner/workspace/server/replitAuth.ts:82:5)
+    at Strategy.authorizationCodeGrant (/home/runner/workspace/node_modules/openid-client/src/passport.ts:576:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+Node.js v20.18.1
