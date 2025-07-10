@@ -31,12 +31,28 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   const [newGroupName, setNewGroupName] = useState("");
   const [groups, setGroups] = useState<{[key: string]: number[]}>({});
 
-  // Load groups from localStorage
+  // Load groups from localStorage and listen for updates
   useEffect(() => {
-    const savedGroups = localStorage.getItem('favoriteGroups');
-    if (savedGroups) {
-      setGroups(JSON.parse(savedGroups));
-    }
+    const loadGroups = () => {
+      const savedGroups = localStorage.getItem('favoriteGroups');
+      if (savedGroups) {
+        setGroups(JSON.parse(savedGroups));
+      }
+    };
+
+    // Load groups initially
+    loadGroups();
+
+    // Listen for custom events from other components
+    const handleGroupsUpdated = () => {
+      loadGroups();
+    };
+
+    window.addEventListener('groupsUpdated', handleGroupsUpdated);
+
+    return () => {
+      window.removeEventListener('groupsUpdated', handleGroupsUpdated);
+    };
   }, []);
 
   // Check if provider is favorited
