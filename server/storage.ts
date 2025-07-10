@@ -5,6 +5,9 @@ import {
   inquiries,
   favorites,
   providerImages,
+  providerLocations,
+  providerPrograms,
+  providerAmenities,
   type User,
   type UpsertUser,
   type Provider,
@@ -16,6 +19,12 @@ import {
   type Favorite,
   type ProviderImage,
   type InsertProviderImage,
+  type ProviderLocation,
+  type InsertProviderLocation,
+  type ProviderProgram,
+  type InsertProviderProgram,
+  type ProviderAmenity,
+  type InsertProviderAmenity,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray } from "drizzle-orm";
@@ -62,6 +71,23 @@ export interface IStorage {
   // Provider images
   getProviderImages(providerId: number): Promise<ProviderImage[]>;
   addProviderImage(image: InsertProviderImage): Promise<ProviderImage>;
+  
+  // Provider locations
+  getProviderLocations(providerId: number): Promise<ProviderLocation[]>;
+  addProviderLocation(location: InsertProviderLocation): Promise<ProviderLocation>;
+  updateProviderLocation(id: number, location: Partial<InsertProviderLocation>): Promise<ProviderLocation>;
+  deleteProviderLocation(id: number): Promise<void>;
+  
+  // Provider programs
+  getProviderPrograms(providerId: number): Promise<ProviderProgram[]>;
+  addProviderProgram(program: InsertProviderProgram): Promise<ProviderProgram>;
+  updateProviderProgram(id: number, program: Partial<InsertProviderProgram>): Promise<ProviderProgram>;
+  deleteProviderProgram(id: number): Promise<void>;
+  
+  // Provider amenities
+  getProviderAmenities(providerId: number): Promise<ProviderAmenity[]>;
+  addProviderAmenity(amenity: InsertProviderAmenity): Promise<ProviderAmenity>;
+  deleteProviderAmenity(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -287,6 +313,78 @@ export class DatabaseStorage implements IStorage {
   async addProviderImage(image: InsertProviderImage): Promise<ProviderImage> {
     const [newImage] = await db.insert(providerImages).values(image).returning();
     return newImage;
+  }
+
+  // Provider locations
+  async getProviderLocations(providerId: number): Promise<ProviderLocation[]> {
+    return await db
+      .select()
+      .from(providerLocations)
+      .where(eq(providerLocations.providerId, providerId))
+      .orderBy(desc(providerLocations.isPrimary), asc(providerLocations.id));
+  }
+
+  async addProviderLocation(location: InsertProviderLocation): Promise<ProviderLocation> {
+    const [newLocation] = await db.insert(providerLocations).values(location).returning();
+    return newLocation;
+  }
+
+  async updateProviderLocation(id: number, location: Partial<InsertProviderLocation>): Promise<ProviderLocation> {
+    const [updatedLocation] = await db
+      .update(providerLocations)
+      .set({ ...location, updatedAt: new Date() })
+      .where(eq(providerLocations.id, id))
+      .returning();
+    return updatedLocation;
+  }
+
+  async deleteProviderLocation(id: number): Promise<void> {
+    await db.delete(providerLocations).where(eq(providerLocations.id, id));
+  }
+
+  // Provider programs
+  async getProviderPrograms(providerId: number): Promise<ProviderProgram[]> {
+    return await db
+      .select()
+      .from(providerPrograms)
+      .where(eq(providerPrograms.providerId, providerId))
+      .orderBy(asc(providerPrograms.ageRangeMin), asc(providerPrograms.id));
+  }
+
+  async addProviderProgram(program: InsertProviderProgram): Promise<ProviderProgram> {
+    const [newProgram] = await db.insert(providerPrograms).values(program).returning();
+    return newProgram;
+  }
+
+  async updateProviderProgram(id: number, program: Partial<InsertProviderProgram>): Promise<ProviderProgram> {
+    const [updatedProgram] = await db
+      .update(providerPrograms)
+      .set({ ...program, updatedAt: new Date() })
+      .where(eq(providerPrograms.id, id))
+      .returning();
+    return updatedProgram;
+  }
+
+  async deleteProviderProgram(id: number): Promise<void> {
+    await db.delete(providerPrograms).where(eq(providerPrograms.id, id));
+  }
+
+  // Provider amenities
+  async getProviderAmenities(providerId: number): Promise<ProviderAmenity[]> {
+    return await db
+      .select()
+      .from(providerAmenities)
+      .where(eq(providerAmenities.providerId, providerId))
+      .orderBy(asc(providerAmenities.category), asc(providerAmenities.name));
+  }
+
+  async addProviderAmenity(amenity: InsertProviderAmenity): Promise<ProviderAmenity> {
+    const [newAmenity] = await db.insert(providerAmenities).values(amenity).returning();
+    return newAmenity;
+  }
+
+  async deleteProviderAmenity(id: number): Promise<void> {
+    await db.delete(providerAmenities).where(eq(providerAmenities.id, id));
   }
 }
 

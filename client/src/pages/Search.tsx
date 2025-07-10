@@ -839,11 +839,29 @@ export default function SearchPage() {
   const [groupsCount, setGroupsCount] = useState(0);
   
   useEffect(() => {
-    const savedGroups = localStorage.getItem('favoriteGroups');
-    if (savedGroups) {
-      const groups = JSON.parse(savedGroups);
-      setGroupsCount(Object.keys(groups).length);
-    }
+    const updateGroupsCount = () => {
+      const savedGroups = localStorage.getItem('favoriteGroups');
+      if (savedGroups) {
+        const groups = JSON.parse(savedGroups);
+        setGroupsCount(Object.keys(groups).length);
+      } else {
+        setGroupsCount(0);
+      }
+    };
+
+    // Initial load
+    updateGroupsCount();
+    
+    // Listen for custom events from ProviderCard
+    const handleGroupsUpdated = () => {
+      updateGroupsCount();
+    };
+    
+    window.addEventListener('groupsUpdated', handleGroupsUpdated);
+    
+    return () => {
+      window.removeEventListener('groupsUpdated', handleGroupsUpdated);
+    };
   }, [favorites]); // Refresh when favorites change
 
   const handleSearch = () => {

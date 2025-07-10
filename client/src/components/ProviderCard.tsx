@@ -97,6 +97,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   const saveGroups = (newGroups: {[key: string]: number[]}) => {
     setGroups(newGroups);
     localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('groupsUpdated', { detail: newGroups }));
   };
 
   // Function to get relative cost level based on calculated price range midpoint

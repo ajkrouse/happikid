@@ -136,6 +136,56 @@ export const inquiries = pgTable("inquiries", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Provider Locations - supports multiple locations per provider
+export const providerLocations = pgTable("provider_locations", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  name: varchar("name"), // Location name like "Main Campus", "East Side Branch"
+  address: text("address").notNull(),
+  borough: varchar("borough").notNull(),
+  city: varchar("city").notNull(),
+  state: varchar("state").notNull(),
+  zipCode: varchar("zip_code").notNull(),
+  phone: varchar("phone"),
+  capacity: integer("capacity"),
+  hoursOpen: varchar("hours_open"),
+  hoursClose: varchar("hours_close"),
+  isPrimary: boolean("is_primary").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Provider Programs - supports different pricing for different programs
+export const providerPrograms = pgTable("provider_programs", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // e.g. "Toddler Program", "After School Care"
+  description: text("description"),
+  ageRangeMin: integer("age_range_min").notNull(),
+  ageRangeMax: integer("age_range_max").notNull(),
+  priceType: varchar("price_type", { enum: ["hourly", "daily", "weekly", "monthly", "yearly"] }).notNull(),
+  price: decimal("price", { precision: 8, scale: 2 }).notNull(),
+  showExactPrice: boolean("show_exact_price").default(true),
+  capacity: integer("capacity"),
+  schedule: jsonb("schedule"), // Flexible schedule object
+  features: text("features").array(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Dynamic Amenities/Features by Provider Type
+export const providerAmenities = pgTable("provider_amenities", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // The amenity name
+  category: varchar("category"), // e.g. "Safety", "Learning", "Convenience"
+  isStructured: boolean("is_structured").default(false), // Whether it's a predefined amenity
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   providers: many(providers),
@@ -150,6 +200,9 @@ export const providersRelations = relations(providers, ({ one, many }) => ({
   reviews: many(reviews),
   favorites: many(favorites),
   inquiries: many(inquiries),
+  locations: many(providerLocations),
+  programs: many(providerPrograms),
+  amenities: many(providerAmenities),
 }));
 
 export const providerImagesRelations = relations(providerImages, ({ one }) => ({
@@ -169,6 +222,18 @@ export const favoritesRelations = relations(favorites, ({ one }) => ({
 export const inquiriesRelations = relations(inquiries, ({ one }) => ({
   provider: one(providers, { fields: [inquiries.providerId], references: [providers.id] }),
   user: one(users, { fields: [inquiries.userId], references: [users.id] }),
+}));
+
+export const providerLocationsRelations = relations(providerLocations, ({ one }) => ({
+  provider: one(providers, { fields: [providerLocations.providerId], references: [providers.id] }),
+}));
+
+export const providerProgramsRelations = relations(providerPrograms, ({ one }) => ({
+  provider: one(providers, { fields: [providerPrograms.providerId], references: [providers.id] }),
+}));
+
+export const providerAmenitiesRelations = relations(providerAmenities, ({ one }) => ({
+  provider: one(providers, { fields: [providerAmenities.providerId], references: [providers.id] }),
 }));
 
 // Insert schemas
@@ -236,6 +301,23 @@ export const insertProviderImageSchema = createInsertSchema(providerImages).omit
   createdAt: true,
 });
 
+export const insertProviderLocationSchema = createInsertSchema(providerLocations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertProviderProgramSchema = createInsertSchema(providerPrograms).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertProviderAmenitySchema = createInsertSchema(providerAmenities).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -248,3 +330,9 @@ export type InsertInquiry = z.infer<typeof insertInquirySchema>;
 export type ProviderImage = typeof providerImages.$inferSelect;
 export type InsertProviderImage = z.infer<typeof insertProviderImageSchema>;
 export type Favorite = typeof favorites.$inferSelect;
+export type ProviderLocation = typeof providerLocations.$inferSelect;
+export type InsertProviderLocation = z.infer<typeof insertProviderLocationSchema>;
+export type ProviderProgram = typeof providerPrograms.$inferSelect;
+export type InsertProviderProgram = z.infer<typeof insertProviderProgramSchema>;
+export type ProviderAmenity = typeof providerAmenities.$inferSelect;
+export type InsertProviderAmenity = z.infer<typeof insertProviderAmenitySchema>;
