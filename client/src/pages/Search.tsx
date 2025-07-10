@@ -843,7 +843,25 @@ export default function SearchPage() {
       const savedGroups = localStorage.getItem('favoriteGroups');
       if (savedGroups) {
         const groups = JSON.parse(savedGroups);
-        setGroupsCount(Object.keys(groups).length);
+        // Only count groups that have providers in them
+        const nonEmptyGroups = Object.keys(groups).filter(groupName => 
+          groups[groupName] && groups[groupName].length > 0
+        );
+        
+        // Clean up empty groups
+        const cleanGroups: {[key: string]: number[]} = {};
+        Object.keys(groups).forEach(groupName => {
+          if (groups[groupName] && groups[groupName].length > 0) {
+            cleanGroups[groupName] = groups[groupName];
+          }
+        });
+        
+        // Update localStorage if we removed any empty groups
+        if (Object.keys(cleanGroups).length !== Object.keys(groups).length) {
+          localStorage.setItem('favoriteGroups', JSON.stringify(cleanGroups));
+        }
+        
+        setGroupsCount(nonEmptyGroups.length);
       } else {
         setGroupsCount(0);
       }

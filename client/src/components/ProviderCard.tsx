@@ -53,6 +53,23 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       await apiRequest("DELETE", `/api/favorites/${provider.id}`);
     },
     onSuccess: () => {
+      // Remove from all groups in localStorage
+      const savedGroups = localStorage.getItem('favoriteGroups');
+      if (savedGroups) {
+        const groups = JSON.parse(savedGroups);
+        const updatedGroups: {[key: string]: number[]} = {};
+        
+        Object.keys(groups).forEach(groupName => {
+          const updatedProviders = groups[groupName].filter((id: number) => id !== provider.id);
+          // Only keep groups that still have providers
+          if (updatedProviders.length > 0) {
+            updatedGroups[groupName] = updatedProviders;
+          }
+        });
+        
+        saveGroups(updatedGroups);
+      }
+      
       queryClient.invalidateQueries({ queryKey: [`/api/favorites/${provider.id}/check`] });
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
       toast({
