@@ -835,6 +835,17 @@ export default function SearchPage() {
 
   const favoriteProviderIds = favorites.map((fav: any) => fav.provider?.id || fav.providerId);
 
+  // Load groups from localStorage and count them
+  const [groupsCount, setGroupsCount] = useState(0);
+  
+  useEffect(() => {
+    const savedGroups = localStorage.getItem('favoriteGroups');
+    if (savedGroups) {
+      const groups = JSON.parse(savedGroups);
+      setGroupsCount(Object.keys(groups).length);
+    }
+  }, [favorites]); // Refresh when favorites change
+
   const handleSearch = () => {
     refetch();
   };
@@ -969,6 +980,11 @@ export default function SearchPage() {
                 >
                   <Bookmark className="h-4 w-4 mr-2" />
                   My Groups
+                  {groupsCount > 0 && (
+                    <span className="ml-2 bg-blue-200 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                      {groupsCount}
+                    </span>
+                  )}
                 </Button>
                 
                 <Select value={sortBy} onValueChange={setSortBy}>

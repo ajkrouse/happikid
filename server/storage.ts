@@ -35,6 +35,7 @@ export interface IStorage {
     search?: string;
     limit?: number;
     offset?: number;
+    includeUnconfirmed?: boolean;
   }): Promise<Provider[]>;
   getProvider(id: number): Promise<Provider | undefined>;
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
@@ -95,8 +96,14 @@ export class DatabaseStorage implements IStorage {
     search?: string;
     limit?: number;
     offset?: number;
+    includeUnconfirmed?: boolean;
   }): Promise<Provider[]> {
     let conditions: any[] = [eq(providers.isActive, true)];
+
+    // By default, only show confirmed providers to the public
+    if (!filters?.includeUnconfirmed) {
+      conditions.push(eq(providers.licenseStatus, "confirmed"));
+    }
 
     if (filters?.type) {
       conditions.push(eq(providers.type, filters.type as any));

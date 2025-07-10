@@ -566,6 +566,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // License confirmation route
+  app.post('/api/providers/confirm-license', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const providers = await storage.getProvidersByUserId(userId);
+      
+      if (!providers || providers.length === 0) {
+        return res.status(404).json({ message: "Provider not found" });
+      }
+      
+      const provider = providers[0];
+      
+      // In a real system, this would trigger a verification process
+      // For now, we'll simulate the confirmation
+      const updatedProvider = await storage.updateProvider(provider.id, {
+        licenseStatus: "confirmed",
+        licenseConfirmedAt: new Date(),
+        isProfileVisible: true
+      });
+      
+      res.json({ 
+        message: "License confirmation request submitted successfully",
+        provider: updatedProvider,
+        isConfirmed: true
+      });
+    } catch (error) {
+      console.error("Error confirming license:", error);
+      res.status(500).json({ message: "Failed to confirm license" });
+    }
+  });
+
   // Provider images routes
   app.get('/api/providers/:id/images', async (req: any, res) => {
     try {

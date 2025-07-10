@@ -1,9 +1,11 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { 
   Eye, 
@@ -18,12 +20,19 @@ import {
   Bell,
   Heart,
   Crown,
-  Sparkles
+  Sparkles,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Clock
 } from "lucide-react";
 import { Link } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function ProviderDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Fetch provider profile
   const { data: provider } = useQuery({
@@ -41,6 +50,31 @@ export default function ProviderDashboard() {
   const { data: inquiries } = useQuery({
     queryKey: ["/api/inquiries/provider"],
     enabled: isAuthenticated && !!provider
+  });
+
+  // License confirmation mutation
+  const confirmLicenseMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/providers/confirm-license", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "License Confirmed!",
+        description: "Your provider profile is now live and visible to families.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/providers/mine"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to confirm license. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   if (isLoading) {
@@ -167,6 +201,46 @@ export default function ProviderDashboard() {
             </div>
           </div>
         </div>
+
+        {/* License Status Banner */}
+        {provider.licenseStatus === 'pending' && (
+          <Card className="mb-8 bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-r from-red-400 to-orange-500 rounded-lg">
+                    <AlertTriangle className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-red-900">License Confirmation Required</h3>
+                    <p className="text-red-700">Your profile is hidden from families until your license is confirmed</p>
+                  </div>
+                </div>
+                <Button 
+                  className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold"
+                  onClick={() => confirmLicenseMutation.mutate()}
+                  disabled={confirmLicenseMutation.isPending}
+                >
+                  {confirmLicenseMutation.isPending ? (
+                    <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Shield className="h-4 w-4 mr-2" />
+                  )}
+                  {confirmLicenseMutation.isPending ? 'Confirming...' : 'Confirm License'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {provider.licenseStatus === 'confirmed' && (
+          <Alert className="mb-8 bg-green-50 border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>License Confirmed!</strong> Your profile is now live and visible to families searching for childcare.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Premium Upgrade Banner */}
         <Card className="mb-8 bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
