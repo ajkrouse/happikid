@@ -179,6 +179,14 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Added navigation warning for incomplete profiles to prevent data loss
   - Fixed celebration page routing after profile completion
   - Improved responsive design with better mobile compatibility
+- July 10, 2025: Enhanced Pricing Display & About Page
+  - Fixed pricing display logic to prevent $0.00 from appearing inappropriately
+  - Updated $$ meter calculation to use midpoint of estimated cost ranges for accuracy
+  - Made pricing display more compact with tighter spacing and "mo" abbreviation
+  - Added borough-based pricing adjustments (Manhattan premium, others adjusted)
+  - Implemented clear $$ meter thresholds: $1500=1$, $2200=2$, $2900=3$, $3600=4$, above=5$
+  - Enhanced About page with comprehensive mission, values, and how-it-works sections
+  - Added engaging statistics and call-to-action elements to About page
 
 ## User Preferences
 
