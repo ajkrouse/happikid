@@ -175,6 +175,8 @@ function FavoritesSection({
   const saveGroups = (newGroups: {[key: string]: number[]}) => {
     setGroups(newGroups);
     localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
+    // Dispatch custom event to notify parent component about groups count update
+    window.dispatchEvent(new CustomEvent('groupsUpdated', { detail: newGroups }));
   };
 
   // Remove favorite mutation
