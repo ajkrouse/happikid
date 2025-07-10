@@ -115,7 +115,8 @@ export default function ProviderOnboarding() {
   // Check if user is authenticated and is a provider
   useEffect(() => {
     if (!isAuthenticated) {
-      setLocation("/");
+      // Redirect to login with returnTo parameter to come back here
+      window.location.href = "/api/login?returnTo=" + encodeURIComponent("/provider/onboarding");
       return;
     }
   }, [isAuthenticated, setLocation]);
