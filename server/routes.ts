@@ -297,17 +297,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingProviders = await storage.getProvidersByUserId(userId);
       
       if (existingProviders.length > 0) {
-        // Update existing provider
+        // Update existing provider with partial data
         const providerId = existingProviders[0].id;
-        const providerData = insertProviderSchema.parse({ ...req.body, userId });
+        const updateData = insertProviderSchema.partial().parse({ ...req.body, userId });
         
-        const updatedProvider = await storage.updateProvider(providerId, providerData);
+        const updatedProvider = await storage.updateProvider(providerId, updateData);
         res.json(updatedProvider);
       } else {
-        // Create new provider
-        const providerData = insertProviderSchema.parse({ ...req.body, userId });
+        // Create new provider with default values for required fields
+        const providerData = {
+          ...req.body,
+          userId,
+          // Provide defaults for required database fields
+          type: req.body.type || "daycare", // Default to daycare
+          ageRangeMin: parseInt(req.body.ageRangeMin) || 0,
+          ageRangeMax: parseInt(req.body.ageRangeMax) || 120,
+          monthlyPrice: req.body.monthlyPrice ? parseFloat(req.body.monthlyPrice) : 0,
+          borough: req.body.borough || "", // Allow empty string for non-NYC providers
+        };
         
-        const provider = await storage.createProvider(providerData);
+        const validatedData = insertProviderSchema.parse(providerData);
+        const provider = await storage.createProvider(validatedData);
         res.status(201).json(provider);
       }
     } catch (error) {
@@ -511,33 +521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.post('/api/providers', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      
-      // Check if user already has a provider profile
-      const existingProviders = await storage.getProvidersByUserId(userId);
-      
-      if (existingProviders.length > 0) {
-        // Update existing provider
-        const providerId = existingProviders[0].id;
-        const updateData = insertProviderSchema.partial().parse(req.body);
-        const provider = await storage.updateProvider(providerId, updateData);
-        return res.json(provider);
-      }
-      
-      // Create new provider
-      const providerData = insertProviderSchema.parse({ ...req.body, userId });
-      const provider = await storage.createProvider(providerData);
-      res.status(201).json(provider);
-    } catch (error) {
-      console.error("Error creating/updating provider:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to save provider" });
-    }
-  });
+
 
   app.patch('/api/providers/:id', isAuthenticated, async (req: any, res) => {
     try {

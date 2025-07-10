@@ -92,6 +92,7 @@ export async function setupAuth(app: Express) {
         config,
         scope: "openid email profile offline_access",
         callbackURL: `https://${domain}/api/callback`,
+        passReqToCallback: true, // This allows us to access req in the verify function
       },
       verify,
     );
@@ -105,20 +106,29 @@ export async function setupAuth(app: Express) {
     const returnTo = req.query.returnTo as string;
     console.log("Login with returnTo:", returnTo);
     
-    // Store returnTo in a temporary in-memory store keyed by a random token
-    const tempToken = Math.random().toString(36).substring(2, 15);
+    // Store returnTo in session before auth
     if (returnTo) {
-      global.tempReturnToStore = global.tempReturnToStore || new Map();
-      global.tempReturnToStore.set(tempToken, returnTo);
-      console.log("Stored returnTo with token:", tempToken, "->", returnTo);
+      req.session.returnTo = returnTo;
+      console.log("Storing returnTo in session:", returnTo);
+      
+      // Force session save
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+        }
+        console.log("Session saved before auth");
+        
+        passport.authenticate(`replitauth:${req.hostname}`, {
+          prompt: "login consent",
+          scope: ["openid", "email", "profile", "offline_access"],
+        })(req, res, next);
+      });
+    } else {
+      passport.authenticate(`replitauth:${req.hostname}`, {
+        prompt: "login consent", 
+        scope: ["openid", "email", "profile", "offline_access"],
+      })(req, res, next);
     }
-    
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-      // Pass the temp token as state
-      state: tempToken,
-    })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
@@ -138,17 +148,17 @@ export async function setupAuth(app: Express) {
           return next(err);
         }
         
-        // Check for returnTo using the temporary token
-        let returnTo = null;
-        const state = req.query.state as string;
-        console.log("Callback state parameter:", state);
+        // Check for returnTo in session
+        const returnTo = req.session.returnTo;
+        console.log("Callback returnTo from session:", returnTo);
+        console.log("Session ID:", req.sessionID);
         
-        if (state && global.tempReturnToStore) {
-          returnTo = global.tempReturnToStore.get(state);
-          console.log("Retrieved returnTo from temp store:", returnTo);
-          
-          // Clean up the temporary storage
-          global.tempReturnToStore.delete(state);
+        // Clear the returnTo from session
+        if (returnTo) {
+          delete req.session.returnTo;
+          req.session.save((err) => {
+            if (err) console.error("Error saving session after clearing returnTo:", err);
+          });
         }
         
         if (returnTo && returnTo.startsWith('/')) {
