@@ -95,61 +95,124 @@ export default function About() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="relative">
-              {/* Animated NYC Tri-State Map */}
-              <div className="bg-white rounded-2xl shadow-lg p-8 relative overflow-hidden">
-                <svg viewBox="0 0 400 300" className="w-full h-auto">
-                  {/* Background */}
-                  <rect width="400" height="300" fill="#f8fafc" />
+              {/* Realistic NYC Tri-State Map */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-lg p-8 relative overflow-hidden">
+                <div className="relative w-full h-80 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl overflow-hidden">
+                  {/* Water bodies */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-200 to-blue-300"></div>
                   
-                  {/* Water/Ocean */}
-                  <path d="M0,200 Q100,180 200,200 Q300,220 400,200 L400,300 L0,300 Z" fill="#bfdbfe" opacity="0.7" />
+                  {/* Hudson River */}
+                  <div className="absolute left-4 top-8 w-2 h-32 bg-blue-400 rounded-full opacity-70"></div>
                   
-                  {/* Manhattan */}
-                  <rect x="140" y="120" width="15" height="80" rx="3" fill="#f97316" className="animate-pulse" style={{animationDelay: '0s'}} />
-                  <text x="148" y="115" textAnchor="middle" className="text-xs font-semibold" fill="#f97316">Manhattan</text>
+                  {/* East River */}
+                  <div className="absolute left-16 top-20 w-1.5 h-20 bg-blue-400 rounded-full opacity-70 rotate-12"></div>
                   
-                  {/* Brooklyn */}
-                  <polygon points="155,140 180,140 185,180 160,180" fill="#06b6d4" className="animate-pulse" style={{animationDelay: '0.5s'}} />
-                  <text x="172" y="195" textAnchor="middle" className="text-xs font-semibold" fill="#06b6d4">Brooklyn</text>
-                  
-                  {/* Queens */}
-                  <polygon points="180,120 220,120 225,160 185,160" fill="#10b981" className="animate-pulse" style={{animationDelay: '1s'}} />
-                  <text x="202" y="115" textAnchor="middle" className="text-xs font-semibold" fill="#10b981">Queens</text>
-                  
-                  {/* Bronx */}
-                  <polygon points="140,80 170,80 175,120 145,120" fill="#8b5cf6" className="animate-pulse" style={{animationDelay: '1.5s'}} />
-                  <text x="157" y="75" textAnchor="middle" className="text-xs font-semibold" fill="#8b5cf6">Bronx</text>
-                  
-                  {/* Staten Island */}
-                  <circle cx="120" cy="220" r="20" fill="#f59e0b" className="animate-pulse" style={{animationDelay: '2s'}} />
-                  <text x="120" y="250" textAnchor="middle" className="text-xs font-semibold" fill="#f59e0b">Staten Island</text>
-                  
-                  {/* Long Island */}
-                  <ellipse cx="280" cy="160" rx="80" ry="25" fill="#ef4444" className="animate-pulse" style={{animationDelay: '2.5s'}} />
-                  <text x="280" y="165" textAnchor="middle" className="text-xs font-semibold" fill="white">Long Island</text>
-                  
-                  {/* Westchester */}
-                  <polygon points="120,60 180,60 185,100 125,100" fill="#ec4899" className="animate-pulse" style={{animationDelay: '3s'}} />
-                  <text x="152" y="55" textAnchor="middle" className="text-xs font-semibold" fill="#ec4899">Westchester</text>
+                  {/* Atlantic Ocean */}
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-blue-400 to-transparent"></div>
                   
                   {/* Northern NJ */}
-                  <polygon points="80,120 140,120 145,200 85,200" fill="#84cc16" className="animate-pulse" style={{animationDelay: '3.5s'}} />
-                  <text x="112" y="115" textAnchor="middle" className="text-xs font-semibold" fill="#84cc16">Northern NJ</text>
+                  <div 
+                    className="absolute left-2 top-16 w-16 h-24 bg-lime-400 rounded-lg opacity-80 cursor-pointer hover:opacity-100 transition-all duration-500 animate-pulse"
+                    style={{animationDelay: '0s'}}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-white drop-shadow-md">NJ</span>
+                    </div>
+                    {/* Provider dots */}
+                    <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '3s'}}></div>
+                    <div className="absolute bottom-3 right-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '3.5s'}}></div>
+                  </div>
                   
-                  {/* Provider dots animation */}
-                  <circle cx="148" cy="140" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4s'}} />
-                  <circle cx="172" cy="160" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4.2s'}} />
-                  <circle cx="202" cy="140" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4.4s'}} />
-                  <circle cx="157" cy="100" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4.6s'}} />
-                  <circle cx="280" cy="160" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4.8s'}} />
-                  <circle cx="152" cy="80" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '5s'}} />
-                  <circle cx="112" cy="160" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '5.2s'}} />
-                  <circle cx="120" cy="220" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '5.4s'}} />
-                </svg>
-                
-                {/* Animated coverage indicator */}
-                <div className="absolute bottom-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold animate-bounce">
-                  Full Coverage
+                  {/* Westchester */}
+                  <div 
+                    className="absolute left-8 top-2 w-20 h-12 bg-pink-400 rounded-lg opacity-80 cursor-pointer hover:opacity-100 transition-all duration-500 animate-pulse"
+                    style={{animationDelay: '0.5s'}}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-white drop-shadow-md">Westchester</span>
+                    </div>
+                    <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '4s'}}></div>
+                  </div>
+                  
+                  {/* Bronx */}
+                  <div 
+                    className="absolute left-8 top-16 w-12 h-10 bg-purple-400 rounded-lg opacity-80 cursor-pointer hover:opacity-100 transition-all duration-500 animate-pulse"
+                    style={{animationDelay: '1s'}}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-white drop-shadow-md">Bronx</span>
+                    </div>
+                    <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '4.5s'}}></div>
+                  </div>
+                  
+                  {/* Manhattan */}
+                  <div 
+                    className="absolute left-20 top-28 w-4 h-16 bg-orange-400 rounded-lg opacity-80 cursor-pointer hover:opacity-100 transition-all duration-500 animate-pulse"
+                    style={{animationDelay: '1.5s'}}
+                  >
+                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                      <span className="text-xs font-bold text-orange-600 drop-shadow-md">Manhattan</span>
+                    </div>
+                    <div className="absolute top-3 left-0.5 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '5s'}}></div>
+                    <div className="absolute bottom-3 left-0.5 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '5.2s'}}></div>
+                  </div>
+                  
+                  {/* Queens */}
+                  <div 
+                    className="absolute left-26 top-24 w-20 h-14 bg-emerald-400 rounded-lg opacity-80 cursor-pointer hover:opacity-100 transition-all duration-500 animate-pulse"
+                    style={{animationDelay: '2s'}}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-white drop-shadow-md">Queens</span>
+                    </div>
+                    <div className="absolute top-2 left-3 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '5.5s'}}></div>
+                    <div className="absolute bottom-2 right-3 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '6s'}}></div>
+                  </div>
+                  
+                  {/* Brooklyn */}
+                  <div 
+                    className="absolute left-24 top-40 w-16 h-12 bg-cyan-400 rounded-lg opacity-80 cursor-pointer hover:opacity-100 transition-all duration-500 animate-pulse"
+                    style={{animationDelay: '2.5s'}}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-white drop-shadow-md">Brooklyn</span>
+                    </div>
+                    <div className="absolute top-1 left-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '6.5s'}}></div>
+                    <div className="absolute bottom-1 right-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '7s'}}></div>
+                  </div>
+                  
+                  {/* Staten Island */}
+                  <div 
+                    className="absolute left-8 bottom-8 w-12 h-10 bg-amber-400 rounded-full opacity-80 cursor-pointer hover:opacity-100 transition-all duration-500 animate-pulse"
+                    style={{animationDelay: '3s'}}
+                  >
+                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
+                      <span className="text-xs font-bold text-amber-600 drop-shadow-md">Staten Island</span>
+                    </div>
+                    <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '7.5s'}}></div>
+                  </div>
+                  
+                  {/* Long Island */}
+                  <div 
+                    className="absolute right-4 top-32 w-24 h-8 bg-red-400 rounded-full opacity-80 cursor-pointer hover:opacity-100 transition-all duration-500 animate-pulse"
+                    style={{animationDelay: '3.5s'}}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-white drop-shadow-md">Long Island</span>
+                    </div>
+                    <div className="absolute top-1 left-4 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '8s'}}></div>
+                    <div className="absolute bottom-1 right-4 w-1.5 h-1.5 bg-red-500 rounded-full animate-ping" style={{animationDelay: '8.5s'}}></div>
+                  </div>
+                  
+                  {/* Coverage indicator */}
+                  <div className="absolute bottom-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold animate-bounce">
+                    Full Coverage
+                  </div>
+                  
+                  {/* Hover tooltips */}
+                  <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity">
+                    Click any area to explore providers
+                  </div>
                 </div>
               </div>
             </div>
