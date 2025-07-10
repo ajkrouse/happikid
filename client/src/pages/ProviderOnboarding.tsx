@@ -120,6 +120,7 @@ export default function ProviderOnboarding() {
     isPrimary: boolean;
   }>>([]);
   const [imageUrlInput, setImageUrlInput] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // Check if user is authenticated and is a provider
   useEffect(() => {
@@ -308,17 +309,34 @@ export default function ProviderOnboarding() {
   };
 
   // Image upload functions
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
+  const processFiles = (files: FileList | File[]) => {
     Array.from(files).forEach((file) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File Type",
+          description: `${file.name} is not an image file`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: `${file.name} is larger than 5MB`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
           const newImage = {
             url: e.target.result as string,
-            caption: "",
+            caption: file.name.split('.')[0], // Use filename without extension as default caption
             isPrimary: uploadedImages.length === 0
           };
           setUploadedImages(prev => [...prev, newImage]);
@@ -326,6 +344,38 @@ export default function ProviderOnboarding() {
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+    processFiles(files);
+    // Reset the input so the same file can be selected again
+    event.target.value = '';
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      processFiles(files);
+    }
   };
 
   const handleAddImageUrl = async () => {
@@ -769,11 +819,23 @@ export default function ProviderOnboarding() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* File Upload Section */}
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-                  <p className="text-lg font-medium text-gray-900 mb-2">Upload Photos</p>
+                <div 
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                    isDragOver 
+                      ? 'border-blue-400 bg-blue-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                >
+                  <Upload className={`h-10 w-10 mx-auto mb-3 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
+                  <p className="text-lg font-medium text-gray-900 mb-2">
+                    {isDragOver ? 'Drop photos here' : 'Upload Photos'}
+                  </p>
                   <p className="text-sm text-gray-600 mb-4">
-                    Choose photos from your device (JPG, PNG, GIF)
+                    Drag and drop photos here, or click to browse (JPG, PNG, GIF up to 5MB)
                   </p>
                   <input
                     type="file"
@@ -783,11 +845,14 @@ export default function ProviderOnboarding() {
                     className="hidden"
                     id="file-upload"
                   />
-                  <label htmlFor="file-upload">
-                    <Button variant="outline" type="button" className="cursor-pointer">
-                      Choose Photos
-                    </Button>
-                  </label>
+                  <Button 
+                    variant="outline" 
+                    type="button" 
+                    className="pointer-events-none"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Choose Photos
+                  </Button>
                 </div>
 
                 {/* URL Upload Section */}
