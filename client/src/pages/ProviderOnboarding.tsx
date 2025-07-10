@@ -85,6 +85,7 @@ export default function ProviderOnboarding() {
   
   const [currentStep, setCurrentStep] = useState(0);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -820,20 +821,6 @@ export default function ProviderOnboarding() {
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  const completeness = calculateCompleteness();
-  const currentStepInfo = ONBOARDING_STEPS[currentStep];
-
-  // Track if there are unsaved changes
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
   // Track form changes
   useEffect(() => {
     // Check if form has any data that's not saved
@@ -841,8 +828,8 @@ export default function ProviderOnboarding() {
       if (Array.isArray(value)) return value.length > 0;
       return value && value.toString().trim() !== "";
     });
-    setHasUnsavedChanges(hasFormData && completeness < 100);
-  }, [formData, completeness]);
+    setHasUnsavedChanges(hasFormData && calculateCompleteness() < 100);
+  }, [formData]);
 
   // Navigation warning for unsaved changes
   useEffect(() => {
@@ -857,6 +844,19 @@ export default function ProviderOnboarding() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  const completeness = calculateCompleteness();
+  const currentStepInfo = ONBOARDING_STEPS[currentStep];
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">

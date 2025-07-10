@@ -106,11 +106,25 @@ export async function setupAuth(app: Express) {
     if (req.query.returnTo) {
       req.session.returnTo = req.query.returnTo as string;
       console.log("Storing returnTo in session:", req.query.returnTo);
+      
+      // Ensure session is saved before proceeding
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+        }
+        console.log("Session saved with returnTo:", req.session.returnTo);
+        
+        passport.authenticate(`replitauth:${req.hostname}`, {
+          prompt: "login consent",
+          scope: ["openid", "email", "profile", "offline_access"],
+        })(req, res, next);
+      });
+    } else {
+      passport.authenticate(`replitauth:${req.hostname}`, {
+        prompt: "login consent",
+        scope: ["openid", "email", "profile", "offline_access"],
+      })(req, res, next);
     }
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
@@ -133,12 +147,16 @@ export async function setupAuth(app: Express) {
         if (returnTo) {
           delete req.session.returnTo;
           console.log("Redirecting to:", returnTo);
-          return res.redirect(returnTo);
+          // Save session before redirect
+          req.session.save(() => {
+            res.redirect(returnTo);
+          });
+          return;
         }
         
         // Default redirect to home
         console.log("No returnTo, redirecting to /");
-        return res.redirect("/");
+        res.redirect("/");
       });
     })(req, res, next);
   });
