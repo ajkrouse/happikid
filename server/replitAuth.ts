@@ -109,12 +109,25 @@ export async function setupAuth(app: Express) {
     if (returnTo) {
       req.session.returnTo = returnTo;
       console.log("Storing returnTo in session:", returnTo);
+      
+      // Force session save before proceeding
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+        }
+        console.log("Session saved, proceeding with authentication");
+        
+        passport.authenticate(`replitauth:${req.hostname}`, {
+          prompt: "login consent",
+          scope: ["openid", "email", "profile", "offline_access"],
+        })(req, res, next);
+      });
+    } else {
+      passport.authenticate(`replitauth:${req.hostname}`, {
+        prompt: "login consent",
+        scope: ["openid", "email", "profile", "offline_access"],
+      })(req, res, next);
     }
-    
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
@@ -137,6 +150,7 @@ export async function setupAuth(app: Express) {
         // Check for returnTo in session
         const returnTo = req.session.returnTo;
         console.log("Callback returnTo from session:", returnTo);
+        console.log("Full session data:", JSON.stringify(req.session, null, 2));
         
         // Clear the returnTo from session
         delete req.session.returnTo;
