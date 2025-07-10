@@ -11,12 +11,12 @@ interface RoleSelectionModalProps {
 export default function RoleSelectionModal({ isOpen, onClose }: RoleSelectionModalProps) {
   const handleParentChoice = () => {
     onClose();
-    window.location.href = "/api/login?returnTo=/search";
+    window.location.href = "/api/login?returnTo=" + encodeURIComponent("/search");
   };
 
   const handleProviderChoice = () => {
     onClose();
-    window.location.href = "/api/login?returnTo=/provider/onboarding";
+    window.location.href = "/api/login?returnTo=" + encodeURIComponent("/provider/onboarding");
   };
 
   return (
