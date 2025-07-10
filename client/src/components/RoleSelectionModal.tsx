@@ -24,6 +24,7 @@ export default function RoleSelectionModal({ isOpen, onClose }: RoleSelectionMod
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">Welcome to HappiKid!</DialogTitle>
+          <p className="text-center text-gray-600 mt-2">What would you like to do first?</p>
         </DialogHeader>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
@@ -33,8 +34,8 @@ export default function RoleSelectionModal({ isOpen, onClose }: RoleSelectionMod
               <div className="bg-primary-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Users className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle className="text-xl">I'm a Parent/Caretaker</CardTitle>
-              <CardDescription>Looking for childcare options</CardDescription>
+              <CardTitle className="text-xl">Find Childcare</CardTitle>
+              <CardDescription>Search for providers as a parent/caretaker</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600 mb-4">
@@ -67,8 +68,8 @@ export default function RoleSelectionModal({ isOpen, onClose }: RoleSelectionMod
               <div className="bg-secondary-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Building2 className="h-8 w-8 text-secondary-500" />
               </div>
-              <CardTitle className="text-xl">I'm a Childcare Provider</CardTitle>
-              <CardDescription>Looking to grow my business</CardDescription>
+              <CardTitle className="text-xl">Grow My Business</CardTitle>
+              <CardDescription>Set up your childcare provider profile</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600 mb-4">
@@ -97,7 +98,7 @@ export default function RoleSelectionModal({ isOpen, onClose }: RoleSelectionMod
         </div>
 
         <div className="text-center text-sm text-gray-500 pb-2">
-          Not sure? You can always change your account type later.
+          You can access both experiences anytime from your dashboard.
         </div>
       </DialogContent>
     </Dialog>

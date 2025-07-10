@@ -200,6 +200,9 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Removed problematic animated geographical map from About page, replaced with clean statistics grid
   - Fixed provider onboarding to make borough field optional for tri-state area inclusivity
   - Enhanced role-based login redirects with returnTo parameters for seamless experience
+  - Fixed authentication callback to properly handle returnTo parameter via session storage
+  - Updated role selection modal language to support dual roles (users can access both experiences)
+  - Role selection now emphasizes task-based choices rather than exclusive identity labels
 
 ## User Preferences
 
