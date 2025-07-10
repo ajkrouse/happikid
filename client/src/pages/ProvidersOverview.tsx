@@ -301,7 +301,7 @@ export default function ProvidersOverview() {
             <Button size="lg" variant="secondary" onClick={handleGetStarted} className="px-8 py-3">
               Get Started Free
             </Button>
-            <Button size="lg" variant="outline" onClick={handleLogin} className="px-8 py-3 text-white border-white hover:bg-white hover:text-primary">
+            <Button size="lg" variant="secondary" onClick={handleLogin} className="px-8 py-3 bg-white text-primary hover:bg-gray-100">
               Existing Provider? Login
             </Button>
           </div>

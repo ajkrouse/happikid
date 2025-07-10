@@ -186,7 +186,7 @@ export default function ProviderOnboarding() {
 
   const calculateCompleteness = () => {
     const requiredFields = [
-      "name", "description", "address", "borough", "zipCode", "phone", "email",
+      "name", "description", "address", "zipCode", "phone", "email",
       "type", "ageRangeMin", "ageRangeMax", "capacity", "hoursOpen", "hoursClose"
     ];
     
@@ -199,6 +199,7 @@ export default function ProviderOnboarding() {
     
     // Bonus points for optional fields
     let bonusPoints = 0;
+    if (formData.borough) bonusPoints += 5; // Borough is now optional bonus
     if (formData.website) bonusPoints += 5;
     if (formData.monthlyPrice) bonusPoints += 5;
     if (formData.features.length > 0) bonusPoints += 10;
@@ -267,7 +268,7 @@ export default function ProviderOnboarding() {
 
   const getRequiredFieldsForStep = (step: number) => {
     switch (step) {
-      case 0: return ["name", "description", "address", "borough", "zipCode", "phone", "email"];
+      case 0: return ["name", "description", "address", "zipCode", "phone", "email"];
       case 1: return ["type", "ageRangeMin", "ageRangeMax", "capacity"];
       case 2: return ["hoursOpen", "hoursClose"];
       case 3: return [];
@@ -329,10 +330,10 @@ export default function ProviderOnboarding() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="borough">Borough *</Label>
+                    <Label htmlFor="borough">NYC Borough / Area (if applicable)</Label>
                     <Select value={formData.borough} onValueChange={(value) => setFormData(prev => ({ ...prev, borough: value }))}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select borough" />
+                        <SelectValue placeholder="Select if in NYC area" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Manhattan">Manhattan</SelectItem>
@@ -340,6 +341,10 @@ export default function ProviderOnboarding() {
                         <SelectItem value="Queens">Queens</SelectItem>
                         <SelectItem value="Bronx">Bronx</SelectItem>
                         <SelectItem value="Staten Island">Staten Island</SelectItem>
+                        <SelectItem value="Long Island">Long Island</SelectItem>
+                        <SelectItem value="Westchester">Westchester County</SelectItem>
+                        <SelectItem value="Northern NJ">Northern New Jersey</SelectItem>
+                        <SelectItem value="Other">Other Area</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
