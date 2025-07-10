@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import ProviderModal from "@/components/ProviderModal";
+import RoleSelectionModal from "@/components/RoleSelectionModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ export default function Landing() {
   const [currentTypeIndex, setCurrentTypeIndex] = useState(0);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -604,6 +606,12 @@ export default function Landing() {
         provider={selectedProvider}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+      
+      {/* Role Selection Modal */}
+      <RoleSelectionModal 
+        isOpen={showRoleSelection}
+        onClose={() => setShowRoleSelection(false)}
       />
     </div>
   );

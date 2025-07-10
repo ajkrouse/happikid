@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import RoleSelectionModal from "@/components/RoleSelectionModal";
 import {
   Sheet,
   SheetContent,
@@ -13,6 +14,7 @@ export default function Navigation() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   const navItems = isAuthenticated ? [
     { href: "/search", label: "Find Care" },
@@ -54,8 +56,8 @@ export default function Navigation() {
             <Button variant="ghost" asChild>
               <a href="/api/login">Sign In</a>
             </Button>
-            <Button asChild>
-              <a href="/api/login">Get Started</a>
+            <Button onClick={() => setShowRoleSelection(true)}>
+              Get Started
             </Button>
           </>
         )}
@@ -120,8 +122,8 @@ export default function Navigation() {
                         <Button variant="ghost" className="w-full" asChild>
                           <a href="/api/login">Sign In</a>
                         </Button>
-                        <Button className="w-full" asChild>
-                          <a href="/api/login">Get Started</a>
+                        <Button className="w-full" onClick={() => {setShowRoleSelection(true); setMobileMenuOpen(false);}}>
+                          Get Started
                         </Button>
                       </div>
                     )}
@@ -132,6 +134,11 @@ export default function Navigation() {
           </div>
         </div>
       </div>
+      
+      <RoleSelectionModal 
+        isOpen={showRoleSelection}
+        onClose={() => setShowRoleSelection(false)}
+      />
     </nav>
   );
 }

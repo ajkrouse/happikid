@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import RoleSelectionModal from "@/components/RoleSelectionModal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
@@ -15,14 +16,17 @@ import {
   DollarSign,
   Award
 } from "lucide-react";
+import { useState } from "react";
 
 export default function ProvidersOverview() {
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/api/login?returnTo=/provider/dashboard";
   };
 
   const handleGetStarted = () => {
-    window.location.href = "/api/login";
+    setShowRoleSelection(true);
   };
 
   return (
@@ -316,6 +320,12 @@ export default function ProvidersOverview() {
           </p>
         </div>
       </footer>
+      
+      {/* Role Selection Modal */}
+      <RoleSelectionModal 
+        isOpen={showRoleSelection}
+        onClose={() => setShowRoleSelection(false)}
+      />
     </div>
   );
 }
