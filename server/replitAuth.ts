@@ -105,11 +105,19 @@ export async function setupAuth(app: Express) {
     const returnTo = req.query.returnTo as string;
     console.log("Login with returnTo:", returnTo);
     
+    // Store returnTo in a temporary in-memory store keyed by a random token
+    const tempToken = Math.random().toString(36).substring(2, 15);
+    if (returnTo) {
+      global.tempReturnToStore = global.tempReturnToStore || new Map();
+      global.tempReturnToStore.set(tempToken, returnTo);
+      console.log("Stored returnTo with token:", tempToken, "->", returnTo);
+    }
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
-      // Pass returnTo as state parameter
-      state: returnTo ? Buffer.from(returnTo).toString('base64') : undefined,
+      // Pass the temp token as state
+      state: tempToken,
     })(req, res, next);
   });
 
@@ -130,18 +138,17 @@ export async function setupAuth(app: Express) {
           return next(err);
         }
         
-        // Check for returnTo in state parameter
+        // Check for returnTo using the temporary token
         let returnTo = null;
         const state = req.query.state as string;
         console.log("Callback state parameter:", state);
         
-        if (state) {
-          try {
-            returnTo = Buffer.from(state, 'base64').toString('utf8');
-            console.log("Decoded returnTo from state:", returnTo);
-          } catch (error) {
-            console.error("Error decoding state parameter:", error);
-          }
+        if (state && global.tempReturnToStore) {
+          returnTo = global.tempReturnToStore.get(state);
+          console.log("Retrieved returnTo from temp store:", returnTo);
+          
+          // Clean up the temporary storage
+          global.tempReturnToStore.delete(state);
         }
         
         if (returnTo && returnTo.startsWith('/')) {
