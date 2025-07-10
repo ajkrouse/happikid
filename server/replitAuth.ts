@@ -105,6 +105,7 @@ export async function setupAuth(app: Express) {
     // Store returnTo in session for later use
     if (req.query.returnTo) {
       req.session.returnTo = req.query.returnTo as string;
+      console.log("Storing returnTo in session:", req.query.returnTo);
     }
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
@@ -128,12 +129,15 @@ export async function setupAuth(app: Express) {
         
         // Check for returnTo in session
         const returnTo = req.session.returnTo;
+        console.log("Callback returnTo from session:", returnTo);
         if (returnTo) {
           delete req.session.returnTo;
+          console.log("Redirecting to:", returnTo);
           return res.redirect(returnTo);
         }
         
         // Default redirect to home
+        console.log("No returnTo, redirecting to /");
         return res.redirect("/");
       });
     })(req, res, next);
