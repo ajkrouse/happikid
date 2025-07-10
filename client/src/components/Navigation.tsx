@@ -18,6 +18,7 @@ export default function Navigation() {
 
   const navItems = isAuthenticated ? [
     { href: "/search", label: "Find Care" },
+    { href: "/provider/dashboard", label: "Provider Dashboard" },
     { href: "/about", label: "About" },
   ] : [
     { href: "/search", label: "Find Care" },
