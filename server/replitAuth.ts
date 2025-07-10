@@ -72,12 +72,17 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
+  // Validate that we have the required subject (user ID)
+  if (!claims["sub"]) {
+    throw new Error("Missing required user ID (sub) in claims");
+  }
+  
   await storage.upsertUser({
     id: claims["sub"],
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
+    email: claims["email"] || null,
+    firstName: claims["first_name"] || null,
+    lastName: claims["last_name"] || null,
+    profileImageUrl: claims["profile_image_url"] || null,
     role: "parent", // Default role for new users
   });
 }
@@ -94,24 +99,30 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    
-    // Get claims safely
-    let claims = {};
     try {
-      if (typeof tokens.claims === 'function') {
-        claims = tokens.claims();
-      } else {
-        claims = (tokens as any).claims || {};
+      const user = {};
+      updateUserSession(user, tokens);
+      
+      // Get claims safely
+      let claims = {};
+      try {
+        if (typeof tokens.claims === 'function') {
+          claims = tokens.claims();
+        } else {
+          claims = (tokens as any).claims || {};
+        }
+      } catch (error) {
+        console.error("Error getting claims:", error);
+        return verified(new Error("Failed to get user claims from authentication token"));
       }
+      
+      // Validate and upsert user
+      await upsertUser(claims);
+      verified(null, user);
     } catch (error) {
-      console.error("Error getting claims:", error);
-      claims = {};
+      console.error("Authentication verification error:", error);
+      verified(error);
     }
-    
-    await upsertUser(claims);
-    verified(null, user);
   };
 
   for (const domain of process.env
