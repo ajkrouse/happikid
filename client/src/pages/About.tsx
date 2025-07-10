@@ -83,6 +83,127 @@ export default function About() {
         </div>
       </section>
 
+      {/* Coverage Area Map */}
+      <section className="py-16 bg-gradient-to-br from-primary-50 to-secondary-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Serving the NYC Tri-State Area</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Comprehensive childcare coverage across New York City, Long Island, Westchester, and Northern New Jersey
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="relative">
+              {/* Animated NYC Tri-State Map */}
+              <div className="bg-white rounded-2xl shadow-lg p-8 relative overflow-hidden">
+                <svg viewBox="0 0 400 300" className="w-full h-auto">
+                  {/* Background */}
+                  <rect width="400" height="300" fill="#f8fafc" />
+                  
+                  {/* Water/Ocean */}
+                  <path d="M0,200 Q100,180 200,200 Q300,220 400,200 L400,300 L0,300 Z" fill="#bfdbfe" opacity="0.7" />
+                  
+                  {/* Manhattan */}
+                  <rect x="140" y="120" width="15" height="80" rx="3" fill="#f97316" className="animate-pulse" style={{animationDelay: '0s'}} />
+                  <text x="148" y="115" textAnchor="middle" className="text-xs font-semibold" fill="#f97316">Manhattan</text>
+                  
+                  {/* Brooklyn */}
+                  <polygon points="155,140 180,140 185,180 160,180" fill="#06b6d4" className="animate-pulse" style={{animationDelay: '0.5s'}} />
+                  <text x="172" y="195" textAnchor="middle" className="text-xs font-semibold" fill="#06b6d4">Brooklyn</text>
+                  
+                  {/* Queens */}
+                  <polygon points="180,120 220,120 225,160 185,160" fill="#10b981" className="animate-pulse" style={{animationDelay: '1s'}} />
+                  <text x="202" y="115" textAnchor="middle" className="text-xs font-semibold" fill="#10b981">Queens</text>
+                  
+                  {/* Bronx */}
+                  <polygon points="140,80 170,80 175,120 145,120" fill="#8b5cf6" className="animate-pulse" style={{animationDelay: '1.5s'}} />
+                  <text x="157" y="75" textAnchor="middle" className="text-xs font-semibold" fill="#8b5cf6">Bronx</text>
+                  
+                  {/* Staten Island */}
+                  <circle cx="120" cy="220" r="20" fill="#f59e0b" className="animate-pulse" style={{animationDelay: '2s'}} />
+                  <text x="120" y="250" textAnchor="middle" className="text-xs font-semibold" fill="#f59e0b">Staten Island</text>
+                  
+                  {/* Long Island */}
+                  <ellipse cx="280" cy="160" rx="80" ry="25" fill="#ef4444" className="animate-pulse" style={{animationDelay: '2.5s'}} />
+                  <text x="280" y="165" textAnchor="middle" className="text-xs font-semibold" fill="white">Long Island</text>
+                  
+                  {/* Westchester */}
+                  <polygon points="120,60 180,60 185,100 125,100" fill="#ec4899" className="animate-pulse" style={{animationDelay: '3s'}} />
+                  <text x="152" y="55" textAnchor="middle" className="text-xs font-semibold" fill="#ec4899">Westchester</text>
+                  
+                  {/* Northern NJ */}
+                  <polygon points="80,120 140,120 145,200 85,200" fill="#84cc16" className="animate-pulse" style={{animationDelay: '3.5s'}} />
+                  <text x="112" y="115" textAnchor="middle" className="text-xs font-semibold" fill="#84cc16">Northern NJ</text>
+                  
+                  {/* Provider dots animation */}
+                  <circle cx="148" cy="140" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4s'}} />
+                  <circle cx="172" cy="160" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4.2s'}} />
+                  <circle cx="202" cy="140" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4.4s'}} />
+                  <circle cx="157" cy="100" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4.6s'}} />
+                  <circle cx="280" cy="160" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '4.8s'}} />
+                  <circle cx="152" cy="80" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '5s'}} />
+                  <circle cx="112" cy="160" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '5.2s'}} />
+                  <circle cx="120" cy="220" r="3" fill="#dc2626" className="animate-ping" style={{animationDelay: '5.4s'}} />
+                </svg>
+                
+                {/* Animated coverage indicator */}
+                <div className="absolute bottom-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold animate-bounce">
+                  Full Coverage
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-primary">
+                  <h3 className="font-semibold text-gray-900 mb-1">New York City</h3>
+                  <p className="text-gray-600 text-sm">All 5 boroughs covered</p>
+                  <p className="text-primary font-semibold text-lg">450+ providers</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-secondary-500">
+                  <h3 className="font-semibold text-gray-900 mb-1">Long Island</h3>
+                  <p className="text-gray-600 text-sm">Nassau & Suffolk counties</p>
+                  <p className="text-secondary-500 font-semibold text-lg">280+ providers</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-accent-500">
+                  <h3 className="font-semibold text-gray-900 mb-1">Westchester</h3>
+                  <p className="text-gray-600 text-sm">Full county coverage</p>
+                  <p className="text-accent-500 font-semibold text-lg">180+ providers</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-green-500">
+                  <h3 className="font-semibold text-gray-900 mb-1">Northern NJ</h3>
+                  <p className="text-gray-600 text-sm">Bergen, Essex, Hudson</p>
+                  <p className="text-green-500 font-semibold text-lg">90+ providers</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Why This Coverage Matters</h3>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span>Cross-borough searches for families living on borders</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span>Commuter-friendly options near transit hubs</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span>Suburban and urban childcare options</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span>Consistent quality standards across all areas</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
