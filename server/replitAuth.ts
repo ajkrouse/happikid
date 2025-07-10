@@ -102,29 +102,15 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    // Store returnTo in session for later use
-    if (req.query.returnTo) {
-      req.session.returnTo = req.query.returnTo as string;
-      console.log("Storing returnTo in session:", req.query.returnTo);
-      
-      // Ensure session is saved before proceeding
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-        }
-        console.log("Session saved with returnTo:", req.session.returnTo);
-        
-        passport.authenticate(`replitauth:${req.hostname}`, {
-          prompt: "login consent",
-          scope: ["openid", "email", "profile", "offline_access"],
-        })(req, res, next);
-      });
-    } else {
-      passport.authenticate(`replitauth:${req.hostname}`, {
-        prompt: "login consent",
-        scope: ["openid", "email", "profile", "offline_access"],
-      })(req, res, next);
-    }
+    // Store returnTo as URL state parameter instead of session
+    const returnTo = req.query.returnTo as string;
+    console.log("Login with returnTo:", returnTo);
+    
+    passport.authenticate(`replitauth:${req.hostname}`, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"],
+      state: returnTo ? Buffer.from(returnTo).toString('base64') : undefined,
+    })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
@@ -141,21 +127,25 @@ export async function setupAuth(app: Express) {
           return next(err);
         }
         
-        // Check for returnTo in session
-        const returnTo = req.session.returnTo;
-        console.log("Callback returnTo from session:", returnTo);
-        if (returnTo) {
-          delete req.session.returnTo;
-          console.log("Redirecting to:", returnTo);
-          // Save session before redirect
-          req.session.save(() => {
-            res.redirect(returnTo);
-          });
-          return;
+        // Check for returnTo in state parameter
+        const state = req.query.state as string;
+        console.log("Callback state parameter:", state);
+        
+        if (state) {
+          try {
+            const returnTo = Buffer.from(state, 'base64').toString('utf-8');
+            console.log("Decoded returnTo from state:", returnTo);
+            if (returnTo && returnTo.startsWith('/')) {
+              console.log("Redirecting to:", returnTo);
+              return res.redirect(returnTo);
+            }
+          } catch (error) {
+            console.error("Error decoding state parameter:", error);
+          }
         }
         
         // Default redirect to home
-        console.log("No returnTo, redirecting to /");
+        console.log("No valid returnTo, redirecting to /");
         res.redirect("/");
       });
     })(req, res, next);
