@@ -95,117 +95,139 @@ export default function About() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="relative">
-              {/* Clean Stylized NYC Tri-State Map */}
+              {/* Coverage Areas Visual */}
               <div className="bg-white rounded-2xl shadow-lg p-6 relative overflow-hidden">
-                <div className="relative w-full h-80 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl overflow-hidden border">
-                  
-                  {/* Map Title */}
-                  <div className="absolute top-3 left-3 text-sm font-semibold text-gray-700">
-                    NYC Tri-State Coverage
-                  </div>
-                  
-                  {/* Westchester - Top */}
-                  <div 
-                    className="absolute top-8 left-12 w-24 h-12 bg-pink-200 hover:bg-pink-300 rounded-lg cursor-pointer transition-all duration-300 border border-pink-300 animate-pulse"
-                    style={{animationDelay: '0s'}}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs font-bold text-pink-800">Westchester</span>
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">NYC Tri-State Coverage</h3>
+                  <p className="text-gray-600">Comprehensive childcare provider network</p>
+                </div>
+
+                {/* Animated Coverage Circles */}
+                <div className="relative h-64 flex items-center justify-center">
+                  {/* Central Hub */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center animate-pulse">
+                      <span className="text-white font-bold text-sm">NYC</span>
                     </div>
-                    <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '3s'}}></div>
                   </div>
                   
-                  {/* Northern NJ - Left */}
-                  <div 
-                    className="absolute top-20 left-2 w-20 h-20 bg-green-200 hover:bg-green-300 rounded-lg cursor-pointer transition-all duration-300 border border-green-300 animate-pulse"
-                    style={{animationDelay: '0.5s'}}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs font-bold text-green-800">Northern NJ</span>
+                  {/* Surrounding Areas - Animated Orbit */}
+                  <div className="absolute inset-0 animate-spin" style={{animationDuration: '20s'}}>
+                    {/* Manhattan */}
+                    <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+                      <div className="w-12 h-12 bg-orange-400 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">MAN</span>
+                      </div>
+                      <div className="text-center mt-1">
+                        <span className="text-xs font-semibold text-orange-600">Manhattan</span>
+                      </div>
                     </div>
-                    <div className="absolute top-2 left-2 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '3.5s'}}></div>
-                    <div className="absolute bottom-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '4s'}}></div>
-                  </div>
-                  
-                  {/* Bronx */}
-                  <div 
-                    className="absolute top-22 left-24 w-16 h-10 bg-purple-200 hover:bg-purple-300 rounded-lg cursor-pointer transition-all duration-300 border border-purple-300 animate-pulse"
-                    style={{animationDelay: '1s'}}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs font-bold text-purple-800">Bronx</span>
+                    
+                    {/* Brooklyn */}
+                    <div className="absolute bottom-4 right-8">
+                      <div className="w-12 h-12 bg-cyan-400 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">BKN</span>
+                      </div>
+                      <div className="text-center mt-1">
+                        <span className="text-xs font-semibold text-cyan-600">Brooklyn</span>
+                      </div>
                     </div>
-                    <div className="absolute bottom-1 left-1 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '4.5s'}}></div>
-                  </div>
-                  
-                  {/* Manhattan */}
-                  <div 
-                    className="absolute top-34 left-26 w-6 h-20 bg-orange-200 hover:bg-orange-300 rounded-lg cursor-pointer transition-all duration-300 border border-orange-300 animate-pulse"
-                    style={{animationDelay: '1.5s'}}
-                  >
-                    <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                      <span className="text-xs font-bold text-orange-800">Manhattan</span>
+                    
+                    {/* Queens */}
+                    <div className="absolute top-8 right-4">
+                      <div className="w-12 h-12 bg-emerald-400 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">QNS</span>
+                      </div>
+                      <div className="text-center mt-1">
+                        <span className="text-xs font-semibold text-emerald-600">Queens</span>
+                      </div>
                     </div>
-                    <div className="absolute top-2 left-1 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '5s'}}></div>
-                    <div className="absolute bottom-2 left-1 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '5.5s'}}></div>
-                  </div>
-                  
-                  {/* Queens */}
-                  <div 
-                    className="absolute top-32 left-34 w-20 h-16 bg-emerald-200 hover:bg-emerald-300 rounded-lg cursor-pointer transition-all duration-300 border border-emerald-300 animate-pulse"
-                    style={{animationDelay: '2s'}}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs font-bold text-emerald-800">Queens</span>
+                    
+                    {/* Bronx */}
+                    <div className="absolute top-8 left-4">
+                      <div className="w-12 h-12 bg-purple-400 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">BX</span>
+                      </div>
+                      <div className="text-center mt-1">
+                        <span className="text-xs font-semibold text-purple-600">Bronx</span>
+                      </div>
                     </div>
-                    <div className="absolute top-2 left-2 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '6s'}}></div>
-                    <div className="absolute bottom-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '6.5s'}}></div>
-                  </div>
-                  
-                  {/* Brooklyn */}
-                  <div 
-                    className="absolute top-50 left-28 w-18 h-14 bg-cyan-200 hover:bg-cyan-300 rounded-lg cursor-pointer transition-all duration-300 border border-cyan-300 animate-pulse"
-                    style={{animationDelay: '2.5s'}}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs font-bold text-cyan-800">Brooklyn</span>
+                    
+                    {/* Staten Island */}
+                    <div className="absolute bottom-4 left-8">
+                      <div className="w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">SI</span>
+                      </div>
+                      <div className="text-center mt-1">
+                        <span className="text-xs font-semibold text-amber-600">Staten Is.</span>
+                      </div>
                     </div>
-                    <div className="absolute top-1 left-2 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '7s'}}></div>
-                    <div className="absolute bottom-1 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '7.5s'}}></div>
                   </div>
                   
-                  {/* Staten Island */}
-                  <div 
-                    className="absolute bottom-12 left-12 w-14 h-12 bg-amber-200 hover:bg-amber-300 rounded-full cursor-pointer transition-all duration-300 border border-amber-300 animate-pulse"
-                    style={{animationDelay: '3s'}}
-                  >
-                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                      <span className="text-xs font-bold text-amber-800">Staten Island</span>
+                  {/* Extended Coverage Areas */}
+                  <div className="absolute inset-0">
+                    {/* Long Island */}
+                    <div className="absolute top-1/2 right-2 transform -translate-y-1/2">
+                      <div className="w-10 h-10 bg-red-400 rounded-full flex items-center justify-center animate-pulse" style={{animationDelay: '1s'}}>
+                        <span className="text-white font-bold text-xs">LI</span>
+                      </div>
+                      <div className="text-center mt-1">
+                        <span className="text-xs font-semibold text-red-600">Long Island</span>
+                      </div>
                     </div>
-                    <div className="absolute top-2 left-2 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '8s'}}></div>
-                  </div>
-                  
-                  {/* Long Island */}
-                  <div 
-                    className="absolute top-40 right-6 w-28 h-10 bg-red-200 hover:bg-red-300 rounded-full cursor-pointer transition-all duration-300 border border-red-300 animate-pulse"
-                    style={{animationDelay: '3.5s'}}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs font-bold text-red-800">Long Island</span>
+                    
+                    {/* Westchester */}
+                    <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+                      <div className="w-10 h-10 bg-pink-400 rounded-full flex items-center justify-center animate-pulse" style={{animationDelay: '1.5s'}}>
+                        <span className="text-white font-bold text-xs">WC</span>
+                      </div>
+                      <div className="text-center mt-1">
+                        <span className="text-xs font-semibold text-pink-600">Westchester</span>
+                      </div>
                     </div>
-                    <div className="absolute top-1 left-4 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '8.5s'}}></div>
-                    <div className="absolute bottom-1 right-4 w-2 h-2 bg-red-500 rounded-full animate-ping" style={{animationDelay: '9s'}}></div>
+                    
+                    {/* Northern NJ */}
+                    <div className="absolute top-1/2 left-2 transform -translate-y-1/2">
+                      <div className="w-10 h-10 bg-green-400 rounded-full flex items-center justify-center animate-pulse" style={{animationDelay: '2s'}}>
+                        <span className="text-white font-bold text-xs">NJ</span>
+                      </div>
+                      <div className="text-center mt-1">
+                        <span className="text-xs font-semibold text-green-600">Northern NJ</span>
+                      </div>
+                    </div>
                   </div>
                   
-                  {/* Coverage indicator */}
-                  <div className="absolute bottom-3 right-3 bg-primary text-white px-3 py-1 rounded-full text-xs font-semibold animate-bounce">
-                    Full Coverage
+                  {/* Connection Lines */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <svg className="w-full h-full opacity-20">
+                      <defs>
+                        <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                          <circle cx="2" cy="2" r="1" fill="#6366f1"/>
+                        </pattern>
+                      </defs>
+                      <circle cx="50%" cy="50%" r="80" fill="none" stroke="url(#dots)" strokeWidth="2"/>
+                      <circle cx="50%" cy="50%" r="120" fill="none" stroke="url(#dots)" strokeWidth="1" opacity="0.5"/>
+                    </svg>
                   </div>
-                  
-                  {/* Legend */}
-                  <div className="absolute bottom-3 left-3 flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <span className="text-xs text-gray-600">Active Providers</span>
+                </div>
+
+                {/* Coverage Stats */}
+                <div className="grid grid-cols-4 gap-3 mt-6 pt-6 border-t">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">8</div>
+                    <div className="text-xs text-gray-600">Areas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">1,000+</div>
+                    <div className="text-xs text-gray-600">Providers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">100%</div>
+                    <div className="text-xs text-gray-600">Coverage</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">24/7</div>
+                    <div className="text-xs text-gray-600">Support</div>
                   </div>
                 </div>
               </div>
