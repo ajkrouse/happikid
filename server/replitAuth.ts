@@ -105,29 +105,12 @@ export async function setupAuth(app: Express) {
     const returnTo = req.query.returnTo as string;
     console.log("Login with returnTo:", returnTo);
     
-    // Store returnTo in session if provided
-    if (returnTo) {
-      req.session.returnTo = returnTo;
-      console.log("Storing returnTo in session:", returnTo);
-      
-      // Force session save before proceeding
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-        }
-        console.log("Session saved, proceeding with authentication");
-        
-        passport.authenticate(`replitauth:${req.hostname}`, {
-          prompt: "login consent",
-          scope: ["openid", "email", "profile", "offline_access"],
-        })(req, res, next);
-      });
-    } else {
-      passport.authenticate(`replitauth:${req.hostname}`, {
-        prompt: "login consent",
-        scope: ["openid", "email", "profile", "offline_access"],
-      })(req, res, next);
-    }
+    passport.authenticate(`replitauth:${req.hostname}`, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"],
+      // Pass returnTo as state parameter
+      state: returnTo ? Buffer.from(returnTo).toString('base64') : undefined,
+    })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
@@ -147,13 +130,19 @@ export async function setupAuth(app: Express) {
           return next(err);
         }
         
-        // Check for returnTo in session
-        const returnTo = req.session.returnTo;
-        console.log("Callback returnTo from session:", returnTo);
-        console.log("Full session data:", JSON.stringify(req.session, null, 2));
+        // Check for returnTo in state parameter
+        let returnTo = null;
+        const state = req.query.state as string;
+        console.log("Callback state parameter:", state);
         
-        // Clear the returnTo from session
-        delete req.session.returnTo;
+        if (state) {
+          try {
+            returnTo = Buffer.from(state, 'base64').toString('utf8');
+            console.log("Decoded returnTo from state:", returnTo);
+          } catch (error) {
+            console.error("Error decoding state parameter:", error);
+          }
+        }
         
         if (returnTo && returnTo.startsWith('/')) {
           console.log("Redirecting to:", returnTo);
