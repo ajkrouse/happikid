@@ -113,6 +113,14 @@ export default function ProviderOnboarding() {
     faqs: [] as { question: string; answer: string }[]
   });
 
+  const [uploadedImages, setUploadedImages] = useState<Array<{
+    id?: number;
+    url: string;
+    caption: string;
+    isPrimary: boolean;
+  }>>([]);
+  const [imageUrlInput, setImageUrlInput] = useState("");
+
   // Check if user is authenticated and is a provider
   useEffect(() => {
     if (!isAuthenticated) {
@@ -181,6 +189,25 @@ export default function ProviderOnboarding() {
       toast({
         title: "Error",
         description: error.message || "Failed to save provider profile",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const addImageMutation = useMutation({
+    mutationFn: async ({ providerId, imageData }: { providerId: number; imageData: any }) => {
+      return apiRequest("POST", `/api/providers/${providerId}/images`, imageData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Image Added",
+        description: "Your image has been uploaded successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload image",
         variant: "destructive",
       });
     },
@@ -278,6 +305,84 @@ export default function ProviderOnboarding() {
       case 5: return [];
       default: return [];
     }
+  };
+
+  // Image upload functions
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          const newImage = {
+            url: e.target.result as string,
+            caption: "",
+            isPrimary: uploadedImages.length === 0
+          };
+          setUploadedImages(prev => [...prev, newImage]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAddImageUrl = async () => {
+    if (!imageUrlInput.trim()) return;
+    
+    // Validate URL format
+    try {
+      new URL(imageUrlInput);
+    } catch {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid image URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newImage = {
+      url: imageUrlInput.trim(),
+      caption: "",
+      isPrimary: uploadedImages.length === 0
+    };
+
+    // If we have a provider ID, upload immediately
+    if (existingProvider?.id) {
+      try {
+        await addImageMutation.mutateAsync({
+          providerId: existingProvider.id,
+          imageData: {
+            imageUrl: newImage.url,
+            caption: newImage.caption,
+            isPrimary: newImage.isPrimary
+          }
+        });
+      } catch (error) {
+        return; // Error already handled by mutation
+      }
+    }
+
+    setUploadedImages(prev => [...prev, newImage]);
+    setImageUrlInput("");
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const setPrimaryImage = (index: number) => {
+    setUploadedImages(prev => 
+      prev.map((img, i) => ({ ...img, isPrimary: i === index }))
+    );
+  };
+
+  const updateImageCaption = (index: number, caption: string) => {
+    setUploadedImages(prev => 
+      prev.map((img, i) => i === index ? { ...img, caption } : img)
+    );
   };
 
   const renderStepContent = () => {
@@ -662,17 +767,111 @@ export default function ProviderOnboarding() {
                   Add photos to showcase your facility and programs
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <CardContent className="space-y-6">
+                {/* File Upload Section */}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
                   <p className="text-lg font-medium text-gray-900 mb-2">Upload Photos</p>
                   <p className="text-sm text-gray-600 mb-4">
-                    Add photos of your facility, activities, and happy children
+                    Choose photos from your device (JPG, PNG, GIF)
                   </p>
-                  <Button variant="outline">
-                    Choose Photos
-                  </Button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label htmlFor="file-upload">
+                    <Button variant="outline" type="button" className="cursor-pointer">
+                      Choose Photos
+                    </Button>
+                  </label>
                 </div>
+
+                {/* URL Upload Section */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <Label className="text-sm font-medium mb-2 block">Or add image from URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={imageUrlInput}
+                      onChange={(e) => setImageUrlInput(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={handleAddImageUrl}
+                      disabled={!imageUrlInput.trim() || addImageMutation.isPending}
+                    >
+                      {addImageMutation.isPending ? "Adding..." : "Add"}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Uploaded Images Display */}
+                {uploadedImages.length > 0 && (
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Uploaded Images</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {uploadedImages.map((image, index) => (
+                        <div key={index} className="border rounded-lg p-3 space-y-3">
+                          <div className="relative">
+                            <img
+                              src={image.url}
+                              alt={`Upload ${index + 1}`}
+                              className="w-full h-32 object-cover rounded"
+                              onError={(e) => {
+                                e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.35em' fill='%23374151'%3EImage Error%3C/text%3E%3C/svg%3E";
+                              }}
+                            />
+                            {image.isPrimary && (
+                              <Badge className="absolute top-2 left-2 bg-blue-600">
+                                Primary
+                              </Badge>
+                            )}
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2"
+                              onClick={() => removeImage(index)}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Input
+                              value={image.caption}
+                              onChange={(e) => updateImageCaption(index, e.target.value)}
+                              placeholder="Add a caption..."
+                              className="text-sm"
+                            />
+                            
+                            {!image.isPrimary && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setPrimaryImage(index)}
+                                className="w-full"
+                              >
+                                Set as Primary
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {uploadedImages.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Camera className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>No photos uploaded yet</p>
+                    <p className="text-sm">Add some photos to make your profile more appealing</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

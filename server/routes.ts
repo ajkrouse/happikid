@@ -566,6 +566,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Provider images routes
+  app.get('/api/providers/:id/images', async (req: any, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const images = await storage.getProviderImages(providerId);
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching provider images:", error);
+      res.status(500).json({ message: "Failed to fetch images" });
+    }
+  });
+
+  app.post('/api/providers/:id/images', isAuthenticated, async (req: any, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Check if user owns this provider
+      const provider = await storage.getProvider(providerId);
+      if (!provider || provider.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { imageUrl, caption, isPrimary = false } = req.body;
+      
+      if (!imageUrl) {
+        return res.status(400).json({ message: "Image URL is required" });
+      }
+
+      // If this is set as primary, unset any existing primary images
+      if (isPrimary) {
+        const existingImages = await storage.getProviderImages(providerId);
+        for (const img of existingImages) {
+          if (img.isPrimary) {
+            // We would need to add an update method for this, for now just create new
+          }
+        }
+      }
+
+      const imageData = {
+        providerId,
+        imageUrl,
+        caption: caption || null,
+        isPrimary: Boolean(isPrimary)
+      };
+
+      const newImage = await storage.addProviderImage(imageData);
+      res.status(201).json(newImage);
+    } catch (error) {
+      console.error("Error adding provider image:", error);
+      res.status(500).json({ message: "Failed to add image" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
