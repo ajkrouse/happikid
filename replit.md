@@ -236,6 +236,9 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Enhanced age display format to show months for infants and years for older children
   - Fixed pagination component React key warnings and simplified implementation
   - All pricing displays now prioritize actual database ranges over estimated calculations
+  - Enhanced comparison modal with dynamic match scores, full provider names on Select buttons, and database price ranges
+  - Updated verification status display from "Not verified" to "Pending" throughout the platform
+  - Improved featured providers section on landing page to show consistent price ranges using database values
 
 ## User Preferences
 

@@ -192,7 +192,12 @@ export default function Landing() {
 
   // Function to render cost display
   const renderCostDisplay = (provider: Provider) => {
-    const costRange = getCostRange(provider);
+    // Use actual price range from database if available
+    const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
+    const costRange = hasDbPriceRange ? 
+      { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) } :
+      getCostRange(provider);
+    
     const dollarSigns = getCostLevel(provider, costRange);
     
     // Always show the $$ meter first (more compact spacing)
@@ -209,18 +214,7 @@ export default function Landing() {
       </div>
     );
     
-    // Show exact price if available and provider wants to show it (and it's not $0)
-    const priceValue = Number(provider.monthlyPrice);
-    if (provider.monthlyPrice && priceValue > 0 && provider.showExactPrice) {
-      return (
-        <div className="text-left">
-          {dollarMeter}
-          <div className="text-base font-bold text-gray-900">${provider.monthlyPrice}/mo</div>
-        </div>
-      );
-    }
-    
-    // Otherwise show the estimated range (more compact)
+    // Always show the full price range (never single price)
     return (
       <div className="text-left">
         {dollarMeter}
