@@ -147,7 +147,21 @@ function FavoritesSection({
   useEffect(() => {
     const savedGroups = localStorage.getItem('favoriteGroups');
     if (savedGroups) {
-      setGroups(JSON.parse(savedGroups));
+      const groups = JSON.parse(savedGroups);
+      // Clean up empty groups
+      const cleanGroups: {[key: string]: number[]} = {};
+      Object.keys(groups).forEach(groupName => {
+        if (groups[groupName] && groups[groupName].length > 0) {
+          cleanGroups[groupName] = groups[groupName];
+        }
+      });
+      
+      // Update localStorage if we removed any empty groups
+      if (Object.keys(cleanGroups).length !== Object.keys(groups).length) {
+        localStorage.setItem('favoriteGroups', JSON.stringify(cleanGroups));
+      }
+      
+      setGroups(cleanGroups);
     }
   }, [favorites]); // Refresh groups when favorites data changes
 
@@ -824,7 +838,7 @@ export default function SearchPage() {
       ageRange: filters.ageRange, // Send age range to backend
       features: filters.features?.join(','),
       priceRange: filters.priceRange,
-      limit: 20,
+      limit: 100, // Increased to show all providers
       offset: 0,
     }],
   });
@@ -844,26 +858,32 @@ export default function SearchPage() {
     const updateGroupsCount = () => {
       const savedGroups = localStorage.getItem('favoriteGroups');
       if (savedGroups) {
-        const groups = JSON.parse(savedGroups);
-        // Only count groups that have providers in them
-        const nonEmptyGroups = Object.keys(groups).filter(groupName => 
-          groups[groupName] && groups[groupName].length > 0
-        );
-        
-        // Clean up empty groups
-        const cleanGroups: {[key: string]: number[]} = {};
-        Object.keys(groups).forEach(groupName => {
-          if (groups[groupName] && groups[groupName].length > 0) {
-            cleanGroups[groupName] = groups[groupName];
+        try {
+          const groups = JSON.parse(savedGroups);
+          // Only count groups that have providers in them
+          const nonEmptyGroups = Object.keys(groups).filter(groupName => 
+            groups[groupName] && groups[groupName].length > 0
+          );
+          
+          // Clean up empty groups
+          const cleanGroups: {[key: string]: number[]} = {};
+          Object.keys(groups).forEach(groupName => {
+            if (groups[groupName] && groups[groupName].length > 0) {
+              cleanGroups[groupName] = groups[groupName];
+            }
+          });
+          
+          // Update localStorage if we removed any empty groups
+          if (Object.keys(cleanGroups).length !== Object.keys(groups).length) {
+            localStorage.setItem('favoriteGroups', JSON.stringify(cleanGroups));
           }
-        });
-        
-        // Update localStorage if we removed any empty groups
-        if (Object.keys(cleanGroups).length !== Object.keys(groups).length) {
-          localStorage.setItem('favoriteGroups', JSON.stringify(cleanGroups));
+          
+          setGroupsCount(nonEmptyGroups.length);
+        } catch (e) {
+          // If parsing fails, clear localStorage and set count to 0
+          localStorage.removeItem('favoriteGroups');
+          setGroupsCount(0);
         }
-        
-        setGroupsCount(nonEmptyGroups.length);
       } else {
         setGroupsCount(0);
       }
