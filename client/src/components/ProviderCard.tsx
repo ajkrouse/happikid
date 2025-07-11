@@ -199,18 +199,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       </div>
     );
     
-    // Show exact price if available and provider wants to show it (and it's not $0)
-    const priceValue = Number(provider.monthlyPrice);
-    if (provider.monthlyPrice && priceValue > 0 && provider.showExactPrice) {
-      return (
-        <div className="text-left">
-          {dollarMeter}
-          <div className="text-base font-bold text-gray-900">${provider.monthlyPrice}/mo</div>
-        </div>
-      );
-    }
-    
-    // Always show the full price range
+    // Always show the full price range (never single price)
     return (
       <div className="text-left">
         {dollarMeter}

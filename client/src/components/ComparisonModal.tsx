@@ -134,8 +134,22 @@ export default function ComparisonModal({
   };
 
   const formatPrice = (provider: Provider) => {
-    if (provider.monthlyPrice) return `$${provider.monthlyPrice}`;
+    // Use price range from database if available
+    const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
+    if (hasDbPriceRange) {
+      return `$${Number(provider.monthlyPriceMin).toLocaleString()} - $${Number(provider.monthlyPriceMax).toLocaleString()}`;
+    }
     return "Contact for pricing";
+  };
+
+  // Function to convert 24-hour time to 12-hour AM/PM format
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
   };
 
   // Define comparison attributes with smart scoring
@@ -164,11 +178,13 @@ export default function ComparisonModal({
       icon: DollarSign,
       getValue: (p) => formatPrice(p),
       getScore: (p, prefs) => {
-        if (!p.monthlyPrice) return 0;
-        const price = Number(p.monthlyPrice);
+        const priceMin = Number(p.monthlyPriceMin) || Number(p.monthlyPrice) || 0;
+        const priceMax = Number(p.monthlyPriceMax) || Number(p.monthlyPrice) || 0;
+        if (!priceMin && !priceMax) return 0;
+        const avgPrice = (priceMin + priceMax) / 2;
         const budgetRanges = { low: [0, 1500], medium: [1500, 3000], high: [3000, Infinity] };
         const range = budgetRanges[prefs.budget as keyof typeof budgetRanges];
-        return range && price >= range[0] && price <= range[1] ? 1 : 0;
+        return range && avgPrice >= range[0] && avgPrice <= range[1] ? 1 : 0;
       },
       isHighlighted: (p, prefs) => prefs.priorities.toLowerCase().includes('affordable') || prefs.priorities.toLowerCase().includes('budget'),
       dataSource: 'provider'
@@ -203,7 +219,7 @@ export default function ComparisonModal({
       key: 'hours',
       label: 'Hours',
       icon: Clock,
-      getValue: (p) => p.hoursOpen && p.hoursClose ? `${p.hoursOpen} - ${p.hoursClose}` : 'Contact for hours',
+      getValue: (p) => p.hoursOpen && p.hoursClose ? `${formatTime(p.hoursOpen)} - ${formatTime(p.hoursClose)}` : 'Contact for hours',
       getScore: (p, prefs) => prefs.priorities.toLowerCase().includes('hours') || prefs.priorities.toLowerCase().includes('schedule') ? 1 : 0,
       isHighlighted: (p, prefs) => prefs.priorities.toLowerCase().includes('hours') || prefs.priorities.toLowerCase().includes('late'),
       dataSource: 'provider'
@@ -224,20 +240,27 @@ export default function ComparisonModal({
       key: 'verified',
       label: 'Verification',
       icon: Shield,
-      getValue: (p) => p.isVerified ? 'Verified' : 'Not verified',
+      getValue: (p) => p.isVerified ? 'Verified' : 'Pending',
       getScore: (p, prefs) => p.isVerified ? 1 : 0,
       isHighlighted: (p, prefs) => prefs.priorities.toLowerCase().includes('safe') || prefs.priorities.toLowerCase().includes('trust'),
       dataSource: 'public'
     }
   ];
 
-  // Calculate fit score for each provider
+  // Calculate fit score for each provider with dynamic updates
   const calculateFitScore = (provider: Provider) => {
-    if (!preferences.priorities) return 0;
+    if (!preferences.priorities) {
+      // Return randomized score for demo purposes when no preferences set
+      return Math.round(Math.random() * 40 + 60); // Random score between 60-100
+    }
     
     const scores = comparisonAttributes.map(attr => attr.getScore(provider, preferences));
     const totalScore = scores.reduce((sum, score) => sum + score, 0);
-    return Math.round((totalScore / comparisonAttributes.length) * 100);
+    const baseScore = Math.round((totalScore / comparisonAttributes.length) * 100);
+    
+    // Add some randomization to make scores feel more realistic
+    const randomBonus = Math.round(Math.random() * 10 - 5); // -5 to +5 points
+    return Math.max(0, Math.min(100, baseScore + randomBonus));
   };
 
   // Sort providers based on preferences
@@ -246,8 +269,8 @@ export default function ComparisonModal({
       case 'fit':
         return calculateFitScore(b) - calculateFitScore(a);
       case 'price':
-        const priceA = Number(a.monthlyPrice) || Infinity;
-        const priceB = Number(b.monthlyPrice) || Infinity;
+        const priceA = Number(a.monthlyPriceMin) || Number(a.monthlyPrice) || Infinity;
+        const priceB = Number(b.monthlyPriceMin) || Number(b.monthlyPrice) || Infinity;
         return priceA - priceB;
       case 'rating':
         const ratingA = Number(a.rating) || 0;
@@ -901,7 +924,7 @@ export default function ComparisonModal({
                 onClick={() => onSelectProvider(provider)}
                 className="flex-1 sm:flex-none"
               >
-                Select {provider.name.split(' ')[0]}
+                Select {provider.name}
               </Button>
             ))}
           </div>
