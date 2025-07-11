@@ -58,7 +58,7 @@ export default function ProviderDashboard() {
   // License confirmation mutation
   const confirmLicenseMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/providers/confirm-license", "POST", {});
+      return await apiRequest("POST", "/api/providers/confirm-license", {});
     },
     onSuccess: () => {
       toast({
