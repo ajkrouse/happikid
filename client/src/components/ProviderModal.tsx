@@ -59,19 +59,27 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     inquiryType: "info" as "info" | "tour" | "enrollment",
   });
 
-  // Function to get relative cost level based on provider type and characteristics
-  const getCostLevel = (provider: any) => {
-    // Assign relative cost based on typical pricing patterns
-    let dollarSigns = 2; // Default to moderate cost
+  // Function to convert 24-hour time to 12-hour AM/PM format
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  // Function to get relative cost level based on actual price range
+  const getCostLevel = (provider: any, costRange: {min: number, max: number}) => {
+    // Calculate dollar meter based on midpoint of price range
+    const midpoint = (costRange.min + costRange.max) / 2;
     
-    if (provider.name?.includes('Bright Horizons')) dollarSigns = 4; // Premium national chain
-    else if (provider.name?.includes('Learning Experience')) dollarSigns = 3; // Mid-premium franchise
-    else if (provider.name?.includes('Little Sunshine')) dollarSigns = 2; // Moderate local
-    else if (provider.name?.includes('Montessori')) dollarSigns = 3; // Typically higher due to specialized curriculum
-    else if (provider.name?.includes('Bronx Academy')) dollarSigns = 4; // Private school premium
-    else if (provider.name?.includes('Camp')) dollarSigns = 2; // Summer camps typically moderate
-    
-    return dollarSigns;
+    // Thresholds based on typical NYC childcare pricing
+    if (midpoint <= 1500) return 1;      // $
+    else if (midpoint <= 2200) return 2; // $$
+    else if (midpoint <= 2900) return 3; // $$$
+    else if (midpoint <= 3600) return 4; // $$$$
+    else return 5;                       // $$$$$
   };
 
   // Function to get cost range based on provider characteristics
@@ -99,11 +107,20 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
   const renderCostDisplay = (provider: any) => {
     // Use actual price range from database if available
     const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
-    const costRange = hasDbPriceRange ? 
-      { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) } :
-      getCostRange(provider);
+    let costRange;
     
-    const dollarSigns = getCostLevel(provider);
+    if (hasDbPriceRange) {
+      costRange = { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) };
+    } else {
+      costRange = getCostRange(provider);
+    }
+    
+    // Ensure costRange is properly defined
+    if (!costRange || !costRange.min || !costRange.max) {
+      costRange = { min: 2000, max: 3000 }; // Default fallback
+    }
+    
+    const dollarSigns = getCostLevel(provider, costRange);
     
     // Always show the $$ meter first
     const dollarMeter = (
@@ -119,19 +136,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
       </div>
     );
     
-    // Show exact price if available and provider wants to show it (and it's not $0)
-    const priceValue = Number(provider.monthlyPrice);
-    if (provider.monthlyPrice && priceValue > 0 && provider.showExactPrice) {
-      return (
-        <div className="text-center">
-          {dollarMeter}
-          <div className="text-3xl font-bold text-gray-900">${provider.monthlyPrice}</div>
-          <div className="text-gray-600">per month</div>
-        </div>
-      );
-    }
-    
-    // Always show the full price range
+    // Always show the full price range, never single price
     return (
       <div className="text-center">
         {dollarMeter}
@@ -444,7 +449,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                         <div className="flex justify-between">
                           <span className="text-gray-600">Hours</span>
                           <span className="font-medium">
-                            {currentProvider.hoursOpen} - {currentProvider.hoursClose}
+                            {formatTime(currentProvider.hoursOpen)} - {formatTime(currentProvider.hoursClose)}
                           </span>
                         </div>
                       )}
