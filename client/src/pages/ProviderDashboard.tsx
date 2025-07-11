@@ -7,6 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
+import PremiumFeaturesModal from "@/components/PremiumFeaturesModal";
+import { useState } from "react";
 import { 
   Eye, 
   MessageSquare, 
@@ -33,6 +35,7 @@ export default function ProviderDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Fetch provider profile
   const { data: provider } = useQuery({
@@ -55,11 +58,7 @@ export default function ProviderDashboard() {
   // License confirmation mutation
   const confirmLicenseMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/providers/confirm-license", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      });
+      return await apiRequest("/api/providers/confirm-license", "POST", {});
     },
     onSuccess: () => {
       toast({
@@ -255,7 +254,10 @@ export default function ProviderDashboard() {
                   <p className="text-yellow-700">Get 3x more visibility and advanced analytics</p>
                 </div>
               </div>
-              <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold">
+              <Button 
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold"
+                onClick={() => setShowUpgradeModal(true)}
+              >
                 <Sparkles className="h-4 w-4 mr-2" />
                 Upgrade Now
               </Button>
@@ -430,6 +432,20 @@ export default function ProviderDashboard() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Premium Features Modal */}
+      <PremiumFeaturesModal 
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        onUpgrade={() => {
+          // Handle upgrade logic here
+          setShowUpgradeModal(false);
+          toast({
+            title: "Upgrade Coming Soon!",
+            description: "We're working on premium features. You'll be notified when available.",
+          });
+        }}
+      />
     </div>
   );
 }
