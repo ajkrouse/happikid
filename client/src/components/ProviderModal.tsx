@@ -97,8 +97,13 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
 
   // Function to render cost display
   const renderCostDisplay = (provider: any) => {
+    // Use actual price range from database if available
+    const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
+    const costRange = hasDbPriceRange ? 
+      { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) } :
+      getCostRange(provider);
+    
     const dollarSigns = getCostLevel(provider);
-    const costRange = getCostRange(provider);
     
     // Always show the $$ meter first
     const dollarMeter = (
@@ -126,7 +131,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
       );
     }
     
-    // Otherwise show the estimated range
+    // Always show the full price range
     return (
       <div className="text-center">
         {dollarMeter}
@@ -430,7 +435,9 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                       <div className="flex justify-between">
                         <span className="text-gray-600">Ages</span>
                         <span className="font-medium">
-                          {currentProvider.ageRangeMin}-{currentProvider.ageRangeMax} years
+                          {Math.floor(currentProvider.ageRangeMin / 12) === 0 
+                            ? `${currentProvider.ageRangeMin} mo` 
+                            : `${Math.floor(currentProvider.ageRangeMin / 12)} yr`} - {Math.floor(currentProvider.ageRangeMax / 12)} yr
                         </span>
                       </div>
                       {currentProvider.hoursOpen && currentProvider.hoursClose && (

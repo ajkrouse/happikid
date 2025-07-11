@@ -177,7 +177,12 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
 
   // Function to render cost display
   const renderCostDisplay = (provider: Provider) => {
-    const costRange = getCostRange(provider);
+    // Use actual price range from database if available
+    const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
+    const costRange = hasDbPriceRange ? 
+      { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) } :
+      getCostRange(provider);
+    
     const dollarSigns = getCostLevel(provider, costRange);
     
     // Always show the $$ meter first (more compact spacing)
@@ -205,7 +210,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       );
     }
     
-    // Otherwise show the estimated range (more compact)
+    // Always show the full price range
     return (
       <div className="text-left">
         {dollarMeter}
