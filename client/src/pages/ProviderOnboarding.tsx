@@ -27,7 +27,8 @@ import {
   Sparkles,
   Camera,
   Shield,
-  Star
+  Star,
+  Plus
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
@@ -70,6 +71,37 @@ const COMPLETION_TIPS = {
   ]
 };
 
+const FEATURES_BY_TYPE = {
+  daycare: {
+    safety: ["Security Cameras", "Secure Entry", "Background Checked Staff", "First Aid Certified"],
+    learning: ["Early Learning Curriculum", "Reading Program", "STEM Activities", "Art & Crafts"],
+    convenience: ["Extended Hours", "Flexible Scheduling", "Online Updates", "Drop-in Care"],
+    nutrition: ["Organic Meals", "Allergy-Friendly Options", "Fresh Snacks", "Nutrition Education"],
+    outdoor: ["Outdoor Playground", "Garden/Nature Area", "Physical Activity", "Nature Exploration"]
+  },
+  afterschool: {
+    academics: ["Homework Help", "Tutoring", "Study Groups", "Reading Support"],
+    activities: ["Sports Programs", "Art Classes", "Music Lessons", "Drama/Theater"],
+    technology: ["Computer Lab", "Coding Classes", "Digital Literacy", "STEM Projects"],
+    social: ["Team Building", "Social Skills", "Leadership Development", "Community Service"],
+    convenience: ["Transportation", "Flexible Hours", "Holiday Care", "Late Pickup"]
+  },
+  camp: {
+    outdoor: ["Swimming Pool", "Sports Fields", "Nature Trails", "Adventure Activities"],
+    creative: ["Arts & Crafts", "Music Programs", "Drama/Theater", "Creative Writing"],
+    sports: ["Team Sports", "Individual Sports", "Fitness Activities", "Sports Instruction"],
+    educational: ["STEM Activities", "Environmental Education", "Cultural Programs", "Field Trips"],
+    special: ["Overnight Stays", "Special Events", "Theme Weeks", "Guest Speakers"]
+  },
+  school: {
+    academics: ["Advanced Curriculum", "AP Courses", "Language Programs", "STEM Focus"],
+    facilities: ["Science Labs", "Library", "Computer Lab", "Art Studios"],
+    extracurricular: ["Sports Teams", "Music Program", "Drama Club", "Academic Clubs"],
+    support: ["Counseling Services", "Learning Support", "College Prep", "Career Guidance"],
+    technology: ["1:1 Devices", "Smart Classrooms", "Online Learning", "Digital Resources"]
+  }
+};
+
 const FEATURES_OPTIONS = [
   "Outdoor Playground", "Art & Crafts", "Music Programs", "STEM Activities",
   "Language Immersion", "Organic Meals", "Security Cameras", "Extended Hours",
@@ -102,16 +134,51 @@ export default function ProviderOnboarding() {
     ageRangeMax: "",
     capacity: "",
     monthlyPrice: "",
+    monthlyPriceMin: "",
+    monthlyPriceMax: "",
     showExactPrice: true,
     hoursOpen: "",
     hoursClose: "",
+    schedule: {
+      monday: { open: "", close: "", isOpen: true },
+      tuesday: { open: "", close: "", isOpen: true },
+      wednesday: { open: "", close: "", isOpen: true },
+      thursday: { open: "", close: "", isOpen: true },
+      friday: { open: "", close: "", isOpen: true },
+      saturday: { open: "", close: "", isOpen: false },
+      sunday: { open: "", close: "", isOpen: false }
+    },
     features: [] as string[],
+    customFeatures: [] as string[],
     licenseNumber: "",
     accreditationDetails: "",
     programHighlights: [] as string[],
     uniqueSellingPoints: [] as string[],
     faqs: [] as { question: string; answer: string }[]
   });
+
+  const [locations, setLocations] = useState<Array<{
+    id?: number;
+    name: string;
+    address: string;
+    borough: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    phone: string;
+    capacity: string;
+    isPrimary: boolean;
+  }>>([{
+    name: "Main Location",
+    address: "",
+    borough: "",
+    city: "New York",
+    state: "NY",
+    zipCode: "",
+    phone: "",
+    capacity: "",
+    isPrimary: true
+  }]);
 
   const [uploadedImages, setUploadedImages] = useState<Array<{
     id?: number;
@@ -156,9 +223,21 @@ export default function ProviderOnboarding() {
         ageRangeMax: existingProvider.ageRangeMax?.toString() || "",
         capacity: existingProvider.capacity?.toString() || "",
         monthlyPrice: existingProvider.monthlyPrice || "",
+        monthlyPriceMin: existingProvider.monthlyPriceMin || "",
+        monthlyPriceMax: existingProvider.monthlyPriceMax || "",
         hoursOpen: existingProvider.hoursOpen || "",
         hoursClose: existingProvider.hoursClose || "",
+        schedule: existingProvider.schedule || {
+          monday: { open: "", close: "", isOpen: true },
+          tuesday: { open: "", close: "", isOpen: true },
+          wednesday: { open: "", close: "", isOpen: true },
+          thursday: { open: "", close: "", isOpen: true },
+          friday: { open: "", close: "", isOpen: true },
+          saturday: { open: "", close: "", isOpen: false },
+          sunday: { open: "", close: "", isOpen: false }
+        },
         features: existingProvider.features || [],
+        customFeatures: [],
         licenseNumber: existingProvider.licenseNumber || "",
         accreditationDetails: existingProvider.accreditationDetails || "",
         programHighlights: existingProvider.programHighlights || [],
@@ -273,7 +352,13 @@ export default function ProviderOnboarding() {
       ageRangeMin: parseInt(formData.ageRangeMin) || 0,
       ageRangeMax: parseInt(formData.ageRangeMax) || 120,
       capacity: parseInt(formData.capacity) || 0,
-      onboardingStep: ONBOARDING_STEPS[Math.min(currentStep + 1, ONBOARDING_STEPS.length - 1)].id
+      monthlyPrice: parseFloat(formData.monthlyPrice) || 0,
+      monthlyPriceMin: formData.monthlyPriceMin ? parseFloat(formData.monthlyPriceMin) : null,
+      monthlyPriceMax: formData.monthlyPriceMax ? parseFloat(formData.monthlyPriceMax) : null,
+      features: [...formData.features, ...formData.customFeatures],
+      schedule: formData.schedule,
+      onboardingStep: ONBOARDING_STEPS[Math.min(currentStep + 1, ONBOARDING_STEPS.length - 1)].id,
+      locations: locations
     };
 
     try {
@@ -475,91 +560,205 @@ export default function ProviderOnboarding() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="address">Address *</Label>
-                    <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                      placeholder="123 Main Street"
-                    />
+                {/* Multiple Locations Management */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">Locations *</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLocations(prev => [...prev, {
+                        name: `Location ${prev.length + 1}`,
+                        address: "",
+                        borough: "",
+                        city: "New York",
+                        state: "NY",
+                        zipCode: "",
+                        phone: "",
+                        capacity: "",
+                        isPrimary: false
+                      }])}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Location
+                    </Button>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="borough">NYC Borough / Area (if applicable)</Label>
-                    <Select value={formData.borough} onValueChange={(value) => setFormData(prev => ({ ...prev, borough: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select if in NYC area" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Manhattan">Manhattan</SelectItem>
-                        <SelectItem value="Brooklyn">Brooklyn</SelectItem>
-                        <SelectItem value="Queens">Queens</SelectItem>
-                        <SelectItem value="Bronx">Bronx</SelectItem>
-                        <SelectItem value="Staten Island">Staten Island</SelectItem>
-                        <SelectItem value="Long Island">Long Island</SelectItem>
-                        <SelectItem value="Westchester">Westchester County</SelectItem>
-                        <SelectItem value="Northern NJ">Northern New Jersey</SelectItem>
-                        <SelectItem value="Other">Other Area</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {locations.map((location, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={location.name}
+                            onChange={(e) => {
+                              const newLocations = [...locations];
+                              newLocations[index].name = e.target.value;
+                              setLocations(newLocations);
+                            }}
+                            placeholder="Location Name"
+                            className="w-48"
+                          />
+                          {location.isPrimary && (
+                            <Badge variant="default">Primary</Badge>
+                          )}
+                        </div>
+                        {locations.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newLocations = locations.filter((_, i) => i !== index);
+                              if (location.isPrimary && newLocations.length > 0) {
+                                newLocations[0].isPrimary = true;
+                              }
+                              setLocations(newLocations);
+                            }}
+                          >
+                            ×
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Address *</Label>
+                          <Input
+                            value={location.address}
+                            onChange={(e) => {
+                              const newLocations = [...locations];
+                              newLocations[index].address = e.target.value;
+                              setLocations(newLocations);
+                            }}
+                            placeholder="123 Main Street"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label>Borough / Area</Label>
+                          <Select value={location.borough} onValueChange={(value) => {
+                            const newLocations = [...locations];
+                            newLocations[index].borough = value;
+                            setLocations(newLocations);
+                          }}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select if in NYC area" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Manhattan">Manhattan</SelectItem>
+                              <SelectItem value="Brooklyn">Brooklyn</SelectItem>
+                              <SelectItem value="Queens">Queens</SelectItem>
+                              <SelectItem value="Bronx">Bronx</SelectItem>
+                              <SelectItem value="Staten Island">Staten Island</SelectItem>
+                              <SelectItem value="Long Island">Long Island</SelectItem>
+                              <SelectItem value="Westchester">Westchester County</SelectItem>
+                              <SelectItem value="Northern NJ">Northern New Jersey</SelectItem>
+                              <SelectItem value="Other">Other Area</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                          <Label>City *</Label>
+                          <Input
+                            value={location.city}
+                            onChange={(e) => {
+                              const newLocations = [...locations];
+                              newLocations[index].city = e.target.value;
+                              setLocations(newLocations);
+                            }}
+                            placeholder="New York"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label>State *</Label>
+                          <Input
+                            value={location.state}
+                            onChange={(e) => {
+                              const newLocations = [...locations];
+                              newLocations[index].state = e.target.value;
+                              setLocations(newLocations);
+                            }}
+                            placeholder="NY"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label>ZIP Code *</Label>
+                          <Input
+                            value={location.zipCode}
+                            onChange={(e) => {
+                              const newLocations = [...locations];
+                              newLocations[index].zipCode = e.target.value;
+                              setLocations(newLocations);
+                            }}
+                            placeholder="10001"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <Label>Phone</Label>
+                          <Input
+                            value={location.phone}
+                            onChange={(e) => {
+                              const newLocations = [...locations];
+                              newLocations[index].phone = e.target.value;
+                              setLocations(newLocations);
+                            }}
+                            placeholder="(555) 123-4567"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label>Capacity</Label>
+                          <Input
+                            value={location.capacity}
+                            onChange={(e) => {
+                              const newLocations = [...locations];
+                              newLocations[index].capacity = e.target.value;
+                              setLocations(newLocations);
+                            }}
+                            placeholder="50 children"
+                          />
+                        </div>
+                      </div>
+                      
+                      {!location.isPrimary && (
+                        <div className="mt-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newLocations = [...locations];
+                              newLocations.forEach(loc => loc.isPrimary = false);
+                              newLocations[index].isPrimary = true;
+                              setLocations(newLocations);
+                            }}
+                          >
+                            Set as Primary
+                          </Button>
+                        </div>
+                      )}
+                    </Card>
+                  ))}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="city">City *</Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                      placeholder="New York"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="state">State *</Label>
-                    <Input
-                      id="state"
-                      value={formData.state}
-                      onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                      placeholder="NY"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="zipCode">ZIP Code *</Label>
-                    <Input
-                      id="zipCode"
-                      value={formData.zipCode}
-                      onChange={(e) => setFormData(prev => ({ ...prev, zipCode: e.target.value }))}
-                      placeholder="10001"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="(555) 123-4567"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="email">Email Address *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="contact@littlesprouts.com"
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="contact@littlesprouts.com"
+                  />
                 </div>
 
                 <div>
@@ -675,33 +874,105 @@ export default function ProviderOnboarding() {
                   />
                 </div>
 
+                {/* Dynamic Features based on Provider Type */}
                 <div>
-                  <Label>Features & Amenities</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                    {FEATURES_OPTIONS.map((feature) => (
-                      <div key={feature} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`feature-${feature}`}
-                          checked={formData.features.includes(feature)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setFormData(prev => ({
-                                ...prev,
-                                features: [...prev.features, feature]
-                              }));
-                            } else {
-                              setFormData(prev => ({
-                                ...prev,
-                                features: prev.features.filter(f => f !== feature)
-                              }));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`feature-${feature}`} className="text-sm">
-                          {feature}
-                        </Label>
+                  <Label className="text-base font-medium">Features & Amenities</Label>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Select features that apply to your {formData.type || 'provider'} services
+                  </p>
+                  
+                  {formData.type && FEATURES_BY_TYPE[formData.type] && (
+                    <div className="space-y-6">
+                      {Object.entries(FEATURES_BY_TYPE[formData.type]).map(([category, features]) => (
+                        <div key={category} className="space-y-2">
+                          <h4 className="font-medium capitalize text-sm text-gray-700">
+                            {category.charAt(0).toUpperCase() + category.slice(1)}
+                          </h4>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {features.map((feature) => (
+                              <div key={feature} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`feature-${feature}`}
+                                  checked={formData.features.includes(feature)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        features: [...prev.features, feature]
+                                      }));
+                                    } else {
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        features: prev.features.filter(f => f !== feature)
+                                      }));
+                                    }
+                                  }}
+                                />
+                                <Label htmlFor={`feature-${feature}`} className="text-sm">
+                                  {feature}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {!formData.type && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>Please select a provider type first to see relevant features</p>
+                    </div>
+                  )}
+                  
+                  {/* Custom Features */}
+                  <div className="mt-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-medium">Custom Features</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const customFeature = prompt("Enter a custom feature:");
+                          if (customFeature && customFeature.trim()) {
+                            setFormData(prev => ({
+                              ...prev,
+                              customFeatures: [...prev.customFeatures, customFeature.trim()]
+                            }));
+                          }
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Custom Feature
+                      </Button>
+                    </div>
+                    
+                    {formData.customFeatures.length > 0 && (
+                      <div className="space-y-2">
+                        {formData.customFeatures.map((feature, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <span className="text-sm">{feature}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  customFeatures: prev.customFeatures.filter((_, i) => i !== index)
+                                }));
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                    <p className="text-xs text-gray-500">
+                      Add any unique features specific to your provider that aren't listed above
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -737,40 +1008,145 @@ export default function ProviderOnboarding() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="hoursOpen">Opening Time *</Label>
-                    <Input
-                      id="hoursOpen"
-                      type="time"
-                      value={formData.hoursOpen}
-                      onChange={(e) => setFormData(prev => ({ ...prev, hoursOpen: e.target.value }))}
-                    />
-                  </div>
+                {/* Flexible Weekly Schedule */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Weekly Schedule *</Label>
+                  <p className="text-sm text-gray-600">Set your operating hours for each day of the week</p>
                   
-                  <div>
-                    <Label htmlFor="hoursClose">Closing Time *</Label>
-                    <Input
-                      id="hoursClose"
-                      type="time"
-                      value={formData.hoursClose}
-                      onChange={(e) => setFormData(prev => ({ ...prev, hoursClose: e.target.value }))}
-                    />
-                  </div>
+                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                    <div key={day} className="flex items-center gap-4 p-3 border rounded-lg">
+                      <div className="w-24">
+                        <Checkbox
+                          id={`${day}-open`}
+                          checked={formData.schedule[day]?.isOpen || false}
+                          onCheckedChange={(checked) => setFormData(prev => ({ 
+                            ...prev, 
+                            schedule: { 
+                              ...prev.schedule, 
+                              [day]: { ...prev.schedule[day], isOpen: checked }
+                            }
+                          }))}
+                        />
+                        <Label htmlFor={`${day}-open`} className="ml-2 capitalize">
+                          {day}
+                        </Label>
+                      </div>
+                      
+                      {formData.schedule[day]?.isOpen && (
+                        <div className="flex items-center gap-2 flex-1">
+                          <Input
+                            type="time"
+                            value={formData.schedule[day]?.open || ''}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              schedule: { 
+                                ...prev.schedule, 
+                                [day]: { ...prev.schedule[day], open: e.target.value }
+                              }
+                            }))}
+                            className="w-32"
+                          />
+                          <span className="text-sm text-gray-500">to</span>
+                          <Input
+                            type="time"
+                            value={formData.schedule[day]?.close || ''}
+                            onChange={(e) => setFormData(prev => ({ 
+                              ...prev, 
+                              schedule: { 
+                                ...prev.schedule, 
+                                [day]: { ...prev.schedule[day], close: e.target.value }
+                              }
+                            }))}
+                            className="w-32"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
 
-                <div>
-                  <Label htmlFor="monthlyPrice">Monthly Price *</Label>
-                  <Input
-                    id="monthlyPrice"
-                    type="number"
-                    value={formData.monthlyPrice}
-                    onChange={(e) => setFormData(prev => ({ ...prev, monthlyPrice: e.target.value }))}
-                    placeholder="1200"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
+                {/* Pricing Options */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Pricing *</Label>
+                  <p className="text-sm text-gray-600">Choose how you want to display your pricing</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Pricing Type</Label>
+                      <Select 
+                        value={formData.monthlyPriceMin ? 'range' : 'fixed'}
+                        onValueChange={(value) => {
+                          if (value === 'range') {
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              monthlyPriceMin: prev.monthlyPrice || '',
+                              monthlyPriceMax: ''
+                            }));
+                          } else {
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              monthlyPriceMin: '',
+                              monthlyPriceMax: ''
+                            }));
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select pricing type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fixed">Fixed Price</SelectItem>
+                          <SelectItem value="range">Price Range</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {formData.monthlyPriceMin ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="monthlyPriceMin">Minimum Monthly Price *</Label>
+                        <Input
+                          id="monthlyPriceMin"
+                          type="number"
+                          value={formData.monthlyPriceMin}
+                          onChange={(e) => setFormData(prev => ({ ...prev, monthlyPriceMin: e.target.value }))}
+                          placeholder="1000"
+                          min="0"
+                          step="0.01"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="monthlyPriceMax">Maximum Monthly Price *</Label>
+                        <Input
+                          id="monthlyPriceMax"
+                          type="number"
+                          value={formData.monthlyPriceMax}
+                          onChange={(e) => setFormData(prev => ({ ...prev, monthlyPriceMax: e.target.value }))}
+                          placeholder="1500"
+                          min="0"
+                          step="0.01"
+                          required
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <Label htmlFor="monthlyPrice">Monthly Price *</Label>
+                      <Input
+                        id="monthlyPrice"
+                        type="number"
+                        value={formData.monthlyPrice}
+                        onChange={(e) => setFormData(prev => ({ ...prev, monthlyPrice: e.target.value }))}
+                        placeholder="1200"
+                        min="0"
+                        step="0.01"
+                        required
+                      />
+                    </div>
+                  )}
+                  
                   <div className="flex items-center space-x-2 mt-3">
                     <Checkbox
                       id="showExactPrice"

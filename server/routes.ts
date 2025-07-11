@@ -292,6 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/providers', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const { locations, ...providerData } = req.body;
       
       // Check if provider already exists for this user
       const existingProviders = await storage.getProvidersByUserId(userId);
@@ -299,25 +300,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingProviders.length > 0) {
         // Update existing provider with partial data
         const providerId = existingProviders[0].id;
-        const updateData = insertProviderSchema.partial().parse({ ...req.body, userId });
+        const updateData = insertProviderSchema.partial().parse({ ...providerData, userId });
         
         const updatedProvider = await storage.updateProvider(providerId, updateData);
+        
+        // Handle locations separately
+        if (locations && locations.length > 0) {
+          // Get primary location to update main provider record
+          const primaryLocation = locations.find(loc => loc.isPrimary) || locations[0];
+          if (primaryLocation) {
+            await storage.updateProvider(providerId, {
+              address: primaryLocation.address,
+              borough: primaryLocation.borough,
+              city: primaryLocation.city,
+              state: primaryLocation.state,
+              zipCode: primaryLocation.zipCode,
+              phone: primaryLocation.phone,
+              capacity: primaryLocation.capacity ? parseInt(primaryLocation.capacity) : undefined
+            });
+          }
+          
+          // Save all locations as separate records
+          for (const location of locations) {
+            await storage.addProviderLocation({
+              providerId: providerId,
+              name: location.name,
+              address: location.address,
+              borough: location.borough,
+              city: location.city,
+              state: location.state,
+              zipCode: location.zipCode,
+              phone: location.phone,
+              capacity: location.capacity ? parseInt(location.capacity) : null,
+              isPrimary: location.isPrimary
+            });
+          }
+        }
+        
         res.json(updatedProvider);
       } else {
         // Create new provider with default values for required fields
-        const providerData = {
-          ...req.body,
+        const baseProviderData = {
+          ...providerData,
           userId,
           // Provide defaults for required database fields
-          type: req.body.type || "daycare", // Default to daycare
-          ageRangeMin: parseInt(req.body.ageRangeMin) || 0,
-          ageRangeMax: parseInt(req.body.ageRangeMax) || 120,
-          monthlyPrice: req.body.monthlyPrice ? parseFloat(req.body.monthlyPrice) : 0,
-          borough: req.body.borough || "", // Allow empty string for non-NYC providers
+          type: providerData.type || "daycare",
+          ageRangeMin: parseInt(providerData.ageRangeMin) || 0,
+          ageRangeMax: parseInt(providerData.ageRangeMax) || 120,
+          monthlyPrice: providerData.monthlyPrice ? parseFloat(providerData.monthlyPrice) : 0,
+          monthlyPriceMin: providerData.monthlyPriceMin ? parseFloat(providerData.monthlyPriceMin) : null,
+          monthlyPriceMax: providerData.monthlyPriceMax ? parseFloat(providerData.monthlyPriceMax) : null,
+          borough: providerData.borough || "",
         };
         
-        const validatedData = insertProviderSchema.parse(providerData);
+        // Use primary location for main provider address
+        if (locations && locations.length > 0) {
+          const primaryLocation = locations.find(loc => loc.isPrimary) || locations[0];
+          if (primaryLocation) {
+            baseProviderData.address = primaryLocation.address;
+            baseProviderData.borough = primaryLocation.borough;
+            baseProviderData.city = primaryLocation.city;
+            baseProviderData.state = primaryLocation.state;
+            baseProviderData.zipCode = primaryLocation.zipCode;
+            baseProviderData.phone = primaryLocation.phone;
+            baseProviderData.capacity = primaryLocation.capacity ? parseInt(primaryLocation.capacity) : undefined;
+          }
+        }
+        
+        const validatedData = insertProviderSchema.parse(baseProviderData);
         const provider = await storage.createProvider(validatedData);
+        
+        // Save locations as separate records
+        if (locations && locations.length > 0) {
+          for (const location of locations) {
+            await storage.addProviderLocation({
+              providerId: provider.id,
+              name: location.name,
+              address: location.address,
+              borough: location.borough,
+              city: location.city,
+              state: location.state,
+              zipCode: location.zipCode,
+              phone: location.phone,
+              capacity: location.capacity ? parseInt(location.capacity) : null,
+              isPrimary: location.isPrimary
+            });
+          }
+        }
+        
         res.status(201).json(provider);
       }
     } catch (error) {

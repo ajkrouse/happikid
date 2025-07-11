@@ -163,6 +163,13 @@ export async function setupAuth(app: Express) {
     const returnTo = req.query.returnTo as string;
     console.log("Login with returnTo:", returnTo);
     
+    // Determine the correct domain for authentication
+    const domains = process.env.REPLIT_DOMAINS!.split(",");
+    const currentDomain = req.hostname === '127.0.0.1' || req.hostname === 'localhost' ? domains[0] : req.hostname;
+    const strategyName = `replitauth:${currentDomain}`;
+    
+    console.log("Using strategy:", strategyName);
+    
     // Store returnTo in session before auth
     if (returnTo) {
       req.session.returnTo = returnTo;
@@ -175,13 +182,13 @@ export async function setupAuth(app: Express) {
         }
         console.log("Session saved before auth");
         
-        passport.authenticate(`replitauth:${req.hostname}`, {
+        passport.authenticate(strategyName, {
           prompt: "login consent",
           scope: ["openid", "email", "profile", "offline_access"],
         })(req, res, next);
       });
     } else {
-      passport.authenticate(`replitauth:${req.hostname}`, {
+      passport.authenticate(strategyName, {
         prompt: "login consent", 
         scope: ["openid", "email", "profile", "offline_access"],
       })(req, res, next);
@@ -189,7 +196,12 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, (err, user) => {
+    // Determine the correct domain for authentication
+    const domains = process.env.REPLIT_DOMAINS!.split(",");
+    const currentDomain = req.hostname === '127.0.0.1' || req.hostname === 'localhost' ? domains[0] : req.hostname;
+    const strategyName = `replitauth:${currentDomain}`;
+    
+    passport.authenticate(strategyName, (err, user) => {
       if (err) {
         console.error("Authentication error:", err);
         return next(err);

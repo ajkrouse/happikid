@@ -57,9 +57,12 @@ export const providers = pgTable("providers", {
   ageRangeMax: integer("age_range_max").notNull(),
   capacity: integer("capacity"),
   monthlyPrice: decimal("monthly_price", { precision: 8, scale: 2 }).notNull(),
+  monthlyPriceMin: decimal("monthly_price_min", { precision: 8, scale: 2 }),
+  monthlyPriceMax: decimal("monthly_price_max", { precision: 8, scale: 2 }),
   showExactPrice: boolean("show_exact_price").default(true),
   hoursOpen: varchar("hours_open"),
   hoursClose: varchar("hours_close"),
+  schedule: jsonb("schedule"), // Flexible schedule for different days
   features: text("features").array(),
   isVerified: boolean("is_verified").default(false),
   isActive: boolean("is_active").default(true),
