@@ -45,7 +45,8 @@ export interface IStorage {
     limit?: number;
     offset?: number;
     includeUnconfirmed?: boolean;
-  }): Promise<Provider[]>;
+    returnTotal?: boolean;
+  }): Promise<Provider[] | { providers: Provider[]; total: number }>;
   getProvider(id: number): Promise<Provider | undefined>;
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
   createProvider(provider: InsertProvider): Promise<Provider>;
@@ -123,7 +124,8 @@ export class DatabaseStorage implements IStorage {
     limit?: number;
     offset?: number;
     includeUnconfirmed?: boolean;
-  }): Promise<Provider[]> {
+    returnTotal?: boolean;
+  }): Promise<Provider[] | { providers: Provider[]; total: number }> {
     try {
       let conditions: any[] = [eq(providers.isActive, true)];
 
@@ -163,6 +165,28 @@ export class DatabaseStorage implements IStorage {
         conditions.push(or(...featureConditions));
       }
 
+      // If returnTotal is requested, get total count first
+      if (filters?.returnTotal) {
+        const countQuery = db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(providers)
+          .where(and(...conditions));
+        
+        const [{ count: total }] = await countQuery;
+
+        const query = db
+          .select()
+          .from(providers)
+          .where(and(...conditions))
+          .orderBy(desc(providers.rating), desc(providers.reviewCount))
+          .limit(filters?.limit || 20)
+          .offset(filters?.offset || 0);
+
+        const providerResults = await query;
+        return { providers: providerResults, total };
+      }
+
+      // Normal query without total count
       const query = db
         .select()
         .from(providers)
@@ -175,7 +199,8 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error in getProviders:", error);
       // Fallback to simple query without complex filters
-      return await db.select().from(providers).where(eq(providers.isActive, true)).limit(20);
+      const fallbackResults = await db.select().from(providers).where(eq(providers.isActive, true)).limit(20);
+      return filters?.returnTotal ? { providers: fallbackResults, total: fallbackResults.length } : fallbackResults;
     }
   }
 

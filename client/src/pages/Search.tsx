@@ -13,6 +13,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious, 
+  PaginationEllipsis 
+} from "@/components/ui/pagination";
 import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -787,6 +796,11 @@ export default function SearchPage() {
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [showSavedGroupsModal, setShowSavedGroupsModal] = useState(false);
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalProviders, setTotalProviders] = useState(0);
+  
   // Function to refresh groups when comparison is saved
   const handleGroupsSaved = () => {
     // Force a re-render by invalidating the favorites query
@@ -829,8 +843,8 @@ export default function SearchPage() {
     }
   }, []);
 
-  // Fetch providers
-  const { data: providers = [], isLoading, refetch } = useQuery({
+  // Fetch providers with pagination
+  const { data: providerResponse, isLoading, refetch } = useQuery({
     queryKey: ['/api/providers', { 
       search: searchQuery,
       type: filters.type,
@@ -838,10 +852,21 @@ export default function SearchPage() {
       ageRange: filters.ageRange, // Send age range to backend
       features: filters.features?.join(','),
       priceRange: filters.priceRange,
-      limit: 100, // Increased to show all providers
-      offset: 0,
+      limit: itemsPerPage,
+      offset: (currentPage - 1) * itemsPerPage,
     }],
+    enabled: true,
+    onSuccess: (data) => {
+      // If the response includes total count, update it
+      if (data && typeof data === 'object' && 'total' in data) {
+        setTotalProviders(data.total);
+      }
+    }
   });
+
+  // Extract providers from response (handle both array and object with providers/total)
+  const providers = Array.isArray(providerResponse) ? providerResponse : providerResponse?.providers || [];
+  const totalCount = Array.isArray(providerResponse) ? providers.length : providerResponse?.total || providers.length;
 
   // Fetch favorites if authenticated
   const { data: favorites = [] } = useQuery({
@@ -975,10 +1000,9 @@ export default function SearchPage() {
   };
 
   const getResultsText = () => {
-    const count = providers.length;
-    const searchText = searchQuery ? ` for "${searchQuery}"` : "";
-    const filterText = filters.type ? ` in ${filters.type}` : "";
-    return `${count} childcare option${count !== 1 ? 's' : ''} found${searchText}${filterText}`;
+    if (isLoading) return "Searching...";
+    if (providers.length === 0) return "No providers found";
+    return `${totalCount} childcare options found`;
   };
 
   return (
@@ -1163,6 +1187,7 @@ export default function SearchPage() {
                     onClick={() => {
                       setSearchQuery("");
                       setFilters({});
+                      setCurrentPage(1);
                       refetch();
                     }}
                   >
@@ -1170,6 +1195,76 @@ export default function SearchPage() {
                   </Button>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Pagination */}
+            {!isLoading && providers.length > 0 && totalCount > itemsPerPage && (
+              <div className="flex flex-col items-center space-y-4 mt-8">
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-600">
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} results
+                  </span>
+                  <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                    setItemsPerPage(parseInt(value));
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-gray-600">per page</span>
+                </div>
+                
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(5, Math.ceil(totalCount / itemsPerPage)) }, (_, i) => {
+                      const totalPages = Math.ceil(totalCount / itemsPerPage);
+                      let page;
+                      
+                      if (totalPages <= 5) {
+                        page = i + 1;
+                      } else if (currentPage <= 3) {
+                        page = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        page = totalPages - 4 + i;
+                      } else {
+                        page = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(Math.min(Math.ceil(totalCount / itemsPerPage), currentPage + 1))}
+                        className={currentPage === Math.ceil(totalCount / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             )}
           </div>
         </div>

@@ -1389,6 +1389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         search: search as string,
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
+        returnTotal: true, // Always return total count for pagination
       };
 
       // Debug logging
@@ -1402,8 +1403,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalAgeRange: ageRange
       });
 
-      const providers = await storage.getProviders(filters);
-      res.json(providers);
+      const result = await storage.getProviders(filters);
+      res.json(result);
     } catch (error) {
       console.error("Error fetching providers:", error);
       res.status(500).json({ message: "Failed to fetch providers" });
