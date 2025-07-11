@@ -49,9 +49,9 @@ export default function Landing() {
     return () => clearInterval(interval);
   }, [childcareTypes.length]);
 
-  // Fetch featured providers (limit to 3 for the landing page)
+  // Fetch featured providers (limit to 6 for the landing page)
   const { data: featuredProviders, isLoading: providersLoading } = useQuery<Provider[]>({
-    queryKey: ['/api/providers', { limit: 3 }],
+    queryKey: ['/api/providers/featured', { limit: 6 }],
   });
 
   // Create a reusable favorite toggle handler
