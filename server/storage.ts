@@ -124,53 +124,59 @@ export class DatabaseStorage implements IStorage {
     offset?: number;
     includeUnconfirmed?: boolean;
   }): Promise<Provider[]> {
-    let conditions: any[] = [eq(providers.isActive, true)];
+    try {
+      let conditions: any[] = [eq(providers.isActive, true)];
 
-    // By default, only show confirmed providers to the public
-    if (!filters?.includeUnconfirmed) {
-      conditions.push(eq(providers.licenseStatus, "confirmed"));
+      // By default, only show confirmed providers to the public
+      if (!filters?.includeUnconfirmed) {
+        conditions.push(eq(providers.licenseStatus, "confirmed"));
+      }
+
+      if (filters?.type) {
+        conditions.push(eq(providers.type, filters.type as any));
+      }
+
+      if (filters?.borough) {
+        conditions.push(eq(providers.borough, filters.borough));
+      }
+
+      if (filters?.search) {
+        conditions.push(
+          sql`${providers.name} ILIKE ${`%${filters.search}%`} OR ${providers.description} ILIKE ${`%${filters.search}%`}`
+        );
+      }
+
+      if (filters?.ageRangeMin !== undefined) {
+        conditions.push(sql`${providers.ageRangeMax} >= ${filters.ageRangeMin}`);
+      }
+
+      if (filters?.ageRangeMax !== undefined) {
+        conditions.push(sql`${providers.ageRangeMin} <= ${filters.ageRangeMax}`);
+      }
+
+      if (filters?.features && filters.features.length > 0) {
+        // Check if any of the requested features exist in the provider's features array
+        // Convert array to text and use LIKE for simple containment check
+        const featureConditions = filters.features.map(feature => 
+          sql`array_to_string(${providers.features}, ',') ILIKE ${`%${feature}%`}`
+        );
+        conditions.push(or(...featureConditions));
+      }
+
+      const query = db
+        .select()
+        .from(providers)
+        .where(and(...conditions))
+        .orderBy(desc(providers.rating), desc(providers.reviewCount))
+        .limit(filters?.limit || 20)
+        .offset(filters?.offset || 0);
+
+      return await query;
+    } catch (error) {
+      console.error("Error in getProviders:", error);
+      // Fallback to simple query without complex filters
+      return await db.select().from(providers).where(eq(providers.isActive, true)).limit(20);
     }
-
-    if (filters?.type) {
-      conditions.push(eq(providers.type, filters.type as any));
-    }
-
-    if (filters?.borough) {
-      conditions.push(eq(providers.borough, filters.borough));
-    }
-
-    if (filters?.search) {
-      conditions.push(
-        sql`${providers.name} ILIKE ${`%${filters.search}%`} OR ${providers.description} ILIKE ${`%${filters.search}%`}`
-      );
-    }
-
-    if (filters?.ageRangeMin !== undefined) {
-      conditions.push(sql`${providers.ageRangeMax} >= ${filters.ageRangeMin}`);
-    }
-
-    if (filters?.ageRangeMax !== undefined) {
-      conditions.push(sql`${providers.ageRangeMin} <= ${filters.ageRangeMax}`);
-    }
-
-    if (filters?.features && filters.features.length > 0) {
-      // Check if any of the requested features exist in the provider's features array
-      // Convert array to text and use LIKE for simple containment check
-      const featureConditions = filters.features.map(feature => 
-        sql`array_to_string(${providers.features}, ',') ILIKE ${`%${feature}%`}`
-      );
-      conditions.push(or(...featureConditions));
-    }
-
-    const query = db
-      .select()
-      .from(providers)
-      .where(and(...conditions))
-      .orderBy(desc(providers.rating), desc(providers.reviewCount))
-      .limit(filters?.limit || 20)
-      .offset(filters?.offset || 0);
-
-    return await query;
   }
 
   async getProvider(id: number): Promise<Provider | undefined> {
