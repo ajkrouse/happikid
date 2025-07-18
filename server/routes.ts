@@ -1289,12 +1289,19 @@ async function addSampleData() {
       }
     ];
 
-    // Insert sample providers
-    for (const provider of sampleProviders) {
-      await storage.createProvider(provider);
+    // Insert sample providers in smaller batches to avoid connection issues
+    const batchSize = 5;
+    for (let i = 0; i < sampleProviders.length; i += batchSize) {
+      const batch = sampleProviders.slice(i, i + batchSize);
+      await Promise.all(batch.map(provider => storage.createProvider(provider)));
+      
+      // Small delay between batches to prevent overwhelming the connection
+      if (i + batchSize < sampleProviders.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
     }
 
-    console.log("Sample data added successfully");
+    console.log(`Sample data added successfully: ${sampleProviders.length} providers`);
   } catch (error) {
     console.error("Error adding sample data:", error);
   }
@@ -1304,8 +1311,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Add sample data for testing
-  await addSampleData();
+  // Add sample data for testing - only in development and with better error handling
+  if (process.env.NODE_ENV === 'development') {
+    addSampleData().catch(error => {
+      console.warn("Failed to add sample data (non-critical):", error.message);
+    });
+  }
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
