@@ -15408,8 +15408,52 @@ async function addSampleData() {
       }
     ];
 
-    // Insert existing sample providers first
-    const allProviders = [...sampleProviders, ...authenticProviders, ...additionalAuthenticProviders, ...premiumChainsProviders, ...learningCentersProviders, ...qualityLearningProviders, ...angelsBuildingBlocksProviders, ...firstStepsKiddieProviders, ...tleCelebreeProviders, ...primroseLighthouseProviders, ...tutorTimeLearningTreeProviders, ...longIslandNorthernNJProviders, ...nationalFranchiseProviders, ...jccSpecializedProviders, ...dcfLicensedNJProviders, ...qualitySpecializedProviders, ...angelsBuildingBlocksProviders2, ...firstStepsKiddieProviders2, ...tleCelebreeProviders2, ...primroseMyGymProviders, ...afterschoolSchoolsCampsProviders, ...headStartMontessoriProviders, ...palSettlementCommunityProviders, ...reggioWaldorfReligiousProviders, ...connecticutNJDistrictCampsProviders, ...longIslandWestchesterMorrisInfantProviders, ...hudsonValleyNorthernNJAfterSchoolFairfieldProviders, ...extendedLongIslandHudsonValleyCentralNJConnecticutProviders, ...westchesterMonmouthOceanLitchfieldWindhamNYCFamilyProviders, ...upstateNYCamdenBurlingtonMiddlesexNewLondonNYCDYCDProviders];
+    // Filter to only include NYC area commuter counties providers
+    // Exclude arrays with non-commuter counties: upstateNY*, Camden*, Burlington*, Middlesex*CT, NewLondon*, etc.
+    const commuterCountiesProviders = [
+      ...sampleProviders,
+      ...authenticProviders,
+      ...additionalAuthenticProviders,
+      ...premiumChainsProviders,
+      ...learningCentersProviders,
+      ...qualityLearningProviders,
+      ...angelsBuildingBlocksProviders,
+      ...firstStepsKiddieProviders,
+      ...tleCelebreeProviders,
+      ...primroseLighthouseProviders,
+      ...tutorTimeLearningTreeProviders,
+      ...longIslandNorthernNJProviders,
+      ...nationalFranchiseProviders,
+      ...jccSpecializedProviders,
+      ...dcfLicensedNJProviders,
+      ...qualitySpecializedProviders,
+      ...angelsBuildingBlocksProviders2,
+      ...firstStepsKiddieProviders2,
+      ...tleCelebreeProviders2,
+      ...primroseMyGymProviders,
+      ...afterschoolSchoolsCampsProviders,
+      ...headStartMontessoriProviders,
+      ...palSettlementCommunityProviders,
+      ...reggioWaldorfReligiousProviders,
+      ...connecticutNJDistrictCampsProviders,
+      ...longIslandWestchesterMorrisInfantProviders
+      // Excluded: hudsonValleyNorthernNJAfterSchoolFairfieldProviders (has upstate NY)
+      // Excluded: extendedLongIslandHudsonValleyCentralNJConnecticutProviders (has distant regions)  
+      // Excluded: westchesterMonmouthOceanLitchfieldWindhamNYCFamilyProviders (has distant counties)
+      // Excluded: upstateNYCamdenBurlingtonMiddlesexNewLondonNYCDYCDProviders (has non-commuter counties)
+    ];
+
+    // Filter out any remaining non-commuter county providers
+    const nycCommuterCounties = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island', 'Westchester County', 'Nassau County', 'Suffolk County', 'Rockland County', 'Orange County', 'Putnam County'];
+    const njCommuterCounties = ['Bergen County', 'Essex County', 'Hudson County', 'Union County', 'Middlesex County', 'Somerset County', 'Morris County', 'Monmouth County'];
+    const ctCommuterCounties = ['Fairfield County', 'New Haven County'];
+
+    const allProviders = commuterCountiesProviders.filter(provider => {
+      if (provider.state === 'NY') return nycCommuterCounties.includes(provider.borough);
+      if (provider.state === 'NJ') return njCommuterCounties.includes(provider.borough);
+      if (provider.state === 'CT') return ctCommuterCounties.includes(provider.borough);
+      return false;
+    });
     
     // Insert providers in smaller batches to avoid connection issues
     const batchSize = 5;
@@ -15423,7 +15467,7 @@ async function addSampleData() {
       }
     }
 
-    console.log(`Sample data added successfully: ${allProviders.length} providers (${sampleProviders.length} original + ${authenticProviders.length + additionalAuthenticProviders.length + premiumChainsProviders.length + learningCentersProviders.length + qualityLearningProviders.length + angelsBuildingBlocksProviders.length + firstStepsKiddieProviders.length + tleCelebreeProviders.length + primroseLighthouseProviders.length + tutorTimeLearningTreeProviders.length + longIslandNorthernNJProviders.length + nationalFranchiseProviders.length + jccSpecializedProviders.length + dcfLicensedNJProviders.length + qualitySpecializedProviders.length + angelsBuildingBlocksProviders2.length + firstStepsKiddieProviders2.length + tleCelebreeProviders2.length + primroseMyGymProviders.length + afterschoolSchoolsCampsProviders.length + headStartMontessoriProviders.length + palSettlementCommunityProviders.length + reggioWaldorfReligiousProviders.length + connecticutNJDistrictCampsProviders.length + longIslandWestchesterMorrisInfantProviders.length + hudsonValleyNorthernNJAfterSchoolFairfieldProviders.length + extendedLongIslandHudsonValleyCentralNJConnecticutProviders.length + westchesterMonmouthOceanLitchfieldWindhamNYCFamilyProviders.length + upstateNYCamdenBurlingtonMiddlesexNewLondonNYCDYCDProviders.length} authentic providers)`);
+    console.log(`Sample data added successfully: ${allProviders.length} NYC area commuter counties providers (filtered from ${commuterCountiesProviders.length} total providers)`);
   } catch (error) {
     console.error("Error adding sample data:", error);
   }

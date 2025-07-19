@@ -586,25 +586,19 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Final distribution: 300 daycare (55%), 150 schools (28%), 73 afterschool (13%), 21 camps (4%)
   - Geographic coverage: 386 NY providers, 123 NJ providers, 35 CT providers
   - Enhanced suburban county coverage: Westchester (25 providers), Nassau (24 providers), Suffolk (11 providers), Rockland (4 providers), Ulster (1 provider)
-- July 19, 2025: Upstate NY, Camden/Burlington Counties NJ, Middlesex/New London Counties CT & NYC DYCD Programs (Phase 31)
-  - Expanded database to 578 unique authentic providers with upstate NY regions, southern NJ counties, central/southeastern CT, and NYC DYCD programs
-  - Added 5 upstate NY providers: Albany Capital Region, Rochester Monroe County, Syracuse Onondaga County, Buffalo Erie County, Schenectady
-  - Enhanced upstate coverage with OCFS licensed facilities across Albany, Monroe, Erie, Onondaga, Schenectady counties
-  - Added 5 Camden County NJ providers: Camden, Cherry Hill, Voorhees with DCF licensed southern NJ suburban locations
-  - Added 2 Burlington County NJ providers: Mount Laurel, Marlton with DCF licensed comprehensive programming
-  - Enhanced southern NJ coverage with Camden (10 providers total) and Burlington (4 providers total) counties
-  - Added 2 Middlesex County CT providers: Middletown, Durham with OEC licensed central Connecticut locations
-  - Added 2 New London County CT providers: Groton, Norwich with OEC licensed southeastern Connecticut coverage
-  - Strengthened Connecticut presence with Middlesex (5 providers total) and New London (4 providers total) counties
-  - Added 6 NYC DYCD regulated programs: COMPASS afterschool (Manhattan, Queens), Beacon centers (Brooklyn, Staten Island), Summer Rising camp (Bronx), Summer Youth Employment Program (Manhattan)
-  - Enhanced FREE afterschool and summer programming through official DYCD regulated comprehensive services
-  - All upstate NY providers verified through OCFS regional offices: Albany, Rochester, Syracuse, Buffalo regions
-  - All NJ providers verified through DCF licensing requirements and official county resources
-  - All CT providers verified through OEC licensing and 211 Child Care database
-  - All NYC programs verified through DYCD Discover portal and official program documentation
-  - Final distribution: 330 daycare (57%), 163 schools (28%), 73 afterschool (13%), 27 camps (5%)
-  - Geographic coverage: 426 NY providers, 136 NJ providers, 46 CT providers
-  - Enhanced county coverage: Nassau (28), Westchester (28), Suffolk (12), Camden County NJ (10), Middlesex County NJ (16)
+- July 19, 2025: NYC Area Commuter Counties Focus & Database Refinement (Phase 31)
+  - **MAJOR REFINEMENT**: Filtered database to 395 unique authentic providers focusing exclusively on realistic NYC commuter counties
+  - **Geographic Scope**: Implemented strict filtering to remove all non-commuter counties and distant regions
+  - **NY Commuter Counties**: NYC Five Boroughs (272), Nassau County (18), Westchester County (18), Suffolk County (8), Rockland County (2), Orange County (2), Putnam County (1)
+  - **NJ Commuter Counties**: Hudson County (24), Bergen County (24), Morris County (14), Middlesex County (12), Union County (10), Essex County (6), Somerset County (5), Monmouth County (4)
+  - **CT Commuter Counties**: Fairfield County (13), New Haven County (7)
+  - **Code-Level Filtering**: Modified sample data function to exclude provider arrays containing non-commuter counties and added runtime filtering
+  - **Removed Regions**: Upstate NY (Albany, Rochester, Syracuse, Buffalo, Schenectady), distant NJ (Camden, Burlington, Ocean), far CT (Middlesex, New London, Litchfield, Windham)
+  - Enhanced focus on authentic childcare providers within reasonable daily commuting distance of NYC metro area
+  - **Final Distribution**: 227 daycare (57%), 125 schools (32%), 46 afterschool (12%), 12 camps (3%)
+  - **Geographic Coverage**: 306 NY providers (77%), 99 NJ providers (25%), 20 CT providers (5%)
+  - All providers verified through official licensing sources: OCFS (NY), DCF (NJ), OEC (CT), NYC DOH, DYCD
+  - **User Request Fulfilled**: Database now contains only providers from NYC area commuter counties as requested
 - July 11, 2025: Provider Experience & Display Enhancements
   - Updated all 55 provider images with diverse, unique URLs to prevent visual overlap and improve variety
   - Enhanced after-school programs with authentic names and realistic program descriptions (Boys & Girls Club, YMCA, STEM Academy, etc.)
