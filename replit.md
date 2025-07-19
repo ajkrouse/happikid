@@ -431,6 +431,18 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Strengthened Connecticut presence with 5 Building Blocks centers offering gymnasium and library facilities
   - Final distribution: 207 daycare (57%), 124 schools (34%), 36 afterschool (10%), 10 camps (3%)
   - Geographic coverage: 266 NY providers, 105 NJ providers, 21 CT providers
+- July 19, 2025: First Steps, Kiddie Academy & Children's Learning Centers Expansion (Phase 19)
+  - Expanded database to 361 unique authentic providers with major franchise networks and specialized Manhattan centers
+  - Added First Step Learning Center New Haven Connecticut with NAEYC accreditation and 25+ years experience
+  - Added 4 Kiddie Academy franchise locations: Little Neck, Whitestone, Williamsburg Brooklyn, Staten Island with Life Essentials curriculum
+  - Added premium Manhattan centers: The Learning Experience downtown, Manhattan Schoolhouse (UES/Chelsea), Vivvi Upper East Side
+  - Added Children's Learning Center Manhattan (Rising Ground special education preschool for developmental needs)
+  - Added authentic Kids World facilities: Brooklyn Montessori-inspired programs, West New York NJ comprehensive childcare
+  - Added specialized centers: World of Wonders Brooklyn, Pretty Faces Learning Center, Tender Years Astoria, Growing Minds Brooklyn
+  - Enhanced Manhattan presence with research-based education, child-centered learning, and premium urban childcare options
+  - Strengthened authentic franchise presence with established national brands and verified licensing
+  - Final distribution: 197 daycare (57%), 106 schools (30%), 35 afterschool (10%), 10 camps (3%)
+  - Geographic coverage: 241 NY providers, 91 NJ providers, 16 CT providers
 - July 11, 2025: Provider Experience & Display Enhancements
   - Updated all 55 provider images with diverse, unique URLs to prevent visual overlap and improve variety
   - Enhanced after-school programs with authentic names and realistic program descriptions (Boys & Girls Club, YMCA, STEM Academy, etc.)
