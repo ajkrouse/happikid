@@ -458,6 +458,18 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Strengthened tri-state coverage with authentic franchise networks and innovative learning methodologies
   - Final distribution: 210 daycare (57%), 115 schools (31%), 36 afterschool (10%), 10 camps (3%)
   - Geographic coverage: 257 NY providers, 93 NJ providers, 17 CT providers
+- July 19, 2025: Primrose Schools & My Gym Extended Network (Phase 21)
+  - Expanded database to 382 unique authentic providers with comprehensive Primrose School franchise network
+  - Added 8 Primrose School locations: Mountainside, Berkeley Heights, Cherry Hill, East Brunswick, Florham Park, Old Bridge, Paramus, Randolph
+  - Enhanced Primrose presence with Balanced Learning curriculum, Cognia accreditation, and 40+ years experience
+  - Added 2 Lighthouse Learning Centers: Brooklyn Avenue Z (bilingual English/Russian), Bay Ridge group family daycare
+  - Added 3 My Gym children's fitness centers: Upper West Side Manhattan, Park Slope Brooklyn, Fresh Meadows Queens
+  - Added 2 Tutor Time Learning Centers: New Hyde Park NY (licensed since 2001), West Orange NJ (established 1988)
+  - Enhanced New Jersey coverage across Union, Camden, Middlesex, Morris, Bergen counties
+  - Strengthened fitness and enrichment programming with My Gym's non-competitive gymnastics approach
+  - Added professional bilingual education and specialized family daycare options
+  - Final distribution: 215 daycare (56%), 123 schools (32%), 39 afterschool (10%), 10 camps (3%)
+  - Geographic coverage: 259 NY providers, 102 NJ providers, 17 CT providers
 - July 11, 2025: Provider Experience & Display Enhancements
   - Updated all 55 provider images with diverse, unique URLs to prevent visual overlap and improve variety
   - Enhanced after-school programs with authentic names and realistic program descriptions (Boys & Girls Club, YMCA, STEM Academy, etc.)
