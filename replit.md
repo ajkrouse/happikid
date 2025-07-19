@@ -253,9 +253,17 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Added authentic Montessori schools: Montessori School of NY International, Battery Park Montessori, Flatiron, West Side
   - Added Greenwich Village cooperative schools: University Plaza Nursery, West Village Nursery School
   - Added specialized centers: Preschool of the Arts, Vivvi Upper East Side, Primrose School East 82nd Street
-  - Final distribution: 57 daycare (48%), 26 afterschool (22%), 25 schools (21%), 10 camps (8%)
-  - Geographic coverage: 103 NY providers, 12 NJ providers, 3 CT providers
-  - 15 free programs (12.7%) maintaining accessibility across income levels
+- July 19, 2025: Major National Chain Expansion (Phase 3)
+  - Expanded database to 133 authentic providers with major national childcare chains
+  - Added 6 KinderCare Learning Centers: Park Avenue, Columbus Avenue, Tribeca, Financial District, Williamsburg, Park Slope
+  - Added 2 La Petite Academy locations: Bay Ridge Brooklyn, Murray Hill Manhattan
+  - Added prestigious 92nd Street Y Nursery School (known as "Harvard of Nursery Schools")
+  - Added Sid Jacobson JCC - Bernice & Ira Waldbaum Children's Center serving Queens area
+  - Added 3 Stepping Stones Nursery Schools: Bay Ridge (2 locations), St. Albans Queens
+  - Added Creative Arts Studio for Kids (CASK) and Berkeley Carroll Early Childhood Center
+  - Final distribution: 69 daycare (52%), 28 schools (21%), 26 afterschool (20%), 10 camps (7%)
+  - Geographic coverage: 118 NY providers, 12 NJ providers, 3 CT providers
+  - 15 free programs (11.3%) maintaining accessibility across income levels
   - All providers researched from official websites, licensing databases, and accreditation bodies
 - July 11, 2025: Provider Experience & Display Enhancements
   - Updated all 55 provider images with diverse, unique URLs to prevent visual overlap and improve variety
