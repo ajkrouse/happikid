@@ -339,6 +339,30 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Added premium Manhattan locations with pricing $3000-3800/month reflecting high-quality urban childcare
   - Final distribution: 137 daycare (56%), 67 schools (28%), 29 afterschool (12%), 10 camps (4%)
   - Geographic coverage: 196 NY providers, 33 NJ providers, 14 CT providers
+- July 19, 2025: Primrose Schools & Independent Lighthouse Centers (Phase 11)
+  - Expanded database to 258 unique authentic providers with major national franchise networks and independent centers
+  - Added 9 Primrose School locations across New Jersey: Mountainside, Berkeley Heights, Cherry Hill, East Brunswick, Florham Park, Edison, Old Bridge, Paramus, Randolph
+  - Added 3 independent Lighthouse childcare centers: Manhattan Preschool (established 2001), Bay Ridge Group Family Daycare, Queens Daycare LLC
+  - Added 3 My Gym children's fitness centers: Manhattan Upper West Side, Park Slope Brooklyn, Fresh Meadows Queens
+  - Enhanced franchise presence with Primrose Schools' 40+ years experience, Cognia accreditation, and Balanced Learning curriculum
+  - Strengthened New Jersey coverage with comprehensive Primrose network across Union, Camden, Middlesex, Morris, and Bergen counties
+  - Added licensed group family daycare options with certified teachers, CPR/First Aid training, and ACS voucher acceptance
+  - Added children's fitness and enrichment programming for ages 6 weeks to 10 years with gymnastics and developmental activities
+  - Final distribution: 139 daycare (54%), 77 schools (30%), 32 afterschool (12%), 10 camps (4%)
+  - Geographic coverage: 202 NY providers, 42 NJ providers, 14 CT providers
+- July 19, 2025: Tutor Time & Extended Franchise Networks (Phase 12)
+  - Expanded database to 269 unique authentic providers with major Learning Care Group operations and extended franchise coverage
+  - Added 2 Tutor Time Learning Centers: New Hyde Park NY (Nassau County), West Orange NJ (Essex County)
+  - Added 3 Learning Tree centers: Queens Village, Middle Village, Ia's Learning Tree Park Slope
+  - Added 3 Goddard School extended locations: Upper East Side Manhattan, Westchester Scarsdale, Connecticut Norwalk
+  - Added 2 Children of America centers: New Jersey Fort Lee (Bergen County), Westchester Yonkers
+  - Added 2 independent learning centers: Tender Years Learning Center Astoria, Growing Minds Learning Academy Brooklyn
+  - Enhanced franchise presence with Learning Care Group's Tutor Time operations and Goddard School's F.L.E.X. Learning Program
+  - Strengthened premium childcare options with Goddard School's STEAM education and character development focus
+  - Added Children of America's comprehensive programming with low student-teacher ratios and nutritious meals
+  - Extended geographic coverage to include Nassau, Essex, Bergen, and Westchester counties
+  - Final distribution: 144 daycare (54%), 83 schools (31%), 32 afterschool (12%), 10 camps (4%)
+  - Geographic coverage: 210 NY providers, 44 NJ providers, 15 CT providers
 - July 11, 2025: Provider Experience & Display Enhancements
   - Updated all 55 provider images with diverse, unique URLs to prevent visual overlap and improve variety
   - Enhanced after-school programs with authentic names and realistic program descriptions (Boys & Girls Club, YMCA, STEM Academy, etc.)
