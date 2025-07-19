@@ -71,6 +71,11 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
 
   // Function to get relative cost level based on actual price range
   const getCostLevel = (provider: any, costRange: {min: number, max: number}) => {
+    // Safety check for costRange
+    if (!costRange || typeof costRange.min !== 'number' || typeof costRange.max !== 'number') {
+      return 3; // Default to middle tier
+    }
+    
     // Calculate dollar meter based on midpoint of price range
     const midpoint = (costRange.min + costRange.max) / 2;
     
@@ -93,18 +98,24 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     };
     
     const baseRange = typeRanges[provider.type as keyof typeof typeRanges] || typeRanges.daycare;
-    const dollarSigns = getCostLevel(provider);
     
-    // Adjust range based on cost level
-    const multiplier = [0.7, 0.85, 1.0, 1.3, 1.6][dollarSigns - 1] || 1.0;
-    const min = Math.round(baseRange.min * multiplier);
-    const max = Math.round(baseRange.max * multiplier);
+    // Use the actual monthly price if available, otherwise use base range
+    if (provider.monthlyPrice) {
+      const price = Number(provider.monthlyPrice);
+      // Create a range around the single price point
+      return { min: Math.round(price * 0.9), max: Math.round(price * 1.1) };
+    }
     
-    return { min, max };
+    return baseRange;
   };
 
   // Function to render cost display
   const renderCostDisplay = (provider: any) => {
+    // Safety check for provider
+    if (!provider) {
+      return <div className="text-center text-gray-500">Price information unavailable</div>;
+    }
+    
     // Use actual price range from database if available
     const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
     let costRange;
@@ -115,8 +126,8 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
       costRange = getCostRange(provider);
     }
     
-    // Ensure costRange is properly defined
-    if (!costRange || !costRange.min || !costRange.max) {
+    // Ensure costRange is properly defined with fallback
+    if (!costRange || typeof costRange.min !== 'number' || typeof costRange.max !== 'number') {
       costRange = { min: 2000, max: 3000 }; // Default fallback
     }
     
