@@ -315,6 +315,30 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Strengthened Connecticut presence with 5 Building Blocks centers offering gymnasium and library facilities
   - Final distribution: 124 daycare (58%), 50 schools (23%), 29 afterschool (14%), 10 camps (5%)
   - Geographic coverage: 176 NY providers, 26 NJ providers, 11 CT providers
+- July 19, 2025: First Steps, Kiddie Academy & Children's Learning Centers (Phase 9)
+  - Expanded database to 231 unique authentic providers with major franchise networks and specialized centers
+  - Added 3 First Steps Early Learning Centers: Clinton Township NJ (NAEYC accredited), Middletown NY (STEAM curriculum), New Haven CT (150+ students)
+  - Added 7 Kiddie Academy franchise locations: Tribeca Manhattan, Little Neck/Whitestone/Williamsburg/Staten Island NY, Robbinsville NJ, Rocky Hill CT
+  - Added Children's Learning Centers: Manhattan play-based education, Rising Ground special education preschool
+  - Added Kids World facilities: Brooklyn daycare, West New York NJ (131 children capacity, subsidized programs)
+  - Added Tendercare Child Centers: Guilderland and Bethlehem NY (since 1986, Albany County area)
+  - Added Initial Steps Child Development Center with NYC DOE affiliation and HLC Kids Academy NJ
+  - Enhanced franchise presence with national Kiddie Academy brand (330+ locations nationwide)
+  - Strengthened special needs services with Rising Ground specialized programming
+  - Final distribution: 135 daycare (58%), 57 schools (25%), 29 afterschool (13%), 10 camps (4%)
+  - Geographic coverage: 188 NY providers, 30 NJ providers, 13 CT providers
+- July 19, 2025: The Learning Experience & Specialized Academies (Phase 10)
+  - Expanded database to 243 unique authentic providers with major franchise networks and specialized academies
+  - Added 4 The Learning Experience (TLE) franchise locations: Battery Park/Upper West Side Manhattan, Brooklyn Kings Highway, Bayside Queens
+  - Added 2 Celebree School locations in New Jersey: Somerville Somerset County, Central NJ Edison (Protect, Educate, Nurture philosophy)
+  - Added Academy of Little Scholars Westchester (academic excellence), Creative Arts Academy Brooklyn (arts-focused)
+  - Added Discovery Learning Academy Nassau County (STEAM/outdoor learning), Future Leaders Academy Bergen County (leadership development)
+  - Added Global Kids International Academy Stamford CT (multicultural/world languages), Nature's Way Learning Center Hudson Valley (nature-based)
+  - Enhanced franchise presence with TLE's "Learn, Grow, Play" curriculum and state-of-the-art facilities
+  - Strengthened specialized education options: arts, STEAM, leadership, international, nature-based learning
+  - Added premium Manhattan locations with pricing $3000-3800/month reflecting high-quality urban childcare
+  - Final distribution: 137 daycare (56%), 67 schools (28%), 29 afterschool (12%), 10 camps (4%)
+  - Geographic coverage: 196 NY providers, 33 NJ providers, 14 CT providers
 - July 11, 2025: Provider Experience & Display Enhancements
   - Updated all 55 provider images with diverse, unique URLs to prevent visual overlap and improve variety
   - Enhanced after-school programs with authentic names and realistic program descriptions (Boys & Girls Club, YMCA, STEM Academy, etc.)
