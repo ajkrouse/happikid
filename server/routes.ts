@@ -15443,9 +15443,9 @@ async function addSampleData() {
       // Excluded: upstateNYCamdenBurlingtonMiddlesexNewLondonNYCDYCDProviders (has non-commuter counties)
     ];
 
-    // Filter out any remaining non-commuter county providers
-    const nycCommuterCounties = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island', 'Westchester County', 'Nassau County', 'Suffolk County', 'Rockland County', 'Orange County', 'Putnam County'];
-    const njCommuterCounties = ['Bergen County', 'Essex County', 'Hudson County', 'Union County', 'Middlesex County', 'Somerset County', 'Morris County', 'Monmouth County'];
+    // Filter to include authentic NYC metropolitan area commuter counties based on transit access
+    const nycCommuterCounties = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island', 'Westchester County', 'Nassau County', 'Suffolk County', 'Rockland County', 'Orange County', 'Putnam County', 'Dutchess County'];
+    const njCommuterCounties = ['Bergen County', 'Essex County', 'Hudson County', 'Union County', 'Middlesex County', 'Somerset County', 'Morris County', 'Monmouth County', 'Passaic County', 'Ocean County'];
     const ctCommuterCounties = ['Fairfield County', 'New Haven County'];
 
     const allProviders = commuterCountiesProviders.filter(provider => {

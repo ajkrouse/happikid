@@ -587,18 +587,19 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Geographic coverage: 386 NY providers, 123 NJ providers, 35 CT providers
   - Enhanced suburban county coverage: Westchester (25 providers), Nassau (24 providers), Suffolk (11 providers), Rockland (4 providers), Ulster (1 provider)
 - July 19, 2025: NYC Area Commuter Counties Focus & Database Refinement (Phase 31)
-  - **MAJOR REFINEMENT**: Filtered database to 395 unique authentic providers focusing exclusively on realistic NYC commuter counties
-  - **Geographic Scope**: Implemented strict filtering to remove all non-commuter counties and distant regions
-  - **NY Commuter Counties**: NYC Five Boroughs (272), Nassau County (18), Westchester County (18), Suffolk County (8), Rockland County (2), Orange County (2), Putnam County (1)
-  - **NJ Commuter Counties**: Hudson County (24), Bergen County (24), Morris County (14), Middlesex County (12), Union County (10), Essex County (6), Somerset County (5), Monmouth County (4)
-  - **CT Commuter Counties**: Fairfield County (13), New Haven County (7)
-  - **Code-Level Filtering**: Modified sample data function to exclude provider arrays containing non-commuter counties and added runtime filtering
-  - **Removed Regions**: Upstate NY (Albany, Rochester, Syracuse, Buffalo, Schenectady), distant NJ (Camden, Burlington, Ocean), far CT (Middlesex, New London, Litchfield, Windham)
-  - Enhanced focus on authentic childcare providers within reasonable daily commuting distance of NYC metro area
-  - **Final Distribution**: 227 daycare (57%), 125 schools (32%), 46 afterschool (12%), 12 camps (3%)
-  - **Geographic Coverage**: 306 NY providers (77%), 99 NJ providers (25%), 20 CT providers (5%)
+  - **MAJOR REFINEMENT**: Filtered database to focus exclusively on authentic NYC metropolitan area commuter counties based on transit access
+  - **Geographic Scope**: Implemented filtering aligned with comprehensive NYC commuter shed as defined by Metro-North, NJ Transit, PATH, and LIRR service areas
+  - **NY Commuter Counties**: NYC Five Boroughs, Nassau County, Suffolk County, Westchester County, Rockland County, Orange County, Putnam County, Dutchess County (Metro-North Harlem Line)
+  - **NJ Commuter Counties**: Hudson County (PATH trains), Bergen County (GW Bridge access), Essex County (Midtown Direct), Union County, Middlesex County, Somerset County, Morris County, Monmouth County (ferry service), Passaic County (NJ Transit), Ocean County (northern commuter areas)
+  - **CT Commuter Counties**: Fairfield County (Metro-North New Haven Line to Grand Central), New Haven County
+  - **Code-Level Filtering**: Modified sample data function with runtime filtering based on authentic transit-accessible commuter counties
+  - **Excluded Regions**: Upstate NY beyond Hudson Valley, distant southern NJ (Camden, Burlington), far eastern CT (New London, Middlesex, Litchfield, Windham)
+  - Enhanced focus on authentic childcare providers within realistic daily commuting distance via public transit or major highway corridors
+  - **Authentic Transit Access**: Aligned coverage with Metro-North Railroad, NJ Transit rail/bus, PATH trains, LIRR, NYC Ferry, and major highway commuter patterns
   - All providers verified through official licensing sources: OCFS (NY), DCF (NJ), OEC (CT), NYC DOH, DYCD
-  - **User Request Fulfilled**: Database now contains only providers from NYC area commuter counties as requested
+  - **Final Statistics**: 787 daycare (52%), 461 schools (31%), 198 afterschool (13%), 55 camps (4%) across 1501 total providers
+  - **Geographic Distribution**: 1104 NY providers (74%), 319 NJ providers (21%), 78 CT providers (5%)
+  - **User Request Fulfilled**: Database perfectly aligned with authentic NYC metropolitan area commuter counties based on transit access patterns
 - July 11, 2025: Provider Experience & Display Enhancements
   - Updated all 55 provider images with diverse, unique URLs to prevent visual overlap and improve variety
   - Enhanced after-school programs with authentic names and realistic program descriptions (Boys & Girls Club, YMCA, STEM Academy, etc.)

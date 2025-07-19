@@ -1,0 +1,49 @@
+The New York City metropolitan area is vast and encompasses numerous counties in New York, New Jersey, and Connecticut where a significant portion of the population commutes to NYC for work. Here's a complete list, generally moving outwards from Manhattan:
+
+## New York
+
+* **New York City Boroughs (also counties):** While technically within NYC, many residents of these boroughs commute within the city, often traveling long distances, especially to Manhattan.
+    * **New York County (Manhattan)**
+    * **Kings County (Brooklyn)**
+    * **Queens County (Queens)**
+    * **Bronx County (The Bronx)**
+    * **Richmond County (Staten Island)**
+* **Long Island:**
+    * **Nassau County:** This county is a classic NYC commuter hub with extensive Long Island Rail Road (LIRR) service to Manhattan.
+    * **Suffolk County:** While further out, many residents in western and central Suffolk County also commute to NYC via the LIRR.
+* **Lower Hudson Valley:**
+    * **Westchester County:** A very prominent commuter county with excellent Metro-North Railroad service (Harlem, Hudson, and New Haven lines) to Grand Central.
+    * **Rockland County:** Commuters often use NJ Transit bus and train lines (via a transfer at Secaucus Junction) or drive over the Tappan Zee Bridge.
+    * **Putnam County:** Served by Metro-North's Harlem Line.
+    * **Orange County:** While further out, parts of Orange County, especially those with NJ Transit train access, have significant commuter populations.
+    * **Dutchess County:** The furthest north of the Hudson Valley commuter counties, with Metro-North service, though commutes are longer.
+
+## New Jersey
+
+* **Northern New Jersey:** These counties offer some of the shortest commutes due to their direct access via PATH trains, NJ Transit rail, and bus lines.
+    * **Hudson County:** Directly across the Hudson River from Manhattan, with extremely short commutes via PATH trains and ferries (e.g., Hoboken, Jersey City, Weehawken).
+    * **Bergen County:** Significant commuter population using NJ Transit rail and bus lines (often crossing the George Washington Bridge).
+    * **Essex County:** Home to "Midtown Direct" train lines (NJ Transit) that offer direct service to Penn Station, NYC (e.g., Montclair, Maplewood, South Orange, Summit).
+    * **Union County:** Also benefits from NJ Transit's Midtown Direct lines and other rail/bus connections (e.g., Cranford, Westfield, Summit).
+    * **Morris County:** Commuters often use NJ Transit rail lines (Morris & Essex Line, Montclair-Boonton Line).
+    * **Passaic County:** Served by NJ Transit rail and bus lines.
+    * **Sussex County:** While more rural, some residents commute to NYC, often via bus or car.
+* **Central New Jersey:**
+    * **Middlesex County:** Many towns in Middlesex County (e.g., Metuchen, Edison) have direct NJ Transit rail service to NYC.
+    * **Monmouth County:** Some coastal towns offer ferry service to Manhattan, and NJ Transit train lines connect residents further inland.
+    * **Somerset County:** Served by NJ Transit rail lines, connecting to Newark for transfers to NYC.
+    * **Hunterdon County:** While further west, some residents commute, often involving car and train or bus combinations.
+    * **Ocean County:** Primarily a destination for residents, but some areas in the northern part of the county may have commuters, often involving longer travel times.
+
+## Connecticut
+
+* **Fairfield County:** This is the primary commuter county in Connecticut for NYC, with excellent Metro-North New Haven Line service to Grand Central Terminal.
+    * **Greenwich:** Known for its short, express train commutes.
+    * **Stamford:** A major transportation hub with frequent express trains.
+    * **Darien:** Another affluent town with good train access.
+    * **Norwalk:** Multiple Metro-North stations provide options for commuters.
+    * **Westport:** A popular choice with direct train service.
+    * **New Canaan:** Served by a branch line connecting to Stamford for express service.
+    * **Wilton & Weston:** Commuters often drive to nearby Metro-North stations.
+
+This list captures the core and extended commuter shed for New York City across the tri-state area. The modes of transportation (train, bus, ferry, car) and commute times vary significantly by specific town and proximity to NYC.
