@@ -375,6 +375,31 @@ HappiKid is a full-stack web application that connects parents with childcare pr
   - Added Westchester County (14 providers) for comprehensive NYC metro area suburban coverage
   - Final distribution: 155 daycare (54%), 88 schools (31%), 32 afterschool (11%), 10 camps (4%)
   - Geographic coverage: 219 NY providers, 51 NJ providers, 15 CT providers
+- July 19, 2025: National Franchise Networks Expansion (Phase 14)
+  - Expanded database to 299 unique authentic providers with major national franchise network integration
+  - Added 2 La Petite Academy locations: Mohegan Lake (Westchester County), Parsippany (Morris County NJ)
+  - Added 8 Lightbridge Academy centers: Midtown Manhattan, Prospect Heights Brooklyn, Valhalla NY, Hackensack/Fair Lawn/Cranford/Edison/East Brunswick NJ
+  - Added Childtime Learning Center in Williamsville NY with Reggio Emilia inspired philosophy
+  - Added 2 Champions After School Programs: Lindenwold (Camden County), Keansburg (Monmouth County) with KinderCare operation
+  - Enhanced Manhattan presence with premium Lightbridge Academy Midtown location ($3200-3800/month)
+  - Strengthened Brooklyn coverage with spacious 11,300 sq ft Lightbridge Academy Prospect Heights facility
+  - Expanded Westchester County with La Petite Academy and Lightbridge Academy locations
+  - Added comprehensive New Jersey coverage across Bergen, Hudson, Union, Middlesex, Morris, Camden, Monmouth counties
+  - Enhanced franchise presence with established national brands: Learning Care Group, KinderCare Champions, Lightbridge Academy network
+  - Final distribution: 167 daycare (56%), 88 schools (29%), 34 afterschool (11%), 10 camps (3%)
+  - Geographic coverage: 224 NY providers, 60 NJ providers, 15 CT providers
+- July 19, 2025: Jewish Community Centers & Specialized Providers (Phase 15)
+  - Expanded database to 314 unique authentic providers with comprehensive JCC network and specialized Montessori schools
+  - Added 5 JCC Brooklyn centers: Clinton Hill Early Childhood Center, North Williamsburg Preschool, Windsor Terrace After School
+  - Added 2 Manhattan JCC programs: Marlene Meyerson JCC Manhattan Nursery School, JCP Downtown Tribeca Early Childhood Center
+  - Added 4 New Jersey JCC centers: Central NJ Early Learning (Scotch Plains), Metrowest Seiden Center, Kaplen JCC Palisades, Katz JCC Cherry Hill
+  - Added authentic Montessori schools: Princeton Montessori (AMS accredited), Hoboken Montessori (AMS member), Montessori School of NY International
+  - Enhanced Jewish community programming with pluralistic approach welcoming all families regardless of background
+  - Strengthened premium Montessori options with AMS accreditation and NJAIS membership for authentic curriculum
+  - Added financial aid programs and scholarship funds available at JCC centers for accessibility
+  - Expanded New Jersey coverage in Union, Essex, Bergen, Camden, Mercer counties with established community centers
+  - Final distribution: 184 daycare (59%), 98 schools (31%), 37 afterschool (12%), 10 camps (3%)
+  - Geographic coverage: 237 NY providers, 77 NJ providers, 15 CT providers
 - July 11, 2025: Provider Experience & Display Enhancements
   - Updated all 55 provider images with diverse, unique URLs to prevent visual overlap and improve variety
   - Enhanced after-school programs with authentic names and realistic program descriptions (Boys & Girls Club, YMCA, STEM Academy, etc.)
