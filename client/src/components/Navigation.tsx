@@ -20,10 +20,12 @@ export default function Navigation() {
     { href: "/search", label: "Find Care" },
     { href: "/provider/dashboard", label: "Provider Dashboard" },
     { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
   ] : [
     { href: "/search", label: "Find Care" },
     { href: "/providers", label: "For Providers" },
     { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
   ];
 
   const NavContent = () => (
@@ -46,7 +48,7 @@ export default function Navigation() {
         ) : isAuthenticated ? (
           <>
             <span className="text-sm text-gray-600">
-              Hello, {user?.firstName || user?.email}
+              Hello, {(user as any)?.firstName || (user as any)?.email}
             </span>
             <Button variant="outline" asChild>
               <a href="/api/logout">Sign Out</a>
@@ -111,7 +113,7 @@ export default function Navigation() {
                       <>
                         <div className="mb-4">
                           <span className="text-sm text-gray-600">
-                            Hello, {user?.firstName || user?.email}
+                            Hello, {(user as any)?.firstName || (user as any)?.email}
                           </span>
                         </div>
                         <Button variant="outline" className="w-full" asChild>
