@@ -23,10 +23,17 @@ export default function About() {
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             About <span className="text-primary">HappiKid</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            We're transforming how families find quality childcare in the NYC tri-state area. 
-            Our mission is to make the overwhelming process of choosing childcare simple, transparent, and confident.
+          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8">
+            HappiKid is a parent-first marketplace that uses AI to help families effortlessly search, compare, 
+            and book trusted care and enrichment programs for kids—spanning daycare, camps, after-school activities, and private schools.
           </p>
+          <div className="flex justify-center">
+            <div className="bg-white rounded-lg shadow-sm p-4 max-w-2xl">
+              <p className="text-sm text-gray-600 italic">
+                "Finding safe, reliable care for your child shouldn't feel like a full-time job."
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -35,14 +42,18 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">The HappiKid Solution</h2>
               <p className="text-lg text-gray-600 mb-6">
-                Every parent deserves to find the perfect childcare for their family without the stress, 
-                endless research, and uncertainty that typically comes with the process.
+                Today's parents are left piecing together outdated websites, scattered reviews, and word-of-mouth 
+                recommendations just to find a daycare, after-school program, private school, or camp that meets their needs.
+              </p>
+              <p className="text-lg text-gray-600 mb-6">
+                HappiKid is an AI-powered marketplace that simplifies this search. With our "just ask" LLM search, 
+                parents describe what they're looking for and receive a curated list of trusted providers—displayed 
+                side-by-side for easy comparison based on what matters most: safety, schedule, budget, and real parent reviews.
               </p>
               <p className="text-lg text-gray-600 mb-8">
-                HappiKid centralizes verified provider information, real parent reviews, and smart search 
-                technology to help you make confident decisions in minutes, not hours.
+                We bring clarity and confidence to one of the most stressful decisions families face.
               </p>
               <div className="flex items-center text-primary font-semibold">
                 <Heart className="h-5 w-5 mr-2" />
@@ -54,30 +65,101 @@ export default function About() {
                 <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">1,000+</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">510+</h3>
                 <p className="text-gray-600 text-sm">Verified Providers</p>
               </Card>
               <Card className="text-center p-6">
                 <div className="bg-secondary-100 p-4 rounded-full inline-block mb-4">
-                  <MessageCircle className="h-8 w-8 text-secondary-500" />
+                  <Shield className="h-8 w-8 text-secondary-500" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">5,000+</h3>
-                <p className="text-gray-600 text-sm">Parent Reviews</p>
+                <h3 className="font-semibold text-gray-900 mb-2">23</h3>
+                <p className="text-gray-600 text-sm">Counties Covered</p>
               </Card>
               <Card className="text-center p-6">
                 <div className="bg-accent-100 p-4 rounded-full inline-block mb-4">
-                  <Clock className="h-8 w-8 text-accent-500" />
+                  <Search className="h-8 w-8 text-accent-500" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">90%</h3>
-                <p className="text-gray-600 text-sm">Time Saved</p>
+                <h3 className="font-semibold text-gray-900 mb-2">AI</h3>
+                <p className="text-gray-600 text-sm">Powered Search</p>
               </Card>
               <Card className="text-center p-6">
                 <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
                   <Star className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">4.9</h3>
-                <p className="text-gray-600 text-sm">Average Rating</p>
+                <h3 className="font-semibold text-gray-900 mb-2">100%</h3>
+                <p className="text-gray-600 text-sm">Authentic Data</p>
               </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* What Makes Us Different */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Makes HappiKid Different</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Unlike existing platforms, HappiKid is built from the ground up as a parent-first experience.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <Card className="p-6">
+              <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
+                <Search className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">AI-Powered "Just Ask" Search</h3>
+              <p className="text-gray-600 mb-4">
+                Our LLM search lets parents describe what they're looking for in natural language and receive 
+                curated lists of trusted providers—no more piecing together outdated websites and scattered reviews.
+              </p>
+            </Card>
+
+            <Card className="p-6">
+              <div className="bg-secondary-100 p-4 rounded-full inline-block mb-4">
+                <Shield className="h-8 w-8 text-secondary-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Trust-First Experience</h3>
+              <p className="text-gray-600 mb-4">
+                Every provider is verified through official licensing data, ensuring families can search with confidence. 
+                We prioritize safety, transparency, and authentic information over marketing claims.
+              </p>
+            </Card>
+
+            <Card className="p-6">
+              <div className="bg-accent-100 p-4 rounded-full inline-block mb-4">
+                <MessageCircle className="h-8 w-8 text-accent-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Side-by-Side Comparisons</h3>
+              <p className="text-gray-600 mb-4">
+                Compare providers based on what matters most: safety, schedule, budget, and real parent reviews. 
+                Make confident decisions with personalized comparisons tailored to your family's needs.
+              </p>
+            </Card>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">How We're Different from Others</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">Traditional Platforms:</h4>
+                <ul className="space-y-2 text-gray-600">
+                  <li>• Care.com: Functions like classified ads for individual caregivers</li>
+                  <li>• Winnie: Static discovery tool with limited guidance</li>
+                  <li>• Others: Focus on provider back-office tools (billing, rosters)</li>
+                  <li>• Manual research across multiple outdated websites</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">HappiKid Advantage:</h4>
+                <ul className="space-y-2 text-primary">
+                  <li>• Parent-first marketplace with AI-powered search</li>
+                  <li>• Natural language search: "just ask" functionality</li>
+                  <li>• Verified licensing data and rich provider profiles</li>
+                  <li>• Transparency and ease like ZocDoc, Expedia, or Zillow</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -104,23 +186,23 @@ export default function About() {
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="text-center bg-primary-50 rounded-lg p-4">
-                    <div className="text-3xl font-bold text-primary">1,000+</div>
+                    <div className="text-3xl font-bold text-primary">510+</div>
                     <div className="text-sm text-gray-600">Providers</div>
                   </div>
                   <div className="text-center bg-secondary-50 rounded-lg p-4">
-                    <div className="text-3xl font-bold text-secondary-500">8</div>
-                    <div className="text-sm text-gray-600">Areas</div>
+                    <div className="text-3xl font-bold text-secondary-500">23</div>
+                    <div className="text-sm text-gray-600">Counties</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center bg-accent-50 rounded-lg p-4">
-                    <div className="text-3xl font-bold text-accent-500">100%</div>
-                    <div className="text-sm text-gray-600">Coverage</div>
+                    <div className="text-3xl font-bold text-accent-500">3</div>
+                    <div className="text-sm text-gray-600">States</div>
                   </div>
                   <div className="text-center bg-green-50 rounded-lg p-4">
-                    <div className="text-3xl font-bold text-green-600">24/7</div>
-                    <div className="text-sm text-gray-600">Support</div>
+                    <div className="text-3xl font-bold text-green-600">100%</div>
+                    <div className="text-sm text-gray-600">Authentic</div>
                   </div>
                 </div>
               </div>
