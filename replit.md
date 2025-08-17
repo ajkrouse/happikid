@@ -3,6 +3,11 @@
 ## Overview
 HappiKid is a full-stack web application designed to connect parents with childcare providers in the New York City metropolitan area. Its primary purpose is to enable parents to efficiently search, compare, and review childcare services, while empowering providers to manage their profiles and respond to inquiries. The platform aims to be a trust-first marketplace, leveraging AI-powered search capabilities to simplify the childcare search process. It now features **630 verified providers** across 23+ counties in NY, NJ, and CT, with comprehensive coverage in key commuter areas including Jersey City downtown (07302), Hoboken, and Heights neighborhoods.
 
+## Recent Changes (August 2025)
+- **Hierarchical Location Filtering**: Implemented county-first filtering that expands to show specific cities with accurate provider counts (e.g., Hudson County, NJ (141) → Jersey City (88), Hoboken (50))
+- **Enhanced Search UX**: Fixed age range filtering with radio buttons instead of confusing checkboxes, improved empty state messaging with actionable suggestions
+- **Database Structure Optimization**: All providers now properly organized by county and city fields for precise geographic filtering
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
@@ -24,10 +29,10 @@ Preferred communication style: Simple, everyday language.
 ### Core Features
 - **Database Schema**: Manages user profiles (parent/provider), detailed provider information, reviews, inquiries, and favorites.
 - **Authentication**: Role-based access control (parent vs. provider) via Replit Auth, with session management and automatic user profile creation.
-- **Search and Filtering**: Advanced search capabilities with criteria such as provider type, location (borough/county), age range, price, and amenities. Includes real-time search with debouncing and pagination.
+- **Search and Filtering**: Advanced search capabilities with hierarchical location filtering (county → city), provider type, age range, price, and amenities. Features real-time search with debouncing, pagination, and authentic provider counts for each location.
 - **Provider Management**: Comprehensive profiles for providers, allowing management of basic information, location, services, pricing, amenities, and photo galleries, accessible via a dedicated dashboard.
 - **Data Flow**: Defined flows for user authentication, search operations, and provider-parent interactions (inquiries, favoriting).
-- **UI/UX Decisions**: Focus on a clean, user-friendly interface with consistent styling, sticky navigation, and improved responsiveness. Dynamic display of provider details, including pricing, age ranges, and license status. Onboarding flows are designed for clarity and ease of use for both parents and providers.
+- **UI/UX Decisions**: Focus on a clean, user-friendly interface with hierarchical location filtering that shows counties first, then expands to specific cities with provider counts. Radio button age range selection, sticky navigation, and improved responsiveness. Dynamic display of provider details, including pricing, age ranges, and license status. Onboarding flows are designed for clarity and ease of use for both parents and providers.
 - **Homepage Display**: Features prominently displayed total provider count (630+ verified providers) with real-time database updates, building trust and showcasing platform scale.
 
 ## External Dependencies
