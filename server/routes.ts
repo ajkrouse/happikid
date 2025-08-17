@@ -16314,10 +16314,17 @@ async function addSampleData() {
   }
 }
 
+import { setupOAuthAuth, requireOAuthAuth } from "./oauthAuth";
+import { getSession } from "./replitAuth";
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add cookie parser for session management
+  // Add cookie parser and session management for OAuth
   const cookieParser = await import('cookie-parser');
   app.use(cookieParser.default());
+  app.use(getSession());
+
+  // Setup OAuth authentication
+  await setupOAuthAuth(app);
 
   // Add sample data for testing - only in development and with better error handling
   if (process.env.NODE_ENV === 'development') {
