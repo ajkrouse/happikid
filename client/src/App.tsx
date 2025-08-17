@@ -13,6 +13,7 @@ import ProvidersOverview from "@/pages/ProvidersOverview";
 import ProviderDashboard from "@/pages/ProviderDashboard";
 import ProviderOnboarding from "@/pages/ProviderOnboarding";
 import ProviderCelebration from "@/pages/ProviderCelebration";
+import ParentSignup from "@/pages/ParentSignup";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,26 +21,23 @@ function Router() {
 
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
+      {/* Public routes available to all users */}
+      <Route path="/" component={Landing} />
+      <Route path="/search" component={Search} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/providers" component={ProvidersOverview} />
+      <Route path="/provider/onboarding" component={ProviderOnboarding} />
+      <Route path="/parent/signup" component={ParentSignup} />
+      
+      {/* Protected routes for authenticated users */}
+      {isAuthenticated && (
         <>
-          <Route path="/" component={Landing} />
-          <Route path="/search" component={Search} />
-          <Route path="/about" component={About} />
-          <Route path="/contact" component={Contact} />
-          <Route path="/providers" component={ProvidersOverview} />
-          <Route path="/provider/onboarding" component={ProviderOnboarding} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/search" component={Search} />
-          <Route path="/about" component={About} />
-          <Route path="/contact" component={Contact} />
           <Route path="/provider/dashboard" component={ProviderDashboard} />
-          <Route path="/provider/onboarding" component={ProviderOnboarding} />
           <Route path="/provider/celebration" component={ProviderCelebration} />
         </>
       )}
+      
       <Route component={NotFound} />
     </Switch>
   );
