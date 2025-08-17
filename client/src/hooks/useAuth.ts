@@ -1,60 +1,47 @@
-import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { mockAuth, type MockUser } from "@/lib/mockAuth";
+import { simpleAuth, type User } from "@/lib/simpleAuth";
 
 export function useAuth() {
-  const [mockUser, setMockUser] = useState<MockUser | null>(mockAuth.getCurrentUser());
-  const [useMockAuth] = useState(true); // Using mock auth to bypass Replit Auth issues
+  const [user, setUser] = useState<User | null>(simpleAuth.getCurrentUser());
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Subscribe to mock auth changes
   useEffect(() => {
-    if (useMockAuth) {
-      const unsubscribe = mockAuth.subscribe(setMockUser);
-      return unsubscribe;
-    }
-  }, [useMockAuth]);
+    // Subscribe to auth changes
+    const unsubscribe = simpleAuth.subscribe((newUser) => {
+      setUser(newUser);
+      setIsLoading(false);
+    });
 
-  // Real auth query (disabled when using mock)
-  const { data: realUser, isLoading: realIsLoading } = useQuery({
-    queryKey: ["/api/auth/user"],
-    retry: false,
-    enabled: !useMockAuth,
-  });
+    // Initial check
+    setUser(simpleAuth.getCurrentUser());
+    setIsLoading(false);
 
-  // Mock auth functions
-  const signIn = async () => {
-    if (useMockAuth) {
-      await mockAuth.signIn();
-    } else {
-      window.location.href = "/api/login";
+    return unsubscribe;
+  }, []);
+
+  const signIn = async (email?: string, firstName?: string, lastName?: string) => {
+    try {
+      await simpleAuth.signIn(email, firstName, lastName);
+    } catch (error) {
+      console.error("Sign in failed:", error);
+      throw error;
     }
   };
 
   const signOut = async () => {
-    if (useMockAuth) {
-      await mockAuth.signOut();
-    } else {
-      window.location.href = "/api/logout";
+    try {
+      await simpleAuth.signOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+      throw error;
     }
   };
 
-  if (useMockAuth) {
-    return {
-      user: mockUser,
-      isLoading: false,
-      isAuthenticated: !!mockUser,
-      signIn,
-      signOut,
-      isMockAuth: true,
-    };
-  }
-
   return {
-    user: realUser,
-    isLoading: realIsLoading,
-    isAuthenticated: !!realUser,
+    user,
+    isLoading,
+    isAuthenticated: simpleAuth.isAuthenticated(),
     signIn,
     signOut,
-    isMockAuth: false,
   };
 }

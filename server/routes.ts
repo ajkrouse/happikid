@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { requireAuth, optionalAuth, createSession, deleteSession, type AuthenticatedRequest } from "./simpleAuth";
+import crypto from "crypto";
 import { 
   insertProviderSchema, 
   insertReviewSchema, 
@@ -16314,8 +16315,9 @@ async function addSampleData() {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Add cookie parser for session management
+  const cookieParser = await import('cookie-parser');
+  app.use(cookieParser.default());
 
   // Add sample data for testing - only in development and with better error handling
   if (process.env.NODE_ENV === 'development') {
@@ -16324,16 +16326,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Simple auth routes
+  app.post('/api/auth/signin', async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const { email, firstName, lastName } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Try to find existing user by email
+      let user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Create new user if doesn't exist
+        user = await storage.upsertUser({
+          id: crypto.randomUUID(),
+          email,
+          firstName: firstName || 'Parent',
+          lastName: lastName || '',
+          profileImageUrl: null,
+        });
+      }
+
+      // Create session
+      const sessionToken = createSession(user.id);
+      
+      // Set session cookie
+      res.cookie('session', sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        sameSite: 'lax'
+      });
+
+      res.json({ user, sessionToken });
     } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      console.error("Sign in error:", error);
+      res.status(500).json({ message: "Failed to sign in" });
     }
+  });
+
+  app.post('/api/auth/signout', (req, res) => {
+    const sessionToken = req.cookies?.session;
+    if (sessionToken) {
+      deleteSession(sessionToken);
+      res.clearCookie('session');
+    }
+    res.json({ message: "Signed out successfully" });
+  });
+
+  app.get('/api/auth/user', requireAuth, async (req: AuthenticatedRequest, res) => {
+    res.json(req.user);
   });
 
   // Featured providers endpoint - returns diverse selection
@@ -16456,9 +16500,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Provider-specific routes (must be before /:id route)
-  app.get('/api/providers/mine', isAuthenticated, async (req: any, res) => {
+  app.get('/api/providers/mine', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const providers = await storage.getProvidersByUserId(userId);
       
       if (providers.length === 0) {
@@ -16494,9 +16538,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/providers', isAuthenticated, async (req: any, res) => {
+  app.post('/api/providers', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const { locations, ...providerData } = req.body;
       
       // Check if provider already exists for this user
@@ -16604,10 +16648,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/providers/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/providers/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       // Check if user owns this provider
       const existingProvider = await storage.getProvider(id);
@@ -16624,10 +16668,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/providers/user/:userId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/providers/user/:userId', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const requestedUserId = req.params.userId;
-      const currentUserId = req.user.claims.sub;
+      const currentUserId = req.user!.id;
       
       // Users can only access their own providers
       if (requestedUserId !== currentUserId) {
@@ -16654,10 +16698,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/providers/:id/reviews', isAuthenticated, async (req: any, res) => {
+  app.post('/api/providers/:id/reviews', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const providerId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       const reviewData = insertReviewSchema.parse({
         ...req.body,
@@ -16677,9 +16721,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Favorites routes
-  app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
+  app.get('/api/favorites', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const favorites = await storage.getFavoritesByUserId(userId);
       res.json(favorites);
     } catch (error) {
@@ -16688,9 +16732,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/favorites/:providerId', isAuthenticated, async (req: any, res) => {
+  app.post('/api/favorites/:providerId', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const providerId = parseInt(req.params.providerId);
       
       const favorite = await storage.addFavorite(userId, providerId);
@@ -16701,9 +16745,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/favorites/:providerId', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/favorites/:providerId', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const providerId = parseInt(req.params.providerId);
       
       await storage.removeFavorite(userId, providerId);
@@ -16714,9 +16758,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/favorites/:providerId/check', isAuthenticated, async (req: any, res) => {
+  app.get('/api/favorites/:providerId/check', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const providerId = parseInt(req.params.providerId);
       
       const isFavorite = await storage.isFavorite(userId, providerId);
@@ -16728,10 +16772,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Inquiry routes
-  app.get('/api/inquiries/provider/:providerId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/inquiries/provider/:providerId', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const providerId = parseInt(req.params.providerId);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       // Check if user owns this provider
       const provider = await storage.getProvider(providerId);
@@ -16747,9 +16791,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/inquiries/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/inquiries/user', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const inquiries = await storage.getInquiriesByUserId(userId);
       res.json(inquiries);
     } catch (error) {
@@ -16758,9 +16802,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/inquiries', isAuthenticated, async (req: any, res) => {
+  app.post('/api/inquiries', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const inquiryData = insertInquirySchema.parse({
         ...req.body,
         userId,
@@ -16777,7 +16821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/inquiries/:id/status', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/inquiries/:id/status', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const inquiryId = parseInt(req.params.id);
       const { status } = req.body;
@@ -16798,10 +16842,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.patch('/api/providers/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/providers/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       // Check if user owns this provider
       const existingProvider = await storage.getProvider(id);
@@ -16822,9 +16866,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Provider inquiries route
-  app.get('/api/inquiries/provider', isAuthenticated, async (req: any, res) => {
+  app.get('/api/inquiries/provider', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       // Get the provider owned by this user
       const providers = await storage.getProvidersByUserId(userId);
@@ -16842,9 +16886,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // License confirmation route
-  app.post('/api/providers/confirm-license', isAuthenticated, async (req: any, res) => {
+  app.post('/api/providers/confirm-license', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const providers = await storage.getProvidersByUserId(userId);
       
       if (!providers || providers.length === 0) {
@@ -16873,7 +16917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Provider images routes
-  app.get('/api/providers/:id/images', async (req: any, res) => {
+  app.get('/api/providers/:id/images', async (req: AuthenticatedRequest, res) => {
     try {
       const providerId = parseInt(req.params.id);
       const images = await storage.getProviderImages(providerId);
@@ -16884,10 +16928,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/providers/:id/images', isAuthenticated, async (req: any, res) => {
+  app.post('/api/providers/:id/images', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const providerId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       // Check if user owns this provider
       const provider = await storage.getProvider(providerId);
@@ -16943,7 +16987,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/objects/:objectPath(*)", isAuthenticated, async (req: any, res) => {
+  app.get("/objects/:objectPath(*)", requireAuth, async (req: AuthenticatedRequest, res) => {
     const userId = req.user?.claims?.sub;
     try {
       const { ObjectStorageService, ObjectNotFoundError, ObjectPermission } = await import("./objectStorage");
@@ -16968,7 +17012,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+  app.post("/api/objects/upload", requireAuth, async (req, res) => {
     try {
       const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
@@ -16983,10 +17027,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User contribution endpoints for Yelp-style features
   
   // Provider information updates (suggest an edit)
-  app.post('/api/providers/:id/suggest-update', isAuthenticated, async (req: any, res) => {
+  app.post('/api/providers/:id/suggest-update', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const providerId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       const updateData = insertProviderUpdateSchema.parse({
         ...req.body,
@@ -17017,10 +17061,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User-contributed photos
-  app.post('/api/providers/:id/contribute-photo', isAuthenticated, async (req: any, res) => {
+  app.post('/api/providers/:id/contribute-photo', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const providerId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       if (!req.body.imageUrl) {
         return res.status(400).json({ error: "imageUrl is required" });
@@ -17069,10 +17113,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Review voting (helpful/not helpful)
-  app.post('/api/reviews/:id/vote', isAuthenticated, async (req: any, res) => {
+  app.post('/api/reviews/:id/vote', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const reviewId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       const voteData = insertReviewVoteSchema.parse({
         ...req.body,
@@ -17107,10 +17151,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/reviews/:id/user-vote', isAuthenticated, async (req: any, res) => {
+  app.get('/api/reviews/:id/user-vote', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const reviewId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const vote = await storage.getUserReviewVote(userId, reviewId);
       res.json(vote || null);
     } catch (error) {
