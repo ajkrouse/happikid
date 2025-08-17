@@ -1,5 +1,6 @@
 import * as client from "openid-client";
 import { Strategy, type VerifyFunction } from "openid-client/passport";
+import crypto from "crypto";
 
 import passport from "passport";
 import session from "express-session";
@@ -31,8 +32,11 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
+  // Generate a secure session secret for development if missing
+  const sessionSecret = process.env.SESSION_SECRET || 'dev-secret-' + crypto.randomBytes(32).toString('hex');
+  
   return session({
-    secret: process.env.SESSION_SECRET || 'dev-secret-c1c7f965d71ab212b9d38e958510eadaa4afa7b036a992565abf39167f0f5880',
+    secret: sessionSecret,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -72,7 +76,8 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
-  // Validate that we have the required subject (user ID)
+  try {
+    // Validate that we have the required subject (user ID)
   if (!claims["sub"]) {
     throw new Error("Missing required user ID (sub) in claims");
   }
@@ -85,6 +90,10 @@ async function upsertUser(
     profileImageUrl: claims["profile_image_url"] || null,
     role: "parent", // Default role for new users
   });
+  } catch (error) {
+    console.error("Error upserting user:", error);
+    throw error;
+  }
 }
 
 export async function setupAuth(app: Express) {
