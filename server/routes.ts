@@ -16385,6 +16385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const {
         type,
         borough,
+        city,
         ageRange,
         ageRangeMin,
         ageRangeMax,
@@ -16416,6 +16417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filters = {
         type: type as string,
         borough: borough as string,
+        city: city as string,
         ageRangeMin: convertedAgeRangeMin,
         ageRangeMax: convertedAgeRangeMax,
         features: features ? (features as string).split(',') : undefined,
@@ -16429,6 +16431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Provider filters received:', {
         type: filters.type,
         borough: filters.borough,
+        city: filters.city,
         ageRangeMin: filters.ageRangeMin,
         ageRangeMax: filters.ageRangeMax,
         features: filters.features,

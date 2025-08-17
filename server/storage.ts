@@ -142,6 +142,10 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(providers.borough, filters.borough));
       }
 
+      if (filters?.city) {
+        conditions.push(eq(providers.city, filters.city));
+      }
+
       if (filters?.search) {
         conditions.push(
           sql`${providers.name} ILIKE ${`%${filters.search}%`} OR ${providers.description} ILIKE ${`%${filters.search}%`}`

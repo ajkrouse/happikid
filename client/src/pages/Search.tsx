@@ -782,6 +782,7 @@ export default function SearchPage() {
   const [filters, setFilters] = useState<{
     type?: string;
     borough?: string;
+    city?: string;
     ageRange?: string;
     priceRange?: string;
     features?: string[];
@@ -813,6 +814,8 @@ export default function SearchPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const q = urlParams.get('q');
     const type = urlParams.get('type');
+    const borough = urlParams.get('borough');
+    const city = urlParams.get('city');
     const features = urlParams.get('features');
     const cost = urlParams.get('cost');
     const ageRange = urlParams.get('ageRange');
@@ -822,6 +825,12 @@ export default function SearchPage() {
     }
     if (type) {
       setFilters(prev => ({ ...prev, type }));
+    }
+    if (borough) {
+      setFilters(prev => ({ ...prev, borough }));
+    }
+    if (city) {
+      setFilters(prev => ({ ...prev, city }));
     }
     if (features) {
       // Split features by comma and set as array
@@ -849,6 +858,7 @@ export default function SearchPage() {
       search: searchQuery,
       type: filters.type,
       borough: filters.borough,
+      city: filters.city,
       ageRange: filters.ageRange, // Send age range to backend
       features: filters.features?.join(','),
       priceRange: filters.priceRange,
