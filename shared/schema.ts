@@ -139,6 +139,48 @@ export const inquiries = pgTable("inquiries", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User-contributed provider information updates (like Yelp's "Suggest an Edit")
+export const providerUpdates = pgTable("provider_updates", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  providerId: integer("provider_id").references(() => providers.id, { onDelete: "cascade" }).notNull(),
+  updateType: varchar("update_type", { enum: ["contact_info", "hours", "pricing", "description", "features"] }).notNull(),
+  field: varchar("field").notNull(), // Specific field being updated (e.g., "phone", "website", "hours_open")
+  oldValue: text("old_value"),
+  newValue: text("new_value").notNull(),
+  reason: text("reason"), // User's explanation for the update
+  status: varchar("status", { enum: ["pending", "approved", "rejected"] }).default("pending"),
+  moderatorId: varchar("moderator_id").references(() => users.id),
+  moderatorNotes: text("moderator_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User-uploaded photos for providers (like Yelp's photo contributions)
+export const providerPhotos = pgTable("provider_photos", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  providerId: integer("provider_id").references(() => providers.id, { onDelete: "cascade" }).notNull(),
+  imageUrl: varchar("image_url").notNull(),
+  caption: text("caption"),
+  photoType: varchar("photo_type", { enum: ["exterior", "interior", "playground", "classroom", "activity", "other"] }).default("other"),
+  status: varchar("status", { enum: ["pending", "approved", "rejected"] }).default("pending"),
+  moderatorId: varchar("moderator_id").references(() => users.id),
+  moderatorNotes: text("moderator_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Track helpful votes on reviews (like Yelp's "Useful" feature)
+export const reviewVotes = pgTable("review_votes", {
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  reviewId: integer("review_id").references(() => reviews.id, { onDelete: "cascade" }).notNull(),
+  voteType: varchar("vote_type", { enum: ["helpful", "not_helpful"] }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.reviewId] }),
+}));
+
 // Provider Locations - supports multiple locations per provider
 export const providerLocations = pgTable("provider_locations", {
   id: serial("id").primaryKey(),
@@ -195,6 +237,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   reviews: many(reviews),
   favorites: many(favorites),
   inquiries: many(inquiries),
+  providerUpdates: many(providerUpdates),
+  providerPhotos: many(providerPhotos),
+  reviewVotes: many(reviewVotes),
 }));
 
 export const providersRelations = relations(providers, ({ one, many }) => ({
@@ -206,15 +251,36 @@ export const providersRelations = relations(providers, ({ one, many }) => ({
   locations: many(providerLocations),
   programs: many(providerPrograms),
   amenities: many(providerAmenities),
+  userUpdates: many(providerUpdates),
+  userPhotos: many(providerPhotos),
 }));
 
 export const providerImagesRelations = relations(providerImages, ({ one }) => ({
   provider: one(providers, { fields: [providerImages.providerId], references: [providers.id] }),
 }));
 
-export const reviewsRelations = relations(reviews, ({ one }) => ({
+export const reviewsRelations = relations(reviews, ({ one, many }) => ({
   provider: one(providers, { fields: [reviews.providerId], references: [providers.id] }),
   user: one(users, { fields: [reviews.userId], references: [users.id] }),
+  votes: many(reviewVotes),
+}));
+
+// Relations for new tables
+export const providerUpdatesRelations = relations(providerUpdates, ({ one }) => ({
+  user: one(users, { fields: [providerUpdates.userId], references: [users.id] }),
+  provider: one(providers, { fields: [providerUpdates.providerId], references: [providers.id] }),
+  moderator: one(users, { fields: [providerUpdates.moderatorId], references: [users.id] }),
+}));
+
+export const providerPhotosRelations = relations(providerPhotos, ({ one }) => ({
+  user: one(users, { fields: [providerPhotos.userId], references: [users.id] }),
+  provider: one(providers, { fields: [providerPhotos.providerId], references: [providers.id] }),
+  moderator: one(users, { fields: [providerPhotos.moderatorId], references: [users.id] }),
+}));
+
+export const reviewVotesRelations = relations(reviewVotes, ({ one }) => ({
+  user: one(users, { fields: [reviewVotes.userId], references: [users.id] }),
+  review: one(reviews, { fields: [reviewVotes.reviewId], references: [reviews.id] }),
 }));
 
 export const favoritesRelations = relations(favorites, ({ one }) => ({
@@ -321,6 +387,29 @@ export const insertProviderAmenitySchema = createInsertSchema(providerAmenities)
   createdAt: true,
 });
 
+// New schemas for user contributions
+export const insertProviderUpdateSchema = createInsertSchema(providerUpdates).omit({
+  id: true,
+  status: true,
+  moderatorId: true,
+  moderatorNotes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertProviderPhotoSchema = createInsertSchema(providerPhotos).omit({
+  id: true,
+  status: true,
+  moderatorId: true,
+  moderatorNotes: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertReviewVoteSchema = createInsertSchema(reviewVotes).omit({
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -339,3 +428,11 @@ export type ProviderProgram = typeof providerPrograms.$inferSelect;
 export type InsertProviderProgram = z.infer<typeof insertProviderProgramSchema>;
 export type ProviderAmenity = typeof providerAmenities.$inferSelect;
 export type InsertProviderAmenity = z.infer<typeof insertProviderAmenitySchema>;
+
+// New types for user contributions
+export type ProviderUpdate = typeof providerUpdates.$inferSelect;
+export type InsertProviderUpdate = z.infer<typeof insertProviderUpdateSchema>;
+export type ProviderPhoto = typeof providerPhotos.$inferSelect;
+export type InsertProviderPhoto = z.infer<typeof insertProviderPhotoSchema>;
+export type ReviewVote = typeof reviewVotes.$inferSelect;
+export type InsertReviewVote = z.infer<typeof insertReviewVoteSchema>;

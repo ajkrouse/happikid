@@ -2,8 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertProviderSchema, insertReviewSchema, insertInquirySchema } from "@shared/schema";
+import { 
+  insertProviderSchema, 
+  insertReviewSchema, 
+  insertInquirySchema,
+  insertProviderUpdateSchema,
+  insertProviderPhotoSchema,
+  insertReviewVoteSchema
+} from "@shared/schema";
 import { z } from "zod";
+import { ObjectStorageService } from "./objectStorage";
 
 // Sample data function for testing
 async function addSampleData() {
@@ -16915,6 +16923,199 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error adding provider image:", error);
       res.status(500).json({ message: "Failed to add image" });
+    }
+  });
+
+  // Object storage setup
+  app.get("/public-objects/:filePath(*)", async (req, res) => {
+    const filePath = req.params.filePath;
+    try {
+      const { ObjectStorageService } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req: any, res) => {
+    const userId = req.user?.claims?.sub;
+    try {
+      const { ObjectStorageService, ObjectNotFoundError, ObjectPermission } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error checking object access:", error);
+      const { ObjectNotFoundError } = await import("./objectStorage");
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+    try {
+      const { ObjectStorageService } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // User contribution endpoints for Yelp-style features
+  
+  // Provider information updates (suggest an edit)
+  app.post('/api/providers/:id/suggest-update', isAuthenticated, async (req: any, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const updateData = insertProviderUpdateSchema.parse({
+        ...req.body,
+        userId,
+        providerId
+      });
+
+      const providerUpdate = await storage.createProviderUpdate(updateData);
+      res.status(201).json(providerUpdate);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      console.error("Error creating provider update:", error);
+      res.status(500).json({ message: "Failed to create update" });
+    }
+  });
+
+  app.get('/api/providers/:id/updates', async (req, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const updates = await storage.getProviderUpdates(providerId);
+      res.json(updates);
+    } catch (error) {
+      console.error("Error fetching provider updates:", error);
+      res.status(500).json({ message: "Failed to fetch updates" });
+    }
+  });
+
+  // User-contributed photos
+  app.post('/api/providers/:id/contribute-photo', isAuthenticated, async (req: any, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      if (!req.body.imageUrl) {
+        return res.status(400).json({ error: "imageUrl is required" });
+      }
+
+      const photoData = insertProviderPhotoSchema.parse({
+        ...req.body,
+        userId,
+        providerId
+      });
+
+      // Set ACL policy for the uploaded photo
+      try {
+        const { ObjectStorageService } = await import("./objectStorage");
+        const objectStorageService = new ObjectStorageService();
+        await objectStorageService.trySetObjectEntityAclPolicy(req.body.imageUrl, {
+          owner: userId,
+          visibility: "public", // Photos are public once approved
+        });
+      } catch (error) {
+        console.error("Error setting photo ACL:", error);
+      }
+
+      const photo = await storage.createProviderPhoto(photoData);
+      res.status(201).json(photo);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid photo data", errors: error.errors });
+      }
+      console.error("Error creating provider photo:", error);
+      res.status(500).json({ message: "Failed to add photo" });
+    }
+  });
+
+  app.get('/api/providers/:id/user-photos', async (req, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const photos = await storage.getProviderPhotos(providerId);
+      // Only return approved photos to public
+      const approvedPhotos = photos.filter(photo => photo.status === 'approved');
+      res.json(approvedPhotos);
+    } catch (error) {
+      console.error("Error fetching provider photos:", error);
+      res.status(500).json({ message: "Failed to fetch photos" });
+    }
+  });
+
+  // Review voting (helpful/not helpful)
+  app.post('/api/reviews/:id/vote', isAuthenticated, async (req: any, res) => {
+    try {
+      const reviewId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const voteData = insertReviewVoteSchema.parse({
+        ...req.body,
+        userId,
+        reviewId
+      });
+
+      const vote = await storage.createReviewVote(voteData);
+      res.status(201).json(vote);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid vote data", errors: error.errors });
+      }
+      console.error("Error creating review vote:", error);
+      res.status(500).json({ message: "Failed to record vote" });
+    }
+  });
+
+  app.get('/api/reviews/:id/votes', async (req, res) => {
+    try {
+      const reviewId = parseInt(req.params.id);
+      const votes = await storage.getReviewVotes(reviewId);
+      
+      // Aggregate vote counts
+      const helpful = votes.filter(v => v.voteType === 'helpful').length;
+      const notHelpful = votes.filter(v => v.voteType === 'not_helpful').length;
+      
+      res.json({ helpful, notHelpful, total: votes.length });
+    } catch (error) {
+      console.error("Error fetching review votes:", error);
+      res.status(500).json({ message: "Failed to fetch votes" });
+    }
+  });
+
+  app.get('/api/reviews/:id/user-vote', isAuthenticated, async (req: any, res) => {
+    try {
+      const reviewId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      const vote = await storage.getUserReviewVote(userId, reviewId);
+      res.json(vote || null);
+    } catch (error) {
+      console.error("Error fetching user vote:", error);
+      res.status(500).json({ message: "Failed to fetch user vote" });
     }
   });
 

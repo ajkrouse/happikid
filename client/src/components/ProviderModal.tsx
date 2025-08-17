@@ -38,6 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ProviderContributions } from "./ProviderContributions";
+import { ReviewVoting } from "./ReviewVoting";
 
 interface ProviderModalProps {
   provider: Provider | null;
@@ -430,12 +432,16 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                               </span>
                             </div>
                             <p className="text-gray-600">{review.content}</p>
+                            <ReviewVoting reviewId={review.id} />
                           </CardContent>
                         </Card>
                       ))}
                     </div>
                   </div>
                 )}
+
+                {/* User Contributions */}
+                <ProviderContributions providerId={currentProvider.id} provider={currentProvider} />
               </div>
 
               {/* Sidebar */}

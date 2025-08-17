@@ -25,6 +25,15 @@ import {
   type InsertProviderProgram,
   type ProviderAmenity,
   type InsertProviderAmenity,
+  providerUpdates,
+  providerPhotos,
+  reviewVotes,
+  type ProviderUpdate,
+  type InsertProviderUpdate,
+  type ProviderPhoto,
+  type InsertProviderPhoto,
+  type ReviewVote,
+  type InsertReviewVote,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray } from "drizzle-orm";
@@ -89,6 +98,23 @@ export interface IStorage {
   getProviderAmenities(providerId: number): Promise<ProviderAmenity[]>;
   addProviderAmenity(amenity: InsertProviderAmenity): Promise<ProviderAmenity>;
   deleteProviderAmenity(id: number): Promise<void>;
+  
+  // User contribution operations
+  createProviderUpdate(update: InsertProviderUpdate): Promise<ProviderUpdate>;
+  getProviderUpdates(providerId: number): Promise<ProviderUpdate[]>;
+  updateProviderUpdateStatus(updateId: number, status: "pending" | "approved" | "rejected", moderatorId?: string, notes?: string): Promise<ProviderUpdate>;
+  
+  createProviderPhoto(photo: InsertProviderPhoto): Promise<ProviderPhoto>;
+  getProviderPhotos(providerId: number): Promise<ProviderPhoto[]>;
+  updateProviderPhotoStatus(photoId: number, status: "pending" | "approved" | "rejected", moderatorId?: string, notes?: string): Promise<ProviderPhoto>;
+  
+  createReviewVote(vote: InsertReviewVote): Promise<ReviewVote>;
+  getReviewVotes(reviewId: number): Promise<ReviewVote[]>;
+  getUserReviewVote(userId: string, reviewId: number): Promise<ReviewVote | undefined>;
+  
+  // Get provider statistics
+  getProviderStats(): Promise<{ count: number; breakdown: Record<string, number> }>;
+  getFeaturedProviders(limit?: number): Promise<Provider[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -420,6 +446,129 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProviderAmenity(id: number): Promise<void> {
     await db.delete(providerAmenities).where(eq(providerAmenities.id, id));
+  }
+
+  // User contribution operations
+  async createProviderUpdate(update: InsertProviderUpdate): Promise<ProviderUpdate> {
+    const [newUpdate] = await db.insert(providerUpdates).values(update).returning();
+    return newUpdate;
+  }
+
+  async getProviderUpdates(providerId: number): Promise<ProviderUpdate[]> {
+    return await db
+      .select()
+      .from(providerUpdates)
+      .where(eq(providerUpdates.providerId, providerId))
+      .orderBy(desc(providerUpdates.createdAt));
+  }
+
+  async updateProviderUpdateStatus(
+    updateId: number, 
+    status: "pending" | "approved" | "rejected", 
+    moderatorId?: string, 
+    notes?: string
+  ): Promise<ProviderUpdate> {
+    const [updated] = await db
+      .update(providerUpdates)
+      .set({ 
+        status, 
+        moderatorId, 
+        moderatorNotes: notes,
+        updatedAt: new Date() 
+      })
+      .where(eq(providerUpdates.id, updateId))
+      .returning();
+    return updated;
+  }
+
+  async createProviderPhoto(photo: InsertProviderPhoto): Promise<ProviderPhoto> {
+    const [newPhoto] = await db.insert(providerPhotos).values(photo).returning();
+    return newPhoto;
+  }
+
+  async getProviderPhotos(providerId: number): Promise<ProviderPhoto[]> {
+    return await db
+      .select()
+      .from(providerPhotos)
+      .where(eq(providerPhotos.providerId, providerId))
+      .orderBy(desc(providerPhotos.createdAt));
+  }
+
+  async updateProviderPhotoStatus(
+    photoId: number, 
+    status: "pending" | "approved" | "rejected", 
+    moderatorId?: string, 
+    notes?: string
+  ): Promise<ProviderPhoto> {
+    const [updated] = await db
+      .update(providerPhotos)
+      .set({ 
+        status, 
+        moderatorId, 
+        moderatorNotes: notes,
+        updatedAt: new Date() 
+      })
+      .where(eq(providerPhotos.id, photoId))
+      .returning();
+    return updated;
+  }
+
+  async createReviewVote(vote: InsertReviewVote): Promise<ReviewVote> {
+    const [newVote] = await db
+      .insert(reviewVotes)
+      .values(vote)
+      .onConflictDoUpdate({
+        target: [reviewVotes.userId, reviewVotes.reviewId],
+        set: { voteType: vote.voteType, createdAt: new Date() }
+      })
+      .returning();
+    return newVote;
+  }
+
+  async getReviewVotes(reviewId: number): Promise<ReviewVote[]> {
+    return await db
+      .select()
+      .from(reviewVotes)
+      .where(eq(reviewVotes.reviewId, reviewId));
+  }
+
+  async getUserReviewVote(userId: string, reviewId: number): Promise<ReviewVote | undefined> {
+    const [vote] = await db
+      .select()
+      .from(reviewVotes)
+      .where(and(eq(reviewVotes.userId, userId), eq(reviewVotes.reviewId, reviewId)));
+    return vote;
+  }
+
+  // Provider statistics methods
+  async getProviderStats(): Promise<{ count: number; breakdown: Record<string, number> }> {
+    const totalCount = await db.select({ count: sql<number>`cast(count(*) as int)` }).from(providers);
+    
+    const breakdown = await db
+      .select({
+        type: providers.type,
+        count: sql<number>`cast(count(*) as int)`,
+      })
+      .from(providers)
+      .groupBy(providers.type);
+    
+    const breakdownRecord: Record<string, number> = {};
+    breakdown.forEach(item => {
+      breakdownRecord[item.type] = item.count;
+    });
+    
+    return {
+      count: totalCount[0]?.count || 0,
+      breakdown: breakdownRecord,
+    };
+  }
+
+  async getFeaturedProviders(limit: number = 6): Promise<Provider[]> {
+    return await db
+      .select()
+      .from(providers)
+      .orderBy(desc(providers.rating), desc(providers.reviewCount))
+      .limit(limit);
   }
 }
 
