@@ -171,6 +171,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     enabled: !!provider?.id && isAuthenticated && isOpen,
   });
 
+  const typedProviderDetails = providerDetails as (Provider & { reviews?: Review[]; images?: ProviderImage[] }) | undefined;
   const isFavorite = favoriteData?.isFavorite || false;
 
   // Toggle favorite mutation
@@ -278,7 +279,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
 
   if (!provider) return null;
 
-  const currentProvider = providerDetails || provider;
+  const currentProvider = typedProviderDetails || provider;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -407,11 +408,11 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                 )}
 
                 {/* Reviews */}
-                {providerDetails?.reviews && providerDetails.reviews.length > 0 && (
+                {typedProviderDetails?.reviews && typedProviderDetails.reviews.length > 0 && (
                   <div>
                     <h3 className="text-xl font-semibold mb-4">What Parents Say</h3>
                     <div className="space-y-4">
-                      {providerDetails.reviews.slice(0, 3).map((review: Review) => (
+                      {typedProviderDetails.reviews.slice(0, 3).map((review: Review) => (
                         <Card key={review.id}>
                           <CardContent className="p-4">
                             <div className="flex items-center mb-2">
