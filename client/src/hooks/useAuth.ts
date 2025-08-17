@@ -4,7 +4,7 @@ import { mockAuth, type MockUser } from "@/lib/mockAuth";
 
 export function useAuth() {
   const [mockUser, setMockUser] = useState<MockUser | null>(mockAuth.getCurrentUser());
-  const [useMockAuth] = useState(true); // Toggle this to switch between real and mock auth
+  const [useMockAuth] = useState(true); // Using mock auth to bypass Replit Auth issues
 
   // Subscribe to mock auth changes
   useEffect(() => {

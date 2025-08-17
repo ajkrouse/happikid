@@ -23,7 +23,7 @@ interface ProviderCardProps {
 }
 
 export default function ProviderCard({ provider, onViewDetails, onRequestInfo, onAddToComparison, onRemoveFromComparison, isInComparison = false }: ProviderCardProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, signIn } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -253,7 +253,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
         action: (
           <Button 
             size="sm" 
-            onClick={() => window.location.href = '/api/login'}
+            onClick={signIn}
             className="ml-2"
           >
             Sign In

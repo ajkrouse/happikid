@@ -196,15 +196,17 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     },
   });
 
-  const handleFavoriteToggle = () => {
+  const { signIn } = useAuth();
+
+  const handleFavoriteToggle = async () => {
     if (!isAuthenticated) {
       toast({
-        title: "Sign In Required",
+        title: "Sign In Required", 
         description: "Please sign in to save favorites.",
         action: (
           <Button 
             size="sm" 
-            onClick={() => window.location.href = '/api/login'}
+            onClick={() => signIn()}
             className="ml-2"
           >
             Sign In
