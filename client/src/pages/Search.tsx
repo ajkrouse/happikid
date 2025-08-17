@@ -1177,22 +1177,60 @@ export default function SearchPage() {
                 <CardContent>
                   <SearchIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No providers found
+                    No providers found for your search
                   </h3>
-                  <p className="text-gray-600 mb-4">
-                    Try adjusting your search criteria or filters to find more options.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setSearchQuery("");
-                      setFilters({});
-                      setCurrentPage(1);
-                      refetch();
-                    }}
-                  >
-                    Clear Search
-                  </Button>
+                  <div className="text-gray-600 mb-6 space-y-2">
+                    <p>
+                      We couldn't find any providers matching your current filters.
+                    </p>
+                    {filters.type && filters.ageRange && (
+                      <p className="text-sm bg-yellow-50 border border-yellow-200 rounded-lg p-3 inline-block">
+                        <strong>Tip:</strong> {getTypeLabel(filters.type)} programs typically serve{" "}
+                        {filters.type === 'daycare' && 'infants through preschool age (0-5 years)'}
+                        {filters.type === 'afterschool' && 'school-age children (5+ years)'}
+                        {filters.type === 'school' && 'preschool through elementary age (3-12 years)'}
+                        {filters.type === 'camp' && 'all ages with age-specific programs'}
+                        . Try adjusting the age range filter.
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSearchQuery("");
+                        setFilters({});
+                        setCurrentPage(1);
+                        refetch();
+                      }}
+                    >
+                      Clear All Filters
+                    </Button>
+                    {filters.ageRange && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setFilters(prev => ({ ...prev, ageRange: undefined }));
+                          setCurrentPage(1);
+                          refetch();
+                        }}
+                      >
+                        Remove Age Filter
+                      </Button>
+                    )}
+                    {filters.borough && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setFilters(prev => ({ ...prev, borough: undefined }));
+                          setCurrentPage(1);
+                          refetch();
+                        }}
+                      >
+                        Remove Location Filter
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )}

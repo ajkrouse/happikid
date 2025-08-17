@@ -105,27 +105,27 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
           <Label className="text-sm font-medium text-gray-700 mb-3 block">
             Age Group
           </Label>
-          <div className="space-y-3">
+          <RadioGroup value={filters.ageRange || "all"} onValueChange={handleAgeRangeChange}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="all" id="age-all" />
+              <Label htmlFor="age-all" className="text-sm text-gray-700">
+                All Ages
+              </Label>
+            </div>
             {[
-              { id: "0-1", label: "Infants (0-12 months)", value: "infants" },
-              { id: "1-3", label: "Toddlers (1-3 years)", value: "toddlers" },
-              { id: "3-5", label: "Preschool (3-5 years)", value: "preschool" },
-              { id: "5+", label: "School Age (5+ years)", value: "school-age" },
+              { id: "infants", label: "Infants (0-12 months)", value: "infants" },
+              { id: "toddlers", label: "Toddlers (1-3 years)", value: "toddlers" },
+              { id: "preschool", label: "Preschool (3-5 years)", value: "preschool" },
+              { id: "school-age", label: "School Age (5+ years)", value: "school-age" },
             ].map((age) => (
               <div key={age.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={age.id}
-                  checked={filters.ageRange === age.value}
-                  onCheckedChange={(checked) => 
-                    handleAgeRangeChange(checked ? age.value : "all")
-                  }
-                />
+                <RadioGroupItem value={age.value} id={age.id} />
                 <Label htmlFor={age.id} className="text-sm text-gray-700">
                   {age.label}
                 </Label>
               </div>
             ))}
-          </div>
+          </RadioGroup>
         </div>
 
         {/* Price Range */}
