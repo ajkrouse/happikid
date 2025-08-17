@@ -10,7 +10,8 @@ async function addSampleData() {
   try {
     // Check if we already have providers
     const existingProviders = await storage.getProviders({ limit: 1 });
-    if (existingProviders.length > 0) {
+    const providersArray = Array.isArray(existingProviders) ? existingProviders : existingProviders.providers;
+    if (providersArray.length > 0) {
       return; // Sample data already exists
     }
 
@@ -16358,11 +16359,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/providers/stats', async (req, res) => {
     try {
       // Get total count
-      const totalProviders = await storage.getProviders({ limit: 10000 });
-      const totalCount = totalProviders.length;
+      const result = await storage.getProviders({ limit: 10000 });
+      const providersArray = Array.isArray(result) ? result : result.providers;
+      const totalCount = providersArray.length;
       
       // Get breakdown by type
-      const typeBreakdown = totalProviders.reduce((acc: {[key: string]: number}, provider) => {
+      const typeBreakdown = providersArray.reduce((acc: {[key: string]: number}, provider: any) => {
         acc[provider.type] = (acc[provider.type] || 0) + 1;
         return acc;
       }, {});

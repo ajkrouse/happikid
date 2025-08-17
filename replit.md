@@ -1,7 +1,7 @@
 # HappiKid - Childcare Provider Directory
 
 ## Overview
-HappiKid is a full-stack web application designed to connect parents with childcare providers in the New York City metropolitan area. Its primary purpose is to enable parents to efficiently search, compare, and review childcare services, while empowering providers to manage their profiles and respond to inquiries. The platform aims to be a trust-first marketplace, leveraging AI-powered search capabilities to simplify the childcare search process. It covers over 510 verified providers across 23 counties in NY, NJ, and CT, focusing on transit-accessible commuter areas.
+HappiKid is a full-stack web application designed to connect parents with childcare providers in the New York City metropolitan area. Its primary purpose is to enable parents to efficiently search, compare, and review childcare services, while empowering providers to manage their profiles and respond to inquiries. The platform aims to be a trust-first marketplace, leveraging AI-powered search capabilities to simplify the childcare search process. It now features **630 verified providers** across 23+ counties in NY, NJ, and CT, with comprehensive coverage in key commuter areas including Jersey City downtown (07302), Hoboken, and Heights neighborhoods.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -28,6 +28,7 @@ Preferred communication style: Simple, everyday language.
 - **Provider Management**: Comprehensive profiles for providers, allowing management of basic information, location, services, pricing, amenities, and photo galleries, accessible via a dedicated dashboard.
 - **Data Flow**: Defined flows for user authentication, search operations, and provider-parent interactions (inquiries, favoriting).
 - **UI/UX Decisions**: Focus on a clean, user-friendly interface with consistent styling, sticky navigation, and improved responsiveness. Dynamic display of provider details, including pricing, age ranges, and license status. Onboarding flows are designed for clarity and ease of use for both parents and providers.
+- **Homepage Display**: Features prominently displayed total provider count (630+ verified providers) with real-time database updates, building trust and showcasing platform scale.
 
 ## External Dependencies
 
