@@ -54,6 +54,11 @@ export default function Landing() {
     queryKey: ['/api/providers/featured', { limit: 6 }],
   });
 
+  // Fetch total provider count for homepage display
+  const { data: totalCount } = useQuery<{count: number}>({
+    queryKey: ['/api/providers/stats'],
+  });
+
   // Create a reusable favorite toggle handler
   const handleFavoriteToggle = (provider: Provider) => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -252,10 +257,15 @@ export default function Landing() {
                 <div>For Your Family</div>
               </div>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
               Discover daycares, after-school programs, camps, and private schools in the NYC tri-state area. 
               Make confident decisions in minutes, not hours.
             </p>
+            {totalCount && (
+              <div className="text-lg text-gray-700 font-semibold mb-8">
+                <span className="text-primary text-2xl font-bold">{totalCount.count.toLocaleString()}</span> verified childcare providers across NY, NJ, and CT
+              </div>
+            )}
 
             {/* Natural Language Search */}
             <div className="max-w-4xl mx-auto mb-8">

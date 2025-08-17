@@ -16354,6 +16354,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Provider stats endpoint - returns total count and breakdown by type
+  app.get('/api/providers/stats', async (req, res) => {
+    try {
+      // Get total count
+      const totalProviders = await storage.getProviders({ limit: 10000 });
+      const totalCount = totalProviders.length;
+      
+      // Get breakdown by type
+      const typeBreakdown = totalProviders.reduce((acc: {[key: string]: number}, provider) => {
+        acc[provider.type] = (acc[provider.type] || 0) + 1;
+        return acc;
+      }, {});
+      
+      res.json({
+        count: totalCount,
+        breakdown: typeBreakdown
+      });
+    } catch (error) {
+      console.error("Error fetching provider stats:", error);
+      res.status(500).json({ message: "Failed to fetch provider stats" });
+    }
+  });
+
   // Provider routes
   app.get('/api/providers', async (req, res) => {
     try {
