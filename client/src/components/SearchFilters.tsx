@@ -89,13 +89,30 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Locations</SelectItem>
-              <SelectItem value="Manhattan">Manhattan</SelectItem>
-              <SelectItem value="Brooklyn">Brooklyn</SelectItem>
-              <SelectItem value="Queens">Queens</SelectItem>
-              <SelectItem value="Bronx">Bronx</SelectItem>
-              <SelectItem value="Staten Island">Staten Island</SelectItem>
-              <SelectItem value="New Jersey">New Jersey</SelectItem>
-              <SelectItem value="Connecticut">Connecticut</SelectItem>
+              <optgroup label="NYC Boroughs">
+                <SelectItem value="Manhattan">Manhattan</SelectItem>
+                <SelectItem value="Brooklyn">Brooklyn</SelectItem>
+                <SelectItem value="Queens">Queens</SelectItem>
+                <SelectItem value="Bronx">Bronx</SelectItem>
+                <SelectItem value="Staten Island">Staten Island</SelectItem>
+              </optgroup>
+              <optgroup label="New Jersey Counties">
+                <SelectItem value="Hudson County">Hudson County, NJ</SelectItem>
+                <SelectItem value="Bergen County">Bergen County, NJ</SelectItem>
+                <SelectItem value="Monmouth County">Monmouth County, NJ</SelectItem>
+                <SelectItem value="Morris County">Morris County, NJ</SelectItem>
+                <SelectItem value="Essex County">Essex County, NJ</SelectItem>
+              </optgroup>
+              <optgroup label="Other NY Counties">
+                <SelectItem value="Nassau County">Nassau County, NY</SelectItem>
+                <SelectItem value="Suffolk County">Suffolk County, NY</SelectItem>
+                <SelectItem value="Westchester County">Westchester County, NY</SelectItem>
+              </optgroup>
+              <optgroup label="Connecticut">
+                <SelectItem value="Fairfield County">Fairfield County, CT</SelectItem>
+                <SelectItem value="Hartford County">Hartford County, CT</SelectItem>
+                <SelectItem value="New Haven County">New Haven County, CT</SelectItem>
+              </optgroup>
             </SelectContent>
           </Select>
         </div>
