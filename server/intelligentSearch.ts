@@ -102,7 +102,7 @@ const AGE_TERMS: { [key: string]: { min: number; max: number } } = {
 const FEATURES: { [key: string]: string[] } = {
   'outdoor': ['Outdoor playground', 'outdoor', 'playground', 'garden', 'nature', 'fresh air'],
   'music': ['Music classes', 'music', 'musical', 'singing', 'instruments'],
-  'art': ['Art studio', 'art', 'creative arts', 'arts and crafts', 'painting', 'drawing'],
+  'art': ['Creative arts', 'art', 'arts and crafts', 'painting', 'drawing'], // Removed 'creative arts' from art to avoid confusion
   'cooking': ['Cooking classes', 'cooking', 'culinary', 'kitchen', 'nutrition education'],
   'gymnastics': ['Gymnastics', 'gymnastics', 'physical education', 'movement', 'exercise'],
   'transportation': ['Transportation', 'bus service', 'pickup', 'drop off', 'shuttle'],
@@ -357,6 +357,19 @@ export class IntelligentSearchService {
   private extractFeatures(query: string): string[] {
     const matchedFeatures: string[] = [];
     
+    // Prioritize specific program matches - return ONLY the most specific match
+    if (query.includes('music')) {
+      return ['Music classes']; // Return immediately with only music classes
+    } else if (query.includes('art') && !query.includes('music')) {
+      return ['Creative arts']; // Return immediately with only art
+    } else if (query.includes('cooking')) {
+      return ['Cooking classes'];
+    } else if (query.includes('gymnastics')) {
+      return ['Gymnastics'];
+    } else if (query.includes('swimming') || query.includes('pool')) {
+      return ['Swimming pool'];
+    }
+    
     // Check educational philosophies
     for (const [philosophy, terms] of Object.entries(EDUCATIONAL_PHILOSOPHIES)) {
       for (const term of terms) {
@@ -367,12 +380,14 @@ export class IntelligentSearchService {
       }
     }
     
-    // Check features
-    for (const [featureKey, variations] of Object.entries(FEATURES)) {
-      for (const variation of variations) {
-        if (query.includes(variation.toLowerCase())) {
-          matchedFeatures.push(variations[0]); // Use the canonical term
-          break;
+    // Only check broader features if no specific programs were found
+    if (matchedFeatures.length === 0) {
+      for (const [featureKey, variations] of Object.entries(FEATURES)) {
+        for (const variation of variations) {
+          if (query.includes(variation.toLowerCase())) {
+            matchedFeatures.push(variations[0]); // Use the canonical term
+            break;
+          }
         }
       }
     }

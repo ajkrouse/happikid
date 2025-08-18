@@ -4,6 +4,7 @@
 HappiKid is a full-stack web application designed to connect parents with childcare providers in the New York City metropolitan area. Its primary purpose is to enable parents to efficiently search, compare, and review childcare services, while empowering providers to manage their profiles and respond to inquiries. The platform aims to be a trust-first marketplace, leveraging AI-powered search capabilities to simplify the childcare search process. It now features **630 verified providers** across 23+ counties in NY, NJ, and CT, with comprehensive coverage in key commuter areas including Jersey City downtown (07302), Hoboken, and Heights neighborhoods.
 
 ## Recent Changes (August 2025)
+- **Intelligent Search Enhancement**: Fixed critical bug in feature extraction where music class searches returned photography schools. Enhanced intelligent search to prioritize exact program matches (e.g., "Music classes") over broad categories, ensuring precise results.
 - **Hierarchical Location Filtering**: Implemented county-first filtering that expands to show specific cities with accurate provider counts (e.g., Hudson County, NJ (141) → Jersey City (88), Hoboken (50))
 - **Enhanced Search UX**: Fixed age range filtering with radio buttons instead of confusing checkboxes, improved empty state messaging with actionable suggestions
 - **Database Structure Optimization**: All providers now properly organized by county and city fields for precise geographic filtering
