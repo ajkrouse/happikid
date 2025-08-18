@@ -3,6 +3,9 @@ import ProviderCard from "@/components/ProviderCard";
 import SearchFilters from "@/components/SearchFilters";
 import ProviderModal from "@/components/ProviderModal";
 import ComparisonModal from "@/components/ComparisonModal";
+import { SearchInsights } from "@/components/SearchInsights";
+import { ConversationalSearch } from "@/components/ConversationalSearch";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1022,25 +1025,36 @@ export default function SearchPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search Header */}
         <div className="mb-8">
-          <div className="relative max-w-4xl mx-auto">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <SearchIcon className="h-5 w-5 text-gray-400" />
+          <div className="flex max-w-4xl mx-auto gap-2">
+            <div className="flex-1">
+              <SearchAutocomplete
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSelect={(query) => {
+                  setSearchQuery(query);
+                  setTimeout(handleSearch, 100);
+                }}
+                placeholder="Try: 'Montessori programs in Jersey City' or 'after school for 6 year olds'"
+              />
             </div>
-            <Input
-              type="text"
-              placeholder="Search for childcare providers..."
-              className="w-full pl-12 pr-28 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
             <Button 
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 rounded-lg font-medium h-[calc(100%-16px)] flex items-center justify-center"
+              className="px-6 rounded-xl font-medium h-[54px] flex items-center justify-center"
               onClick={handleSearch}
             >
               Search
             </Button>
           </div>
+        </div>
+
+        {/* Conversational Search Examples */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <ConversationalSearch 
+            onSearch={(query) => {
+              setSearchQuery(query);
+              setTimeout(handleSearch, 100);
+            }}
+            currentQuery={searchQuery}
+          />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -1055,6 +1069,14 @@ export default function SearchPage() {
 
           {/* Results */}
           <div className="lg:w-3/4">
+            {/* Search Insights */}
+            {searchQuery && providerResponse?.searchMetadata && (
+              <SearchInsights 
+                metadata={providerResponse.searchMetadata}
+                resultsCount={providers.length}
+              />
+            )}
+
             {/* Results Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>

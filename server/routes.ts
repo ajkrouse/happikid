@@ -16439,6 +16439,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test intelligent search endpoint - for development/testing
+  app.get('/api/search/test', async (req, res) => {
+    const { q } = req.query;
+    if (!q || typeof q !== 'string') {
+      return res.status(400).json({ error: 'Query parameter "q" is required' });
+    }
+
+    try {
+      const parsed = intelligentSearch.parseQuery(q);
+      const explanation = intelligentSearch.explainParsing(parsed);
+      
+      res.json({
+        query: q,
+        parsed,
+        explanation,
+        synonyms: intelligentSearch.expandSynonyms(q)
+      });
+    } catch (error) {
+      console.error("Error testing search:", error);
+      res.status(500).json({ error: "Failed to parse search query" });
+    }
+  });
+
   // Provider routes
   app.get('/api/providers', async (req, res) => {
     try {
@@ -16506,6 +16529,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Intelligent search parsed:', {
           originalQuery: parsed.originalQuery,
           matchedTerms: parsed.matchedTerms,
+          confidence: parsed.confidence,
+          suggestions: parsed.suggestions,
           appliedFilters: filters
         });
       }
@@ -16523,7 +16548,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const result = await storage.getProviders(filters);
-      res.json(result);
+      
+      // Add search metadata to response if intelligent search was used
+      if (search && (search as string).trim().length > 0) {
+        const parsed = intelligentSearch.parseQuery(search as string);
+        const searchMetadata = {
+          originalQuery: parsed.originalQuery,
+          parsedTerms: parsed.matchedTerms,
+          confidence: parsed.confidence,
+          suggestions: parsed.suggestions,
+          explanation: intelligentSearch.explainParsing(parsed)
+        };
+
+        // Add metadata to response
+        if (Array.isArray(result)) {
+          res.json({
+            providers: result,
+            total: result.length,
+            searchMetadata
+          });
+        } else {
+          res.json({
+            ...result,
+            searchMetadata
+          });
+        }
+      } else {
+        res.json(result);
+      }
     } catch (error) {
       console.error("Error fetching providers:", error);
       res.status(500).json({ message: "Failed to fetch providers" });

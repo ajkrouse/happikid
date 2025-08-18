@@ -149,6 +149,7 @@ export class DatabaseStorage implements IStorage {
   async getProviders(filters?: {
     type?: string;
     borough?: string;
+    city?: string;
     ageRangeMin?: number;
     ageRangeMax?: number;
     features?: string[];
@@ -179,8 +180,15 @@ export class DatabaseStorage implements IStorage {
       }
 
       if (filters?.search) {
+        // Enhanced search that includes features and address
         conditions.push(
-          sql`${providers.name} ILIKE ${`%${filters.search}%`} OR ${providers.description} ILIKE ${`%${filters.search}%`}`
+          sql`(
+            ${providers.name} ILIKE ${`%${filters.search}%`} OR 
+            ${providers.description} ILIKE ${`%${filters.search}%`} OR
+            array_to_string(${providers.features}, ' ') ILIKE ${`%${filters.search}%`} OR
+            ${providers.address} ILIKE ${`%${filters.search}%`} OR
+            ${providers.city} ILIKE ${`%${filters.search}%`}
+          )`
         );
       }
 
