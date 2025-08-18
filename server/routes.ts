@@ -13,6 +13,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
+import { intelligentSearch } from "./intelligentSearch";
 
 // Sample data function for testing
 async function addSampleData() {
@@ -16473,7 +16474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const filters = {
+      let filters = {
         type: type as string,
         borough: borough as string,
         city: city as string,
@@ -16485,6 +16486,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         offset: parseInt(offset as string),
         returnTotal: true, // Always return total count for pagination
       };
+
+      // Use intelligent search if there's a search query
+      if (search && (search as string).trim().length > 0) {
+        const parsed = intelligentSearch.parseQuery(search as string);
+        
+        // Override filters with intelligent search results, but preserve existing filters
+        filters = {
+          ...filters,
+          type: filters.type || parsed.filters.type,
+          borough: filters.borough || parsed.filters.borough,
+          city: filters.city || parsed.filters.city,
+          ageRangeMin: filters.ageRangeMin || parsed.filters.ageRangeMin,
+          ageRangeMax: filters.ageRangeMax || parsed.filters.ageRangeMax,
+          features: filters.features || parsed.filters.features,
+          search: parsed.filters.search, // Use processed search terms or original query
+        };
+        
+        console.log('Intelligent search parsed:', {
+          originalQuery: parsed.originalQuery,
+          matchedTerms: parsed.matchedTerms,
+          appliedFilters: filters
+        });
+      }
 
       // Debug logging
       console.log('Provider filters received:', {
