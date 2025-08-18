@@ -263,7 +263,7 @@ export default function Landing() {
             </p>
             {totalCount && (
               <div className="text-lg text-gray-700 font-semibold mb-8">
-                <span className="text-primary text-2xl font-bold">{totalCount.count.toLocaleString()}</span> verified childcare providers across NY, NJ, and CT
+We've done the homework — <span className="text-primary text-2xl font-bold">{totalCount.count.toLocaleString()}+</span> trusted care & enrichment programs across NY, NJ & CT… and counting.
               </div>
             )}
 

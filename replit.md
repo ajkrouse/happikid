@@ -33,7 +33,7 @@ Preferred communication style: Simple, everyday language.
 - **Provider Management**: Comprehensive profiles for providers, allowing management of basic information, location, services, pricing, amenities, and photo galleries, accessible via a dedicated dashboard.
 - **Data Flow**: Defined flows for user authentication, search operations, and provider-parent interactions (inquiries, favoriting).
 - **UI/UX Decisions**: Focus on a clean, user-friendly interface with hierarchical location filtering that shows counties first, then expands to specific cities with provider counts. Radio button age range selection, sticky navigation, and improved responsiveness. Dynamic display of provider details, including pricing, age ranges, and license status. Onboarding flows are designed for clarity and ease of use for both parents and providers.
-- **Homepage Display**: Features prominently displayed total provider count (630+ verified providers) with real-time database updates, building trust and showcasing platform scale.
+- **Homepage Display**: Features prominently displayed total provider count with messaging "We've done the homework — 630+ trusted care & enrichment programs across NY, NJ & CT… and counting." Real-time database updates build trust and showcase platform scale.
 
 ## External Dependencies
 
