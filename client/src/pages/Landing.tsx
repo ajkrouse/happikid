@@ -18,7 +18,11 @@ import {
   Facebook,
   Twitter,
   Instagram,
-  Linkedin
+  Linkedin,
+  Star,
+  BookOpen,
+  Smile,
+  Sparkles
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
@@ -231,123 +235,141 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen gradient-warm">
       <Navigation />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16 sm:py-24">
+      <section className="py-20 sm:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 text-center">
-              <div className="flex flex-col items-center space-y-1">
-                <div>Find The Perfect</div>
-                <div className="text-primary relative text-center" style={{ height: '1.2em', minWidth: '280px' }}>
+            {/* Playful header badge */}
+            <div className="mb-8">
+              <div className="inline-flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg mb-4">
+                <Sparkles className="h-5 w-5 text-accent-500" />
+                <span className="text-sm font-semibold text-gray-700">AI-Powered Childcare Discovery</span>
+                <Heart className="h-5 w-5 text-coral-500" />
+              </div>
+            </div>
+            
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 text-shadow-soft">
+              <div className="flex flex-col items-center space-y-2">
+                <div>Find the <span className="text-primary-500">perfect</span></div>
+                <div className="text-coral-500 relative text-center" style={{ height: '1.2em', minWidth: '350px' }}>
                   {childcareTypes.map((type, index) => (
                     <span 
                       key={type} 
-                      className={`absolute left-1/2 top-0 transform -translate-x-1/2 transition-opacity duration-300 ease-in-out whitespace-nowrap ${
-                        index === currentTypeIndex ? 'opacity-100' : 'opacity-0'
+                      className={`absolute left-1/2 top-0 transform -translate-x-1/2 transition-all duration-500 ease-in-out whitespace-nowrap ${
+                        index === currentTypeIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                       }`}
                       style={{ height: '1.2em', lineHeight: '1.2' }}
                     >
-                      {type}
+                      {type} ✨
                     </span>
                   ))}
                 </div>
-                <div>For Your Family</div>
+                <div>for your <span className="text-secondary-500">little ones</span></div>
               </div>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-6 leading-relaxed">
               Discover daycares, after-school programs, camps, and private schools in the NYC tri-state area. 
-              Make confident decisions in minutes, not hours.
+              Make confident decisions in <span className="font-semibold text-primary-600">minutes, not hours</span>.
             </p>
             {totalCount && (
-              <div className="text-lg text-gray-700 font-semibold mb-8">
-We've done the homework — <span className="text-primary text-2xl font-bold">{totalCount.count.toLocaleString()}+</span> trusted care & enrichment programs across NY, NJ & CT… and counting.
+              <div className="mb-10">
+                <div className="inline-flex items-center bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg">
+                  <BookOpen className="h-5 w-5 text-primary-500 mr-2" />
+                  <span className="text-lg text-gray-700">We've done the homework — </span>
+                  <span className="text-primary-600 text-2xl font-bold mx-2">{totalCount.count.toLocaleString()}+</span>
+                  <span className="text-lg text-gray-700"> trusted programs across NY, NJ & CT</span>
+                  <Smile className="h-5 w-5 text-accent-500 ml-2" />
+                </div>
               </div>
             )}
 
-            {/* Natural Language Search */}
-            <div className="max-w-4xl mx-auto mb-8">
+            {/* Playful AI Search Bar */}
+            <div className="max-w-4xl mx-auto mb-12">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
+                  <Search className="h-6 w-6 text-primary-400" />
                 </div>
                 <Input
                   type="text"
-                  placeholder="Try: 'Montessori daycare near Central Park' or 'After-school programs in Brooklyn'"
-                  className="w-full pl-14 pr-32 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-primary h-16 shadow-lg"
+                  placeholder={`"Find a ${childcareTypes[currentTypeIndex]} with outdoor play areas..."`}
+                  className="w-full pl-16 pr-36 py-6 text-lg border-2 border-white/60 bg-white/90 backdrop-blur-sm rounded-3xl focus:border-primary-400 focus:ring-primary-400 focus:bg-white shadow-xl placeholder:text-gray-500 transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
                 />
                 <Button 
-                  className="absolute right-2 top-2 px-6 py-2 rounded-xl font-medium h-12"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 btn-pill bg-primary-500 hover:bg-primary-600 text-white shadow-lg"
                   onClick={handleSearch}
                 >
-                  Search
+                  Just Ask! 🚀
                 </Button>
               </div>
+              <p className="text-sm text-gray-600 mt-3 italic">
+                Try: "Montessori daycare with early drop-off" or "STEM summer camps for 8-year-olds"
+              </p>
             </div>
 
-            {/* Quick Filters */}
-            <div className="flex flex-wrap justify-center gap-3 mb-12">
+            {/* Playful Quick Filters */}
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
               <Button
                 variant="outline"
-                className="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-full border border-gray-200 font-medium"
+                className="bg-white/90 hover:bg-primary-50 hover:border-primary-300 text-gray-700 hover:text-primary-700 px-6 py-3 rounded-full border-2 border-white/60 font-semibold shadow-lg transition-all transform hover:scale-105 backdrop-blur-sm"
                 onClick={() => handleQuickFilter("daycare")}
               >
-                <Baby className="h-4 w-4 mr-2" />
+                <Baby className="h-5 w-5 mr-2 text-coral-500" />
                 Daycare Centers
               </Button>
               <Button
                 variant="outline"
-                className="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-full border border-gray-200 font-medium"
+                className="bg-white/90 hover:bg-secondary-50 hover:border-secondary-300 text-gray-700 hover:text-secondary-700 px-6 py-3 rounded-full border-2 border-white/60 font-semibold shadow-lg transition-all transform hover:scale-105 backdrop-blur-sm"
                 onClick={() => handleQuickFilter("afterschool")}
               >
-                <School className="h-4 w-4 mr-2" />
+                <School className="h-5 w-5 mr-2 text-secondary-500" />
                 After-School Programs
               </Button>
               <Button
                 variant="outline"
-                className="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-full border border-gray-200 font-medium"
+                className="bg-white/90 hover:bg-accent-50 hover:border-accent-300 text-gray-700 hover:text-accent-700 px-6 py-3 rounded-full border-2 border-white/60 font-semibold shadow-lg transition-all transform hover:scale-105 backdrop-blur-sm"
                 onClick={() => handleQuickFilter("camp")}
               >
-                <TreePine className="h-4 w-4 mr-2" />
+                <TreePine className="h-5 w-5 mr-2 text-accent-600" />
                 Summer Camps
               </Button>
               <Button
                 variant="outline"
-                className="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-full border border-gray-200 font-medium"
+                className="bg-white/90 hover:bg-primary-50 hover:border-primary-300 text-gray-700 hover:text-primary-700 px-6 py-3 rounded-full border-2 border-white/60 font-semibold shadow-lg transition-all transform hover:scale-105 backdrop-blur-sm"
                 onClick={() => handleQuickFilter("school")}
               >
-                <GraduationCap className="h-4 w-4 mr-2" />
+                <GraduationCap className="h-5 w-5 mr-2 text-primary-500" />
                 Private Schools
               </Button>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="bg-white p-4 rounded-2xl shadow-sm mb-4 inline-block">
-                  <Shield className="h-8 w-8 text-secondary-500" />
+            {/* Trust Indicators - Playful Style */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <div className="text-center group">
+                <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block transition-all group-hover:scale-105 group-hover:shadow-xl border border-secondary-100">
+                  <Shield className="h-10 w-10 text-secondary-500" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Verified Providers</h3>
-                <p className="text-gray-600">All providers verified through public records and background checks</p>
+                <h3 className="font-bold text-gray-900 mb-2 text-lg">🛡️ Verified Providers</h3>
+                <p className="text-gray-700 leading-relaxed">All providers verified through public records and background checks</p>
               </div>
-              <div className="text-center">
-                <div className="bg-white p-4 rounded-2xl shadow-sm mb-4 inline-block">
-                  <MessageCircle className="h-8 w-8 text-accent-500" />
+              <div className="text-center group">
+                <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block transition-all group-hover:scale-105 group-hover:shadow-xl border border-accent-100">
+                  <MessageCircle className="h-10 w-10 text-accent-500" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Real Parent Reviews</h3>
-                <p className="text-gray-600">Honest feedback from parents who've been there</p>
+                <h3 className="font-bold text-gray-900 mb-2 text-lg">💬 Real Parent Reviews</h3>
+                <p className="text-gray-700 leading-relaxed">Honest feedback from parents who've been there</p>
               </div>
-              <div className="text-center">
-                <div className="bg-white p-4 rounded-2xl shadow-sm mb-4 inline-block">
-                  <Clock className="h-8 w-8 text-primary" />
+              <div className="text-center group">
+                <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block transition-all group-hover:scale-105 group-hover:shadow-xl border border-primary-100">
+                  <Clock className="h-10 w-10 text-primary-500" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Save Time</h3>
-                <p className="text-gray-600">Find the right fit in minutes, not hours of research</p>
+                <h3 className="font-bold text-gray-900 mb-2 text-lg">⚡ Save Time</h3>
+                <p className="text-gray-700 leading-relaxed">Find the right fit in minutes, not hours of research</p>
               </div>
             </div>
           </div>
@@ -355,27 +377,31 @@ We've done the homework — <span className="text-primary text-2xl font-bold">{t
       </section>
 
       {/* Featured Providers Section */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Providers</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Top-rated childcare providers in the NYC tri-state area
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center space-x-2 bg-primary-50 rounded-full px-6 py-3 mb-6">
+              <Star className="h-5 w-5 text-primary-500" />
+              <span className="text-sm font-semibold text-primary-700">Top-Rated Providers</span>
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4 text-shadow-soft">Featured Providers ⭐</h2>
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+              Discover <span className="font-semibold text-primary-600">trusted childcare providers</span> in the NYC tri-state area
             </p>
           </div>
 
           {providersLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[...Array(3)].map((_, index) => (
-                <Card key={index} className="animate-pulse">
-                  <div className="aspect-[4/3] bg-gray-200 rounded-t-lg"></div>
+                <Card key={index} className="card-playful animate-pulse">
+                  <div className="aspect-[4/3] bg-gradient-to-br from-primary-100 to-secondary-100 rounded-t-2xl"></div>
                   <CardContent className="p-6">
-                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-3 w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-4 w-1/2"></div>
+                    <div className="h-6 bg-gray-200 rounded-full mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded-full mb-3 w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded-full mb-4 w-1/2"></div>
                     <div className="flex justify-between items-center">
-                      <div className="h-8 bg-gray-200 rounded w-20"></div>
-                      <div className="h-8 bg-gray-200 rounded w-24"></div>
+                      <div className="h-8 bg-gray-200 rounded-full w-20"></div>
+                      <div className="h-8 bg-gray-200 rounded-full w-24"></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -386,10 +412,10 @@ We've done the homework — <span className="text-primary text-2xl font-bold">{t
               {featuredProviders?.map((provider, index) => (
                 <Card 
                   key={provider.id} 
-                  className="hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
+                  className="card-playful cursor-pointer transition-all transform hover:scale-105 group"
                   onClick={() => handleViewDetails(provider)}
                 >
-                  <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg hover:opacity-90 transition-opacity">
+                  <div className="aspect-[4/3] relative overflow-hidden rounded-t-2xl group-hover:opacity-90 transition-all">
                     <img
                       src={
                         provider.name.includes('Bright Horizons') 
@@ -412,11 +438,11 @@ We've done the homework — <span className="text-primary text-2xl font-bold">{t
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                      className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg backdrop-blur-sm transition-all hover:scale-110"
                       onClick={handleFavoriteToggle(provider)}
                     >
                       <Heart 
-                        className="h-4 w-4 text-gray-600" 
+                        className="h-4 w-4 text-coral-500 hover:text-coral-600" 
                       />
                     </Button>
                   </div>
@@ -458,7 +484,7 @@ We've done the homework — <span className="text-primary text-2xl font-bold">{t
                     <div className="flex flex-wrap gap-2 mb-4">
                       <Badge 
                         variant="secondary"
-                        className="cursor-pointer hover:bg-gray-200"
+                        className="cursor-pointer bg-primary-100 text-primary-700 hover:bg-primary-200 border-0 rounded-full font-medium transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleAgeClick(provider);
@@ -468,7 +494,7 @@ We've done the homework — <span className="text-primary text-2xl font-bold">{t
                       </Badge>
                       <Badge 
                         variant="outline"
-                        className="cursor-pointer hover:bg-gray-100"
+                        className="cursor-pointer bg-secondary-50 text-secondary-700 border-secondary-200 hover:bg-secondary-100 rounded-full font-medium transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleTypeClick(provider.type);
@@ -480,7 +506,7 @@ We've done the homework — <span className="text-primary text-2xl font-bold">{t
                         <Badge 
                           key={feature} 
                           variant="outline" 
-                          className="text-xs cursor-pointer hover:bg-gray-100"
+                          className="text-xs cursor-pointer bg-accent-50 text-accent-700 border-accent-200 hover:bg-accent-100 rounded-full font-medium transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleFeatureClick(feature);
@@ -507,9 +533,9 @@ We've done the homework — <span className="text-primary text-2xl font-bold">{t
                           e.stopPropagation();
                           handleViewDetails(provider);
                         }}
-                        className="shrink-0"
+                        className="shrink-0 btn-pill bg-primary-500 hover:bg-primary-600 text-white shadow-md"
                       >
-                        More Details
+                        Learn More ✨
                       </Button>
                     </div>
                   </CardContent>
@@ -518,10 +544,17 @@ We've done the homework — <span className="text-primary text-2xl font-bold">{t
             </div>
           )}
 
-          <div className="text-center mt-12">
-            <Button size="lg" onClick={() => setLocation("/search")}>
-              View All Providers
+          <div className="text-center mt-16">
+            <Button 
+              size="lg" 
+              onClick={() => setLocation("/search")}
+              className="btn-pill bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white shadow-xl px-8 py-4 text-lg font-semibold"
+            >
+              Explore All 630+ Providers 🚀
             </Button>
+            <p className="text-gray-600 mt-4 italic">
+              Find your perfect match in minutes, not hours
+            </p>
           </div>
         </div>
       </section>

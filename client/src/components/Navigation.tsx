@@ -33,9 +33,10 @@ export default function Navigation() {
       <div className="flex items-center space-x-8">
         {navItems.map((item) => (
           <Link key={item.href} href={item.href}>
-            <span className={`text-sm font-medium transition-colors hover:text-primary cursor-pointer ${
-              location === item.href ? "text-primary" : "text-gray-600"
+            <span className={`text-sm font-medium transition-all hover:scale-105 cursor-pointer ${
+              location === item.href ? "text-primary-600 font-semibold" : "text-gray-700 hover:text-primary-600"
             }`}>
+              {item.label === "Find Care" ? "🔍 " : item.label === "About" ? "❤️ " : ""}
               {item.label}
             </span>
           </Link>
@@ -44,23 +45,26 @@ export default function Navigation() {
 
       <div className="flex items-center space-x-4">
         {isLoading ? (
-          <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
+          <div className="w-20 h-8 bg-gray-200 animate-pulse rounded-full"></div>
         ) : isAuthenticated ? (
           <>
-            <span className="text-sm text-gray-600">
-              Hello, {(user as any)?.firstName || (user as any)?.email}
-            </span>
-            <Button variant="outline" asChild>
+            <div className="bg-primary-50 text-primary-700 px-4 py-2 rounded-full font-medium text-sm">
+              👋 Hello, {(user as any)?.firstName || (user as any)?.email?.split('@')[0]}
+            </div>
+            <Button variant="ghost" className="rounded-full px-6 font-medium transition-all hover:scale-105" asChild>
               <a href="/api/logout">Sign Out</a>
             </Button>
           </>
         ) : (
           <>
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" className="rounded-full px-6 font-medium transition-all hover:scale-105" asChild>
               <a href="/api/login">Sign In</a>
             </Button>
-            <Button onClick={() => setShowRoleSelection(true)}>
-              Get Started
+            <Button 
+              onClick={() => setShowRoleSelection(true)} 
+              className="btn-pill bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white shadow-lg font-semibold"
+            >
+              Get Started ✨
             </Button>
           </>
         )}
@@ -69,14 +73,18 @@ export default function Navigation() {
   );
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50 border-b">
+    <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/">
-            <div className="flex items-center cursor-pointer">
-              <Heart className="h-6 w-6 text-primary mr-2" />
-              <span className="text-xl font-bold text-gray-900">HappiKid</span>
+            <div className="flex items-center cursor-pointer space-x-2">
+              <div className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-bold text-xl px-3 py-1 rounded-full shadow-lg">
+                H
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
+                HappiKid
+              </span>
             </div>
           </Link>
 
