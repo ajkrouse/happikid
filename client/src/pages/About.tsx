@@ -148,67 +148,102 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">What Makes HappiKid Different</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Unlike existing platforms, HappiKid is built from the ground up as a parent-first experience.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            <Card className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <Card className="p-8">
+              <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
+                <Heart className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Built for Parents, Not Providers</h3>
+              <p className="text-gray-600">
+                HappiKid was designed from the ground up as a parent-first platform, removing the stress of finding safe, reliable childcare and enrichment.
+              </p>
+            </Card>
+            
+            <Card className="p-8">
               <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
                 <Search className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">AI-Powered "Just Ask" Search</h3>
-              <p className="text-gray-600 mb-4">
-                Our LLM search lets parents describe what they're looking for in natural language and receive 
-                curated lists of trusted providers—no more piecing together outdated websites and scattered reviews.
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Ask, and We'll Find It</h3>
+              <p className="text-gray-600">
+                Tell us what you need — "a preschool with early drop-off" or "a camp with STEM programs" — and our AI instantly matches you with trusted options that fit your family.
               </p>
             </Card>
-
-            <Card className="p-6">
+            
+            <Card className="p-8">
               <div className="bg-secondary-100 p-4 rounded-full inline-block mb-4">
                 <Shield className="h-8 w-8 text-secondary-500" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Trust-First Experience</h3>
-              <p className="text-gray-600 mb-4">
-                Every provider is verified through official licensing data, ensuring families can search with confidence. 
-                We prioritize safety, transparency, and authentic information over marketing claims.
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Trust You Can See</h3>
+              <p className="text-gray-600">
+                Every provider is verified against official licensing and safety data. Real reviews, transparent details, no hidden surprises.
               </p>
             </Card>
-
-            <Card className="p-6">
+            
+            <Card className="p-8">
               <div className="bg-accent-100 p-4 rounded-full inline-block mb-4">
-                <MessageCircle className="h-8 w-8 text-accent-500" />
+                <Clock className="h-8 w-8 text-accent-500" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Side-by-Side Comparisons</h3>
-              <p className="text-gray-600 mb-4">
-                Compare providers based on what matters most: safety, schedule, budget, and real parent reviews. 
-                Make confident decisions with personalized comparisons tailored to your family's needs.
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Clarity at a Glance</h3>
+              <p className="text-gray-600">
+                Side-by-side comparisons show cost, schedule, safety, and reviews so you can make confident choices in minutes, not weeks.
               </p>
             </Card>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">How We're Different from Others</h3>
+          <div className="bg-white rounded-lg shadow-sm p-8 mt-12">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Families Choose HappiKid</h3>
+            <p className="text-lg text-gray-600 text-center mb-8">
+              Other sites leave parents digging through outdated listings and unverified ads. HappiKid is different:
+            </p>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Traditional Platforms:</h4>
-                <ul className="space-y-2 text-gray-600">
-                  <li>• Care.com: Functions like classified ads for individual caregivers</li>
-                  <li>• Winnie: Static discovery tool with limited guidance</li>
-                  <li>• Others: Focus on provider back-office tools (billing, rosters)</li>
-                  <li>• Manual research across multiple outdated websites</li>
-                </ul>
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="bg-primary-100 p-2 rounded-full mr-4 mt-1">
+                    <Search className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">AI-powered natural language search ("just ask")</h4>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-primary-100 p-2 rounded-full mr-4 mt-1">
+                    <Shield className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Verified licensing data and authentic parent reviews</h4>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3">HappiKid Advantage:</h4>
-                <ul className="space-y-2 text-primary">
-                  <li>• Parent-first marketplace with AI-powered search</li>
-                  <li>• Natural language search: "just ask" functionality</li>
-                  <li>• Verified licensing data and rich provider profiles</li>
-                  <li>• Transparency and ease like ZocDoc, Expedia, or Zillow</li>
-                </ul>
+              
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="bg-primary-100 p-2 rounded-full mr-4 mt-1">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Side-by-side comparisons of what matters most</h4>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-primary-100 p-2 rounded-full mr-4 mt-1">
+                    <Heart className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Always free for parents, with providers powering the marketplace</h4>
+                  </div>
+                </div>
               </div>
+            </div>
+            
+            <div className="mt-8 pt-8 border-t border-gray-200 text-center">
+              <p className="text-gray-600">
+                HappiKid is launching first in the NYC tri-state area with a depth-over-breadth approach, ensuring every parent has access to trusted, complete, and transparent choices—before expanding to new markets.
+              </p>
             </div>
           </div>
         </div>
@@ -235,7 +270,7 @@ export default function About() {
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="text-center bg-primary-50 rounded-lg p-4">
-                    <div className="text-3xl font-bold text-primary">510+</div>
+                    <div className="text-3xl font-bold text-primary">630+</div>
                     <div className="text-sm text-gray-600">Providers</div>
                   </div>
                   <div className="text-center bg-secondary-50 rounded-lg p-4">
