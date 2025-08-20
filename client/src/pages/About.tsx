@@ -37,6 +37,55 @@ export default function About() {
         </div>
       </section>
 
+      {/* Our Story Section */}
+      <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Story</h2>
+            <div className="w-20 h-1 bg-primary mx-auto"></div>
+          </div>
+          
+          <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
+            <p>
+              HappiKid started with our own parenting journey.
+            </p>
+            
+            <p>
+              After years of fertility treatments, my wife and I were thrilled to learn we were expecting twins in 2022. Like many new parents, we quickly shifted from celebration to logistics: "Where are we going to find childcare?"
+            </p>
+            
+            <p>
+              What should have been straightforward turned into a maze of spreadsheets, Facebook group posts, Google and Yelp reviews, endless phone calls, and daycare walkthroughs. Every step felt fragmented and inefficient. It was clear the process was broken—and parents everywhere were asking the same questions over and over again: "Can anyone recommend a daycare? A camp? A birthday party spot?"
+            </p>
+            
+            <p>
+              In the months that followed, life tested us in ways we could never have imagined. Our twins, Chloe and Charlie, were born extremely premature. Chloe came home after 69 days in the NICU, but we heartbreakingly lost our son, Charlie, due to complications. Through it all, the idea for HappiKid stayed with me: parents deserve a simpler, more transparent way to find trusted care and enrichment options for their kids.
+            </p>
+            
+            <div className="bg-white rounded-lg p-8 shadow-sm border-l-4 border-primary my-8">
+              <p className="text-xl font-medium text-gray-900 italic">
+                That mission became HappiKid.
+              </p>
+            </div>
+            
+            <p>
+              Today, HappiKid is an AI-powered marketplace where parents can "just ask" for what they need and instantly compare trusted providers side-by-side—daycares, after-school programs, private schools, camps, and more—based on what matters most: safety, schedule, budget, and real parent reviews.
+            </p>
+            
+            <p>
+              We built HappiKid to bring clarity, trust, and peace of mind to one of life's most important decisions. Because families deserve better.
+            </p>
+          </div>
+          
+          <div className="text-center mt-12">
+            <div className="flex items-center justify-center text-primary font-semibold">
+              <Heart className="h-6 w-6 mr-2 fill-current" />
+              <span className="text-lg">For Charlie, for Chloe, for all families</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Mission Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -65,8 +114,8 @@ export default function About() {
                 <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">510+</h3>
-                <p className="text-gray-600 text-sm">Verified Providers</p>
+                <h3 className="font-semibold text-gray-900 mb-2">630+</h3>
+<p className="text-gray-600 text-sm">Verified Providers</p>
               </Card>
               <Card className="text-center p-6">
                 <div className="bg-secondary-100 p-4 rounded-full inline-block mb-4">
