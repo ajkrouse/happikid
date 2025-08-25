@@ -332,9 +332,24 @@ export default function ProviderOnboarding() {
 
   const handleNext = async () => {
     const requiredFields = getRequiredFieldsForStep(currentStep);
-    const missingFields = requiredFields.filter(field => {
-      const value = formData[field as keyof typeof formData];
-      return !value || value.toString().trim() === "";
+    const missingFields: string[] = [];
+    
+    requiredFields.forEach(field => {
+      // For address, zipCode, and phone, check the primary location instead of formData
+      if (field === "address" || field === "zipCode" || field === "phone") {
+        const primaryLocation = locations.find(loc => loc.isPrimary) || locations[0];
+        const value = primaryLocation?.[field as keyof typeof primaryLocation];
+        if (!value || value.toString().trim() === "") {
+          // Convert field names to display format
+          if (field === "zipCode") missingFields.push("Zip Code");
+          else missingFields.push(field.charAt(0).toUpperCase() + field.slice(1));
+        }
+      } else {
+        const value = formData[field as keyof typeof formData];
+        if (!value || value.toString().trim() === "") {
+          missingFields.push(field.charAt(0).toUpperCase() + field.slice(1));
+        }
+      }
     });
 
     if (missingFields.length > 0) {
