@@ -16325,6 +16325,8 @@ async function addSampleData() {
 import { getSession } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Replit Auth FIRST - before any routes that use isAuthenticated
+  await setupAuth(app);
 
   // Setup OAuth authentication
 
@@ -17193,9 +17195,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch user vote" });
     }
   });
-
-  // Setup Replit Auth
-  await setupAuth(app);
 
   // Auth routes for Replit Auth
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
