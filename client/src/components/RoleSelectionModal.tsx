@@ -17,8 +17,8 @@ export default function RoleSelectionModal({ isOpen, onClose }: RoleSelectionMod
 
   const handleProviderChoice = () => {
     onClose();
-    // For now, direct providers to onboarding without auth requirement  
-    window.location.href = "/provider/onboarding";
+    // Direct providers to signup page first, then to onboarding after auth
+    window.location.href = "/provider/signup";
   };
 
   return (
@@ -71,7 +71,7 @@ export default function RoleSelectionModal({ isOpen, onClose }: RoleSelectionMod
                 <Building2 className="h-8 w-8 text-secondary-500" />
               </div>
               <CardTitle className="text-xl">Grow My Business</CardTitle>
-              <CardDescription>Set up your childcare provider profile</CardDescription>
+              <CardDescription>Claim your free page</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600 mb-4">

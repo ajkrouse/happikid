@@ -14,6 +14,7 @@ import ProviderDashboard from "@/pages/ProviderDashboard";
 import ProviderOnboarding from "@/pages/ProviderOnboarding";
 import ProviderCelebration from "@/pages/ProviderCelebration";
 import ParentSignup from "@/pages/ParentSignup";
+import ProviderSignup from "@/pages/ProviderSignup";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/providers" component={ProvidersOverview} />
       <Route path="/provider/onboarding" component={ProviderOnboarding} />
+      <Route path="/provider/signup" component={ProviderSignup} />
       <Route path="/parent/signup" component={ParentSignup} />
       
       {/* Protected routes for authenticated users */}
