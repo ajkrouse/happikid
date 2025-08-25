@@ -1,0 +1,297 @@
+Awesome—here’s a single, copy-paste **Replit AI build prompt** that will guide it to scaffold the full “**Claim your free business page**” flow for HappiKid: backend, DB schema, API routes, auth, a 3-step signup/claim wizard, provider dashboard, admin review queue, emails, and tests. I optimized it for a Node/Express + SQLite + React/Vite stack that runs cleanly on Replit, but the agent can swap frameworks if needed.
+
+---
+
+# 👉 Copy-paste into Replit AI
+
+**Title:** Build “Claim your free business page” for HappiKid (business onboarding + claim verification)
+
+**Goal:**
+Implement a production-ready MVP that allows childcare/enrichment providers to (1) sign up, (2) create or claim an existing business page, and (3) complete verification so their **Free** listing goes live on HappiKid.
+
+**Primary Users & Roles:**
+
+* `provider_owner` (business owner/manager)
+* `admin` (HappiKid staff)
+* `parent_viewer` (public; no auth needed for this build—just view profiles)
+* Future: `franchise_admin` (multi-location) — not required for this MVP
+
+---
+
+## Tech Stack (prefer on Replit)
+
+* **Backend:** Node.js + Express
+* **DB:** SQLite (via Prisma or Knex; use migrations)
+* **Auth:** Email+password with JWT (httpOnly cookies) + email verification link
+* **Frontend:** React + Vite + TypeScript + Tailwind
+* **Email:** Local dev adapter (console logger) + provider interface for later (Resend/SendGrid)
+* **File uploads:** Local `/uploads` directory with simple image validation (PNG/JPG, <5MB)
+* **Security:** bcrypt, rate-limits, CORS, helmet, CSRF token for non-GET forms, CAPTCHA stub
+* **Testing:** Vitest (frontend) + Jest (backend) + supertest for API
+
+---
+
+## Core Data Model (Prisma schema or Knex migrations)
+
+**Entities**
+
+* `User`
+
+  * id (uuid), email (unique), password\_hash, email\_verified\_at (datetime|null), role (`provider_owner`|`admin`)
+  * created\_at, updated\_at
+* `Provider` (business page)
+
+  * id (uuid), name, slug (unique), website\_url, phone, address, city, state, zip, geo\_lat, geo\_lng
+  * hours\_json (string JSON), price\_range (enum: `$` `$$` `$$$`), age\_groups\_json, categories\_json
+  * description, cover\_photo\_url, logo\_url, status (enum: `unclaimed`|`claimed_pending`|`claimed_verified`|`suspended`)
+  * created\_at, updated\_at
+* `Claim`
+
+  * id (uuid), provider\_id (fk), user\_id (fk), status (enum: `initiated`|`awaiting_owner_verify`|`awaiting_admin_review`|`approved`|`rejected`), rejection\_reason
+  * verification\_method (enum: `email_domain`|`doc_upload`|`phone_code`)
+  * verification\_payload\_json (e.g., domain used, file metadata, phone), created\_at, updated\_at
+* `Review` (for later public trust; stub table now)
+
+  * id, provider\_id, rating (1–5), title, body, author\_user\_id (nullable), created\_at
+* `Media`
+
+  * id, provider\_id, type (`logo`|`cover`|`gallery`), url, created\_at
+* `AuditLog`
+
+  * id, actor\_user\_id, action (string), target\_type (enum), target\_id, meta\_json, created\_at
+
+Add the necessary unique indexes and FKs. Store structured fields (hours, age groups, categories) as JSON to move fast.
+
+---
+
+## Required User Flows
+
+### 1) Create account & verify email
+
+* Sign up with email + password (password policy + strength meter).
+* Send verification email with time-boxed token (e.g., 24h).
+* Clicking the link sets `email_verified_at` and signs the user in.
+
+### 2) Start “Claim your free page” wizard (3 steps)
+
+**Step 1: Find or create your business**
+
+* Search box hits `/api/providers/search?q=…` (prefix match on name + city/state).
+* If found: select provider → move to Step 2.
+* If not found: “Create a new business” form (name, address, phone, website, categories, age groups, hours). Creates `Provider` with status `unclaimed`.
+
+**Step 2: Choose verification method**
+
+* Options:
+
+  1. **Email-domain verification**: If provider website domain = user email domain, send confirmation code to that email.
+  2. **Document upload**: Accept utility bill / business license PDF or image. Store metadata in `Claim.verification_payload_json`.
+  3. **Phone code**: Send 6-digit code via SMS (stub service; show mock success in dev).
+* On submit: create `Claim` with `status = awaiting_owner_verify`.
+
+**Step 3: Submit & track review**
+
+* Once method satisfied (e.g., code verified / doc uploaded), transition `Claim.status` → `awaiting_admin_review`.
+* Show a confirmation screen with expected timeline and “What happens next”.
+* Email to user: “We received your claim; we’ll review shortly.”
+
+### 3) Admin Review Queue
+
+* `/admin/claims` list with filters by status.
+* Claim detail page shows: provider info, user info, verification method, payload, and quick actions.
+* Actions: **Approve** (sets Provider.status = `claimed_verified`, Claim.status = `approved`, assigns `provider_owner_id = user_id`), **Reject** (status `rejected`, require `rejection_reason`, send email with guidance).
+* All actions logged in `AuditLog`.
+
+### 4) Provider Dashboard (after approval)
+
+* `/dashboard` with quick stats: profile completeness %, views, inquiries (stub), last updated.
+* Tabs:
+
+  * **Profile**: edit description, hours, price range, categories, age groups
+  * **Media**: upload logo, cover, gallery (with client-side resize + server mime checks)
+  * **Contact & Location**: edit phone, website, address; show map preview
+  * **Visibility**: show status badge and “live page” link at `/p/:slug`
+* Publish/Save buttons with optimistic UI; validation errors surfaced inline.
+
+### 5) Public Business Page
+
+* `/p/:slug`
+* Show name, rating placeholder, badges (e.g., “State Licensed” placeholder), hours, map, photos, description, website, call button.
+* Banner “Is this your business? Claim it for free.” if `status=unclaimed`.
+
+---
+
+## API Contract (examples)
+
+**Auth**
+
+* `POST /api/auth/register` → {email, password} → 200 on success; sends email verification
+* `POST /api/auth/login` → {email, password} → set httpOnly cookie, return user profile
+* `POST /api/auth/logout`
+* `GET /api/auth/me` → current user
+
+**Email verification**
+
+* `POST /api/auth/verify/request` → resend link
+* `GET /api/auth/verify/:token` → redirects to app with success/fail
+
+**Providers**
+
+* `GET /api/providers/search?q=…&city=…&state=…`
+* `POST /api/providers` → create new unclaimed
+* `GET /api/providers/:id`
+* `PATCH /api/providers/:id` (owner or admin)
+
+**Claims**
+
+* `POST /api/claims` → {provider\_id, verification\_method, payload?}
+* `POST /api/claims/:id/verify` → submit code / confirm receipt
+* `GET /api/claims/mine` → list current user claims
+
+**Admin**
+
+* `GET /api/admin/claims?status=…`
+* `GET /api/admin/claims/:id`
+* `POST /api/admin/claims/:id/approve`
+* `POST /api/admin/claims/:id/reject` → {reason}
+
+**Media**
+
+* `POST /api/media/upload` (multer) → returns {url}
+* `DELETE /api/media/:id`
+
+**Public**
+
+* `GET /api/public/providers/:slug` → profile JSON for SSR/CSR
+
+---
+
+## Pages & Components (React + Tailwind)
+
+* `/auth/register` — form with password strength + “terms” checkbox
+* `/auth/verify` — handles token redirect states
+* `/claim` (wizard root)
+
+  * `StepFindOrCreate.tsx`
+  * `StepVerification.tsx` (email domain / doc upload / phone code)
+  * `StepSubmitted.tsx`
+* `/dashboard` (protected)
+
+  * `ProfileForm.tsx`, `MediaManager.tsx`, `ContactLocationForm.tsx`, `CompletenessMeter.tsx`
+* `/admin/claims` + `/admin/claims/:id`
+* `/p/:slug` — public provider page
+
+**UI niceties**
+
+* Reusable `FormField`, `SelectChips` (for categories/age groups), `JsonHoursEditor`, `AddressAutocomplete` (stub), `Toast` system
+* Empty states, loading skeletons, error boundaries
+
+---
+
+## Verification Logic Details
+
+**Email-domain verification flow**
+
+* If provider has `website_url = https://littlestars.com`, domain = `littlestars.com`.
+* If user signs up with `name@littlestars.com` → allow method; send 6-digit code to that address.
+* Store hashed code + expiry (e.g., 10 minutes) in `Claim.verification_payload_json`.
+* `POST /api/claims/:id/verify` with code → mark satisfied.
+
+**Doc upload flow**
+
+* Accept PDF/JPG/PNG up to 5MB. Store filename, size, checksum in payload JSON.
+* Virus-scan stub (just reject double-extension); validate mime type.
+* Admin must manually approve/reject after review.
+
+**Phone code flow (stub)**
+
+* Accept US phone; generate code; store hashed + expiry.
+* Simulate SMS by logging code to server console in dev.
+
+---
+
+## Security & Compliance (MVP level)
+
+* Hash passwords with bcrypt.
+* JWT in httpOnly cookie, short lifetime + refresh on activity.
+* Rate limit auth + claim endpoints.
+* Basic CORS + helmet.
+* CSRF token on mutating routes (double-submit cookie pattern).
+* CAPTCHA stub component on register & create-provider to deter bots.
+* Sanitize user input; validate files; strip EXIF from images.
+
+---
+
+## Emails (templated)
+
+* **Verify your email** (link with token)
+* **Claim received** (status: awaiting\_admin\_review)
+* **Claim approved** (links to dashboard + public page)
+* **Claim rejected** (reason + how to fix)
+
+Provide simple Handlebars or MJML templates and a mailer service interface with a console transport for dev.
+
+---
+
+## Seeding & Fixtures
+
+* Seed 8 sample providers across NJ/NYC with varied statuses (`unclaimed`, `claimed_verified`).
+* Seed 1 admin user and 2 provider owners.
+* Include 1–2 sample claims in `awaiting_admin_review` for the admin queue demo.
+
+---
+
+## Tests (happy paths + edge cases)
+
+* Auth register/login/logout + email verify
+* Provider search & create (validation errors covered)
+* Claim create + verify (email code success/fail, doc upload, phone code)
+* Admin approve/reject transitions and provider.status updates
+* Permissions: only owner can PATCH their provider; admin can PATCH any
+
+---
+
+## Definition of Done (checklist)
+
+* [ ] Replit runs `npm run dev` to start both server and client (concurrently)
+* [ ] `.env.example` with required vars; sensible defaults for Replit
+* [ ] Migrations & seed script runnable via `npm run db:reset`
+* [ ] All routes documented in a `README.md` with cURL examples
+* [ ] Screens: register, verify, claim wizard (3 steps), dashboard (3 tabs), admin queue, public page
+* [ ] Basic accessibility (labels, keyboard nav), mobile-responsive wizard & public page
+* [ ] Minimum 15 unit/integration tests pass in CI (Replit runner)
+
+---
+
+## Stretch (if time allows)
+
+* Slug auto-generation with collision handling (`/p/little-stars-2`)
+* Geocoding stub for map preview (fake lat/lng)
+* Profile completeness score (weights: logo 10, cover 10, hours 10, description 20, categories 20, address 10, phone 10, website 10)
+* Simple analytics counters (views, clicks) with Redis-like in-memory store fallback
+
+---
+
+**Branding Note:** Use placeholder brand “HappiKid” colors and tailwind classes; keep styles clean and minimal.
+
+---
+
+### Deliverables
+
+* Working repo with client + server + DB
+* Seeded data and admin login
+* GIF or short Loom-style readme section showing the claim flow
+* Instructions to deploy on Replit
+
+---
+
+## Acceptance Criteria (demo script)
+
+1. Create user → verify email → login
+2. Search for “Little Stars Academy” (seeded) → choose → select **email-domain** → complete code → claim moves to **awaiting\_admin\_review**
+3. As admin: open `/admin/claims`, approve the claim → provider page becomes `claimed_verified`
+4. As owner: open dashboard, upload logo/cover, edit hours & categories → see public page updated at `/p/little-stars-academy`
+
+---
+
+**End of prompt. Please generate all code, pages, migrations, and tests, and run locally on Replit.**
