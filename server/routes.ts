@@ -17233,6 +17233,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Claims API endpoints
+  
+  // Search providers for claiming
+  app.get("/api/claims/search", async (req, res) => {
+    try {
+      const { q: query, city, state } = req.query;
+      
+      if (!query || typeof query !== 'string' || query.trim().length < 2) {
+        return res.status(400).json({ message: "Query must be at least 2 characters long" });
+      }
+
+      const providers = await storage.searchProviders(query.trim(), city as string, state as string);
+      res.json(providers);
+    } catch (error) {
+      console.error("Error searching providers for claiming:", error);
+      res.status(500).json({ message: "Failed to search providers" });
+    }
+  });
+
+  // Create a new claim
+  app.post("/api/claims", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const { providerId, verificationMethod, verificationPayload } = req.body;
+
+      if (!providerId || !verificationMethod) {
+        return res.status(400).json({ message: "Provider ID and verification method are required" });
+      }
+
+      // Check if provider exists and is unclaimed
+      const provider = await storage.getProvider(providerId);
+      if (!provider) {
+        return res.status(404).json({ message: "Provider not found" });
+      }
+      
+      if (provider.claimStatus !== 'unclaimed') {
+        return res.status(400).json({ message: "Provider is already claimed or has a pending claim" });
+      }
+
+      // Check if user already has a pending claim for this provider
+      const existingClaims = await storage.getClaimsByUserId(userId);
+      const pendingClaim = existingClaims.find(c => c.providerId === providerId && c.status === 'initiated');
+      if (pendingClaim) {
+        return res.status(400).json({ message: "You already have a pending claim for this provider" });
+      }
+
+      const claim = await storage.createClaim({
+        providerId,
+        userId,
+        verificationMethod: verificationMethod as any,
+        verificationPayload,
+        status: 'initiated'
+      });
+
+      res.json(claim);
+    } catch (error) {
+      console.error("Error creating claim:", error);
+      res.status(500).json({ message: "Failed to create claim" });
+    }
+  });
+
+  // Get user's claims
+  app.get("/api/claims/my", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const claims = await storage.getClaimsByUserId(userId);
+      res.json(claims);
+    } catch (error) {
+      console.error("Error fetching user claims:", error);
+      res.status(500).json({ message: "Failed to fetch claims" });
+    }
+  });
+
+  // Admin routes for claim management
+  app.get("/api/admin/claims", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user?.claims?.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { status } = req.query;
+      const claims = await storage.getAllClaims({ status: status as string });
+      res.json(claims);
+    } catch (error) {
+      console.error("Error fetching claims for admin:", error);
+      res.status(500).json({ message: "Failed to fetch claims" });
+    }
+  });
+
+  // Admin approve claim
+  app.post("/api/admin/claims/:id/approve", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user?.claims?.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const actorUserId = req.user?.claims?.sub;
+      
+      const result = await storage.approveClaim(id, actorUserId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error approving claim:", error);
+      res.status(500).json({ message: "Failed to approve claim" });
+    }
+  });
+
+  // Admin reject claim
+  app.post("/api/admin/claims/:id/reject", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user?.claims?.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const { rejectionReason } = req.body;
+      const actorUserId = req.user?.claims?.sub;
+
+      if (!rejectionReason) {
+        return res.status(400).json({ message: "Rejection reason is required" });
+      }
+      
+      const claim = await storage.rejectClaim(id, rejectionReason, actorUserId);
+      res.json(claim);
+    } catch (error) {
+      console.error("Error rejecting claim:", error);
+      res.status(500).json({ message: "Failed to reject claim" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

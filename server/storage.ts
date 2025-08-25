@@ -116,6 +116,23 @@ export interface IStorage {
   // Get provider statistics
   getProviderStats(): Promise<{ count: number; breakdown: Record<string, number> }>;
   getFeaturedProviders(limit?: number): Promise<Provider[]>;
+  
+  // Claims operations
+  createClaim(claim: InsertClaim): Promise<Claim>;
+  getClaim(id: string): Promise<Claim | undefined>;
+  getClaimsByUserId(userId: string): Promise<Claim[]>;
+  getAllClaims(filters?: { status?: string }): Promise<Claim[]>;
+  updateClaimStatus(id: string, status: string, rejectionReason?: string): Promise<Claim>;
+  approveClaim(id: string, actorUserId: string): Promise<{ claim: Claim; provider: Provider }>;
+  rejectClaim(id: string, rejectionReason: string, actorUserId: string): Promise<Claim>;
+  
+  // Provider claim operations
+  updateProviderClaimStatus(providerId: number, status: string, ownerUserId?: string): Promise<Provider>;
+  searchProviders(query: string, city?: string, state?: string): Promise<Provider[]>;
+  
+  // Audit log operations
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogsByTargetId(targetId: string, targetType: string): Promise<AuditLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -583,6 +600,152 @@ export class DatabaseStorage implements IStorage {
       .from(providers)
       .orderBy(desc(providers.rating), desc(providers.reviewCount))
       .limit(limit);
+  }
+
+  // Claims operations
+  async createClaim(claim: InsertClaim): Promise<Claim> {
+    const [newClaim] = await db.insert(claims).values(claim).returning();
+    return newClaim;
+  }
+
+  async getClaim(id: string): Promise<Claim | undefined> {
+    const [claim] = await db.select().from(claims).where(eq(claims.id, id));
+    return claim;
+  }
+
+  async getClaimsByUserId(userId: string): Promise<Claim[]> {
+    return await db
+      .select()
+      .from(claims)
+      .where(eq(claims.userId, userId))
+      .orderBy(desc(claims.createdAt));
+  }
+
+  async getAllClaims(filters?: { status?: string }): Promise<Claim[]> {
+    let query = db.select().from(claims);
+    
+    if (filters?.status) {
+      query = query.where(eq(claims.status, filters.status as any));
+    }
+    
+    return await query.orderBy(desc(claims.createdAt));
+  }
+
+  async updateClaimStatus(id: string, status: string, rejectionReason?: string): Promise<Claim> {
+    const [updated] = await db
+      .update(claims)
+      .set({ 
+        status: status as any,
+        rejectionReason,
+        updatedAt: new Date()
+      })
+      .where(eq(claims.id, id))
+      .returning();
+    return updated;
+  }
+
+  async approveClaim(id: string, actorUserId: string): Promise<{ claim: Claim; provider: Provider }> {
+    // Get the claim first
+    const claim = await this.getClaim(id);
+    if (!claim) throw new Error('Claim not found');
+
+    // Update claim status to approved
+    const updatedClaim = await this.updateClaimStatus(id, 'approved');
+
+    // Update provider ownership
+    const updatedProvider = await this.updateProviderClaimStatus(
+      claim.providerId, 
+      'claimed',
+      claim.userId
+    );
+
+    // Create audit log
+    await this.createAuditLog({
+      actorUserId,
+      action: 'approve_claim',
+      targetType: 'claim',
+      targetId: id,
+      meta: { providerId: claim.providerId, userId: claim.userId }
+    });
+
+    return { claim: updatedClaim, provider: updatedProvider };
+  }
+
+  async rejectClaim(id: string, rejectionReason: string, actorUserId: string): Promise<Claim> {
+    const updatedClaim = await this.updateClaimStatus(id, 'rejected', rejectionReason);
+
+    // Create audit log
+    await this.createAuditLog({
+      actorUserId,
+      action: 'reject_claim',
+      targetType: 'claim', 
+      targetId: id,
+      meta: { rejectionReason }
+    });
+
+    return updatedClaim;
+  }
+
+  // Provider claim operations
+  async updateProviderClaimStatus(providerId: number, status: string, ownerUserId?: string): Promise<Provider> {
+    const updateData: any = {
+      claimStatus: status as any,
+      updatedAt: new Date()
+    };
+
+    if (ownerUserId) {
+      updateData.ownerUserId = ownerUserId;
+      updateData.claimedAt = new Date();
+    }
+
+    const [updated] = await db
+      .update(providers)
+      .set(updateData)
+      .where(eq(providers.id, providerId))
+      .returning();
+    return updated;
+  }
+
+  async searchProviders(query: string, city?: string, state?: string): Promise<Provider[]> {
+    let conditions: any[] = [eq(providers.isActive, true)];
+
+    // Search in provider name, business name, and address
+    conditions.push(
+      sql`(
+        ${providers.name} ILIKE ${`%${query}%`} OR 
+        ${providers.businessName} ILIKE ${`%${query}%`} OR
+        ${providers.address} ILIKE ${`%${query}%`}
+      )`
+    );
+
+    if (city) {
+      conditions.push(eq(providers.city, city));
+    }
+
+    if (state) {
+      conditions.push(eq(providers.state, state));
+    }
+
+    return await db
+      .select()
+      .from(providers)
+      .where(and(...conditions))
+      .orderBy(asc(providers.name))
+      .limit(50);
+  }
+
+  // Audit log operations
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const [newLog] = await db.insert(auditLogs).values(log).returning();
+    return newLog;
+  }
+
+  async getAuditLogsByTargetId(targetId: string, targetType: string): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.targetId, targetId), eq(auditLogs.targetType, targetType)))
+      .orderBy(desc(auditLogs.createdAt));
   }
 }
 

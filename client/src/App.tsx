@@ -15,6 +15,8 @@ import ProviderOnboarding from "@/pages/ProviderOnboarding";
 import ProviderCelebration from "@/pages/ProviderCelebration";
 import ParentSignup from "@/pages/ParentSignup";
 import ProviderSignup from "@/pages/ProviderSignup";
+import ClaimBusiness from "@/pages/ClaimBusiness";
+import AdminClaims from "@/pages/AdminClaims";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -31,12 +33,14 @@ function Router() {
       <Route path="/provider/onboarding" component={ProviderOnboarding} />
       <Route path="/provider/signup" component={ProviderSignup} />
       <Route path="/parent/signup" component={ParentSignup} />
+      <Route path="/claim-business" component={ClaimBusiness} />
       
       {/* Protected routes for authenticated users */}
       {isAuthenticated && (
         <>
           <Route path="/provider/dashboard" component={ProviderDashboard} />
           <Route path="/provider/celebration" component={ProviderCelebration} />
+          <Route path="/admin/claims" component={AdminClaims} />
         </>
       )}
       

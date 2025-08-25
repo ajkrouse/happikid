@@ -10,10 +10,18 @@ import {
   decimal,
   boolean,
   primaryKey,
+  pgEnum,
+  uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Enums for claiming system
+export const claimStatusEnum = pgEnum('claim_status', ['unclaimed', 'pending_review', 'verified', 'rejected']);
+export const verificationMethodEnum = pgEnum('verification_method', ['email_domain', 'doc_upload']);
+export const claimRequestStatusEnum = pgEnum('claim_request_status', ['initiated', 'awaiting_admin_review', 'approved', 'rejected']);
 
 // Session storage table for Replit Auth
 export const sessions = pgTable(
@@ -33,7 +41,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role", { enum: ["parent", "provider"] }).notNull().default("parent"),
+  role: varchar("role", { enum: ["parent", "provider", "admin"] }).notNull().default("parent"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -87,6 +95,14 @@ export const providers = pgTable("providers", {
   favoriteAdds: integer("favorite_adds").default(0),
   isPremium: boolean("is_premium").default(false),
   premiumExpiresAt: timestamp("premium_expires_at"),
+  
+  // Claiming system fields
+  ownerUserId: varchar("owner_user_id").references(() => users.id), // Verified owner after claiming
+  claimStatus: claimStatusEnum("claim_status").default('unclaimed'),
+  verificationMethod: verificationMethodEnum("verification_method"),
+  verificationPayload: jsonb("verification_payload"),
+  claimedAt: timestamp("claimed_at"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -231,6 +247,30 @@ export const providerAmenities = pgTable("provider_amenities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Claims tracking table
+export const claims = pgTable("claims", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  providerId: integer("provider_id").references(() => providers.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  status: claimRequestStatusEnum("status").default('initiated').notNull(),
+  verificationMethod: verificationMethodEnum("verification_method").notNull(),
+  verificationPayload: jsonb("verification_payload"),
+  rejectionReason: text("rejection_reason"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Audit logs for admin actions
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  actorUserId: varchar("actor_user_id").references(() => users.id),
+  action: varchar("action").notNull(),
+  targetType: varchar("target_type").notNull(),
+  targetId: varchar("target_id").notNull(),
+  meta: jsonb("meta"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   providers: many(providers),
@@ -240,10 +280,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   providerUpdates: many(providerUpdates),
   providerPhotos: many(providerPhotos),
   reviewVotes: many(reviewVotes),
+  claims: many(claims),
+  auditLogs: many(auditLogs),
 }));
 
 export const providersRelations = relations(providers, ({ one, many }) => ({
   user: one(users, { fields: [providers.userId], references: [users.id] }),
+  owner: one(users, { fields: [providers.ownerUserId], references: [users.id] }),
   images: many(providerImages),
   reviews: many(reviews),
   favorites: many(favorites),
@@ -253,6 +296,7 @@ export const providersRelations = relations(providers, ({ one, many }) => ({
   amenities: many(providerAmenities),
   userUpdates: many(providerUpdates),
   userPhotos: many(providerPhotos),
+  claims: many(claims),
 }));
 
 export const providerImagesRelations = relations(providerImages, ({ one }) => ({
@@ -303,6 +347,15 @@ export const providerProgramsRelations = relations(providerPrograms, ({ one }) =
 
 export const providerAmenitiesRelations = relations(providerAmenities, ({ one }) => ({
   provider: one(providers, { fields: [providerAmenities.providerId], references: [providers.id] }),
+}));
+
+export const claimsRelations = relations(claims, ({ one }) => ({
+  provider: one(providers, { fields: [claims.providerId], references: [providers.id] }),
+  user: one(users, { fields: [claims.userId], references: [users.id] }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  actor: one(users, { fields: [auditLogs.actorUserId], references: [users.id] }),
 }));
 
 // Insert schemas
@@ -436,3 +489,21 @@ export type ProviderPhoto = typeof providerPhotos.$inferSelect;
 export type InsertProviderPhoto = z.infer<typeof insertProviderPhotoSchema>;
 export type ReviewVote = typeof reviewVotes.$inferSelect;
 export type InsertReviewVote = z.infer<typeof insertReviewVoteSchema>;
+
+// Claiming system types and schemas
+export type Claim = typeof claims.$inferSelect;
+export type InsertClaim = typeof claims.$inferInsert;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+// Insert schemas for new tables
+export const insertClaimSchema = createInsertSchema(claims).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});

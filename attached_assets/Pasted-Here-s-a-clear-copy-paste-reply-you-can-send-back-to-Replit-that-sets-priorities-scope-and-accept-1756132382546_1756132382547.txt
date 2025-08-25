@@ -1,0 +1,108 @@
+Here’s a clear, copy-paste reply you can send back to Replit that sets priorities, scope, and acceptance criteria for a tight beta:
+
+---
+
+**This is great—thank you! Given what we already have live (Replit Auth, onboarding, Postgres, 630+ providers, public search), let’s prioritize a focused beta around claiming existing listings.**
+
+## Phase 1 (Beta): Claiming Flow + Light Admin Review
+
+**Goal:** Let legitimate owners claim existing provider pages and get them live with a minimal-but-real verification path.
+
+### Scope (must-have)
+
+1. **DB updates (Postgres)**
+
+   * `providers` (existing): add
+
+     * `claim_status` ENUM(`unclaimed`,`pending_review`,`verified`,`rejected`) default `unclaimed`
+     * `owner_user_id` UUID NULL (FK users)
+     * `verification_method` ENUM(`email_domain`,`doc_upload`) NULL
+     * `verification_payload` JSONB NULL
+     * `claimed_at` TIMESTAMP NULL
+   * New table: `claims`
+
+     * `id` UUID PK
+     * `provider_id` FK → providers (unique where status not in `rejected` to prevent concurrent duplicates)
+     * `user_id` FK → users
+     * `status` ENUM(`initiated`,`awaiting_admin_review`,`approved`,`rejected`)
+     * `verification_method` (same ENUM)
+     * `verification_payload` JSONB
+     * `rejection_reason` TEXT NULL
+     * `created_at`, `updated_at`
+   * New table: `audit_logs` (simple)
+
+     * `id` UUID, `actor_user_id`, `action`, `target_type`, `target_id`, `meta` JSONB, `created_at`
+
+2. **Claiming UX (3 steps)**
+
+   * **Step 1: Find listing**
+
+     * Search existing providers by name + city/state. Select one → start claim.
+   * **Step 2: Verify ownership (MVP)**
+
+     * **Email-domain verification**: If provider’s `website_url` domain matches user’s email domain → send 6-digit code to that email; verify.
+     * **Document upload** (image/PDF < 5MB) as fallback; stored in `verification_payload`.
+   * **Step 3: Submit**
+
+     * Sets `claims.status = awaiting_admin_review` and `providers.claim_status = pending_review`.
+     * Confirmation screen + email “Claim received”.
+
+3. **Admin Review (lightweight)**
+
+   * `/admin/claims` list (filters: all/pending/approved/rejected).
+   * `/admin/claims/:id` detail: provider info, user info, verification method, payload preview.
+   * Actions: **Approve** → sets `providers.owner_user_id = user_id`, `providers.claim_status = verified`, `claims.status = approved`, `claimed_at = now()`; **Reject** (requires reason).
+   * Write to `audit_logs`.
+
+4. **Public & Dashboard changes**
+
+   * Public provider page:
+
+     * If `claim_status = unclaimed`, show banner “Is this your business? Claim it for free.”
+     * If `verified`, show small “Verified on HappiKid” badge.
+   * Provider dashboard (for verified owners): profile edit remains as today; show status chip (Verified/Pending/Rejected).
+
+5. **Email**
+
+   * Templates: verify-email code (for domain method), claim received, claim approved, claim rejected (with reason).
+
+### Non-Goals for Phase 1
+
+* Phone/SMS verification, advanced media manager, completeness scoring, benchmarking, or multi-location admin. (All welcome in Phase 2.)
+
+### Migration/Backfill
+
+* Set all existing 630 providers `claim_status = 'unclaimed'`.
+* If any providers already created by logged-in owners from our existing onboarding, set their `owner_user_id` and `claim_status = 'verified'`.
+* For providers with a website domain, store it; this powers the email-domain method.
+
+### API Endpoints (MVP)
+
+* `POST /api/claims` → {provider\_id, verification\_method, payload?}
+* `POST /api/claims/:id/verify-email-code` → {code} (for domain method)
+* `GET /api/claims/mine`
+* `GET /api/admin/claims?status=`
+* `GET /api/admin/claims/:id`
+* `POST /api/admin/claims/:id/approve`
+* `POST /api/admin/claims/:id/reject` → {reason}
+
+### Acceptance Criteria (demo script)
+
+1. User signs in → “Claim your business” → finds their listing → selects **email-domain** → receives code → verifies → claim moves to **awaiting\_admin\_review**.
+2. Admin opens `/admin/claims`, approves the claim → provider becomes **verified**; banner disappears on public page; owner sees “Verified” badge in dashboard.
+3. Negative path: Admin rejects claim with reason → owner gets email + status “Rejected” and can re-attempt with doc upload.
+
+---
+
+## Phase 2 (Follow-on): Verification & Dashboard Enhancements
+
+**After Phase 1 ships, prioritize:**
+
+* **Document verification UX polish** (preview, file validation, virus-scan stub).
+* **Profile completeness meter** (logo, cover, hours, description, categories, address, phone, website).
+* **Media uploads** (logo/cover/gallery with client-side resize + MIME checks).
+* **Admin notes** on claim detail and resubmission loop.
+
+---
+
+If this plan looks good, please proceed with **Phase 1** exactly as scoped above. If you see a simpler path for email-domain verification aligned with Replit Auth, go for it—just keep the API and state transitions as specified so we can layer on Phase 2 cleanly.
