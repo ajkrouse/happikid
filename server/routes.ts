@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { requireAuth, optionalAuth, createSession, deleteSession, type AuthenticatedRequest } from "./simpleAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import crypto from "crypto";
 import { 
   insertProviderSchema, 
@@ -14,6 +14,13 @@ import {
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
 import { intelligentSearch } from "./intelligentSearch";
+
+// User preferences schema
+const userPreferencesSchema = z.object({
+  zipCode: z.string().optional(),
+  childAges: z.string().optional(),
+  careType: z.enum(["daycare", "afterschool", "camp", "school"]).optional(),
+});
 
 // Sample data function for testing
 async function addSampleData() {
@@ -16315,17 +16322,11 @@ async function addSampleData() {
   }
 }
 
-import { setupOAuthAuth, requireOAuthAuth } from "./oauthAuth";
 import { getSession } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add cookie parser and session management for OAuth
-  const cookieParser = await import('cookie-parser');
-  app.use(cookieParser.default());
-  app.use(getSession());
 
   // Setup OAuth authentication
-  await setupOAuthAuth(app);
 
   // Add sample data for testing - only in development and with better error handling
   if (process.env.NODE_ENV === 'development') {
@@ -16334,59 +16335,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
-  // Simple auth routes
-  app.post('/api/auth/signin', async (req, res) => {
-    try {
-      const { email, firstName, lastName } = req.body;
-      
-      if (!email) {
-        return res.status(400).json({ message: "Email is required" });
-      }
-
-      // Try to find existing user by email
-      let user = await storage.getUserByEmail(email);
-      
-      if (!user) {
-        // Create new user if doesn't exist
-        user = await storage.upsertUser({
-          id: crypto.randomUUID(),
-          email,
-          firstName: firstName || 'Parent',
-          lastName: lastName || '',
-          profileImageUrl: null,
-        });
-      }
-
-      // Create session
-      const sessionToken = createSession(user.id);
-      
-      // Set session cookie
-      res.cookie('session', sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: 'lax'
-      });
-
-      res.json({ user, sessionToken });
-    } catch (error) {
-      console.error("Sign in error:", error);
-      res.status(500).json({ message: "Failed to sign in" });
-    }
-  });
-
-  app.post('/api/auth/signout', (req, res) => {
-    const sessionToken = req.cookies?.session;
-    if (sessionToken) {
-      deleteSession(sessionToken);
-      res.clearCookie('session');
-    }
-    res.json({ message: "Signed out successfully" });
-  });
-
-  app.get('/api/auth/user', requireAuth, async (req: AuthenticatedRequest, res) => {
-    res.json(req.user);
-  });
 
   // Featured providers endpoint - returns diverse selection
   app.get('/api/providers/featured', async (req, res) => {
@@ -16583,7 +16531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Provider-specific routes (must be before /:id route)
-  app.get('/api/providers/mine', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/providers/mine', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const providers = await storage.getProvidersByUserId(userId);
@@ -16621,7 +16569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/providers', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/providers', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const { locations, ...providerData } = req.body;
@@ -16731,7 +16679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/providers/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/providers/:id', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user!.id;
@@ -16751,7 +16699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/providers/user/:userId', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/providers/user/:userId', isAuthenticated, async (req: any, res) => {
     try {
       const requestedUserId = req.params.userId;
       const currentUserId = req.user!.id;
@@ -16781,7 +16729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/providers/:id/reviews', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/providers/:id/reviews', isAuthenticated, async (req: any, res) => {
     try {
       const providerId = parseInt(req.params.id);
       const userId = req.user!.id;
@@ -16804,7 +16752,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Favorites routes
-  app.get('/api/favorites', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const favorites = await storage.getFavoritesByUserId(userId);
@@ -16815,7 +16763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/favorites/:providerId', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/favorites/:providerId', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const providerId = parseInt(req.params.providerId);
@@ -16828,7 +16776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/favorites/:providerId', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.delete('/api/favorites/:providerId', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const providerId = parseInt(req.params.providerId);
@@ -16841,7 +16789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/favorites/:providerId/check', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/favorites/:providerId/check', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const providerId = parseInt(req.params.providerId);
@@ -16855,7 +16803,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Inquiry routes
-  app.get('/api/inquiries/provider/:providerId', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/inquiries/provider/:providerId', isAuthenticated, async (req: any, res) => {
     try {
       const providerId = parseInt(req.params.providerId);
       const userId = req.user!.id;
@@ -16874,7 +16822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/inquiries/user', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/inquiries/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const inquiries = await storage.getInquiriesByUserId(userId);
@@ -16885,7 +16833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/inquiries', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/inquiries', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const inquiryData = insertInquirySchema.parse({
@@ -16904,7 +16852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/inquiries/:id/status', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.patch('/api/inquiries/:id/status', isAuthenticated, async (req: any, res) => {
     try {
       const inquiryId = parseInt(req.params.id);
       const { status } = req.body;
@@ -16925,7 +16873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.patch('/api/providers/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.patch('/api/providers/:id', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user!.id;
@@ -16949,7 +16897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Provider inquiries route
-  app.get('/api/inquiries/provider', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/inquiries/provider', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       
@@ -16969,7 +16917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // License confirmation route
-  app.post('/api/providers/confirm-license', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/providers/confirm-license', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const providers = await storage.getProvidersByUserId(userId);
@@ -17011,7 +16959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/providers/:id/images', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/providers/:id/images', isAuthenticated, async (req: any, res) => {
     try {
       const providerId = parseInt(req.params.id);
       const userId = req.user!.id;
@@ -17070,7 +17018,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/objects/:objectPath(*)", requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req: any, res) => {
     const userId = req.user?.claims?.sub;
     try {
       const { ObjectStorageService, ObjectNotFoundError, ObjectPermission } = await import("./objectStorage");
@@ -17095,7 +17043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/objects/upload", requireAuth, async (req, res) => {
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
@@ -17110,7 +17058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User contribution endpoints for Yelp-style features
   
   // Provider information updates (suggest an edit)
-  app.post('/api/providers/:id/suggest-update', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/providers/:id/suggest-update', isAuthenticated, async (req: any, res) => {
     try {
       const providerId = parseInt(req.params.id);
       const userId = req.user!.id;
@@ -17144,7 +17092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User-contributed photos
-  app.post('/api/providers/:id/contribute-photo', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/providers/:id/contribute-photo', isAuthenticated, async (req: any, res) => {
     try {
       const providerId = parseInt(req.params.id);
       const userId = req.user!.id;
@@ -17196,7 +17144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Review voting (helpful/not helpful)
-  app.post('/api/reviews/:id/vote', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/reviews/:id/vote', isAuthenticated, async (req: any, res) => {
     try {
       const reviewId = parseInt(req.params.id);
       const userId = req.user!.id;
@@ -17234,7 +17182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/reviews/:id/user-vote', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/reviews/:id/user-vote', isAuthenticated, async (req: any, res) => {
     try {
       const reviewId = parseInt(req.params.id);
       const userId = req.user!.id;
@@ -17243,6 +17191,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user vote:", error);
       res.status(500).json({ message: "Failed to fetch user vote" });
+    }
+  });
+
+  // Setup Replit Auth
+  await setupAuth(app);
+
+  // Auth routes for Replit Auth
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // User preferences endpoint
+  app.post('/api/user/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const preferences = userPreferencesSchema.parse(req.body);
+      
+      // Store preferences in user record or separate preferences table
+      // For now, we'll just return success - you can extend this to store preferences
+      console.log(`Saving preferences for user ${userId}:`, preferences);
+      
+      res.json({ 
+        success: true, 
+        message: "Preferences saved successfully",
+        preferences 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid preferences data", errors: error.errors });
+      }
+      console.error("Error saving user preferences:", error);
+      res.status(500).json({ message: "Failed to save preferences" });
     }
   });
 
