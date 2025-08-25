@@ -9,6 +9,13 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
+// Extend session type for returnTo
+declare module "express-session" {
+  interface SessionData {
+    returnTo?: string;
+  }
+}
+
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
@@ -210,7 +217,7 @@ export async function setupAuth(app: Express) {
     const currentDomain = req.hostname === '127.0.0.1' || req.hostname === 'localhost' ? domains[0] : req.hostname;
     const strategyName = `replitauth:${currentDomain}`;
     
-    passport.authenticate(strategyName, (err, user) => {
+    passport.authenticate(strategyName, (err: any, user: any) => {
       if (err) {
         console.error("Authentication error:", err);
         return next(err);
