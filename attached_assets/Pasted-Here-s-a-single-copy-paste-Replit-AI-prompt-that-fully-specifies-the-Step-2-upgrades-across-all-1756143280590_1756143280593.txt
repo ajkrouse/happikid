@@ -1,0 +1,206 @@
+Here’s a **single, copy-paste Replit AI prompt** that fully specifies the Step-2 upgrades across all provider types, with schema, API, UI, validation, and acceptance criteria.
+
+---
+
+**Title:** Upgrade Step 2 “Service Details” for all provider types (fields, UX, validation, small schema bump)
+
+**Goal:** Enhance Step 2 for **Daycare/Preschool, After-School, Camps, Private School** with domain-specific fields, dynamic follow-ups, age presets, a feature registry, chip inputs, completeness hints, and strict validation — while preserving current styling and routes.
+
+**Stack context:** React + Tailwind (frontend), Node/Express (API), PostgreSQL. We already have providers, onboarding, and public search.
+
+---
+
+### 1) Database (Postgres migrations)
+
+* Add shared columns and a type-specific JSON payload (keep existing data):
+
+```sql
+ALTER TABLE providers
+  ADD COLUMN min_age_months INT,
+  ADD COLUMN max_age_months INT,
+  ADD COLUMN total_capacity INT,
+  ADD COLUMN features JSONB DEFAULT '[]'::jsonb,         -- selected feature IDs
+  ADD COLUMN features_custom JSONB DEFAULT '[]'::jsonb,  -- custom chips
+  ADD COLUMN details JSONB DEFAULT '{}'::jsonb;          -- type-specific fields
+```
+
+* Store per-type fields inside `details` as objects:
+
+  * `details.daycare`, `details.after_school`, `details.camp`, `details.school`.
+
+---
+
+### 2) Feature registry (server)
+
+* Create `server/meta/feature_registry.json` and an endpoint `GET /api/meta/features` (cache in memory).
+* Example entries:
+
+```json
+[
+  {"id":"safety_secure_entry","label":"Secure Entry","group":"safety","types":["daycare","school","after_school"]},
+  {"id":"learning_stem","label":"STEM Activities","group":"learning","types":["daycare","camp","school"]},
+  {"id":"convenience_transport","label":"School Pickup / Transportation","group":"convenience","types":["after_school","school"],
+   "followups":[{"field":"pickup_schools","type":"chips","label":"Schools you serve"}]}
+]
+```
+
+---
+
+### 3) API updates (Node/Express)
+
+* `GET /api/providers/:id` and `PATCH /api/providers/:id` must include/accept:
+
+  * `min_age_months`, `max_age_months`, `total_capacity`, `features`, `features_custom`, `details`.
+* Add server-side validation (use Zod/Yup). Return 422 with field-level errors. Validation varies by `provider_type` (see sections below).
+* Keep existing routes; add only what’s needed.
+
+---
+
+### 4) Frontend components (new or updated, React + Tailwind)
+
+* `AgeRangeChips.tsx`: chips **Infant (0–18m)**, **Toddler (18–36m)**, **Pre-K (3–5y)**, **Elementary (5–11y)**, **Middle (11–14y)**, **High (14–18y)**. Selecting fills `min/max` (months) but allows manual override.
+* `ChipInput.tsx`: reusable chips (max items limit + 30 char cap).
+* `FeatureSelector.tsx`: renders groups from registry, supports follow-up fields (e.g., chips when a feature demands extra info).
+* `TimeByDayEditor.tsx`: weekday checkboxes + start/end HH\:mm for **After-School**.
+* `SessionRepeater.tsx`: add/edit/delete camp sessions with inline validation (table summary).
+* `CompletenessHints.tsx`: shows top 3 next actions under the progress bar based on form state.
+* `UploadField.tsx`: simple file upload (license photo) with size/type checks.
+
+Update `StepServiceDetails.tsx` to:
+
+* Render shared controls (age chips, numeric min/max, capacity, FeatureSelector, custom features as chips).
+* Switch on `provider_type` and render the type-specific subform listed below.
+
+Accessibility: labels for all inputs; keyboard-focus styles; fieldset/legend for grouped controls; aria-describedby for tooltips.
+
+---
+
+### 5) Shared validation (client + server)
+
+* `min_age_months >= 0` and `min_age_months <= max_age_months`.
+* `total_capacity` integer > 0 when present.
+* Any visible follow-up field becomes required unless its parent option is de-selected.
+
+---
+
+### 6) Type-specific fields, UI, and validation
+
+#### A) Daycare / Preschool  → `details.daycare`
+
+**Fields**
+
+* `state_license_id` (string)
+* `license_photo_url` (string)
+* `last_inspection_date` (date)
+* `staff_to_child_ratio` (decimal)
+* `max_group_size` (int)
+* `care_types` (array: `infant`,`toddler`,`preschool`,`pre_k`)
+* `crib_count` (int; required if `infant` in `care_types`)
+* `diapering_supported` (bool)
+* `potty_training_support` (bool)
+* `cpr_first_aid_expiry` (date)
+* `meals_provided` (`none|snacks|breakfast_lunch|all_meals`)
+* `languages_spoken` (string\[] via chips)
+
+**UI**
+
+* Rename field label **Total Capacity → Licensed Capacity**.
+* Tooltips:
+
+  * **Staff-to-Child Ratio:** “Typical 3–4 yrs 1:10–1:12; infants 1:3–1:4 (varies by state).”
+  * **Last Inspection Date:** “Most recent state/local inspection.”
+* Inline upload for `license_photo_url`.
+
+**Validation**
+
+* `staff_to_child_ratio > 0`
+* `last_inspection_date <= today`
+* If `care_types` includes `infant`, require `crib_count > 0`.
+
+---
+
+#### B) After-School  → `details.after_school`
+
+**Fields**
+
+* `weekdays` (array from Mon..Fri)
+* `start_time_by_day` / `end_time_by_day` (object HH\:mm per selected weekday)
+* `pickup_transportation` (bool)
+* `pickup_schools` (string\[] chips; required if transportation = true)
+* `late_pickup_policy` (text)
+* `homework_support_level` (`light|structured|tutoring`)
+* `tutoring_subjects` (string\[] chips; required if level = `tutoring`)
+* `seasonal_availability` (`school_year|year_round`)
+
+**Validation**
+
+* Each selected weekday must include start & end time.
+* If transportation = true ⇒ `pickup_schools.length ≥ 1`.
+* If tutoring ⇒ `tutoring_subjects.length ≥ 1`.
+
+---
+
+#### C) Camps (summer & breaks)  → `details.camp`
+
+**Fields**
+
+* `sessions[]` objects:
+
+  * `{ name, start_date, end_date, price_amount, price_unit ('day'|'week'), min_age_months, max_age_months, capacity }`
+* `extended_care_am` (bool + `start_time`, `end_time`, `fee`)
+* `extended_care_pm` (bool + `start_time`, `end_time`, `fee`)
+* `water_activities` (bool) ⇒ `lifeguard_certified` (bool)
+* `overnight` (bool) ⇒ `lodging_description` (text), `overnight_ratio` (decimal)
+
+**Validation**
+
+* For each session: `start_date <= end_date`.
+* No overlapping sessions (same camp).
+* If `water_activities = true` ⇒ `lifeguard_certified = true`.
+
+---
+
+#### D) Private / Independent Schools  → `details.school`
+
+**Fields**
+
+* `accreditations` (chips: NAIS, State, Cognia, AdvancED, Other)
+* `tuition_min` (int), `tuition_max` (int), `financial_aid_available` (bool)
+* `student_teacher_ratio` (decimal)
+* `class_size_min` (int), `class_size_max` (int)
+* `before_care` (bool + `start_time`, `end_time`, `fee`)
+* `after_care` (bool + `start_time`, `end_time`, `fee`)
+* `grade_range` (`PK-5|K-8|6-12|9-12|K-12|Other`)
+* `language_programs[]` (chips)
+* `advanced_programs[]` (chips: AP, IB, Honors)
+* `support_services[]` (chips: Counseling, Learning Support, etc.)
+
+**Validation**
+
+* `tuition_min <= tuition_max`
+* `class_size_min <= class_size_max`
+* If `advanced_programs` includes AP or IB ⇒ `grade_range` must include HS (6-12, 9-12, or K-12).
+
+---
+
+### 7) Completeness scoring (client-only)
+
+* Display a tiny checklist under the progress bar (top 3 missing).
+* Scoring templates (100 pts each):
+
+  * **Daycare:** license photo (10), license id (10), ratio (10), inspection (6), age range (8), capacity (8), ≥5 features (8), languages (6), meals (6), description (12), photos placeholder (14).
+  * **After-School:** weekdays+times (18), transportation (8), homework level (8), age range (8), capacity (8), ≥5 features (8), tutoring subjects if applicable (6), description (12), photos (14).
+  * **Camp:** ≥1 session (30), extended care (8), water safety if applicable (6), age range (8), capacity (8), ≥5 features (8), description (12), photos (10).
+  * **School:** accreditation (12), tuition range (12), student\:teacher ratio (10), class sizes (8), grade range (8), before/after-care (8), ≥6 features (10), programs/support (12), description (10).
+
+---
+
+### 8) Acceptance criteria (demo script)
+
+1. **Daycare:** select “Infant” age chip ⇒ min/max autofill; enter license ID + upload license photo + ratio; leaving `crib_count` empty blocks save until provided.
+2. **After-School:** choose Mon/Wed/Fri with times; enable Transportation and add two pickup schools; select “Tutoring” and add Math/ELA; validation errors appear inline if anything missing.
+3. **Camp:** add two non-overlapping sessions (one daily, one weekly); enabling Water Activities without Lifeguard shows error; adding lifeguard passes; extended care fees persist.
+4. **School:** add NAIS + State, set tuition min/max (guard min>max), choose K-8; selecting AP triggers grade-range error until set to include HS; before/after-care times save.
+5. **Shared:** feature lists are driven by the registry; custom features use chips; age chips work with numeric override; completeness hints update live; API persists and returns all new fields.
+
+**Please implement exactly as specified, preserving existing look/feel and routes.**

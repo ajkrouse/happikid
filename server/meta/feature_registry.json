@@ -1,0 +1,472 @@
+[
+  {
+    "id": "outdoor_playground",
+    "label": "Outdoor Playground",
+    "group": "facilities",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "art_crafts",
+    "label": "Art & Crafts",
+    "group": "activities",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "music_programs",
+    "label": "Music Programs",
+    "group": "activities",
+    "types": ["daycare", "afterschool", "camp", "school"],
+    "followups": [
+      {
+        "field": "music_instruments",
+        "type": "chips",
+        "label": "Instruments Available"
+      }
+    ]
+  },
+  {
+    "id": "stem_activities",
+    "label": "STEM Activities",
+    "group": "activities",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "language_immersion",
+    "label": "Language Immersion",
+    "group": "academics",
+    "types": ["daycare", "afterschool", "school"],
+    "followups": [
+      {
+        "field": "immersion_languages",
+        "type": "chips",
+        "label": "Languages Offered"
+      }
+    ]
+  },
+  {
+    "id": "organic_meals",
+    "label": "Organic Meals",
+    "group": "nutrition",
+    "types": ["daycare", "afterschool", "camp"]
+  },
+  {
+    "id": "security_cameras",
+    "label": "Security Cameras",
+    "group": "safety",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "extended_hours",
+    "label": "Extended Hours",
+    "group": "operations",
+    "types": ["daycare", "afterschool"]
+  },
+  {
+    "id": "transportation",
+    "label": "Transportation Service",
+    "group": "operations",
+    "types": ["afterschool", "camp", "school"]
+  },
+  {
+    "id": "swimming_pool",
+    "label": "Swimming Pool",
+    "group": "facilities",
+    "types": ["daycare", "camp", "school"]
+  },
+  {
+    "id": "library",
+    "label": "Library",
+    "group": "facilities",
+    "types": ["daycare", "school"]
+  },
+  {
+    "id": "garden_farm",
+    "label": "Garden/Farm Activities",
+    "group": "activities",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "special_needs_support",
+    "label": "Special Needs Support",
+    "group": "support",
+    "types": ["daycare", "afterschool", "school"]
+  },
+  {
+    "id": "montessori_method",
+    "label": "Montessori Method",
+    "group": "pedagogy",
+    "types": ["daycare", "school"]
+  },
+  {
+    "id": "waldorf_approach",
+    "label": "Waldorf Approach",
+    "group": "pedagogy",
+    "types": ["daycare", "school"]
+  },
+  {
+    "id": "reggio_emilia",
+    "label": "Reggio Emilia Approach",
+    "group": "pedagogy",
+    "types": ["daycare"]
+  },
+  {
+    "id": "play_based_learning",
+    "label": "Play-Based Learning",
+    "group": "pedagogy",
+    "types": ["daycare", "afterschool"]
+  },
+  {
+    "id": "infant_care",
+    "label": "Infant Care (0-12 months)",
+    "group": "age_specific",
+    "types": ["daycare"]
+  },
+  {
+    "id": "toddler_programs",
+    "label": "Toddler Programs",
+    "group": "age_specific",
+    "types": ["daycare"]
+  },
+  {
+    "id": "preschool_prep",
+    "label": "Preschool Preparation",
+    "group": "academics",
+    "types": ["daycare"]
+  },
+  {
+    "id": "potty_training",
+    "label": "Potty Training Support",
+    "group": "care",
+    "types": ["daycare"]
+  },
+  {
+    "id": "nutritious_meals",
+    "label": "Nutritious Meals Provided",
+    "group": "nutrition",
+    "types": ["daycare", "afterschool", "camp"]
+  },
+  {
+    "id": "allergy_accommodations",
+    "label": "Allergy Accommodations",
+    "group": "nutrition",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "nurse_on_staff",
+    "label": "Nurse on Staff",
+    "group": "health",
+    "types": ["daycare", "school"]
+  },
+  {
+    "id": "homework_help",
+    "label": "Homework Help",
+    "group": "academics",
+    "types": ["afterschool"]
+  },
+  {
+    "id": "tutoring_services",
+    "label": "Tutoring Services",
+    "group": "academics",
+    "types": ["afterschool", "school"],
+    "followups": [
+      {
+        "field": "tutoring_subjects",
+        "type": "chips",
+        "label": "Subjects Available"
+      }
+    ]
+  },
+  {
+    "id": "field_trips",
+    "label": "Regular Field Trips",
+    "group": "activities",
+    "types": ["afterschool", "camp", "school"]
+  },
+  {
+    "id": "sports_programs",
+    "label": "Sports Programs",
+    "group": "activities",
+    "types": ["afterschool", "camp", "school"],
+    "followups": [
+      {
+        "field": "sports_offered",
+        "type": "chips",
+        "label": "Sports Offered"
+      }
+    ]
+  },
+  {
+    "id": "technology_lab",
+    "label": "Technology Lab",
+    "group": "facilities",
+    "types": ["afterschool", "school"]
+  },
+  {
+    "id": "maker_space",
+    "label": "Maker Space",
+    "group": "facilities",
+    "types": ["afterschool", "camp", "school"]
+  },
+  {
+    "id": "school_pickup",
+    "label": "School Pickup Service",
+    "group": "operations",
+    "types": ["afterschool"]
+  },
+  {
+    "id": "flexible_scheduling",
+    "label": "Flexible Scheduling",
+    "group": "operations",
+    "types": ["afterschool"]
+  },
+  {
+    "id": "summer_programs",
+    "label": "Summer Programs",
+    "group": "seasonal",
+    "types": ["afterschool", "school"]
+  },
+  {
+    "id": "water_activities",
+    "label": "Water Activities",
+    "group": "activities",
+    "types": ["camp"]
+  },
+  {
+    "id": "overnight_camping",
+    "label": "Overnight Camping",
+    "group": "activities",
+    "types": ["camp"]
+  },
+  {
+    "id": "adventure_activities",
+    "label": "Adventure Activities",
+    "group": "activities",
+    "types": ["camp"],
+    "followups": [
+      {
+        "field": "adventure_types",
+        "type": "chips",
+        "label": "Adventure Types"
+      }
+    ]
+  },
+  {
+    "id": "arts_crafts_camp",
+    "label": "Arts & Crafts Specialization",
+    "group": "specialty",
+    "types": ["camp"]
+  },
+  {
+    "id": "sports_camp",
+    "label": "Sports Camp",
+    "group": "specialty",
+    "types": ["camp"]
+  },
+  {
+    "id": "science_camp",
+    "label": "Science/STEM Camp",
+    "group": "specialty",
+    "types": ["camp"]
+  },
+  {
+    "id": "nature_exploration",
+    "label": "Nature Exploration",
+    "group": "activities",
+    "types": ["camp"]
+  },
+  {
+    "id": "camp_traditions",
+    "label": "Camp Traditions & Activities",
+    "group": "culture",
+    "types": ["camp"]
+  },
+  {
+    "id": "counselor_training",
+    "label": "Trained & Certified Counselors",
+    "group": "staff",
+    "types": ["camp"]
+  },
+  {
+    "id": "ap_courses",
+    "label": "AP Courses",
+    "group": "academics",
+    "types": ["school"],
+    "followups": [
+      {
+        "field": "ap_subjects",
+        "type": "chips",
+        "label": "AP Subjects Offered"
+      }
+    ]
+  },
+  {
+    "id": "ib_program",
+    "label": "International Baccalaureate (IB)",
+    "group": "academics",
+    "types": ["school"]
+  },
+  {
+    "id": "college_counseling",
+    "label": "College Counseling",
+    "group": "support",
+    "types": ["school"]
+  },
+  {
+    "id": "career_guidance",
+    "label": "Career Guidance",
+    "group": "support",
+    "types": ["school"]
+  },
+  {
+    "id": "honor_society",
+    "label": "Honor Society",
+    "group": "academics",
+    "types": ["school"]
+  },
+  {
+    "id": "competitive_teams",
+    "label": "Competitive Academic Teams",
+    "group": "academics",
+    "types": ["school"]
+  },
+  {
+    "id": "performing_arts",
+    "label": "Performing Arts Program",
+    "group": "activities",
+    "types": ["school"],
+    "followups": [
+      {
+        "field": "performing_arts_types",
+        "type": "chips",
+        "label": "Programs Offered"
+      }
+    ]
+  },
+  {
+    "id": "student_government",
+    "label": "Student Government",
+    "group": "leadership",
+    "types": ["school"]
+  },
+  {
+    "id": "community_service",
+    "label": "Community Service Programs",
+    "group": "leadership",
+    "types": ["school"]
+  },
+  {
+    "id": "peer_tutoring",
+    "label": "Peer Tutoring",
+    "group": "academics",
+    "types": ["school"]
+  },
+  {
+    "id": "study_abroad",
+    "label": "Study Abroad Programs",
+    "group": "global",
+    "types": ["school"]
+  },
+  {
+    "id": "one_to_one_devices",
+    "label": "1:1 Device Program",
+    "group": "technology",
+    "types": ["school"]
+  },
+  {
+    "id": "smart_classrooms",
+    "label": "Smart Classrooms",
+    "group": "technology",
+    "types": ["school"]
+  },
+  {
+    "id": "financial_aid",
+    "label": "Financial Aid Available",
+    "group": "operations",
+    "types": ["school"]
+  },
+  {
+    "id": "before_after_care",
+    "label": "Before & After School Care",
+    "group": "operations",
+    "types": ["school"]
+  },
+  {
+    "id": "parent_portal",
+    "label": "Parent Communication Portal",
+    "group": "communication",
+    "types": ["daycare", "afterschool", "school"]
+  },
+  {
+    "id": "daily_reports",
+    "label": "Daily Activity Reports",
+    "group": "communication",
+    "types": ["daycare", "afterschool"]
+  },
+  {
+    "id": "photo_sharing",
+    "label": "Photo Sharing",
+    "group": "communication",
+    "types": ["daycare", "afterschool", "camp"]
+  },
+  {
+    "id": "progress_tracking",
+    "label": "Developmental Progress Tracking",
+    "group": "academics",
+    "types": ["daycare", "school"]
+  },
+  {
+    "id": "bilingual_staff",
+    "label": "Bilingual Staff",
+    "group": "staff",
+    "types": ["daycare", "afterschool", "school"],
+    "followups": [
+      {
+        "field": "staff_languages",
+        "type": "chips",
+        "label": "Languages Spoken by Staff"
+      }
+    ]
+  },
+  {
+    "id": "cultural_celebrations",
+    "label": "Cultural Celebrations",
+    "group": "culture",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "inclusive_environment",
+    "label": "Inclusive Environment",
+    "group": "culture",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "eco_friendly",
+    "label": "Eco-Friendly Practices",
+    "group": "values",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "character_development",
+    "label": "Character Development",
+    "group": "values",
+    "types": ["daycare", "afterschool", "camp", "school"]
+  },
+  {
+    "id": "mindfulness_programs",
+    "label": "Mindfulness Programs",
+    "group": "wellness",
+    "types": ["daycare", "afterschool", "school"]
+  },
+  {
+    "id": "social_emotional_learning",
+    "label": "Social-Emotional Learning",
+    "group": "wellness",
+    "types": ["daycare", "afterschool", "school"]
+  },
+  {
+    "id": "conflict_resolution",
+    "label": "Conflict Resolution Training",
+    "group": "wellness",
+    "types": ["afterschool", "school"]
+  }
+]

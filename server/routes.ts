@@ -17196,6 +17196,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Feature registry endpoint
+  app.get('/api/meta/features', async (req, res) => {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const featuresPath = path.join(__dirname, 'meta', 'feature_registry.json');
+      const features = JSON.parse(fs.readFileSync(featuresPath, 'utf8'));
+      res.json(features);
+    } catch (error) {
+      console.error("Error loading feature registry:", error);
+      res.status(500).json({ message: "Failed to load features" });
+    }
+  });
+
   // Auth routes for Replit Auth
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

@@ -72,6 +72,13 @@ export const providers = pgTable("providers", {
   hoursClose: varchar("hours_close"),
   schedule: jsonb("schedule"), // Flexible schedule for different days
   features: text("features").array(),
+  // Step 2 upgrade fields
+  minAgeMonths: integer("min_age_months"),
+  maxAgeMonths: integer("max_age_months"),
+  totalCapacity: integer("total_capacity"),
+  featuresNew: jsonb("features_new").default(sql`'[]'::jsonb`), // selected feature IDs
+  featuresCustom: jsonb("features_custom").default(sql`'[]'::jsonb`), // custom chips
+  details: jsonb("details").default(sql`'{}'::jsonb`), // type-specific fields
   isVerified: boolean("is_verified").default(false),
   isActive: boolean("is_active").default(true),
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),

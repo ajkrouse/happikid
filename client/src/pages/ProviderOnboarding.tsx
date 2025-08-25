@@ -33,6 +33,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
 import Navigation from "@/components/Navigation";
+import { StepServiceDetails } from "@/components/StepServiceDetails";
 
 const ONBOARDING_STEPS = [
   { id: "basic_info", title: "Basic Information", icon: Building2 },
@@ -132,6 +133,14 @@ export default function ProviderOnboarding() {
     type: "",
     ageRangeMin: "",
     ageRangeMax: "",
+    // Step 2 upgrade fields
+    minAgeMonths: undefined as number | undefined,
+    maxAgeMonths: undefined as number | undefined,
+    totalCapacity: undefined as number | undefined,
+    featuresNew: [] as string[],
+    featuresCustom: [] as string[],
+    details: {} as Record<string, any>,
+    // Legacy fields
     capacity: "",
     monthlyPrice: "",
     monthlyPriceMin: "",
@@ -156,6 +165,9 @@ export default function ProviderOnboarding() {
     uniqueSellingPoints: [] as string[],
     faqs: [] as { question: string; answer: string }[]
   });
+
+  // State for followup data (feature-specific fields)
+  const [followupData, setFollowupData] = useState<Record<string, any>>({});
 
   const [locations, setLocations] = useState<Array<{
     id?: number;
@@ -805,6 +817,22 @@ export default function ProviderOnboarding() {
         );
 
       case "service_details":
+        return (
+          <StepServiceDetails
+            formData={formData}
+            followupData={followupData}
+            onFormDataChange={(updates) => {
+              setFormData(prev => ({ ...prev, ...updates }));
+              setHasUnsavedChanges(true);
+            }}
+            onFollowupDataChange={(updates) => {
+              setFollowupData(updates);
+              setHasUnsavedChanges(true);
+            }}
+          />
+        );
+
+      case "old_service_details":
         return (
           <div className="space-y-6">
             <Card>
