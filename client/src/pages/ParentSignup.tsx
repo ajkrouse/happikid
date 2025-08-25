@@ -20,13 +20,26 @@ export default function ParentSignup() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [showPreferences, setShowPreferences] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  // Redirect to preferences form if user just logged in
+  // Handle initial auth check with timeout to prevent infinite loading
   useEffect(() => {
-    if (isAuthenticated && user && !showPreferences) {
+    const timer = setTimeout(() => {
+      setInitialLoadComplete(true);
+      if (isAuthenticated && user && !showPreferences) {
+        setShowPreferences(true);
+      }
+    }, 1000); // Give 1 second for auth check
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, user, showPreferences]);
+
+  // Update preferences when auth status changes
+  useEffect(() => {
+    if (initialLoadComplete && isAuthenticated && user && !showPreferences) {
       setShowPreferences(true);
     }
-  }, [isAuthenticated, user, showPreferences]);
+  }, [isAuthenticated, user, showPreferences, initialLoadComplete]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -85,13 +98,13 @@ export default function ParentSignup() {
     }
   };
 
-  // Show loading state while checking auth
-  if (authLoading) {
+  // Show loading state only for initial load
+  if (authLoading && !initialLoadComplete) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Checking authentication...</p>
         </div>
       </div>
     );
