@@ -1,0 +1,305 @@
+Absolutely—great idea. I’ll give you a single, copy-paste **Replit build prompt** that (1) downloads & parses that NJ DCF PDF, (2) normalizes/cleans the data, (3) geocodes addresses, and (4) creates/updates HappiKid provider profiles in your DB. I’ll also include optional “stretch” steps you can toggle on/off. (I pulled the column layout directly from the PDF—county, license #, provider type, name, address, city, zip, phone, email, ages served, licensed capacity; current as of **Aug 1, 2025**. ([NJ.gov][1]))
+
+---
+
+# 🧪 Replit Build Prompt — “Import NJ Licensed Child Care Centers → HappiKid Provider Profiles”
+
+**Goal:**
+Ingest New Jersey’s official list of **licensed child care centers** (PDF) into the HappiKid database as **provider profiles** with “government-verified” provenance. Then enrich with geocodes and standardized fields to power search, map view, and filters.
+
+**Source of truth:**
+NJ DCF “Licensed Child Care Centers” PDF (as of **Aug 1, 2025**): [https://www.nj.gov/dcf/about/divisions/ol/NJDCF-Licensed-Child-Care-Centers.pdf](https://www.nj.gov/dcf/about/divisions/ol/NJDCF-Licensed-Child-Care-Centers.pdf)  (columns include: County, License Number, Provider Type, Provider Name, Provider Address 1, Provider City, Provider Zip Code, Provider Phone Number, Provider Email Address, Ages Served, Licensed Capacity). ([NJ.gov][1])
+
+---
+
+## 0) Project setup
+
+* Language: **Python 3.11** for ETL + **PostgreSQL** (or SQLite for local dev) for storage.
+* Create a `data_ingest/` folder with:
+
+  * `download.py` (fetch PDF)
+  * `extract.py` (parse PDF into rows)
+  * `normalize.py` (clean & standardize fields)
+  * `geocode.py` (lat/lng via Nominatim or Google Maps if API key provided)
+  * `upsert.py` (write to DB)
+  * `schema.sql` (DDL)
+  * `config.example.env` (env vars template)
+  * `run_import.py` (end-to-end orchestrator)
+* Use **pdfplumber** as primary extractor; if it fails on some pages, fallback to **camelot** or **tabula-py**.
+* Add a **dry-run** flag to preview without DB writes.
+
+---
+
+## 1) Database schema (create if not exists)
+
+Create or migrate these tables (PostgreSQL):
+
+```sql
+-- schema.sql
+CREATE TABLE IF NOT EXISTS providers (
+  id SERIAL PRIMARY KEY,
+  license_number TEXT UNIQUE,
+  source VARCHAR(64) DEFAULT 'NJ_DCF',
+  source_url TEXT,
+  source_as_of_date DATE,
+  provider_type TEXT,               -- raw value (e.g., "Child Care Center")
+  name TEXT,
+  address1 TEXT,
+  city TEXT,
+  state TEXT DEFAULT 'NJ',
+  zip TEXT,
+  phone TEXT,
+  email TEXT,
+  ages_served_raw TEXT,             -- raw "2 1/2 - 13 years"
+  age_min_months INT,               -- parsed lower bound
+  age_max_months INT,               -- parsed upper bound
+  capacity INT,
+  lat DOUBLE PRECISION,
+  lng DOUBLE PRECISION,
+  geocode_status TEXT,              -- 'OK'|'PARTIAL'|'NONE'
+  slug TEXT UNIQUE,
+  is_verified_by_gov BOOLEAN DEFAULT TRUE,
+  is_profile_public BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_providers_geom ON providers (lat, lng);
+CREATE INDEX IF NOT EXISTS idx_providers_zip  ON providers (zip);
+CREATE INDEX IF NOT EXISTS idx_providers_name ON providers (name);
+```
+
+> **Identity key:** `license_number` is the dedupe key.
+
+---
+
+## 2) Field mapping (PDF → DB)
+
+* `County` → (not stored yet; keep optional `county` in memory for now)
+* `License Number` → `license_number`
+* `Provider Type` → `provider_type` (store raw; we’ll map to HappiKid categories later)
+* `Provider Name` → `name`
+* `Provider Address 1` → `address1`
+* `Provider City` → `city`
+* `Provider Zip Code` → `zip` (strip 4-digit suffix if present)
+* `Provider Phone Number` → `phone` (E.164 normalize if possible)
+* `Provider Email Address` → `email` (lowercase)
+* `Ages Served` → `ages_served_raw` + parsed `age_min_months` / `age_max_months`
+* `Licensed Capacity` → `capacity`
+* Hard-set: `state='NJ'`, `source='NJ_DCF'`, `source_url` to PDF URL, `source_as_of_date='2025-08-01'`
+* Generate `slug`: kebab-case of `{name}-{city}-nj` plus short hash to avoid collisions
+
+---
+
+## 3) Parsing & normalization rules
+
+* **Addresses:** trim whitespace, collapse double spaces.
+* **Phone:** strip non-digits; if 10 digits, format as `+1XXXXXXXXXX`.
+* **Email:** lowercase; if missing or invalid, leave NULL.
+* **Capacity:** cast to int; if missing, NULL.
+* **Ages Served → months:**
+
+  * Recognize patterns like:
+
+    * `0 - 13 years`
+    * `2 1/2 - 6 years`
+    * `6 - 13 years`
+  * Convert lower/upper to months:
+
+    * years → years\*12;
+    * `x 1/2` → x\*12 + 6;
+    * bare `0` → 0 months.
+* **Provider Type mapping (internal tag, optional):**
+
+  * If contains “Child Care Center” → tag `center`
+  * (Keep raw in `provider_type`; we can add a `provider_category` later.)
+
+---
+
+## 4) Geocoding
+
+* Prefer **Nominatim (OpenStreetMap)** for free batch geocoding with polite rate limiting (1 req/sec).
+* If `GOOGLE_MAPS_API_KEY` is present, allow `--geocoder google` to override and use Google’s API.
+* Input: `address1, city, NJ, zip`
+* Output: `lat`, `lng`, `geocode_status` (`OK`, `PARTIAL`, `NONE`)
+* Cache results locally in `data_ingest/.geocode_cache.json` keyed by full address string.
+
+---
+
+## 5) Upsert logic
+
+* For each row:
+
+  * If `license_number` exists → **update** changed fields, refresh `updated_at`
+  * Else → **insert**
+* Never delete existing rows in this job. (We can add a separate “deactivation” flow later.)
+
+---
+
+## 6) Orchestration CLI (`run_import.py`)
+
+Provide CLI flags:
+
+```
+python run_import.py \
+  --pdf-url "https://www.nj.gov/dcf/about/divisions/ol/NJDCF-Licensed-Child-Care-Centers.pdf" \
+  --as-of "2025-08-01" \
+  --db-url "$DATABASE_URL" \
+  --geocoder "nominatim" \
+  --dry-run false
+```
+
+* Steps:
+
+  1. Download PDF → `data_ingest/cache/nj_dcf.pdf` (skip if unchanged using ETag/Last-Modified if available)
+  2. Extract tables with **pdfplumber**; if a page fails, try **camelot** or **tabula**.
+  3. Map columns → dicts; validate required fields (`license_number`, `name`, `address1`, `city`, `zip`).
+  4. Normalize values (phone, email, ages, capacity).
+  5. Geocode in batches with retry & caching.
+  6. Upsert to DB.
+  7. Emit a **summary report** (counts, geocode hit rate, rows with parsing warnings).
+  8. Write a CSV export of the final payload to `data_ingest/exports/nj_dcf_import_{date}.csv`.
+
+---
+
+## 7) Python dependency list
+
+```
+pdfplumber
+camelot-py[cv]    # requires ghostscript & tk on some systems; if pain, use tabula-py (needs Java)
+tabula-py
+pandas
+python-slugify
+phonenumbers
+email-validator
+requests
+tenacity
+psycopg2-binary   # or pg8000
+python-dotenv
+```
+
+> In Replit, if camelot/tabula setup is annoying, rely on **pdfplumber** first; it often works on clean tabular PDFs like this. If any columns wrap, add heuristics to stitch cells by column boundaries.
+
+---
+
+## 8) Acceptance tests (must pass)
+
+* ✅ Import ≥ 99% of rows without fatal errors.
+* ✅ Every row with a `license_number` produces a unique upsert.
+* ✅ `ages_served_raw` parsed to `age_min_months`/`age_max_months` for ≥ 95% of rows; others logged with example strings.
+* ✅ ≥ 90% addresses geocoded with `geocode_status='OK'` (or explain lower rate in summary).
+* ✅ Slugs unique; duplicates auto-deconflicted via short hash.
+* ✅ A CSV export is saved and a console summary is printed:
+
+  * total rows, inserted, updated, parse warnings, geocode OK/partial/none.
+
+---
+
+## 9) Stretch options (toggle via flags/env)
+
+* `--make-profiles-draft true|false` (default false): if true, set `is_profile_public=false` for QA before going live.
+* `--add-county true|false` (default true): store `county` in an added column if you create it.
+* `--enrich-website true|false` (default false): attempt lightweight website discovery (ONLY if a domain is reliably extractable from email like `@acbgc.org` → `acbgc.org`; don’t crawl).
+* `--create-missing-indexes`: run `schema.sql` indexes on start.
+* **Search-friendly synonyms**: create a side table mapping `provider_type` to tags (e.g., “preschool”, “montessori”, “YMCA”, “after-school”) if keywords are found in `name`.
+
+---
+
+## 10) Security & compliance
+
+* Store the PDF URL and as-of date on each record for traceability.
+* These are **publicly licensed providers**; still, treat emails respectfully—**no outbound messaging** without opt-in.
+* Geocoding: respect Nominatim usage policy (rate limit, include `User-Agent` and `email` in requests).
+
+---
+
+## 11) Deliverables
+
+1. Running importer (`run_import.py`) + helper modules.
+2. `schema.sql` and `README.md` with setup & command examples.
+3. One sample **CSV** export and an **import summary** printed to console.
+4. Example query snippet to verify:
+
+```sql
+SELECT name, city, zip, capacity, age_min_months, age_max_months
+FROM providers
+WHERE source='NJ_DCF'
+ORDER BY city, name
+LIMIT 50;
+```
+
+---
+
+## 12) Post-import hookup in HappiKid (MVP)
+
+* Ensure your **search** indexes use `name`, `city`, `zip`, `capacity`, and age range checks.
+* Display a **“Government-verified license”** badge with a link back to the PDF source (and as-of date).
+* Map filters:
+
+  * **Ages:** translate slider (months) → `age_min_months <= child_age_months <= age_max_months`
+  * **Capacity:** optional filter; show value on profile.
+  * **Type:** simple mapping from `provider_type` to your frontend categories (center, preschool, after-school).
+* Map view uses `lat/lng`; hide if geocode missing.
+
+---
+
+## 13) Quick pseudo-code for extraction (use as guide inside `extract.py`)
+
+```python
+import pdfplumber, pandas as pd
+
+def extract_rows(pdf_path):
+    rows = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            tbls = page.extract_tables({
+                "vertical_strategy":"lines",
+                "horizontal_strategy":"lines",
+                "snap_tolerance":3
+            })
+            for t in tbls:
+                df = pd.DataFrame(t)
+                # Heuristic: first row holds headers; rename by best match
+                # Normalize headers to:
+                # ["County","License Number","Provider Type","Provider Name",
+                #  "Provider Address 1","Provider City","Provider Zip Code",
+                #  "Provider Phone Number","Provider Email Address",
+                #  "Ages Served","Licensed Capacity"]
+                # Clean/append to rows...
+    return rows
+```
+
+---
+
+## 14) Run command examples
+
+```
+# 1) Install
+pip install -r requirements.txt
+
+# 2) Create DB & tables
+psql "$DATABASE_URL" -f data_ingest/schema.sql
+
+# 3) Import
+python data_ingest/run_import.py \
+  --pdf-url "https://www.nj.gov/dcf/about/divisions/ol/NJDCF-Licensed-Child-Care-Centers.pdf" \
+  --as-of "2025-08-01" \
+  --db-url "$DATABASE_URL" \
+  --geocoder "nominatim" \
+  --dry-run false
+```
+
+---
+
+## 15) What else we can add next (pick any later)
+
+* **Periodic refresh** (monthly cron) to detect new/closed centers.
+* **Provider claim flow** so verified admins can add photos, pricing, schedules.
+* **Quality signals**: flag providers with incomplete contact info or geocode issues for manual review.
+* **Moderation pipeline** for future reviews (keep disabled until you add ToS/Privacy & reporting).
+
+---
+
+If you want, I can turn this into a ready-to-run Replit project skeleton (files & boilerplate code) or tailor it to your existing HappiKid DB schema.
+
+[1]: https://www.nj.gov/dcf/about/divisions/ol/NJDCF-Licensed-Child-Care-Centers.pdf "NJDCF, Licensed Child Care Centers as of 8.1.25.xlsx"
