@@ -114,7 +114,7 @@ export default function About() {
                 <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">630+</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">700+</h3>
 <p className="text-gray-600 text-sm">Verified Providers</p>
               </Card>
               <Card className="text-center p-6">
@@ -270,7 +270,7 @@ export default function About() {
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="text-center bg-primary-50 rounded-lg p-4">
-                    <div className="text-3xl font-bold text-primary">630+</div>
+                    <div className="text-3xl font-bold text-primary">700+</div>
                     <div className="text-sm text-gray-600">Providers</div>
                   </div>
                   <div className="text-center bg-secondary-50 rounded-lg p-4">

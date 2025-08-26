@@ -70,7 +70,7 @@ export default function ProviderSignup() {
               Claim Your <span className="text-secondary-500">Free Page</span> 
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              Join <span className="font-semibold text-primary-600">630+ trusted providers</span> and connect with families in the NYC tri-state area
+              Join <span className="font-semibold text-primary-600">700+ trusted providers</span> and connect with families in the NYC tri-state area
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export default function ProviderSignup() {
                       <div className="bg-primary-100 p-4 rounded-full w-12 h-12 mx-auto mb-2 flex items-center justify-center">
                         <Users className="h-6 w-6 text-primary-500" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">630+</p>
+                      <p className="text-2xl font-bold text-gray-900">700+</p>
                       <p className="text-xs text-gray-600">Providers</p>
                     </div>
                     <div>

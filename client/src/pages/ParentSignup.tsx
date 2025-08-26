@@ -123,7 +123,7 @@ export default function ParentSignup() {
           <p className="text-lg text-gray-600">
             {isAuthenticated && showPreferences 
               ? `Welcome ${user?.firstName || 'there'}! Help us find the perfect childcare match for your family.`
-              : 'Sign in to access 630+ verified childcare providers across NY, NJ & CT'
+              : 'Sign in to access 700+ verified childcare providers across NY, NJ & CT'
             }
           </p>
         </div>
@@ -163,7 +163,7 @@ export default function ParentSignup() {
                     What You'll Get
                   </h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Access to 630+ verified childcare providers</li>
+                    <li>• Access to 700+ verified childcare providers</li>
                     <li>• Personalized search results based on your preferences</li>
                     <li>• Direct contact with providers and ability to save favorites</li>
                     <li>• Parent reviews and detailed provider information</li>
@@ -258,7 +258,7 @@ export default function ParentSignup() {
                   What You'll Get
                 </h4>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Access to 630+ verified childcare providers</li>
+                  <li>• Access to 700+ verified childcare providers</li>
                   <li>• Personalized search results based on your preferences</li>
                   <li>• Direct contact with providers and ability to save favorites</li>
                   <li>• Parent reviews and detailed provider information</li>

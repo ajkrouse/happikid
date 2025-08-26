@@ -550,7 +550,7 @@ export default function Landing() {
               onClick={() => setLocation("/search")}
               className="btn-pill bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white shadow-xl px-8 py-4 text-lg font-semibold"
             >
-              Explore All 630+ Providers 🚀
+              Explore All 700+ Providers 🚀
             </Button>
             <p className="text-gray-600 mt-4 italic">
               Find your perfect match in minutes, not hours
