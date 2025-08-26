@@ -34,40 +34,52 @@ def download_pdf(url, timeout=30):
 
 def extract_labeled_fields(text):
     """
-    Extract labeled fields from PDF text using common NJ DOH patterns.
+    Extract labeled fields from PDF text using improved NJ DOH patterns.
     Returns dictionary of extracted fields.
     """
     fields = {}
     
     # Common field patterns in NJ DOH camp inspection reports
+    # These PDFs have a specific layout: LABEL VALUE format on separate lines
     field_patterns = {
-        'camp_id': [r'CAMP\s+ID[:\s]*(\d+)', r'ID[:\s]*(\d+)'],
-        'camp_name': [r'CAMP\s+NAME[:\s]*(.+?)(?=\n|\r|$)', r'NAME[:\s]*(.+?)(?=\n|\r|$)'],
-        'street_address': [r'STREET\s+ADDRESS[:\s]*(.+?)(?=\n|\r|$)', r'ADDRESS[:\s]*(.+?)(?=\n|\r|$)'],
-        'city': [r'CITY[:\s]*(.+?)(?=\n|\r|$)'],
-        'zip': [r'ZIP[:\s]*(\d{5}(?:-\d{4})?)'],
-        'county': [r'COUNTY[:\s]*(.+?)(?=\n|\r|$)'],
-        'phone': [r'PHONE\s+NUMBER[:\s]*(.+?)(?=\n|\r|$)', r'PHONE[:\s]*(.+?)(?=\n|\r|$)'],
-        'email': [r'E-?MAIL[:\s]*(.+?)(?=\n|\r|$)', r'EMAIL[:\s]*(.+?)(?=\n|\r|$)'],
-        'camp_owner': [r'CAMP\s+OWNER[:\s]*(.+?)(?=\n|\r|$)', r'OWNER[:\s]*(.+?)(?=\n|\r|$)'],
-        'camp_director': [r'CAMP\s+DIRECTOR\s+NAME[:\s]*(.+?)(?=\n|\r|$)', r'DIRECTOR\s+NAME[:\s]*(.+?)(?=\n|\r|$)', r'DIRECTOR[:\s]*(.+?)(?=\n|\r|$)'],
-        'health_director': [r'HEALTH\s+DIRECTOR\s+NAME[:\s]*(.+?)(?=\n|\r|$)', r'HEALTH\s+DIRECTOR[:\s]*(.+?)(?=\n|\r|$)'],
-        'evaluation': [r'EVALUATION[:\s]*(.+?)(?=\n|\r|$)'],
-        'inspector_name': [r'INSPECTOR\s+NAME[:\s]*(.+?)(?=\n|\r|$)', r'INSPECTOR[:\s]*(.+?)(?=\n|\r|$)'],
+        'camp_id': [r'(\d{4})\s+Camp\s+\d+', r'CAMP\s+ID[:\s]*(\d+)', r'ID[:\s]*(\d+)'],
+        'camp_name': [r'Camp\s+(\d+)[^\w]*([^0-9\n]+)(?=\d{4}|INSPECTION|DFD)', r'CAMP\s+NAME[:\s]*(.+?)(?=PHONE|ADDRESS|OWNER)', r'NAME[:\s]*(.+?)(?=PHONE|ADDRESS|OWNER)'],
+        'street_address': [r'(?:STREET\s+)?ADDRESS[:\s]*(.+?)(?=CITY|ZIP|\d{5})', r'(\d+\s+[A-Za-z\s]+(?:Avenue|Street|Road|Drive|Lane|Boulevard|Way|Court|Place))', r'ADDRESS[:\s]*(.+?)(?=\n|\r|$)'],
+        'city': [r'CITY[:\s]*([A-Za-z\s]+?)(?=\s*\d{5}|ZIP|COUNTY)', r'(?:Avenue|Street|Road|Drive|Lane|Boulevard|Way|Court|Place)\s+([A-Za-z\s]+?)\s+\d{5}'],
+        'zip': [r'ZIP[:\s]*(\d{5}(?:-\d{4})?)', r'([A-Za-z\s]+)\s+(\d{5})(?:\s|$)', r'\b(\d{5}(?:-\d{4})?)\b'],
+        'county': [r'COUNTY[:\s]*([A-Za-z\s]+?)(?=MAILING|$)', r'\d{5}\s+([A-Za-z]+)(?:\s+MAILING|\s*$)'],
+        'phone': [r'PHONE\s+NUMBER[:\s]*(.+?)(?=E-?MAIL|$)', r'PHONE[:\s]*(.+?)(?=E-?MAIL|$)', r'\((\d{3})\)\s*(\d{3}-\d{4})'],
+        'email': [r'E-?MAIL[:\s]*([^\s]+@[^\s]+)', r'EMAIL[:\s]*([^\s]+@[^\s]+)'],
+        'camp_owner': [r'CAMP\s+OWNER[:\s]*(.+?)(?=PHONE|$)', r'OWNER[:\s]*(.+?)(?=PHONE|$)'],
+        'camp_director': [r'CAMP\s+DIRECTOR\s+NAME[:\s]*(.+?)(?=HEALTH|$)', r'DIRECTOR\s+NAME[:\s]*(.+?)(?=HEALTH|$)', r'DIRECTOR[:\s]*(.+?)(?=HEALTH|$)'],
+        'health_director': [r'HEALTH\s+DIRECTOR\s+NAME[:\s]*(.+?)(?=FOOD|NA|$)', r'HEALTH\s+DIRECTOR[:\s]*(.+?)(?=FOOD|NA|$)'],
+        'evaluation': [r'EVALUATION[:\s]*([A-Z\s]+?)(?=CAMP|$)', r'INSPECTION\s+([A-Z\s]+?)(?=CAMP|$)'],
+        'inspector_name': [r'INSPECTOR\s+NAME[:\s]*(.+?)(?=REHS|$)', r'INSPECTOR[:\s]*(.+?)(?=REHS|$)'],
         'inspection_date': [r'INSPECTION\s+DATE[:\s]*(.+?)(?=\n|\r|$)', r'DATE[:\s]*(.+?)(?=\n|\r|$)']
     }
     
-    # Normalize text for better matching
-    text = re.sub(r'\s+', ' ', text)  # Collapse whitespace
-    
+    # Keep original text structure for better field boundary detection
     for field_name, patterns in field_patterns.items():
         for pattern in patterns:
-            match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
-            if match:
-                value = match.group(1).strip()
-                if value and value.lower() not in ['', 'n/a', 'na', 'none', '____']:
-                    fields[field_name] = value
-                    break
+            matches = re.finditer(pattern, text, re.IGNORECASE | re.MULTILINE)
+            for match in matches:
+                if field_name == 'zip' and len(match.groups()) > 1:
+                    # Handle multi-group ZIP patterns
+                    value = match.group(2) if match.group(2) and match.group(2).isdigit() else match.group(1)
+                elif field_name == 'phone' and len(match.groups()) > 1:
+                    # Handle multi-group phone patterns
+                    value = f"({match.group(1)}) {match.group(2)}"
+                else:
+                    value = match.group(1).strip()
+                
+                # Clean up the value
+                if value and len(value) < 200:  # Reasonable field length
+                    value = re.sub(r'\s+', ' ', value).strip()
+                    if value.lower() not in ['', 'n/a', 'na', 'none', '____', 'changes', 'previous', 'information']:
+                        fields[field_name] = value
+                        break
+            if field_name in fields:
+                break
     
     return fields
 
