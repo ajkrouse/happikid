@@ -16368,21 +16368,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Provider stats endpoint - returns total count and breakdown by type
   app.get('/api/providers/stats', async (req, res) => {
     try {
-      // Get total count
-      const result = await storage.getProviders({ limit: 10000 });
-      const providersArray = Array.isArray(result) ? result : result.providers;
-      const totalCount = providersArray.length;
-      
-      // Get breakdown by type
-      const typeBreakdown = providersArray.reduce((acc: {[key: string]: number}, provider: any) => {
-        acc[provider.type] = (acc[provider.type] || 0) + 1;
-        return acc;
-      }, {});
-      
-      res.json({
-        count: totalCount,
-        breakdown: typeBreakdown
-      });
+      // Use the optimized getProviderStats method
+      const stats = await storage.getProviderStats();
+      res.json(stats);
     } catch (error) {
       console.error("Error fetching provider stats:", error);
       res.status(500).json({ message: "Failed to fetch provider stats" });
