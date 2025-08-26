@@ -1,0 +1,242 @@
+Absolutely—yes. That page is a statewide directory of **Summer Youth Camps** with county sections and rows like:
+
+> `Bergen 3148 Next Level Day Camp [2023]` → which links to a **PDF inspection report** that contains the rich details you’ll want (camp ID, name, **street address, city, zip, phone, email, owner/director**, etc.). ([Child Care In New Jersey][1]) ([Child Care In New Jersey][2])
+
+Below is a single, copy-paste **Replit build prompt** to (1) crawl that page, (2) extract camp entries per county, (3) pick the **latest year** link per camp, (4) download & parse the linked **PDF inspection report** to structured fields, and (5) upsert them as **HappiKid provider profiles** (tagged as “Youth Camp”). I kept it compatible with the NJ Child Care Centers importer you just built, so you can run them side-by-side.
+
+---
+
+# Replit Build Prompt — “Import NJ Summer Youth Camps → HappiKid Provider Profiles”
+
+**Goal**
+Scrape New Jersey’s official **Summer Youth Camps** directory, follow each camp’s most-recent inspection PDF, extract contact & operations fields, and upsert into the HappiKid DB as **providers** with source provenance.
+
+**Primary Sources**
+
+* Index/list: [https://www.childcarenj.gov/Parents/Licensing/camps](https://www.childcarenj.gov/Parents/Licensing/camps) (county sections; each camp line has `County  ####  Name  [Year link]`). ([Child Care In New Jersey][1])
+* Detail PDFs: one per camp per year; e.g., “Bergen 3148 Next Level Day Camp 2023.pdf” with address, phone, email, owner, director, etc. ([Child Care In New Jersey][2])
+
+---
+
+## 0) Project layout
+
+Create a new folder `camps_ingest/` with:
+
+* `crawl_index.py` – fetch & parse the camps index page (HTML).
+* `pick_latest.py` – group rows by `camp_id` and choose **latest year** link per camp.
+* `extract_pdf.py` – download & parse PDF inspection reports → structured dicts.
+* `normalize.py` – clean phones/emails, parse address, build slug.
+* `geocode.py` – geocode address (Nominatim by default; Google optional).
+* `upsert.py` – write to DB (Postgres recommended).
+* `schema_patch.sql` – add any new fields/tags (re-use your `providers` table).
+* `run_camps_import.py` – end-to-end orchestrator with CLI flags.
+* `requirements.txt` – dependencies (below).
+* `README.md` – quickstart & command examples.
+
+Keep your existing `providers` table; we’ll tag these as `provider_type='Youth Camp'` and `source='NJ_DOH_YOUTH_CAMP'`.
+
+---
+
+## 1) DB schema (reuse + small patch)
+
+If you already have the `providers` table (from centers import), just ensure you have these columns. If not, add them with this **non-destructive** patch:
+
+```sql
+-- camps_ingest/schema_patch.sql
+ALTER TABLE providers
+  ADD COLUMN IF NOT EXISTS camp_id TEXT,
+  ADD COLUMN IF NOT EXISTS county TEXT,
+  ADD COLUMN IF NOT EXISTS doh_inspection_year INT,
+  ADD COLUMN IF NOT EXISTS doh_report_url TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_providers_campid ON providers (camp_id);
+```
+
+> Identity rule for camps: prefer `camp_id` (from the DOH PDFs). If absent, fallback to slug.
+
+---
+
+## 2) Field mapping (HTML & PDF → DB)
+
+**From index page (HTML):**
+
+* `county` (section header, e.g., “Bergen County”).
+* `camp_id` (4 digits in the line, e.g., `3148`).
+* `name` (camp name).
+* `year_links[]` (one or more year links; choose the **latest** year).
+
+**From inspection PDF (detail):**
+
+* **Required:** `camp_id`, `camp_name`, `street_address`, `city`, `zip`, `county`.
+* **Recommended:** `phone`, `email`, `camp_owner`, `camp_director`, `health_director`.
+* **Meta:** `evaluation` (e.g., “SATISFACTORY”), `inspector_name`, `reinspection_date` if present, `doh_inspection_year`, `report_url`.
+* Persist `source='NJ_DOH_YOUTH_CAMP'`, `source_url=index_page_url`, `doh_report_url=pdf_url`.
+
+> Example PDF shows: CAMP ID **3148**, CAMP NAME **Next Level Day Camp**, street address, city, zip, phone, email, owner, directors, evaluation, etc. ([Child Care In New Jersey][2])
+
+---
+
+## 3) Parsing strategy
+
+**Index (HTML):**
+
+* Use `requests` + `BeautifulSoup`.
+* For each county `h2`/`##` section, capture subsequent `li`/lines until the next county header.
+* Regex each line:
+
+  * `^(?P<county>[A-Za-z ]+)?\s?(?P<camp_id>\d{3,5})\s+(?P<name>.+?)\s+(?P<years>.+)$`
+  * Extract all `<a>` links inside the years column; coerce year with `\d{4}`.
+* Keep a dict keyed by `camp_id`: `{name, county, latest_year, latest_pdf_url}`.
+
+**PDFs:**
+
+* Use `pdfplumber` as the primary extractor; if layout is tough, fallback to `pytesseract` OCR of first page as last resort.
+* Heuristics to extract labeled fields on page 1 (where they typically appear):
+
+  * Look for labels: `CAMP ID`, `CAMP NAME`, `STREET ADDRESS`, `CITY`, `ZIP`, `COUNTY`, `PHONE NUMBER`, `E-MAIL`, `CAMP OWNER`, `CAMP DIRECTOR NAME`, `HEALTH DIRECTOR NAME`, `EVALUATION`.
+  * Use line-by-line search: split text by newline, map with `label: value` regex.
+  * Normalize email and phone if present.
+* If a field is missing, leave NULL but **log a warning**.
+
+---
+
+## 4) Normalization
+
+* **Phone** → E.164 if U.S. (strip non-digits; if 10 digits → `+1XXXXXXXXXX`).
+* **Email** → lowercase; validate with `email-validator`.
+* **Address** → `address1` only (street), plus `city`, fixed `state='NJ'`, `zip`.
+* **Slug** → kebab of `{name}-{city}-nj` + short hash.
+* **Provider fields:**
+
+  * `name` = camp name from PDF (fallback to index name).
+  * `provider_type` = `'Youth Camp'`.
+  * `is_verified_by_gov` = `TRUE`.
+  * `doh_inspection_year` = chosen latest year.
+  * `doh_report_url` = PDF URL.
+
+---
+
+## 5) Geocoding
+
+* Same module you used for centers: default **Nominatim**, Google optional via `--geocoder google`.
+* Input: `address1, city, NJ, zip`.
+* Rate limit (1 req/sec) with local JSON cache.
+
+---
+
+## 6) Upsert logic
+
+* If `camp_id` present → **upsert by camp\_id**.
+* Else → upsert by `slug`.
+* Never delete; just insert/update and stamp `updated_at`.
+
+---
+
+## 7) Orchestrator & CLI
+
+**Command:**
+
+```
+python camps_ingest/run_camps_import.py \
+  --index-url "https://www.childcarenj.gov/Parents/Licensing/camps" \
+  --db-url "$DATABASE_URL" \
+  --geocoder "nominatim" \
+  --dry-run false \
+  --max-camps 0     # 0 = no limit; set to e.g. 100 for testing
+```
+
+**Steps:**
+
+1. Fetch & parse index → rows `{county, camp_id, name, [year→pdf_url]}`.
+2. Choose **latest year** per camp (highest numeric year with a working link).
+3. Download PDF; parse labeled fields → record dict.
+4. Normalize; geocode; upsert; write CSV export `camps_ingest/exports/nj_camps_{date}.csv`.
+5. Print summary (counts, warnings, geocode hit rate).
+
+---
+
+## 8) Dependencies (`requirements.txt`)
+
+```
+requests
+beautifulsoup4
+pdfplumber
+pandas
+python-slugify
+phonenumbers
+email-validator
+tenacity
+psycopg2-binary     # or pg8000
+python-dotenv
+```
+
+*(Optional: `pytesseract`, `Pillow`, `opencv-python` if you want OCR fallback.)*
+
+---
+
+## 9) Acceptance checks
+
+* ✅ Parse ≥ 95% of camps from index with at least one year link.
+* ✅ For ≥ 90% of camps, successfully download latest PDF and extract: `camp_id`, `name`, `address1`, `city`, `zip`.
+* ✅ Geocode success (`status='OK'`) for ≥ 85% of addresses (or explain lower).
+* ✅ Upserts idempotent by `camp_id`.
+* ✅ CSV export saved + console summary:
+
+  * totals, inserted, updated, parse warnings, geocode OK/partial/none, top 10 missing-field examples.
+
+---
+
+## 10) Nice-to-have flags (toggle later)
+
+* `--year-min 2022` (skip older reports).
+* `--only-counties "Bergen,Hudson,Essex"` for phased ingest.
+* `--make-profiles-draft true` (set `is_profile_public=false` for QA).
+* `--keep-pdfs` (cache PDFs locally in `camps_ingest/cache/`).
+* `--report-md` (write a Markdown summary of ingest stats per county).
+
+---
+
+## 11) Frontend touches (after import)
+
+* Show a **“Government-verified (NJ DOH)”** badge linking to the camp’s `doh_report_url` (latest year).
+* Add a **Seasonal** tag (“Summer Youth Camp”) and place in **Activities / Camps** category.
+* Map view powered by new lat/lng.
+* Optional: surface `evaluation` (e.g., SATISFACTORY) and **inspection year**.
+
+---
+
+## 12) Example extraction hints (PDF)
+
+Many NJ DOH reports use consistent labels. Your parser can look for lines like:
+
+```
+CAMP ID
+3148
+CAMP NAME
+Next Level Day Camp
+STREET ADDRESS
+147 Chestnut Ridge Rd.
+CITY
+Saddle River
+ZIP
+07458
+PHONE NUMBER
+201-918-0438
+E-MAIL
+info@nextleveldaycamps.com
+COUNTY
+Bergen
+EVALUATION
+SATISFACTORY
+```
+
+(Those exact fields and layout appear in the sample 2023 report for “Next Level Day Camp”.) ([Child Care In New Jersey][2])
+
+---
+
+### Want me to convert this into a Replit project skeleton (files + starter code) that you can run immediately, matching your existing centers-import style?
+
+[1]: https://www.childcarenj.gov/Parents/Licensing/camps "
+	Summer Youth Camps - Child Care In New Jersey
+"
+[2]: https://www.childcarenj.gov/getattachment/Parents/Licensing/Camps/Bergen-3148-Next-Level-Day-Camp-2023.pdf?lang=en-US "Bergen  3148 Next Level Day Camp 2023.docx"

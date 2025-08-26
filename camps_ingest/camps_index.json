@@ -1,0 +1,37 @@
+[
+  {
+    "county": "Camden",
+    "camp_id": "0021",
+    "name": "Great Times Day Camp2020|2021|2022Camden",
+    "latest_year": 2023,
+    "latest_pdf_url": "https://www.childcarenj.gov/getattachment/Parents/Licensing/Camps/Camden-2389_Camp-99-2023.pdf?lang=en-US"
+  },
+  {
+    "county": "Cape May",
+    "camp_id": "0938",
+    "name": "Tomorrows World2021|2022Cape May",
+    "latest_year": 2023,
+    "latest_pdf_url": "https://www.childcarenj.gov/getattachment/Parents/Licensing/Camps/Cape-May-2040-CCWI-Rainbow-Summer-Camp-Hmwk-Club-2023.pdf?lang=en-US"
+  },
+  {
+    "county": "Cumberland",
+    "camp_id": "0210",
+    "name": "Camp Merrywood2023Cumberland",
+    "latest_year": 2023,
+    "latest_pdf_url": "https://www.childcarenj.gov/getattachment/Parents/Licensing/Camps/Cumberland-210-Camp-Merrywood-2023.pdf?lang=en-US"
+  },
+  {
+    "county": "Essex",
+    "camp_id": "0141",
+    "name": "Elizabeth Branch YMCA2023Essex",
+    "latest_year": 2023,
+    "latest_pdf_url": "https://www.childcarenj.gov/getattachment/Parents/Licensing/Camps/Essex-141-Elizabeth-Branch-YMCA-2023.pdf?lang=en-US"
+  },
+  {
+    "county": "Gloucester",
+    "camp_id": "0178",
+    "name": "YMCA of Gloucester County2021|2022|2023Gloucester",
+    "latest_year": 2023,
+    "latest_pdf_url": "https://www.childcarenj.gov/getattachment/Parents/Licensing/Camps/Gloucester-178-Gloucester-County-YMCA-2023.pdf?lang=en-US"
+  }
+]
