@@ -242,46 +242,36 @@ export default function Landing() {
       <section className="py-20 sm:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            {/* Playful header badge */}
+            {/* Vintage-inspired header badge */}
             <div className="mb-8">
               <div className="inline-flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg mb-4">
-                <Sparkles className="h-5 w-5 text-accent-500" />
-                <span className="text-sm font-semibold text-gray-700">AI-Powered Childcare Discovery</span>
                 <Heart className="h-5 w-5 text-coral-500" />
+                <span className="text-sm font-semibold text-navy-700 font-accent italic">"A classic platform for a new world"</span>
+                <Sparkles className="h-5 w-5 text-accent-500" />
               </div>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 text-shadow-soft">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold text-navy-800 mb-6 text-vintage">
               <div className="flex flex-col items-center space-y-2">
-                <div>Find the <span className="text-primary-500">perfect</span></div>
-                <div className="text-coral-500 relative text-center" style={{ height: '1.2em', minWidth: '350px' }}>
-                  {childcareTypes.map((type, index) => (
-                    <span 
-                      key={type} 
-                      className={`absolute left-1/2 top-0 transform -translate-x-1/2 transition-all duration-500 ease-in-out whitespace-nowrap ${
-                        index === currentTypeIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                      }`}
-                      style={{ height: '1.2em', lineHeight: '1.2' }}
-                    >
-                      {type} ✨
-                    </span>
-                  ))}
+                <div className="text-navy-800">Happy Parents,</div>
+                <div className="text-primary-600 text-shadow-soft font-space-grotesk">HappiKid.</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl text-coral-600 font-accent italic mt-4">
+                  "Trusted care, timeless values"
                 </div>
-                <div>for your <span className="text-secondary-500">little ones</span></div>
               </div>
             </h1>
-            <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-6 leading-relaxed">
-              Discover daycares, after-school programs, camps, and private schools in the NYC tri-state area. 
-              Make confident decisions in <span className="font-semibold text-primary-600">minutes, not hours</span>.
+            <p className="text-xl text-navy-700 max-w-3xl mx-auto mb-6 leading-relaxed font-body">
+              Made for today's parents, inspired by yesterday's simplicity. Find trusted childcare in the NYC tri-state area 
+              with the <span className="font-semibold text-primary-600">care and confidence</span> your family deserves.
             </p>
             {totalCount && (
               <div className="mb-10">
                 <div className="inline-flex items-center bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg">
                   <BookOpen className="h-5 w-5 text-primary-500 mr-2" />
-                  <span className="text-lg text-gray-700">We've done the homework — </span>
-                  <span className="text-primary-600 text-2xl font-bold mx-2">{totalCount.count.toLocaleString()}+</span>
-                  <span className="text-lg text-gray-700"> trusted programs across NY, NJ & CT</span>
-                  <Smile className="h-5 w-5 text-accent-500 ml-2" />
+                  <span className="text-lg text-navy-700 font-body">We've done the homework — </span>
+                  <span className="text-primary-600 text-2xl font-bold mx-2 font-heading">{totalCount.count.toLocaleString()}+</span>
+                  <span className="text-lg text-navy-700 font-body"> trusted care programs… and counting</span>
+                  <Heart className="h-5 w-5 text-coral-500 ml-2" />
                 </div>
               </div>
             )}
@@ -295,7 +285,7 @@ export default function Landing() {
                 <Input
                   type="text"
                   placeholder={`"Find a ${childcareTypes[currentTypeIndex]} with outdoor play areas..."`}
-                  className="w-full pl-16 pr-36 py-6 text-lg border-2 border-white/60 bg-white/90 backdrop-blur-sm rounded-3xl focus:border-primary-400 focus:ring-primary-400 focus:bg-white shadow-xl placeholder:text-gray-500 transition-all"
+                  className="w-full pl-16 pr-36 py-6 text-lg border-2 border-white/60 bg-white/90 backdrop-blur-sm rounded-3xl focus:border-primary-400 focus:ring-primary-400 focus:bg-white shadow-xl placeholder:text-navy-400 transition-all font-body"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
@@ -307,7 +297,7 @@ export default function Landing() {
                   Just Ask! 🚀
                 </Button>
               </div>
-              <p className="text-sm text-gray-600 mt-3 italic">
+              <p className="text-sm text-navy-600 mt-3 italic font-accent">
                 Try: "Montessori daycare with early drop-off" or "STEM summer camps for 8-year-olds"
               </p>
             </div>
@@ -354,22 +344,22 @@ export default function Landing() {
                 <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block transition-all group-hover:scale-105 group-hover:shadow-xl border border-secondary-100">
                   <Shield className="h-10 w-10 text-secondary-500" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2 text-lg">🛡️ Verified Providers</h3>
-                <p className="text-gray-700 leading-relaxed">All providers verified through public records and background checks</p>
+                <h3 className="font-bold text-navy-800 mb-2 text-lg font-heading">🛡️ Verified Providers</h3>
+                <p className="text-navy-700 leading-relaxed font-body">All providers verified through public records and background checks</p>
               </div>
               <div className="text-center group">
                 <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block transition-all group-hover:scale-105 group-hover:shadow-xl border border-accent-100">
                   <MessageCircle className="h-10 w-10 text-accent-500" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2 text-lg">💬 Real Parent Reviews</h3>
-                <p className="text-gray-700 leading-relaxed">Honest feedback from parents who've been there</p>
+                <h3 className="font-bold text-navy-800 mb-2 text-lg font-heading">💬 Real Parent Reviews</h3>
+                <p className="text-navy-700 leading-relaxed font-body">Honest feedback from parents who've been there</p>
               </div>
               <div className="text-center group">
                 <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block transition-all group-hover:scale-105 group-hover:shadow-xl border border-primary-100">
                   <Clock className="h-10 w-10 text-primary-500" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2 text-lg">⚡ Save Time</h3>
-                <p className="text-gray-700 leading-relaxed">Find the right fit in minutes, not hours of research</p>
+                <h3 className="font-bold text-navy-800 mb-2 text-lg font-heading">⚡ Save Time</h3>
+                <p className="text-navy-700 leading-relaxed font-body">Find the right fit in minutes, not hours of research</p>
               </div>
             </div>
           </div>
@@ -384,9 +374,9 @@ export default function Landing() {
               <Star className="h-5 w-5 text-primary-500" />
               <span className="text-sm font-semibold text-primary-700">Top-Rated Providers</span>
             </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4 text-shadow-soft">Featured Providers ⭐</h2>
-            <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
-              Discover <span className="font-semibold text-primary-600">trusted childcare providers</span> in the NYC tri-state area
+            <h2 className="text-4xl font-bold text-navy-800 mb-4 text-vintage font-heading">Featured Providers ⭐</h2>
+            <p className="text-xl text-navy-700 max-w-2xl mx-auto leading-relaxed font-body">
+              Discover <span className="font-semibold text-primary-600">trusted childcare providers</span> with the care your family deserves
             </p>
           </div>
 
