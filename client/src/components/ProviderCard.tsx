@@ -61,7 +61,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     enabled: isAuthenticated,
   });
 
-  const isFavorite = favoriteData?.isFavorite || false;
+  const isFavorite = (favoriteData as { isFavorite?: boolean })?.isFavorite || false;
 
   // Remove favorite mutation
   const removeFavoriteMutation = useMutation({

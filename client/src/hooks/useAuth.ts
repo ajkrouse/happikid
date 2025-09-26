@@ -31,9 +31,14 @@ export function useAuth() {
   // Only show loading on initial load, not on auth errors
   const authLoading = isLoading && !isError;
 
+  const signIn = () => {
+    window.location.href = '/api/login';
+  };
+
   return {
     user,
     isLoading: authLoading,
     isAuthenticated,
+    signIn,
   };
 }

@@ -172,7 +172,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
   });
 
   const typedProviderDetails = providerDetails as (Provider & { reviews?: Review[]; images?: ProviderImage[] }) | undefined;
-  const isFavorite = favoriteData?.isFavorite || false;
+  const isFavorite = (favoriteData as { isFavorite?: boolean })?.isFavorite || false;
 
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
