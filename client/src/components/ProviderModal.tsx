@@ -254,14 +254,26 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
 
   const handleInquirySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) {
+    
+    // Basic validation for required fields
+    if (!inquiryData.parentName.trim() || !inquiryData.parentEmail.trim()) {
       toast({
-        title: "Sign in required",
-        description: "Please sign in to send inquiries.",
+        title: "Missing information",
+        description: "Please fill in your name and email address.",
         variant: "destructive",
       });
       return;
     }
+    
+    if (!inquiryData.message.trim()) {
+      toast({
+        title: "Missing message",
+        description: "Please write a message to the provider.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     submitInquiryMutation.mutate();
   };
 
@@ -492,7 +504,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                       <Button 
                         className="w-full" 
                         onClick={() => setShowInquiryForm(true)}
-                        disabled={!isAuthenticated}
+                        data-testid="button-request-info"
                       >
                         Request Information
                       </Button>

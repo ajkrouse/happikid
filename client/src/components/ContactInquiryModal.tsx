@@ -146,6 +146,9 @@ export default function ContactInquiryModal({ provider, isOpen, onClose }: Conta
           <DialogTitle className="text-xl">
             Contact {provider.name}
           </DialogTitle>
+          <div className="text-sm text-gray-600">
+            Send a direct inquiry to this childcare provider
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">

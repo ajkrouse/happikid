@@ -16823,9 +16823,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/inquiries', isAuthenticated, async (req: any, res) => {
+  app.post('/api/inquiries', async (req: any, res) => {
     try {
-      const userId = req.user!.id;
+      // Allow both authenticated and non-authenticated users
+      const userId = req.user?.id || 'anonymous';
+      
+      // Validate required fields for non-authenticated users
+      const { parentName, parentEmail, providerId, message } = req.body;
+      if (!parentName || !parentEmail || !providerId || !message) {
+        return res.status(400).json({ 
+          message: "Missing required fields: parentName, parentEmail, providerId, and message are required" 
+        });
+      }
+      
       const inquiryData = insertInquirySchema.parse({
         ...req.body,
         userId,

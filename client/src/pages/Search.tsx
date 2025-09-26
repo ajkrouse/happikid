@@ -954,14 +954,6 @@ export default function SearchPage() {
   };
 
   const handleRequestInfo = (provider: Provider) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to request information.",
-        variant: "destructive",
-      });
-      return;
-    }
     setSelectedProvider(provider);
     setShowContactModal(true);
   };
