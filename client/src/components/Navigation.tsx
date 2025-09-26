@@ -48,7 +48,7 @@ export default function Navigation() {
           <div className="w-20 h-8 bg-gray-200 animate-pulse rounded-full"></div>
         ) : isAuthenticated ? (
           <>
-            <div className="bg-primary-50 text-primary-700 px-4 py-2 rounded-full font-medium text-sm font-body">
+            <div className="bg-primary-50 text-primary-700 px-4 py-2 rounded-full font-medium text-sm">
               👋 Hello, {(user as any)?.firstName || (user as any)?.email?.split('@')[0]}
             </div>
             <Button variant="ghost" className="rounded-full px-6 font-medium transition-all hover:scale-105" asChild>
@@ -62,7 +62,7 @@ export default function Navigation() {
             </Button>
             <Button 
               onClick={() => setShowRoleSelection(true)} 
-              className="btn-pill bg-gradient-to-r from-primary-500 to-coral-500 hover:from-primary-600 hover:to-coral-600 text-white shadow-lg font-semibold font-body"
+              className="btn-pill bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white shadow-lg font-semibold"
             >
               Get Started ✨
             </Button>
@@ -79,10 +79,10 @@ export default function Navigation() {
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center cursor-pointer space-x-2">
-              <div className="bg-gradient-to-r from-primary-500 to-coral-500 text-white font-bold text-xl px-3 py-1 rounded-full shadow-lg">
+              <div className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-bold text-xl px-3 py-1 rounded-full shadow-lg">
                 H
               </div>
-              <span className="text-2xl font-bold font-heading bg-gradient-to-r from-primary-600 to-coral-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
                 HappiKid
               </span>
             </div>
