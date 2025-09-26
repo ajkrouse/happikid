@@ -6,7 +6,6 @@ import { Provider } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
 import { 
   MapPin, 
   Star, 
@@ -48,7 +47,7 @@ interface MapViewProps {
   providers: Provider[];
   onProviderSelect?: (provider: Provider) => void;
   onLocationSearch?: (location: { lat: number; lng: number; radius: number }) => void;
-  userLocation?: { lat: number; lng: number };
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 // Component to handle map centering
@@ -121,9 +120,8 @@ export default function MapView({
 
   // Format provider coordinates
   const getProviderCoordinates = (provider: Provider): [number, number] | null => {
-    if (provider.latitude && provider.longitude) {
-      return [Number(provider.latitude), Number(provider.longitude)];
-    }
+    // Note: Provider schema doesn't have latitude/longitude fields yet
+    // For now, generate coordinates based on borough + small offset for demonstration
     
     // Fallback: generate approximate coordinates based on borough
     const boroughCoords: Record<string, [number, number]> = {
@@ -176,13 +174,14 @@ export default function MapView({
                   Search Radius: {searchRadius[0]} miles
                 </label>
                 <div className="flex-1 max-w-xs">
-                  <Slider
-                    value={searchRadius}
-                    onValueChange={handleRadiusChange}
-                    max={25}
-                    min={1}
-                    step={1}
-                    className="w-full"
+                  <input
+                    type="range"
+                    min="1"
+                    max="25"
+                    step="1"
+                    value={searchRadius[0]}
+                    onChange={(e) => handleRadiusChange([parseInt(e.target.value)])}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                     data-testid="slider-radius"
                   />
                 </div>

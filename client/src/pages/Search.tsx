@@ -4,6 +4,7 @@ import SearchFilters from "@/components/SearchFilters";
 import ProviderModal from "@/components/ProviderModal";
 import ContactInquiryModal from "@/components/ContactInquiryModal";
 import ComparisonModal from "@/components/ComparisonModal";
+import MapView from "@/components/MapView";
 import { SearchInsights } from "@/components/SearchInsights";
 import { ConversationalSearch } from "@/components/ConversationalSearch";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
@@ -26,7 +27,7 @@ import {
   PaginationPrevious, 
   PaginationEllipsis 
 } from "@/components/ui/pagination";
-import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft } from "lucide-react";
+import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft, Map } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
@@ -792,10 +793,26 @@ export default function SearchPage() {
     features?: string[];
   }>({});
   const [sortBy, setSortBy] = useState("best-match");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
   // Modal state
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  
+  // Map-specific functions
+  const handleLocationSearch = (location: { lat: number; lng: number; radius: number }) => {
+    setUserLocation({ lat: location.lat, lng: location.lng });
+    // TODO: Implement proximity filtering in backend
+    toast({
+      title: "Location Search",
+      description: `Searching within ${location.radius} miles of your location`,
+    });
+  };
+  
+  const handleMapProviderSelect = (provider: Provider) => {
+    setSelectedProvider(provider);
+    setShowProviderModal(true);
+  };
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [comparisonProviders, setComparisonProviders] = useState<Provider[]>([]);
@@ -1112,6 +1129,7 @@ export default function SearchPage() {
                     variant={viewMode === "grid" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("grid")}
+                    data-testid="button-view-grid"
                   >
                     <Grid className="h-4 w-4" />
                   </Button>
@@ -1119,8 +1137,17 @@ export default function SearchPage() {
                     variant={viewMode === "list" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("list")}
+                    data-testid="button-view-list"
                   >
                     <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "map" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("map")}
+                    data-testid="button-view-map"
+                  >
+                    <Map className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -1177,12 +1204,22 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Provider Grid */}
+            {/* Provider Grid/List/Map */}
             {!isLoading && providers.length > 0 && (
-              <div className={viewMode === "grid" 
-                ? "grid grid-cols-1 md:grid-cols-2 gap-6" 
-                : "space-y-6"
-              }>
+              viewMode === "map" ? (
+                <div className="h-[600px]">
+                  <MapView 
+                    providers={providers}
+                    onProviderSelect={handleMapProviderSelect}
+                    onLocationSearch={handleLocationSearch}
+                    userLocation={userLocation}
+                  />
+                </div>
+              ) : (
+                <div className={viewMode === "grid" 
+                  ? "grid grid-cols-1 md:grid-cols-2 gap-6" 
+                  : "space-y-6"
+                }>
                 {providers.map((provider: Provider) => (
                   <ProviderCard
                     key={provider.id}
@@ -1194,7 +1231,8 @@ export default function SearchPage() {
                     isInComparison={comparisonProviders.some(p => p.id === provider.id)}
                   />
                 ))}
-              </div>
+                </div>
+              )
             )}
 
             {/* Empty State */}
