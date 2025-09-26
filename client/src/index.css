@@ -120,8 +120,22 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 700;
     letter-spacing: -0.025em;
+  }
+  
+  /* Vintage-modern typography */
+  .font-heading {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  
+  .font-body {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .font-accent {
+    font-family: 'Crimson Text', serif;
   }
   
   .btn-pill {
@@ -296,9 +310,23 @@
     border-radius: 0.75rem;
   }
 
-  /* Typography enhancements */
+  /* Typography enhancements - Vintage Modern */
   .font-inter {
     font-family: 'Inter', sans-serif;
+  }
+  
+  .font-space-grotesk {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  
+  .font-crimson {
+    font-family: 'Crimson Text', serif;
+  }
+  
+  /* Vintage-inspired text effects */
+  .text-vintage {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    letter-spacing: -0.01em;
   }
 
   /* Button enhancements */
