@@ -503,10 +503,20 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                     <div className="space-y-3">
                       <Button 
                         className="w-full" 
-                        onClick={() => setShowInquiryForm(true)}
+                        onClick={() => {
+                          setShowInquiryForm(true);
+                          // Scroll to bottom after a short delay to let the form render
+                          setTimeout(() => {
+                            const dialogContent = document.querySelector('[role="dialog"] [data-radix-scroll-area-viewport]') || 
+                                                 document.querySelector('[role="dialog"]');
+                            if (dialogContent) {
+                              dialogContent.scrollTo({ top: dialogContent.scrollHeight, behavior: 'smooth' });
+                            }
+                          }, 100);
+                        }}
                         data-testid="button-request-info"
                       >
-                        Request Information
+                        {showInquiryForm ? "Scroll Down to See Form" : "Request Information"}
                       </Button>
                       
                       {isAuthenticated && (
@@ -559,9 +569,19 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
 
             {/* Inquiry Form Modal */}
             {showInquiryForm && (
-              <Card className="mt-6">
+              <Card className="mt-6 border-2 border-primary/20 bg-primary/5">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Send Inquiry</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-primary">📝 Send Inquiry to {currentProvider?.name}</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setShowInquiryForm(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      ✕ Close
+                    </Button>
+                  </div>
                   <form onSubmit={handleInquirySubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
