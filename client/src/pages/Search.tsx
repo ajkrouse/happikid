@@ -2,6 +2,7 @@ import Navigation from "@/components/Navigation";
 import ProviderCard from "@/components/ProviderCard";
 import SearchFilters from "@/components/SearchFilters";
 import ProviderModal from "@/components/ProviderModal";
+import ContactInquiryModal from "@/components/ContactInquiryModal";
 import ComparisonModal from "@/components/ComparisonModal";
 import { SearchInsights } from "@/components/SearchInsights";
 import { ConversationalSearch } from "@/components/ConversationalSearch";
@@ -796,6 +797,7 @@ export default function SearchPage() {
   // Modal state
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [showProviderModal, setShowProviderModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
   const [comparisonProviders, setComparisonProviders] = useState<Provider[]>([]);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [showSavedGroupsModal, setShowSavedGroupsModal] = useState(false);
@@ -961,7 +963,7 @@ export default function SearchPage() {
       return;
     }
     setSelectedProvider(provider);
-    setShowProviderModal(true);
+    setShowContactModal(true);
   };
 
   const handleAddToComparison = (provider: Provider) => {
@@ -1339,6 +1341,16 @@ export default function SearchPage() {
           </div>
         </div>
       </div>
+
+      {/* Contact Inquiry Modal */}
+      <ContactInquiryModal
+        provider={selectedProvider}
+        isOpen={showContactModal}
+        onClose={() => {
+          setShowContactModal(false);
+          setSelectedProvider(null);
+        }}
+      />
 
       {/* Provider Detail Modal */}
       <ProviderModal
