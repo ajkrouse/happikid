@@ -1138,5 +1138,11 @@
     "lng": -73.9645822,
     "status": "PARTIAL",
     "address": "186 Davison Place, Englewood, NJ, 07631"
+  },
+  "123 main street, newark, nj, 07102": {
+    "lat": 40.7260086,
+    "lng": -74.14582,
+    "status": "PARTIAL",
+    "address": "123 Main Street, Newark, NJ, 07102"
   }
 }

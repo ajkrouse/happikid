@@ -122,6 +122,19 @@ def normalize_provider(provider: Dict[str, Any]) -> Dict[str, Any]:
     ages_served = provider.get('agerange', '') or provider.get('age_range', '')
     age_min, age_max = parse_age_range(ages_served)
     
+    # Provide default age ranges if missing (based on provider type)
+    if age_min is None or age_max is None:
+        if provider_type == 'daycare':
+            age_min, age_max = 0, 5
+        elif provider_type == 'school':
+            age_min, age_max = 2, 12
+        elif provider_type == 'afterschool':
+            age_min, age_max = 5, 12
+        elif provider_type == 'camp':
+            age_min, age_max = 5, 16
+        else:
+            age_min, age_max = 0, 12  # Generic default
+    
     # Map provider type
     center_type = provider.get('childcaretype', '') or provider.get('center_type', '')
     provider_type = map_provider_type(center_type)
@@ -135,7 +148,7 @@ def normalize_provider(provider: Dict[str, Any]) -> Dict[str, Any]:
     # Normalize contact info
     normalized_phone = normalize_phone(phone)
     
-    # Build normalized record
+    # Build normalized record (using snake_case for upsert script compatibility)
     normalized = {
         'name': name.strip() if name else None,
         'slug': slug,
@@ -144,19 +157,20 @@ def normalize_provider(provider: Dict[str, Any]) -> Dict[str, Any]:
         'address': address.strip() if address else None,
         'city': city.strip() if city else 'New York',
         'state': state,
-        'borough': borough,
-        'zipCode': zip_code.strip() if zip_code else None,
+        'county': borough,  # Upsert script maps 'county' -> 'borough' in database
+        'zip_code': zip_code.strip() if zip_code else None,
         'phone': normalized_phone,
         'email': None,  # NYC data doesn't include email
         'website': website if website else None,
-        'ageRangeMin': age_min,
-        'ageRangeMax': age_max,
-        'priceRange': None,  # Not available in NYC data
-        'capacity': provider.get('maximumcapacity', None) or provider.get('maximum_capacity', None),
-        'licenseNumber': license_number if license_number else None,
-        'isVerified': True,  # All NYC Open Data providers are government-verified
-        'verificationSource': 'NYC DOHMH',
-        'amenities': [],  # Not available in NYC data
+        'age_range_min': age_min,
+        'age_range_max': age_max,
+        'age_min_months': age_min * 12 if age_min else None,
+        'age_max_months': age_max * 12 if age_max else None,
+        'capacity': int(provider.get('maximumcapacity', 0)) if provider.get('maximumcapacity') else None,
+        'license_number': license_number if license_number else None,
+        'is_verified_by_gov': True,  # All NYC Open Data providers are government-verified
+        'source': 'NYC_DOHMH',
+        'ages_served_raw': ages_served if ages_served else None,
         'lat': None,  # Will be geocoded
         'lng': None,  # Will be geocoded
     }
@@ -222,9 +236,9 @@ def main():
     print(f"\nProvider types:")
     print(df['type'].value_counts())
     
-    print(f"\nVerified providers: {df['isVerified'].sum()}")
+    print(f"\nVerified providers: {df['is_verified_by_gov'].sum()}")
     print(f"Providers with phone: {df['phone'].notna().sum()}")
-    print(f"Providers with license number: {df['licenseNumber'].notna().sum()}")
+    print(f"Providers with license number: {df['license_number'].notna().sum()}")
     
     print("\nNormalization complete!")
 

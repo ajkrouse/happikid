@@ -94,7 +94,7 @@ class DatabaseUpserter:
             'age_range_min': provider_data.get('age_range_min'),
             'age_range_max': provider_data.get('age_range_max'),
             'capacity': provider_data.get('capacity'),
-            'monthly_price': '',  # Will be populated later by claims
+            'monthly_price': 0.00,  # Default value, will be populated later by claims
             'features': [],  # Will be populated later
             'rating': 0.0,  # Will be calculated from reviews
             'review_count': 0,
