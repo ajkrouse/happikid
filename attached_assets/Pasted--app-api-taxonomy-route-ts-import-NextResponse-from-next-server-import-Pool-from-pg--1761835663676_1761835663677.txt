@@ -1,0 +1,72 @@
+// /app/api/taxonomy/route.ts
+import { NextResponse } from "next/server";
+import { Pool } from "pg";
+import type { Category, Subcategory, TaxonomyResponse } from "@/types/taxonomy";
+
+let _pool: Pool | null = null;
+function getPool() {
+  if (_pool) return _pool;
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) throw new Error("Missing DATABASE_URL env var.");
+  _pool = new Pool({ connectionString, max: 3 });
+  return _pool;
+}
+
+export async function GET() {
+  try {
+    const pool = getPool();
+    const sql = `
+      select
+        c.id as c_id,
+        c.name as c_name,
+        c.slug as c_slug,
+        s.id as s_id,
+        s.name as s_name,
+        s.slug as s_slug,
+        s.keywords as s_keywords,
+        s.example_providers as s_example_providers
+      from happikid.categories c
+      left join happikid.subcategories s
+        on s.category_id = c.id
+      order by c.id asc, s.id asc;
+    `;
+    const { rows } = await pool.query(sql);
+
+    const categoriesMap = new Map<number, Category>();
+    for (const r of rows) {
+      const categoryId = Number(r.c_id);
+      if (!categoriesMap.has(categoryId)) {
+        categoriesMap.set(categoryId, {
+          id: categoryId,
+          name: r.c_name,
+          slug: r.c_slug,
+          subcategories: [],
+        });
+      }
+      if (r.s_id !== null && r.s_id !== undefined) {
+        const subcat: Subcategory = {
+          id: Number(r.s_id),
+          name: r.s_name,
+          slug: r.s_slug,
+          keywords: Array.isArray(r.s_keywords) ? r.s_keywords : [],
+          example_providers: Array.isArray(r.s_example_providers)
+            ? r.s_example_providers
+            : [],
+        };
+        categoriesMap.get(categoryId)!.subcategories.push(subcat);
+      }
+    }
+
+    const payload: TaxonomyResponse = {
+      afterSchoolPrograms: Array.from(categoriesMap.values()),
+    };
+
+    return NextResponse.json(payload, { status: 200 });
+  } catch (err: any) {
+    console.error("GET /api/taxonomy error:", err);
+    return NextResponse.json(
+      { error: "Failed to load taxonomy", details: String(err?.message || err) },
+      { status: 500 }
+    );
+  }
+}

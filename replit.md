@@ -5,7 +5,7 @@ HappiKid is a full-stack web application designed to connect parents with childc
 
 ## Recent Changes (October 2025)
 - **NYC Manhattan Provider Expansion**: Added **644+ government-verified NYC DOHMH childcare providers** from Manhattan, expanding coverage to downtown NYC with providers from Tribeca, SoHo, Chelsea, East Village, West Village, and more
-- **After-School Programs Taxonomy**: Implemented comprehensive after-school program categorization system with **9 main categories** and **55 subcategories**, including Academic Enrichment, Creative & Performing Arts, Sports & Fitness, Technology & Innovation, and more. Features full-text search capabilities and keyword-based filtering
+- **After-School Programs Taxonomy**: Implemented comprehensive after-school program categorization system with **9 main categories** and **55 subcategories**, including Academic Enrichment, Creative & Performing Arts, Sports & Fitness, Technology & Innovation, and more. Features full-text search capabilities and keyword-based filtering. Accessible via dedicated browse page at `/after-school-programs` with accordion UI and search links for each subcategory.
 - **Interactive Map View**: Added Leaflet-based map visualization for providers with proximity search, radius filtering, location detection, and clickable markers showing provider details
 - **MAJOR DATABASE EXPANSION**: Successfully imported **4,116 government-verified NJ DCF licensed childcare centers**, growing total providers from 718 to **4,871 (+578% growth)**
 - **NJ Summer Youth Camps Integration**: Added **37 government-verified NJ Department of Health summer camps** with official inspection reports and evaluations
