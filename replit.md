@@ -3,11 +3,14 @@
 ## Overview
 HappiKid is a full-stack web application designed to connect parents with childcare providers across the tri-state area (NY, NJ, CT). Its primary purpose is to enable parents to efficiently search, compare, and review childcare services, while empowering providers to manage their profiles and respond to inquiries. The platform is a trust-first marketplace, leveraging AI-powered search capabilities and government verification to simplify the childcare search process. It now features **4,871+ providers** with **85.3% government verification**, offering the most comprehensive directory of licensed childcare, education, and enrichment programs in the Northeast.
 
-## Recent Changes (August 2025)
+## Recent Changes (October 2025)
+- **NYC Manhattan Provider Expansion**: Added **644+ government-verified NYC DOHMH childcare providers** from Manhattan, expanding coverage to downtown NYC with providers from Tribeca, SoHo, Chelsea, East Village, West Village, and more
+- **After-School Programs Taxonomy**: Implemented comprehensive after-school program categorization system with **9 main categories** and **55 subcategories**, including Academic Enrichment, Creative & Performing Arts, Sports & Fitness, Technology & Innovation, and more. Features full-text search capabilities and keyword-based filtering
+- **Interactive Map View**: Added Leaflet-based map visualization for providers with proximity search, radius filtering, location detection, and clickable markers showing provider details
 - **MAJOR DATABASE EXPANSION**: Successfully imported **4,116 government-verified NJ DCF licensed childcare centers**, growing total providers from 718 to **4,871 (+578% growth)**
 - **NJ Summer Youth Camps Integration**: Added **37 government-verified NJ Department of Health summer camps** with official inspection reports and evaluations
 - **Government Verification Integration**: All NJ providers are officially verified by state agencies (DCF for childcare centers, DOH for summer camps) with license numbers and audit trails
-- **Geographic Expansion**: Now covers comprehensive tri-state area with NY (453), NJ (4,388), and CT (30) providers
+- **Geographic Expansion**: Now covers comprehensive tri-state area with NY (453+), NJ (4,388), and CT (30) providers
 - **Bergen County Camps**: Successfully imported **24 summer camps from Bergen County** through automated PDF processing system (largest county collection)
 - **Hudson County Camps**: Successfully imported **8 summer camps from Hudson County** through manual PDF processing of official DOH inspection reports
 - **Automated & Manual Import Systems**: Built complete infrastructure for both automated bulk imports and manual processing of government inspection PDFs
@@ -33,13 +36,15 @@ Preferred communication style: Simple, everyday language.
 - **Session Management**: Express session
 
 ### Core Features
-- **Database Schema**: Manages user profiles (parent/provider), detailed provider information, reviews, inquiries, and favorites.
+- **Database Schema**: Manages user profiles (parent/provider), detailed provider information, reviews, inquiries, and favorites. Includes dedicated after-school programs taxonomy with hierarchical categories and subcategories.
 - **Authentication**: Role-based access control (parent vs. provider) via Replit Auth, with session management and automatic user profile creation.
-- **Search and Filtering**: Advanced search capabilities with hierarchical location filtering (county → city), provider type, age range, price, and amenities. Features real-time search with debouncing, pagination, and authentic provider counts for each location.
+- **Search and Filtering**: Advanced search capabilities with hierarchical location filtering (county → city), provider type, age range, price, and amenities. Features real-time search with debouncing, pagination, and authentic provider counts for each location. Includes map view with proximity-based filtering.
+- **After-School Programs Taxonomy**: Comprehensive categorization system with 9 main categories (Academic Enrichment, Creative & Performing Arts, Sports & Fitness, Technology & Innovation, etc.) and 55 subcategories. Full-text search enabled with keywords and example providers for each subcategory.
+- **Interactive Map View**: Leaflet-based map visualization showing provider locations with proximity search, radius controls, location detection, and interactive markers. Toggle between list, grid, and map views.
 - **Provider Management**: Comprehensive profiles for providers, allowing management of basic information, location, services, pricing, amenities, and photo galleries, accessible via a dedicated dashboard.
 - **Data Flow**: Defined flows for user authentication, search operations, and provider-parent interactions (inquiries, favoriting).
 - **UI/UX Decisions**: Focus on a clean, user-friendly interface with hierarchical location filtering that shows counties first, then expands to specific cities with provider counts. Radio button age range selection, sticky navigation, and improved responsiveness. Dynamic display of provider details, including pricing, age ranges, and license status. Onboarding flows are designed for clarity and ease of use for both parents and providers.
-- **Homepage Display**: Features prominently displayed total provider count with messaging "We've done the homework — 4,871+ trusted care & enrichment programs across NY, NJ & CT… and counting." Real-time database updates build trust and showcase platform scale.
+- **Homepage Display**: Features prominently displayed total provider count with messaging "We've done the homework — 5,500+ trusted care & enrichment programs across NY, NJ & CT… and counting." Real-time database updates build trust and showcase platform scale.
 - **Comprehensive Program Coverage**: Now includes daycare (4,420), schools (195), afterschool programs (188), and summer camps (68) spanning gymnastics, martial arts, coding/STEM, theatre, tutoring, language immersion, art studios, soccer programs, elite private institutions, and government-inspected youth camps.
 
 ## External Dependencies

@@ -1,0 +1,378 @@
+-- =========================
+-- HappiKid After-School Programs: Schema + Seed
+-- =========================
+
+-- 1) Schema
+create schema if not exists happikid;
+
+-- 2) Extensions (safe no-ops if already enabled)
+create extension if not exists pg_trgm;
+create extension if not exists unaccent;
+
+-- 3) Tables
+drop table if exists happikid.subcategories cascade;
+drop table if exists happikid.categories cascade;
+
+create table happikid.categories (
+  id               bigserial primary key,
+  name             text        not null,
+  slug             text        not null unique,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now()
+);
+
+create table happikid.subcategories (
+  id                 bigserial primary key,
+  category_id        bigint not null references happikid.categories(id) on delete cascade,
+  name               text   not null,
+  slug               text   not null,
+  example_providers  jsonb  not null default '[]'::jsonb,
+  keywords           text[] not null default '{}',
+  search_tsv         tsvector,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now(),
+  unique(category_id, slug)
+);
+
+-- 4) Triggers to keep updated_at fresh
+create or replace function happikid.set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end$$;
+
+create trigger categories_set_updated_at
+before update on happikid.categories
+for each row execute procedure happikid.set_updated_at();
+
+create trigger subcategories_set_updated_at
+before update on happikid.subcategories
+for each row execute procedure happikid.set_updated_at();
+
+-- 5) Full-text search vector on subcategories.name + keywords
+create or replace function happikid.subcategories_set_tsv() 
+returns trigger language plpgsql as $$
+declare
+  kw text := coalesce(array_to_string(new.keywords, ' '), '');
+begin
+  new.search_tsv :=
+    setweight(to_tsvector('simple', unaccent(coalesce(new.name, ''))), 'A') ||
+    setweight(to_tsvector('simple', unaccent(kw)), 'B');
+  return new;
+end$$;
+
+create trigger subcategories_set_tsvector
+before insert or update of name, keywords
+on happikid.subcategories
+for each row execute procedure happikid.subcategories_set_tsv();
+
+-- 6) Helpful Indexes
+create index if not exists idx_categories_slug on happikid.categories(slug);
+create index if not exists idx_subcategories_cat on happikid.subcategories(category_id);
+create index if not exists idx_subcategories_slug on happikid.subcategories(slug);
+create index if not exists idx_subcategories_keywords_gin on happikid.subcategories using gin(keywords);
+create index if not exists idx_subcategories_tsv_gin on happikid.subcategories using gin(search_tsv);
+
+-- 7) UPSERT helpers
+create or replace function happikid.upsert_category(p_name text, p_slug text)
+returns bigint language plpgsql as $$
+declare
+  v_id bigint;
+begin
+  insert into happikid.categories(name, slug)
+  values (p_name, p_slug)
+  on conflict(slug) do update set name = excluded.name
+  returning id into v_id;
+  return v_id;
+end$$;
+
+create or replace function happikid.upsert_subcategory(
+  p_category_slug text,
+  p_name text,
+  p_slug text,
+  p_example_providers jsonb,
+  p_keywords text[]
+) returns bigint language plpgsql as $$
+declare
+  v_category_id bigint;
+  v_id bigint;
+begin
+  select id into v_category_id from happikid.categories where slug = p_category_slug;
+  if v_category_id is null then
+    raise exception 'Category with slug % not found', p_category_slug;
+  end if;
+
+  insert into happikid.subcategories(category_id, name, slug, example_providers, keywords)
+  values (v_category_id, p_name, p_slug, coalesce(p_example_providers, '[]'::jsonb), coalesce(p_keywords, '{}'))
+  on conflict(category_id, slug) do update
+    set name = excluded.name,
+        example_providers = excluded.example_providers,
+        keywords = excluded.keywords
+  returning id into v_id;
+
+  return v_id;
+end$$;
+
+-- 8) Seed Categories
+select happikid.upsert_category('Academic Enrichment',               'academic-enrichment');
+select happikid.upsert_category('Creative & Performing Arts',        'creative-performing-arts');
+select happikid.upsert_category('Sports, Fitness & Movement',        'sports-fitness-movement');
+select happikid.upsert_category('Outdoor, Nature & Adventure',       'outdoor-nature-adventure');
+select happikid.upsert_category('Technology & Innovation',           'technology-innovation');
+select happikid.upsert_category('Social, Emotional & Leadership',    'social-emotional-leadership');
+select happikid.upsert_category('Special Interests & Clubs',         'special-interests-clubs');
+select happikid.upsert_category('Support & Care-Based Programs',     'support-care-based');
+select happikid.upsert_category('Seasonal & Hybrid Programs',        'seasonal-hybrid');
+
+-- 9) Seed Subcategories (from our taxonomy)
+-- Academic Enrichment
+select happikid.upsert_subcategory('academic-enrichment','STEM Programs','stem-programs',
+  '["STEM for Kids","Mad Science","Bricks 4 Kidz"]',
+  array['science','engineering','math','hands-on experiments','steam learning','innovation','problem solving']
+);
+select happikid.upsert_subcategory('academic-enrichment','Coding & Robotics Clubs','coding-robotics',
+  '["Code Ninjas","iCode","TheCoderSchool"]',
+  array['coding','robotics','python','lego mindstorms','game design','app development','programming']
+);
+select happikid.upsert_subcategory('academic-enrichment','Math Tutoring / Math Labs','math-tutoring',
+  '["Mathnasium","Kumon","Sylvan Learning"]',
+  array['math','arithmetic','algebra','geometry','tutoring','homework help','numeracy']
+);
+select happikid.upsert_subcategory('academic-enrichment','Reading & Literacy Programs','reading-literacy',
+  '["LearningRx","Huntington Learning Center"]',
+  array['reading','phonics','literacy','comprehension','language arts','storytelling']
+);
+select happikid.upsert_subcategory('academic-enrichment','Homework Help / Study Skills','homework-help',
+  '["Varsity Tutors","Local Learning Centers"]',
+  array['homework','academic support','study habits','organization','tutoring']
+);
+select happikid.upsert_subcategory('academic-enrichment','Test Prep','test-prep',
+  '["Princeton Review","Kaplan","Revolution Prep"]',
+  array['sat','ssat','shsat','isee','exam preparation','test-taking strategies']
+);
+select happikid.upsert_subcategory('academic-enrichment','Foreign Language Classes','foreign-language',
+  '["Language Kids World","Berlitz Kids"]',
+  array['spanish','mandarin','french','bilingual','language immersion','esl']
+);
+select happikid.upsert_subcategory('academic-enrichment','Creative Writing / Debate / Public Speaking','writing-debate-public-speaking',
+  '["Art of Problem Solving","Debate Mate","Writopia Lab"]',
+  array['writing','debate','public speaking','communication','creative expression','confidence']
+);
+
+-- Creative & Performing Arts
+select happikid.upsert_subcategory('creative-performing-arts','Music Lessons','music-lessons',
+  '["School of Rock","Bach to Rock","Local Music Studios"]',
+  array['piano','guitar','drums','violin','singing','music theory']
+);
+select happikid.upsert_subcategory('creative-performing-arts','Dance Classes','dance-classes',
+  '["Dance Theatre of Harlem","Arthur Murray Dance Center"]',
+  array['ballet','hip hop','jazz','tap dance','performance','movement','choreography']
+);
+select happikid.upsert_subcategory('creative-performing-arts','Theater & Acting','theater-acting',
+  '["Broadway Bound Kids","Young Actors Studio"]',
+  array['acting','drama','theatre','performance','improv','stage']
+);
+select happikid.upsert_subcategory('creative-performing-arts','Visual Arts','visual-arts',
+  '["The Art Studio NY","Painting with a Twist"]',
+  array['painting','drawing','sculpture','crafts','mixed media','creativity']
+);
+select happikid.upsert_subcategory('creative-performing-arts','Photography & Filmmaking','photo-filmmaking',
+  '["New York Film Academy Kids","Local Photo Clubs"]',
+  array['photography','video','editing','storyboarding','cinematography']
+);
+select happikid.upsert_subcategory('creative-performing-arts','Digital Media / Animation','digital-media-animation',
+  '["Digital Media Academy","ID Tech Camps"]',
+  array['animation','graphic design','digital art','photoshop','creative tech']
+);
+select happikid.upsert_subcategory('creative-performing-arts','Crafts & Maker Spaces','crafts-maker',
+  '["Home Depot Kids Workshops","MakerKids"]',
+  array['crafting','diy','woodworking','building','hands-on projects']
+);
+
+-- Sports, Fitness & Movement
+select happikid.upsert_subcategory('sports-fitness-movement','Team Sports','team-sports',
+  '["i9 Sports","YMCA Leagues","Local Soccer Academies"]',
+  array['soccer','basketball','baseball','football','volleyball','teamwork','competition']
+);
+select happikid.upsert_subcategory('sports-fitness-movement','Martial Arts','martial-arts',
+  '["Tiger Schulmann’s","Dojo USA","Local Karate Schools"]',
+  array['karate','taekwondo','judo','discipline','self defense']
+);
+select happikid.upsert_subcategory('sports-fitness-movement','Gymnastics / Cheer / Tumbling','gymnastics-cheer',
+  '["The Little Gym","USA Gymnastics Centers"]',
+  array['gymnastics','tumbling','cheerleading','balance','flexibility']
+);
+select happikid.upsert_subcategory('sports-fitness-movement','Yoga / Mindfulness / Stretching','yoga-mindfulness',
+  '["Yoga for Kids","Mindful Schools"]',
+  array['yoga','mindfulness','stretch','focus','breathing','wellness']
+);
+select happikid.upsert_subcategory('sports-fitness-movement','Track & Field / Running Clubs','track-running',
+  '["Girls on the Run","Local Track Programs"]',
+  array['running','endurance','training','fitness','motivation']
+);
+select happikid.upsert_subcategory('sports-fitness-movement','Swim Lessons / Water Safety','swim-lessons',
+  '["Goldfish Swim School","Aqua-Tots","YMCA Pools"]',
+  array['swimming','water safety','pool','lifesaving skills']
+);
+select happikid.upsert_subcategory('sports-fitness-movement','Climbing / Parkour / Movement','climbing-parkour',
+  '["Brooklyn Boulders","Ninja Gym","Parkour Studios"]',
+  array['climbing','movement','obstacle course','strength','confidence']
+);
+select happikid.upsert_subcategory('sports-fitness-movement','Adaptive Sports','adaptive-sports',
+  '["Special Olympics","Local Inclusive Programs"]',
+  array['adaptive','inclusive','disability-friendly','team sports']
+);
+
+-- Outdoor, Nature & Adventure
+select happikid.upsert_subcategory('outdoor-nature-adventure','Nature Exploration / Eco Clubs','nature-eco',
+  '["Audubon Society","Nature’s Classroom"]',
+  array['nature','outdoors','wildlife','exploration','environment']
+);
+select happikid.upsert_subcategory('outdoor-nature-adventure','Urban Gardening / Sustainability','urban-gardening',
+  '["City Growers","Community Gardens"]',
+  array['gardening','sustainability','urban farming','plants','green education']
+);
+select happikid.upsert_subcategory('outdoor-nature-adventure','Outdoor Survival / Adventure Skills','outdoor-survival',
+  '["REI Co-op Kids","Outward Bound Youth"]',
+  array['camping','survival skills','hiking','teamwork','outdoors']
+);
+select happikid.upsert_subcategory('outdoor-nature-adventure','Environmental Science & Conservation','environmental-science',
+  '["4-H Youth Development","Eco-Schools"]',
+  array['environmental science','conservation','ecosystem','climate education']
+);
+
+-- Technology & Innovation
+select happikid.upsert_subcategory('technology-innovation','Coding Bootcamps for Kids','coding-bootcamps',
+  '["Code Ninjas","iD Tech Camps"]',
+  array['coding','programming','python','javascript','apps','games']
+);
+select happikid.upsert_subcategory('technology-innovation','3D Printing / Engineering Design','3d-printing-design',
+  '["MakerKids","TechShop Junior"]',
+  array['3d printing','design thinking','engineering','tinkering']
+);
+select happikid.upsert_subcategory('technology-innovation','Esports / Game Design','esports-game-design',
+  '["Vanta Leagues","XP League"]',
+  array['esports','gaming','competition','teamwork','design','strategy']
+);
+select happikid.upsert_subcategory('technology-innovation','Drone & Robotics Labs','drone-robotics',
+  '["Drone Legends","FIRST Robotics"]',
+  array['drones','robotics','aerodynamics','engineering','teamwork']
+);
+select happikid.upsert_subcategory('technology-innovation','AI & Machine Learning for Kids','ai-ml-kids',
+  '["AIClub","Create & Learn"]',
+  array['ai','machine learning','data','technology','innovation']
+);
+select happikid.upsert_subcategory('technology-innovation','Digital Literacy / Safe Internet Use','digital-literacy',
+  '["Common Sense Media","Google Be Internet Awesome"]',
+  array['digital citizenship','online safety','cybersecurity','technology skills']
+);
+
+-- Social, Emotional & Leadership
+select happikid.upsert_subcategory('social-emotional-leadership','Leadership Programs / Mentorship','leadership-mentorship',
+  '["Boys & Girls Clubs","Big Brothers Big Sisters"]',
+  array['leadership','mentorship','confidence','personal growth']
+);
+select happikid.upsert_subcategory('social-emotional-leadership','Mindfulness & Emotional Regulation','mindfulness-emotions',
+  '["Mindful Schools","Yoga Ed"]',
+  array['mindfulness','emotional intelligence','calm','stress management']
+);
+select happikid.upsert_subcategory('social-emotional-leadership','Team-Building / Social Skills','team-building-social',
+  '["Camp Fire USA","Local Youth Programs"]',
+  array['teamwork','communication','collaboration','social development']
+);
+select happikid.upsert_subcategory('social-emotional-leadership','Community Service / Volunteer Programs','community-service',
+  '["Habitat for Humanity Youth","Key Club"]',
+  array['volunteering','community','service learning','citizenship']
+);
+select happikid.upsert_subcategory('social-emotional-leadership','Conflict Resolution / Peer Mediation','conflict-resolution',
+  '["Peace First","Peer Leadership Programs"]',
+  array['conflict resolution','peacebuilding','communication','problem solving']
+);
+
+-- Special Interests & Clubs
+select happikid.upsert_subcategory('special-interests-clubs','Chess Clubs','chess-clubs',
+  '["Chess at Three","NY Chess Kids"]',
+  array['chess','strategy','critical thinking','competition']
+);
+select happikid.upsert_subcategory('special-interests-clubs','Lego / STEM Builders','lego-stem-builders',
+  '["Bricks 4 Kidz","Play-Well TEKnologies"]',
+  array['lego','building','engineering','creativity','design']
+);
+select happikid.upsert_subcategory('special-interests-clubs','Cooking & Baking','cooking-baking',
+  '["Taste Buds Kitchen","Young Chefs Academy"]',
+  array['cooking','baking','nutrition','culinary','life skills']
+);
+select happikid.upsert_subcategory('special-interests-clubs','Fashion & Design','fashion-design',
+  '["Sew Happy","Fashion Camp NYC"]',
+  array['fashion','design','sewing','creativity','style']
+);
+select happikid.upsert_subcategory('special-interests-clubs','Entrepreneurship / Kid Startups','entrepreneurship-kids',
+  '["BizWorld","Lemonade Day"]',
+  array['entrepreneurship','startups','business','finance','innovation']
+);
+select happikid.upsert_subcategory('special-interests-clubs','Cultural Heritage Clubs','cultural-heritage',
+  '["Cultural Centers","Heritage Societies"]',
+  array['culture','heritage','diversity','tradition','history']
+);
+select happikid.upsert_subcategory('special-interests-clubs','Pets & Animal Care','pets-animal-care',
+  '["4-H Pet Clubs","Local Humane Society Youth"]',
+  array['animals','pets','veterinary','responsibility']
+);
+select happikid.upsert_subcategory('special-interests-clubs','Book Clubs / Reading Circles','book-clubs',
+  '["Scholastic Reading Clubs","Local Libraries"]',
+  array['books','reading','literacy','storytelling','discussion']
+);
+
+-- Support & Care-Based Programs
+select happikid.upsert_subcategory('support-care-based','Extended-Day Programs','extended-day',
+  '["YMCA After School","Right At School"]',
+  array['after school care','extended hours','working parents','supervised care']
+);
+select happikid.upsert_subcategory('support-care-based','Homework & Snack Programs','homework-snack',
+  '["Local Schools","Community Centers"]',
+  array['homework help','snacks','academic support','aftercare']
+);
+select happikid.upsert_subcategory('support-care-based','Transportation-Inclusive Programs','transportation-inclusive',
+  '["Local Shuttle Services","School Bus Add-Ons"]',
+  array['transportation','pickup','dropoff','school bus','safe travel']
+);
+select happikid.upsert_subcategory('support-care-based','Inclusive / Special Needs-Friendly Programs','inclusive-special-needs',
+  '["Easterseals","SNAP Kids"]',
+  array['special needs','inclusive','adaptive','neurodiverse','supportive']
+);
+select happikid.upsert_subcategory('support-care-based','Drop-In / Flexible Care Options','drop-in-flexible',
+  '["WeVillage","Big Blue Marble Academy"]',
+  array['drop-in','flexible schedule','part-time care','hourly programs']
+);
+
+-- Seasonal & Hybrid Programs
+select happikid.upsert_subcategory('seasonal-hybrid','Mini Camps (Winter / Spring Break)','mini-camps',
+  '["Camp Invention","YMCA Break Camps"]',
+  array['camp','winter break','spring break','activities','fun']
+);
+select happikid.upsert_subcategory('seasonal-hybrid','Weekend Workshops','weekend-workshops',
+  '["Apple Store Kids Sessions","Home Depot Workshops"]',
+  array['weekend','workshop','hands-on','learning','creativity']
+);
+select happikid.upsert_subcategory('seasonal-hybrid','Hybrid School-Day Enrichment','hybrid-enrichment',
+  '["Fusion Academy","Local Hybrid Programs"]',
+  array['enrichment','hybrid learning','day program','education']
+);
+select happikid.upsert_subcategory('seasonal-hybrid','Virtual After-School Classes','virtual-after-school',
+  '["Outschool","Varsity Tutors Online"]',
+  array['virtual','online learning','remote','interactive','live class']
+);
+
+-- 10) Quick sanity checks
+-- Count categories and subcategories
+select count(*) as categories from happikid.categories;
+select count(*) as subcategories from happikid.subcategories;
+
+-- Sample search examples:
+-- Find subcategories by keyword overlap
+-- select * from happikid.subcategories where keywords && array['coding','robotics'];
+
+-- Full-text search by phrase
+-- select name, slug from happikid.subcategories
+-- where search_tsv @@ plainto_tsquery('simple', unaccent('coding kids')) order by name;
