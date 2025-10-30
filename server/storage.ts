@@ -133,6 +133,20 @@ export interface IStorage {
   // Audit log operations
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
   getAuditLogsByTargetId(targetId: string, targetType: string): Promise<AuditLog[]>;
+  
+  // After-school programs taxonomy
+  getAfterSchoolTaxonomy(): Promise<Array<{
+    id: number;
+    name: string;
+    slug: string;
+    subcategories: Array<{
+      id: number;
+      name: string;
+      slug: string;
+      keywords: string[];
+      example_providers: unknown[];
+    }>;
+  }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -746,6 +760,41 @@ export class DatabaseStorage implements IStorage {
       .from(auditLogs)
       .where(and(eq(auditLogs.targetId, targetId), eq(auditLogs.targetType, targetType)))
       .orderBy(desc(auditLogs.createdAt));
+  }
+
+  async getAfterSchoolTaxonomy() {
+    const result = await db.execute(sql`
+      SELECT 
+        c.id,
+        c.name,
+        c.slug,
+        json_agg(
+          json_build_object(
+            'id', s.id,
+            'name', s.name,
+            'slug', s.slug,
+            'keywords', s.keywords,
+            'example_providers', s.example_providers
+          ) ORDER BY s.name
+        ) as subcategories
+      FROM happikid.categories c
+      LEFT JOIN happikid.subcategories s ON c.id = s.category_id
+      GROUP BY c.id, c.name, c.slug
+      ORDER BY c.name
+    `);
+    
+    return result.rows as Array<{
+      id: number;
+      name: string;
+      slug: string;
+      subcategories: Array<{
+        id: number;
+        name: string;
+        slug: string;
+        keywords: string[];
+        example_providers: unknown[];
+      }>;
+    }>;
   }
 }
 

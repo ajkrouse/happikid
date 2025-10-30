@@ -17,6 +17,7 @@ import ParentSignup from "@/pages/ParentSignup";
 import ProviderSignup from "@/pages/ProviderSignup";
 import ClaimBusiness from "@/pages/ClaimBusiness";
 import AdminClaims from "@/pages/AdminClaims";
+import AfterSchoolPrograms from "@/pages/AfterSchoolPrograms";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -27,6 +28,7 @@ function Router() {
       {/* Public routes available to all users */}
       <Route path="/" component={Landing} />
       <Route path="/search" component={Search} />
+      <Route path="/after-school-programs" component={AfterSchoolPrograms} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
       <Route path="/providers" component={ProvidersOverview} />

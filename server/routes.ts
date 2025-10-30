@@ -17377,6 +17377,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/taxonomy/after-school-programs", async (req, res) => {
+    try {
+      const taxonomy = await storage.getAfterSchoolTaxonomy();
+      res.json({ afterSchoolPrograms: taxonomy });
+    } catch (error) {
+      console.error("Error fetching taxonomy:", error);
+      res.status(500).json({ message: "Failed to fetch after-school programs taxonomy" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

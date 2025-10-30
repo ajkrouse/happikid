@@ -348,6 +348,29 @@ export default function Landing() {
               </Button>
             </div>
 
+            {/* Browse After-School Programs Directory */}
+            <div className="max-w-2xl mx-auto mb-12">
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-3xl shadow-lg border-2 border-purple-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      📚 Explore After-School Programs by Category
+                    </h3>
+                    <p className="text-sm text-gray-700">
+                      Browse 55+ program types across STEM, Arts, Sports, Technology & more
+                    </p>
+                  </div>
+                  <Button
+                    className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg ml-4"
+                    onClick={() => setLocation("/after-school-programs")}
+                    data-testid="button-browse-programs"
+                  >
+                    Browse Directory →
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             {/* Trust Indicators - Playful Style */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <div className="text-center group">
