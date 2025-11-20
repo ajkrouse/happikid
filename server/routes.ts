@@ -17005,6 +17005,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Provider optimization score routes (authenticated - provider owner or admin only)
+  app.get('/api/providers/:id/score', isAuthenticated, async (req: any, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      const provider = await storage.getProvider(providerId);
+      if (!provider) {
+        return res.status(404).json({ message: "Provider not found" });
+      }
+
+      // Only allow provider owner or admin to view detailed scores
+      if (provider.userId !== userId && req.user!.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Check if cached score exists and is recent (< 1 hour old)
+      const existingScore = await storage.getProviderScore?.(providerId);
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      
+      if (existingScore && existingScore.lastCalculatedAt && new Date(existingScore.lastCalculatedAt) > oneHourAgo) {
+        // Return cached score
+        const { ProviderScoringService } = await import("./services/providerScoring");
+        return res.json({
+          overallScore: existingScore.overallScore,
+          completenessScore: existingScore.completenessScore,
+          engagementScore: existingScore.engagementScore,
+          verificationScore: existingScore.verificationScore,
+          freshnessScore: existingScore.freshnessScore,
+          breakdown: existingScore.scoreBreakdown,
+          badges: existingScore.badges,
+          improvementSuggestions: existingScore.improvementSuggestions,
+        });
+      }
+
+      // Recalculate score
+      const [images, reviews, inquiries] = await Promise.all([
+        storage.getProviderImages(providerId),
+        storage.getProviderReviews(providerId),
+        storage.getProviderInquiries?.(providerId) || Promise.resolve([])
+      ]);
+
+      const { ProviderScoringService } = await import("./services/providerScoring");
+      const score = ProviderScoringService.calculateScore(provider, images, reviews, inquiries);
+
+      // Update cached score
+      if (existingScore) {
+        await storage.updateProviderScore?.(providerId, {
+          overallScore: score.overallScore,
+          completenessScore: score.completenessScore,
+          engagementScore: score.engagementScore,
+          verificationScore: score.verificationScore,
+          freshnessScore: score.freshnessScore,
+          scoreBreakdown: score.breakdown,
+          badges: score.badges,
+          improvementSuggestions: score.improvementSuggestions,
+          lastCalculatedAt: new Date(),
+        });
+      } else {
+        await storage.createProviderScore?.({
+          providerId,
+          overallScore: score.overallScore,
+          completenessScore: score.completenessScore,
+          engagementScore: score.engagementScore,
+          verificationScore: score.verificationScore,
+          freshnessScore: score.freshnessScore,
+          scoreBreakdown: score.breakdown,
+          badges: score.badges,
+          improvementSuggestions: score.improvementSuggestions,
+        });
+      }
+
+      res.json(score);
+    } catch (error) {
+      console.error("Error calculating provider score:", error);
+      res.status(500).json({ message: "Failed to calculate score" });
+    }
+  });
+
+  app.post('/api/providers/:id/score/calculate', isAuthenticated, async (req: any, res) => {
+    try {
+      const providerId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Check if user owns this provider or is admin
+      const provider = await storage.getProvider(providerId);
+      if (!provider) {
+        return res.status(404).json({ message: "Provider not found" });
+      }
+      
+      if (provider.userId !== userId && req.user!.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Recalculate score
+      const [images, reviews, inquiries] = await Promise.all([
+        storage.getProviderImages(providerId),
+        storage.getProviderReviews(providerId),
+        storage.getProviderInquiries?.(providerId) || Promise.resolve([])
+      ]);
+
+      const { ProviderScoringService } = await import("./services/providerScoring");
+      const score = ProviderScoringService.calculateScore(provider, images, reviews, inquiries);
+
+      // Update score in database
+      const existingScore = await storage.getProviderScore?.(providerId);
+      if (existingScore) {
+        await storage.updateProviderScore?.(providerId, {
+          overallScore: score.overallScore,
+          completenessScore: score.completenessScore,
+          engagementScore: score.engagementScore,
+          verificationScore: score.verificationScore,
+          freshnessScore: score.freshnessScore,
+          scoreBreakdown: score.breakdown,
+          badges: score.badges,
+          improvementSuggestions: score.improvementSuggestions,
+          lastCalculatedAt: new Date(),
+        });
+      } else {
+        await storage.createProviderScore?.({
+          providerId,
+          overallScore: score.overallScore,
+          completenessScore: score.completenessScore,
+          engagementScore: score.engagementScore,
+          verificationScore: score.verificationScore,
+          freshnessScore: score.freshnessScore,
+          scoreBreakdown: score.breakdown,
+          badges: score.badges,
+          improvementSuggestions: score.improvementSuggestions,
+        });
+      }
+
+      res.json({ message: "Score recalculated successfully", score });
+    } catch (error) {
+      console.error("Error recalculating provider score:", error);
+      res.status(500).json({ message: "Failed to recalculate score" });
+    }
+  });
+
   // Object storage setup
   app.get("/public-objects/:filePath(*)", async (req, res) => {
     const filePath = req.params.filePath;

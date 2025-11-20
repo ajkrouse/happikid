@@ -12,6 +12,8 @@ import {
   primaryKey,
   pgEnum,
   uuid,
+  date,
+  doublePrecision,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
@@ -109,6 +111,30 @@ export const providers = pgTable("providers", {
   verificationMethod: verificationMethodEnum("verification_method"),
   verificationPayload: jsonb("verification_payload"),
   claimedAt: timestamp("claimed_at"),
+  
+  // Data import tracking fields
+  source: varchar("source", { length: 64 }).default("manual"),
+  sourceUrl: text("source_url"),
+  sourceAsOfDate: date("source_as_of_date"),
+  county: text("county"),
+  agesServedRaw: text("ages_served_raw"),
+  ageMinMonths: integer("age_min_months"),
+  ageMaxMonths: integer("age_max_months"),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
+  geocodeStatus: text("geocode_status"),
+  slug: text("slug"),
+  isVerifiedByGov: boolean("is_verified_by_gov").default(false),
+  isProfilePublic: boolean("is_profile_public").default(true),
+  
+  // Summer camp specific fields
+  campId: text("camp_id"),
+  dohInspectionYear: integer("doh_inspection_year"),
+  dohReportUrl: text("doh_report_url"),
+  campOwner: text("camp_owner"),
+  campDirector: text("camp_director"),
+  healthDirector: text("health_director"),
+  evaluation: text("evaluation"),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -275,6 +301,38 @@ export const auditLogs = pgTable("audit_logs", {
   targetType: varchar("target_type").notNull(),
   targetId: varchar("target_id").notNull(),
   meta: jsonb("meta"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Provider optimization scores for gamification
+export const providerScores = pgTable("provider_scores", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  overallScore: integer("overall_score").notNull().default(0), // 0-100
+  completenessScore: integer("completeness_score").notNull().default(0),
+  engagementScore: integer("engagement_score").notNull().default(0),
+  verificationScore: integer("verification_score").notNull().default(0),
+  freshnessScore: integer("freshness_score").notNull().default(0),
+  scoreBreakdown: jsonb("score_breakdown").default(sql`'{}'::jsonb`), // Detailed breakdown
+  badges: text("badges").array().default(sql`'{}'::text[]`), // Array of badge IDs
+  rankInCategory: integer("rank_in_category"), // Rank among similar providers
+  categoryAverage: integer("category_average"), // Average score for this provider type
+  improvementSuggestions: jsonb("improvement_suggestions").default(sql`'[]'::jsonb`),
+  lastCalculatedAt: timestamp("last_calculated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Provider achievements/badges
+export const providerBadges = pgTable("provider_badges", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  badgeType: varchar("badge_type", { 
+    enum: ["top_rated", "quick_responder", "rising_star", "verified", "premium", "complete_profile", "parent_favorite"] 
+  }).notNull(),
+  earnedAt: timestamp("earned_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Some badges may expire
+  metadata: jsonb("metadata").default(sql`'{}'::jsonb`), // Additional badge-specific data
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -503,11 +561,28 @@ export type InsertClaim = typeof claims.$inferInsert;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
 
+// Gamification types and schemas
+export type ProviderScore = typeof providerScores.$inferSelect;
+export type InsertProviderScore = typeof providerScores.$inferInsert;
+export type ProviderBadge = typeof providerBadges.$inferSelect;
+export type InsertProviderBadge = typeof providerBadges.$inferInsert;
+
 // Insert schemas for new tables
 export const insertClaimSchema = createInsertSchema(claims).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertProviderScoreSchema = createInsertSchema(providerScores).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertProviderBadgeSchema = createInsertSchema(providerBadges).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({

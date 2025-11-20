@@ -149,6 +149,12 @@ export interface IStorage {
       example_providers: unknown[];
     }>;
   }>>;
+  
+  // Provider optimization scores
+  getProviderScore(providerId: number): Promise<ProviderScore | undefined>;
+  createProviderScore(score: InsertProviderScore): Promise<ProviderScore>;
+  updateProviderScore(providerId: number, score: Partial<InsertProviderScore>): Promise<ProviderScore>;
+  getProviderInquiries(providerId: number): Promise<Inquiry[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -824,6 +830,37 @@ export class DatabaseStorage implements IStorage {
         example_providers: unknown[];
       }>;
     }>;
+  }
+
+  // Provider optimization scores
+  async getProviderScore(providerId: number): Promise<ProviderScore | undefined> {
+    const { providerScores } = await import("@shared/schema");
+    const [score] = await db.select().from(providerScores).where(eq(providerScores.providerId, providerId));
+    return score;
+  }
+
+  async createProviderScore(scoreData: InsertProviderScore): Promise<ProviderScore> {
+    const { providerScores } = await import("@shared/schema");
+    const [score] = await db.insert(providerScores).values(scoreData).returning();
+    return score;
+  }
+
+  async updateProviderScore(providerId: number, scoreData: Partial<InsertProviderScore>): Promise<ProviderScore> {
+    const { providerScores } = await import("@shared/schema");
+    const [score] = await db
+      .update(providerScores)
+      .set({ ...scoreData, updatedAt: new Date() })
+      .where(eq(providerScores.providerId, providerId))
+      .returning();
+    return score;
+  }
+
+  async getProviderReviews(providerId: number): Promise<Review[]> {
+    return await db.select().from(reviews).where(eq(reviews.providerId, providerId)).orderBy(desc(reviews.createdAt));
+  }
+
+  async getProviderInquiries(providerId: number): Promise<Inquiry[]> {
+    return await db.select().from(inquiries).where(eq(inquiries.providerId, providerId)).orderBy(desc(inquiries.createdAt));
   }
 }
 
