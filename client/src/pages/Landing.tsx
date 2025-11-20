@@ -324,11 +324,12 @@ export default function Landing() {
               </Button>
               <Button
                 variant="outline"
-                className="bg-white/90 hover:bg-secondary-50 hover:border-secondary-300 text-gray-700 hover:text-secondary-700 px-6 py-3 rounded-full border-2 border-white/60 font-semibold shadow-lg transition-all transform hover:scale-105 backdrop-blur-sm"
-                onClick={() => handleQuickFilter("afterschool")}
+                className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 hover:border-purple-300 text-gray-700 hover:text-purple-700 px-6 py-3 rounded-full border-2 border-purple-200 font-semibold shadow-lg transition-all transform hover:scale-105"
+                onClick={() => setLocation("/after-school-programs")}
+                data-testid="button-browse-programs"
               >
-                <School className="h-5 w-5 mr-2 text-secondary-500" />
-                After-School Programs
+                <School className="h-5 w-5 mr-2 text-purple-600" />
+                After-School Programs 📚
               </Button>
               <Button
                 variant="outline"
@@ -346,29 +347,6 @@ export default function Landing() {
                 <GraduationCap className="h-5 w-5 mr-2 text-primary-500" />
                 Private Schools
               </Button>
-            </div>
-
-            {/* Browse After-School Programs Directory */}
-            <div className="max-w-2xl mx-auto mb-12">
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 sm:p-6 rounded-3xl shadow-lg border-2 border-purple-200">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
-                      📚 Explore After-School Programs by Category
-                    </h3>
-                    <p className="text-sm text-gray-700">
-                      Browse 55+ program types across STEM, Arts, Sports, Technology & more
-                    </p>
-                  </div>
-                  <Button
-                    className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg w-full sm:w-auto shrink-0"
-                    onClick={() => setLocation("/after-school-programs")}
-                    data-testid="button-browse-programs"
-                  >
-                    Browse Directory →
-                  </Button>
-                </div>
-              </div>
             </div>
 
             {/* Trust Indicators - Playful Style */}
