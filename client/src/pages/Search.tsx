@@ -1241,10 +1241,38 @@ export default function SearchPage() {
 
             {/* Results Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <div>
+              <div className="flex-1">
                 <h2 className="text-2xl font-bold text-gray-900">{getResultsText()}</h2>
                 {searchQuery && (
                   <p className="text-gray-600 mt-1">for "{searchQuery}"</p>
+                )}
+                
+                {/* Category Breadcrumbs */}
+                {filters.category && filters.subcategory && (
+                  <div className="mt-2 flex items-center gap-2 text-sm">
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                      {categories.find(c => c.slug === filters.category)?.name || filters.category}
+                    </Badge>
+                    <span className="text-gray-400">›</span>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                      {categories.find(c => c.slug === filters.category)?.subcategories?.find(s => s.slug === filters.subcategory)?.name || filters.subcategory}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        urlParams.delete('category');
+                        urlParams.delete('subcategory');
+                        window.history.pushState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+                        setFilters(prev => ({ ...prev, category: undefined, subcategory: undefined }));
+                        refetch();
+                      }}
+                      data-testid="button-clear-category"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 )}
               </div>
               

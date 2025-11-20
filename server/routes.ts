@@ -16412,6 +16412,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ageRangeMax,
         features,
         search,
+        category,
+        subcategory,
         limit = 20,
         offset = 0
       } = req.query;
@@ -16443,6 +16445,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ageRangeMax: convertedAgeRangeMax,
         features: features ? (features as string).split(',') : undefined,
         search: search as string,
+        category: category as string,
+        subcategory: subcategory as string,
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
         returnTotal: true, // Always return total count for pagination

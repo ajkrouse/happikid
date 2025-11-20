@@ -52,6 +52,8 @@ export interface IStorage {
     ageRangeMax?: number;
     features?: string[];
     search?: string;
+    category?: string;
+    subcategory?: string;
     limit?: number;
     offset?: number;
     includeUnconfirmed?: boolean;
@@ -185,6 +187,8 @@ export class DatabaseStorage implements IStorage {
     ageRangeMax?: number;
     features?: string[];
     search?: string;
+    category?: string;
+    subcategory?: string;
     limit?: number;
     offset?: number;
     includeUnconfirmed?: boolean;
@@ -221,6 +225,31 @@ export class DatabaseStorage implements IStorage {
             ${providers.city} ILIKE ${`%${filters.search}%`}
           )`
         );
+      }
+
+      // Handle category/subcategory filtering using taxonomy keywords
+      if (filters?.category && filters?.subcategory) {
+        try {
+          const taxonomy = await this.getAfterSchoolTaxonomy();
+          const category = taxonomy.find((c: any) => c.slug === filters.category);
+          if (category) {
+            const subcategory = category.subcategories.find((s: any) => s.slug === filters.subcategory);
+            if (subcategory && subcategory.keywords && subcategory.keywords.length > 0) {
+              // Build OR'ed ILIKE clauses for each keyword
+              const keywordConditions = subcategory.keywords.map((keyword: string) =>
+                sql`(
+                  ${providers.name} ILIKE ${`%${keyword}%`} OR 
+                  ${providers.description} ILIKE ${`%${keyword}%`} OR
+                  array_to_string(${providers.features}, ' ') ILIKE ${`%${keyword}%`}
+                )`
+              );
+              conditions.push(or(...keywordConditions));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching taxonomy for filtering:", error);
+          // Continue without taxonomy filtering
+        }
       }
 
       if (filters?.ageRangeMin !== undefined) {
