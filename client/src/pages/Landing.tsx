@@ -254,16 +254,16 @@ export default function Landing() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 text-shadow-soft">
               <div className="flex flex-col items-center space-y-2">
                 <div>Find the <span className="text-primary-500">perfect</span></div>
-                <div className="text-coral-500 relative text-center" style={{ height: '1.2em', minWidth: '350px' }}>
+                <div className="text-coral-500 relative text-center w-full" style={{ height: '1.2em', minHeight: '1.2em' }}>
                   {childcareTypes.map((type, index) => (
                     <span 
                       key={type} 
-                      className={`absolute left-1/2 top-0 transform -translate-x-1/2 transition-all duration-500 ease-in-out whitespace-nowrap ${
+                      className={`absolute left-1/2 top-0 transform -translate-x-1/2 transition-all duration-500 ease-in-out ${
                         index === currentTypeIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                       }`}
                       style={{ height: '1.2em', lineHeight: '1.2' }}
                     >
-                      {type} ✨
+                      <span className="whitespace-nowrap">{type}</span> ✨
                     </span>
                   ))}
                 </div>
@@ -276,12 +276,12 @@ export default function Landing() {
             </p>
             {totalCount && (
               <div className="mb-10">
-                <div className="inline-flex items-center bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg">
-                  <BookOpen className="h-5 w-5 text-primary-500 mr-2" />
-                  <span className="text-lg text-gray-700">We've done the homework — </span>
-                  <span className="text-primary-600 text-2xl font-bold mx-2">{totalCount.count.toLocaleString()}+</span>
-                  <span className="text-lg text-gray-700"> trusted programs across NY, NJ & CT</span>
-                  <Smile className="h-5 w-5 text-accent-500 ml-2" />
+                <div className="inline-flex flex-wrap items-center justify-center bg-white/80 backdrop-blur-sm rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-lg max-w-full">
+                  <BookOpen className="h-4 sm:h-5 w-4 sm:w-5 text-primary-500 mr-2" />
+                  <span className="text-sm sm:text-lg text-gray-700">We've done the homework — </span>
+                  <span className="text-primary-600 text-xl sm:text-2xl font-bold mx-1 sm:mx-2">{totalCount.count.toLocaleString()}+</span>
+                  <span className="text-sm sm:text-lg text-gray-700"> trusted programs across NY, NJ & CT</span>
+                  <Smile className="h-4 sm:h-5 w-4 sm:w-5 text-accent-500 ml-2" />
                 </div>
               </div>
             )}
@@ -350,10 +350,10 @@ export default function Landing() {
 
             {/* Browse After-School Programs Directory */}
             <div className="max-w-2xl mx-auto mb-12">
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-3xl shadow-lg border-2 border-purple-200">
-                <div className="flex items-center justify-between">
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 sm:p-6 rounded-3xl shadow-lg border-2 border-purple-200">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
                       📚 Explore After-School Programs by Category
                     </h3>
                     <p className="text-sm text-gray-700">
@@ -361,7 +361,7 @@ export default function Landing() {
                     </p>
                   </div>
                   <Button
-                    className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg ml-4"
+                    className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg w-full sm:w-auto shrink-0"
                     onClick={() => setLocation("/after-school-programs")}
                     data-testid="button-browse-programs"
                   >
