@@ -34,9 +34,12 @@ import {
   type InsertProviderPhoto,
   type ReviewVote,
   type InsertReviewVote,
+  type ProviderScore,
+  type InsertProviderScore,
+  type ProviderWithScore,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, sql, like, inArray } from "drizzle-orm";
+import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for authentication)
@@ -58,7 +61,7 @@ export interface IStorage {
     offset?: number;
     includeUnconfirmed?: boolean;
     returnTotal?: boolean;
-  }): Promise<Provider[] | { providers: Provider[]; total: number }>;
+  }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number }>;
   getProvider(id: number): Promise<Provider | undefined>;
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
   createProvider(provider: InsertProvider): Promise<Provider>;
@@ -199,7 +202,7 @@ export class DatabaseStorage implements IStorage {
     offset?: number;
     includeUnconfirmed?: boolean;
     returnTotal?: boolean;
-  }): Promise<Provider[] | { providers: Provider[]; total: number }> {
+  }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number }> {
     try {
       let conditions: any[] = [eq(providers.isActive, true)];
 
@@ -275,6 +278,9 @@ export class DatabaseStorage implements IStorage {
         conditions.push(or(...featureConditions));
       }
 
+      // Import provider_scores table for ranking
+      const { providerScores } = await import("@shared/schema");
+
       // If returnTotal is requested, get total count first
       if (filters?.returnTotal) {
         const countQuery = db
@@ -284,11 +290,21 @@ export class DatabaseStorage implements IStorage {
         
         const [{ count: total }] = await countQuery;
 
+        // Join with provider_scores to incorporate optimization score in ranking
         const query = db
-          .select()
+          .select({
+            ...getTableColumns(providers),
+            optimizationScore: providerScores.overallScore,
+            badges: providerScores.badges,
+          })
           .from(providers)
+          .leftJoin(providerScores, eq(providers.id, providerScores.providerId))
           .where(and(...conditions))
-          .orderBy(desc(providers.rating), desc(providers.reviewCount))
+          .orderBy(
+            desc(sql`COALESCE(${providerScores.overallScore}, 0)`),
+            desc(providers.rating),
+            desc(providers.reviewCount)
+          )
           .limit(filters?.limit || 20)
           .offset(filters?.offset || 0);
 
@@ -296,12 +312,21 @@ export class DatabaseStorage implements IStorage {
         return { providers: providerResults, total };
       }
 
-      // Normal query without total count
+      // Normal query without total count - also include optimization score ranking
       const query = db
-        .select()
+        .select({
+          ...getTableColumns(providers),
+          optimizationScore: providerScores.overallScore,
+          badges: providerScores.badges,
+        })
         .from(providers)
+        .leftJoin(providerScores, eq(providers.id, providerScores.providerId))
         .where(and(...conditions))
-        .orderBy(desc(providers.rating), desc(providers.reviewCount))
+        .orderBy(
+          desc(sql`COALESCE(${providerScores.overallScore}, 0)`),
+          desc(providers.rating),
+          desc(providers.reviewCount)
+        )
         .limit(filters?.limit || 20)
         .offset(filters?.offset || 0);
 

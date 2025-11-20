@@ -589,3 +589,9 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   id: true,
   createdAt: true,
 });
+
+// Provider with optimization data (used in search results)
+export type ProviderWithScore = Provider & {
+  optimizationScore: number | null;
+  badges: string[] | null;
+};

@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Heart, MapPin, Star, Phone, Mail, Users, Plus } from "lucide-react";
-import { Provider } from "@shared/schema";
+import { Provider, ProviderWithScore } from "@shared/schema";
+import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -14,10 +15,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
 interface ProviderCardProps {
-  provider: Provider;
-  onViewDetails?: (provider: Provider) => void;
-  onRequestInfo?: (provider: Provider) => void;
-  onAddToComparison?: (provider: Provider) => void;
+  provider: ProviderWithScore;
+  onViewDetails?: (provider: ProviderWithScore) => void;
+  onRequestInfo?: (provider: ProviderWithScore) => void;
+  onAddToComparison?: (provider: ProviderWithScore) => void;
   onRemoveFromComparison?: (providerId: number) => void;
   isInComparison?: boolean;
 }
@@ -367,6 +368,15 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             <span className="text-sm text-gray-600">
               {provider.rating} ({provider.reviewCount} reviews)
             </span>
+          </div>
+        )}
+
+        {/* Achievement Badges */}
+        {provider.badges && provider.badges.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {provider.badges.slice(0, 3).map((badgeType: string, index: number) => (
+              <ProviderBadge key={index} type={badgeType as BadgeType} size="sm" />
+            ))}
           </div>
         )}
 
