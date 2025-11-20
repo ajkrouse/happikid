@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import PremiumFeaturesModal from "@/components/PremiumFeaturesModal";
+import { ProfileOptimizationCard } from "@/components/ProfileOptimizationCard";
+import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { useState } from "react";
 import { 
   Eye, 
@@ -53,6 +55,12 @@ export default function ProviderDashboard() {
   const { data: inquiries } = useQuery({
     queryKey: ["/api/inquiries/provider"],
     enabled: isAuthenticated && !!provider
+  });
+
+  // Fetch provider optimization score
+  const { data: providerScore, isLoading: isLoadingScore } = useQuery({
+    queryKey: [`/api/providers/${provider?.id}/score`],
+    enabled: isAuthenticated && !!provider?.id
   });
 
   // License confirmation mutation
@@ -265,6 +273,18 @@ export default function ProviderDashboard() {
           </CardContent>
         </Card>
 
+        {/* Achievements/Badges */}
+        {providerScore && providerScore.badges && providerScore.badges.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Your Achievements</h3>
+            <div className="flex flex-wrap gap-3">
+              {providerScore.badges.map((badgeType: string, index: number) => (
+                <ProviderBadge key={index} type={badgeType as BadgeType} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -319,6 +339,22 @@ export default function ProviderDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Profile Optimization Score */}
+        {isLoadingScore ? (
+          <Card className="mb-8">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                <span className="ml-3 text-gray-600">Loading your profile score...</span>
+              </div>
+            </CardContent>
+          </Card>
+        ) : providerScore ? (
+          <div className="mb-8">
+            <ProfileOptimizationCard score={providerScore} />
+          </div>
+        ) : null}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Completeness */}
