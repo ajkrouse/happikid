@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fontsource/crimson-text": "^5.2.7",
+    "@fontsource/dm-serif-display": "^5.2.8",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/space-grotesk": "^5.2.10",
     "@google-cloud/storage": "^7.16.0",
