@@ -3,7 +3,12 @@
 ## Overview
 HappiKid is a full-stack web application designed to connect parents with childcare providers across the tri-state area (NY, NJ, CT). Its primary purpose is to enable parents to efficiently search, compare, and review childcare services, while empowering providers to manage their profiles and respond to inquiries. The platform is a trust-first marketplace, leveraging AI-powered search capabilities and government verification to simplify the childcare search process. It now features **4,871+ providers** with **85.3% government verification**, offering the most comprehensive directory of licensed childcare, education, and enrichment programs in the Northeast.
 
-## Recent Changes (October 2025)
+## Recent Changes (November 2025)
+- **Mobile Responsiveness Overhaul**: Comprehensive mobile-first design improvements across all pages:
+  - Landing page: Fixed rotating text overflow, responsive provider count bar, stacking after-school directory card on mobile
+  - Navigation: Mobile hamburger menu with Sheet component for seamless mobile navigation
+  - Responsive typography and touch targets throughout application
+  - All pages verified mobile-friendly with proper viewport scaling
 - **NYC Manhattan Provider Expansion**: Added **644+ government-verified NYC DOHMH childcare providers** from Manhattan, expanding coverage to downtown NYC with providers from Tribeca, SoHo, Chelsea, East Village, West Village, and more
 - **After-School Programs Taxonomy**: Implemented comprehensive after-school program categorization system with **9 main categories** and **55 subcategories**, including Academic Enrichment, Creative & Performing Arts, Sports & Fitness, Technology & Innovation, and more. Features full-text search capabilities and keyword-based filtering. Accessible via dedicated browse page at `/after-school-programs` with accordion UI and search links for each subcategory.
 - **Interactive Map View**: Added Leaflet-based map visualization for providers with proximity search, radius filtering, location detection, and clickable markers showing provider details
