@@ -27,7 +27,7 @@ import {
   PaginationPrevious, 
   PaginationEllipsis 
 } from "@/components/ui/pagination";
-import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft, Map } from "lucide-react";
+import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft, Map, BookOpen, Palette, Dumbbell, TreePine, Laptop, Users as UsersIcon, Sparkles, Heart as HeartIcon, Calendar, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
@@ -37,6 +37,9 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { TaxonomyResponse, Category } from "../../../types/taxonomy";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 // Define item type for drag and drop
 const ItemTypes = {
@@ -125,6 +128,85 @@ function getTypeLabel(type: string): string {
     case 'school': return 'Private School';
     default: return type;
   }
+}
+
+// Category icons for taxonomy
+const categoryIcons: Record<string, any> = {
+  "academic-enrichment": BookOpen,
+  "creative-performing-arts": Palette,
+  "sports-fitness-movement": Dumbbell,
+  "outdoor-nature-adventure": TreePine,
+  "technology-innovation": Laptop,
+  "social-emotional-leadership": UsersIcon,
+  "special-interests-clubs": Sparkles,
+  "support-care-based": HeartIcon,
+  "seasonal-hybrid": Calendar,
+};
+
+// Taxonomy Navigator Component
+function TaxonomyNavigator({
+  categories,
+  selectedCategory,
+  selectedSubcategory,
+  onCategorySelect,
+}: {
+  categories: Category[];
+  selectedCategory?: string;
+  selectedSubcategory?: string;
+  onCategorySelect: (category: string, subcategory: string) => void;
+}) {
+  const [openCategory, setOpenCategory] = useState<string>(selectedCategory || "");
+
+  return (
+    <div className="bg-white rounded-lg border p-4" data-testid="taxonomy-navigator">
+      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+        <BookOpen className="h-5 w-5 text-purple-600" />
+        Browse by Category
+      </h3>
+      <Accordion type="single" collapsible value={openCategory} onValueChange={setOpenCategory}>
+        {categories.map((category: Category) => {
+          const Icon = categoryIcons[category.slug] || BookOpen;
+          
+          return (
+            <AccordionItem key={category.id} value={category.slug} data-testid={`accordion-category-${category.slug}`}>
+              <AccordionTrigger className="hover:no-underline py-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Icon className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-left">{category.name}</span>
+                  <span className="text-xs text-gray-500 ml-auto">({category.subcategories?.length || 0})</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="pl-6 space-y-1">
+                  {category.subcategories?.map((subcategory) => {
+                    const isSelected = selectedCategory === category.slug && selectedSubcategory === subcategory.slug;
+                    
+                    return (
+                      <button
+                        key={subcategory.id}
+                        onClick={() => onCategorySelect(category.slug, subcategory.slug)}
+                        className={`w-full text-left text-sm py-2 px-3 rounded-md transition-colors ${
+                          isSelected
+                            ? 'bg-purple-100 text-purple-700 font-medium'
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                        data-testid={`button-subcategory-${subcategory.slug}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{subcategory.name}</span>
+                          {isSelected && <ChevronRight className="h-4 w-4" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          );
+        })}
+      </Accordion>
+    </div>
+  );
 }
 
 // Inline FavoritesSection component
@@ -791,6 +873,8 @@ export default function SearchPage() {
     ageRange?: string;
     priceRange?: string;
     features?: string[];
+    category?: string;
+    subcategory?: string;
   }>({});
   const [sortBy, setSortBy] = useState("best-match");
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
@@ -831,6 +915,18 @@ export default function SearchPage() {
     queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
   };
 
+  // Handle category selection from taxonomy navigator
+  const handleCategorySelect = (category: string, subcategory: string) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('category', category);
+    urlParams.set('subcategory', subcategory);
+    window.history.pushState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+    
+    setFilters(prev => ({ ...prev, category, subcategory }));
+    setCurrentPage(1);
+    refetch();
+  };
+
   // Get search params from URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -841,6 +937,8 @@ export default function SearchPage() {
     const features = urlParams.get('features');
     const cost = urlParams.get('cost');
     const ageRange = urlParams.get('ageRange');
+    const category = urlParams.get('category');
+    const subcategory = urlParams.get('subcategory');
     
     if (q) {
       setSearchQuery(q);
@@ -871,6 +969,12 @@ export default function SearchPage() {
     }
     if (ageRange) {
       setFilters(prev => ({ ...prev, ageRange }));
+    }
+    if (category) {
+      setFilters(prev => ({ ...prev, category }));
+    }
+    if (subcategory) {
+      setFilters(prev => ({ ...prev, subcategory }));
     }
   }, []);
 
@@ -905,6 +1009,14 @@ export default function SearchPage() {
     queryKey: ['/api/favorites'],
     enabled: isAuthenticated,
   });
+
+  // Fetch taxonomy data when viewing after-school programs
+  const { data: taxonomyData } = useQuery<TaxonomyResponse>({
+    queryKey: ["/api/taxonomy/after-school-programs"],
+    enabled: filters.type === 'afterschool',
+  });
+
+  const categories = taxonomyData?.afterSchoolPrograms || [];
 
   const favoriteProviderIds = favorites.map((fav: any) => fav.provider?.id || fav.providerId);
 
@@ -1076,6 +1188,45 @@ export default function SearchPage() {
               onFiltersChange={setFilters}
               onClearFilters={() => setFilters({})}
             />
+
+            {/* Taxonomy Navigator for After-School Programs */}
+            {filters.type === 'afterschool' && categories.length > 0 && (
+              <div className="mt-6">
+                <TaxonomyNavigator
+                  categories={categories}
+                  selectedCategory={filters.category}
+                  selectedSubcategory={filters.subcategory}
+                  onCategorySelect={handleCategorySelect}
+                />
+              </div>
+            )}
+
+            {/* Mobile Taxonomy Navigator Sheet */}
+            {filters.type === 'afterschool' && categories.length > 0 && (
+              <div className="lg:hidden mt-4">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="w-full" data-testid="button-browse-categories-mobile">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Browse 55+ Program Categories
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
+                    <SheetHeader>
+                      <SheetTitle>Browse by Category</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4">
+                      <TaxonomyNavigator
+                        categories={categories}
+                        selectedCategory={filters.category}
+                        selectedSubcategory={filters.subcategory}
+                        onCategorySelect={handleCategorySelect}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            )}
           </div>
 
           {/* Results */}

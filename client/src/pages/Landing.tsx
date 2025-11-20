@@ -313,7 +313,7 @@ export default function Landing() {
             </div>
 
             {/* Playful Quick Filters */}
-            <div className="flex flex-wrap justify-center gap-4 mb-4">
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
               <Button
                 variant="outline"
                 className="bg-white/90 hover:bg-primary-50 hover:border-primary-300 text-gray-700 hover:text-primary-700 px-6 py-3 rounded-full border-2 border-white/60 font-semibold shadow-lg transition-all transform hover:scale-105 backdrop-blur-sm"
@@ -346,17 +346,6 @@ export default function Landing() {
                 <GraduationCap className="h-5 w-5 mr-2 text-primary-500" />
                 Private Schools
               </Button>
-            </div>
-            
-            {/* Browse After-School Programs by Category Link */}
-            <div className="text-center mb-12">
-              <button
-                onClick={() => setLocation("/after-school-programs")}
-                className="text-purple-600 hover:text-purple-700 font-medium text-sm hover:underline transition-colors inline-flex items-center gap-2"
-                data-testid="button-browse-programs"
-              >
-                📚 Or browse after-school programs by category (55+ types) →
-              </button>
             </div>
 
             {/* Trust Indicators - Playful Style */}
