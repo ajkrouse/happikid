@@ -30,9 +30,10 @@ import {
   Users,
   Award,
   MapPin,
-  ThumbsUp,
+  Eye,
   Lightbulb,
-  Home
+  Database,
+  Network
 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
@@ -105,28 +106,23 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* 1. HERO SECTION - Parent-First, Warm & Welcoming */}
+      {/* 1. HERO SECTION - New Copy */}
       <section className="relative overflow-hidden py-20 sm:py-28" style={{background: 'linear-gradient(135deg, var(--peach) 0%, var(--deep-coral) 100%)'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left Side */}
             <div className="text-left space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur-sm shadow-sm">
-                <Sparkles className="h-4 w-4" style={{color: 'var(--amber)'}} />
-                <span className="text-sm font-medium" style={{color: 'var(--taupe)'}}>Smarter Childcare Search</span>
-              </div>
-
               <h1 className="text-5xl sm:text-6xl font-display text-white leading-tight">
                 Find the <span className="relative inline-block">
-                  <span className="relative z-10">perfect fit</span>
+                  <span className="relative z-10">right care</span>
                   <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" style={{fill: 'var(--mustard)'}}>
                     <path d="M0,8 Q50,2 100,6 T200,8 L200,12 L0,12 Z" opacity="0.7"/>
                   </svg>
-                </span> for your child's care and growth
+                </span>, camps, and activities for your little ones
               </h1>
 
-              <p className="text-lg text-white/90 leading-relaxed">
-                Search daycare, after-school programs, camps, sports, tutoring, and schools all in one place. Every program verified and ready to welcome your family.
+              <p className="text-lg text-white/95 leading-relaxed">
+                Discover trusted daycares, after-school programs, summer camps, sports, tutoring, and private schools — all in one easy search.
               </p>
 
               <div className="flex flex-wrap gap-4">
@@ -150,7 +146,7 @@ export default function Landing() {
                 </Button>
               </div>
 
-              {/* Parent Reassurance Line */}
+              {/* Updated Reassurance Line */}
               <div className="flex flex-wrap items-center gap-4 text-sm text-white font-medium pt-2">
                 <div className="flex items-center gap-1">
                   <CheckCircle2 className="h-5 w-5" />
@@ -164,7 +160,7 @@ export default function Landing() {
                 <span>•</span>
                 <div className="flex items-center gap-1">
                   <CheckCircle2 className="h-5 w-5" />
-                  <span>One search for all care types</span>
+                  <span>Clear details, no guesswork</span>
                 </div>
               </div>
             </div>
@@ -225,30 +221,75 @@ export default function Landing() {
               </Card>
               
               {/* Brighter decorative shapes */}
-              <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-30 blur-2xl" style={{backgroundColor: 'var(--amber)'}}></div>
-              <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full opacity-30 blur-3xl" style={{backgroundColor: 'var(--mint)'}}></div>
+              <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-35 blur-2xl" style={{backgroundColor: 'var(--amber)'}}></div>
+              <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full opacity-35 blur-3xl" style={{backgroundColor: 'var(--mint)'}}></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. PROBLEM SECTION - Parent-Relatable */}
-      <section className="py-20" style={{backgroundColor: 'var(--sage-light)'}}>
+      {/* 2. TRUST BENEFITS SECTION - NEW */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Shield,
+                title: 'Verified Providers',
+                desc: 'We confirm each program\'s details using public records and trusted sources.',
+                color: 'var(--sage-dark)',
+                bg: 'hsl(145, 30%, 88%)'
+              },
+              {
+                icon: Star,
+                title: 'Real Parent Reviews',
+                desc: 'Read honest experiences from families who\'ve been there.',
+                color: 'var(--amber)',
+                bg: 'hsl(35, 85%, 88%)'
+              },
+              {
+                icon: Clock,
+                title: 'Save Time',
+                desc: 'Find the right fit in minutes — not after weeks of searching.',
+                color: 'var(--deep-coral)',
+                bg: 'hsl(6, 85%, 90%)'
+              }
+            ].map((benefit, i) => (
+              <Card key={i} className="border-2 border-transparent hover:shadow-lg transition-all rounded-2xl">
+                <CardContent className="p-6 text-center">
+                  <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-4" style={{backgroundColor: benefit.bg}}>
+                    <benefit.icon className="h-7 w-7" style={{color: benefit.color}} />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--taupe)'}}>{benefit.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{color: 'var(--warm-gray)'}}>{benefit.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. PROBLEM SECTION - Updated Copy */}
+      <section className="py-20" style={{backgroundColor: 'hsl(145, 20%, 88%)'}}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-display mb-8" style={{color: 'var(--taupe)'}}>
-            Finding childcare shouldn't be this <span style={{color: 'var(--deep-coral)'}}>hard</span>.
+            Childcare search is <span style={{color: 'var(--deep-coral)'}}>broken</span>.
           </h2>
           
-          <p className="text-xl mb-12" style={{color: 'var(--taupe)', opacity: 0.85}}>
-            You deserve better than juggling 6-10 tabs, scrolling through Facebook groups, and calling dozens of programs just to find one good option.
+          <p className="text-xl mb-6" style={{color: 'var(--taupe)', opacity: 0.9}}>
+            Parents bounce across Facebook groups, Google Maps, mom blogs, and state PDFs just to find one option. It's chaotic, outdated, and overwhelming.
           </p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+          <Badge className="px-5 py-2 mb-12 text-sm font-semibold rounded-full" style={{backgroundColor: 'var(--deep-coral)', color: 'white'}}>
+            6–10 tabs per search
+          </Badge>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10">
             {[
               { icon: MessageSquare, label: 'Facebook Groups', color: 'var(--deep-coral)' },
               { icon: Search, label: 'Google Maps', color: 'var(--amber)' },
               { icon: BookOpen, label: 'Parent Blogs', color: 'var(--sage-dark)' },
-              { icon: Shield, label: 'State Websites', color: 'var(--teal-blue)' }
+              { icon: Shield, label: 'State PDFs', color: 'var(--teal-blue)' }
             ].map((item, i) => (
               <Card key={i} className="p-6 text-center hover:shadow-lg transition-shadow bg-white backdrop-blur-sm rounded-xl">
                 <item.icon className="h-9 w-9 mx-auto mb-3" style={{color: item.color}} />
@@ -257,23 +298,23 @@ export default function Landing() {
             ))}
           </div>
 
-          <p className="mt-8 text-lg font-semibold" style={{color: 'var(--taupe)'}}>
-            <span className="px-6 py-3 rounded-full inline-block" style={{backgroundColor: 'var(--terracotta-light)', color: 'var(--taupe)'}}>
-              HappiKid brings it all together in one simple search.
+          <p className="text-lg font-semibold" style={{color: 'var(--taupe)'}}>
+            <span className="px-6 py-3 rounded-full inline-block" style={{backgroundColor: 'hsl(12, 60%, 85%)', color: 'var(--taupe)'}}>
+              HappiKid brings everything together in one intelligent platform.
             </span>
           </p>
         </div>
       </section>
 
-      {/* 3. UNIFIED JOURNEY SECTION - Parent Journey */}
+      {/* 4. CATEGORY JOURNEY SECTION - Updated Copy */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
-              Your child's journey, <br />all in one place.
+              Families move across categories — <br />HappiKid keeps everything in one place.
             </h2>
             <p className="text-lg" style={{color: 'var(--warm-gray)'}}>
-              From infant care to summer camps, find everything your family needs.
+              One journey. One platform. From infant care to school age and beyond.
             </p>
           </div>
 
@@ -292,7 +333,7 @@ export default function Landing() {
                 <div key={i} className="text-center">
                   <div 
                     className="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                    style={{backgroundColor: i % 3 === 0 ? 'var(--terracotta-light)' : i % 3 === 1 ? 'hsl(45, 80%, 85%)' : 'var(--sage-light)'}}
+                    style={{backgroundColor: i % 3 === 0 ? 'hsl(6, 85%, 88%)' : i % 3 === 1 ? 'hsl(45, 85%, 88%)' : 'hsl(145, 30%, 88%)'}}
                   >
                     <stage.icon className="h-10 w-10" style={{color: stage.color}} />
                   </div>
@@ -305,15 +346,18 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. CATEGORY DISCOVERY GRID - Brighter & More Joyful */}
-      <section className="py-20" style={{backgroundColor: 'var(--cream)'}}>
+      {/* 5. FEATURED PROVIDERS - Top-Rated Section */}
+      <section className="py-20" style={{backgroundColor: 'hsl(40, 45%, 92%)'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <Badge className="mb-4 px-4 py-2 text-sm font-semibold rounded-full" style={{backgroundColor: 'var(--amber)', color: 'white'}}>
+              ⭐ Top-Rated Providers
+            </Badge>
             <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
-              Explore Programs for Your Family
+              Discover trusted childcare providers in the NYC tri-state area
             </h2>
-            <p className="text-lg" style={{color: 'var(--warm-gray)'}}>
-              {totalCount && `${totalCount.count.toLocaleString()}+ verified programs across NY, NJ & CT`}
+            <p className="text-lg max-w-3xl mx-auto" style={{color: 'var(--warm-gray)'}}>
+              Every program listed has been reviewed, verified, or vetted for the information parents care about most.
             </p>
           </div>
 
@@ -385,7 +429,7 @@ export default function Landing() {
                   <h3 className="text-xl font-display mb-2" style={{color: 'var(--taupe)'}}>{cat.title}</h3>
                   <p className="text-sm mb-4" style={{color: 'var(--warm-gray)'}}>{cat.desc}</p>
                   <div className="flex items-center gap-2 text-sm font-semibold" style={{color: cat.color}}>
-                    Browse Options
+                    Learn More
                     <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </CardContent>
@@ -395,34 +439,100 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 5. SMART MATCHING - Parent Outcomes (Rewritten AI Section) */}
-      <section className="py-20" style={{backgroundColor: 'var(--terracotta-light)'}}>
+      {/* 6. SOCIAL PROOF - Updated Copy */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+              Trusted by thousands across NY, NJ & CT
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-start">
+            {/* Left - Stats */}
+            <div className="space-y-6">
+              {[
+                { number: totalCount ? `${totalCount.count.toLocaleString()}+` : '5,515+', label: 'Programs Analyzed', icon: Target, bg: 'hsl(6, 85%, 88%)', color: 'var(--deep-coral)' },
+                { number: '85%', label: 'Verified Through Public Records', icon: Shield, bg: 'hsl(145, 30%, 82%)', color: 'var(--sage-dark)' },
+                { number: '3', label: 'States', icon: MapPin, bg: 'hsl(35, 85%, 85%)', color: 'var(--amber)' }
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow" style={{backgroundColor: stat.bg}}>
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-white shadow-sm">
+                    <stat.icon className="h-7 w-7" style={{color: stat.color}} />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold" style={{color: 'var(--taupe)'}}>{stat.number}</p>
+                    <p className="font-medium" style={{color: 'var(--taupe)'}}>{stat.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right - Testimonials */}
+            <div className="space-y-6">
+              {[
+                {
+                  quote: "Finding a daycare used to take weeks. With HappiKid, I found three great options in an afternoon.",
+                  author: "Sarah M.",
+                  role: "Brooklyn"
+                },
+                {
+                  quote: "The verification gives me peace of mind. I know every program we consider is legitimate.",
+                  author: "Michael T.",
+                  role: "Manhattan"
+                }
+              ].map((testimonial, i) => (
+                <Card key={i} className="bg-white border-2 rounded-2xl shadow-md hover:shadow-lg transition-shadow" style={{borderColor: 'var(--sage-light)'}}>
+                  <CardContent className="p-6">
+                    <div className="flex gap-1 mb-3">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} className="h-5 w-5 fill-current" style={{color: 'var(--amber)'}} />
+                      ))}
+                    </div>
+                    <p className="text-base mb-4 leading-relaxed" style={{color: 'var(--taupe)'}}>"{testimonial.quote}"</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full" style={{backgroundColor: i === 0 ? 'hsl(6, 85%, 88%)' : 'hsl(145, 30%, 82%)'}}></div>
+                      <div>
+                        <p className="font-semibold" style={{color: 'var(--taupe)'}}>{testimonial.author}</p>
+                        <p className="text-sm" style={{color: 'var(--warm-gray)'}}>{testimonial.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. AI SECTION - Updated to "Smarter matches. Clearer choices. Better outcomes." */}
+      <section className="py-20" style={{backgroundColor: 'hsl(12, 60%, 88%)'}}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
-              Not just search. <br /><span style={{color: 'var(--deep-coral)'}}>Smarter matches</span> for your family.
+              Smarter matches. <br />Clearer choices. Better outcomes.
             </h2>
-            <p className="text-lg" style={{color: 'var(--taupe)', opacity: 0.85}}>
-              We understand what makes a program right for your child — not just keywords.
+            <p className="text-lg max-w-3xl mx-auto" style={{color: 'var(--taupe)', opacity: 0.9}}>
+              We organize the details that matter — schedules, age ranges, teaching styles, safety info, and more — so you can make confident decisions without the guesswork.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             {[
               {
-                icon: ThumbsUp,
-                title: 'Programs that fit your needs',
-                desc: 'Find care that matches your schedule, location, and what matters most to your family'
+                icon: Database,
+                title: 'Childcare Knowledge Graph',
+                desc: 'Structured, reliable information on programs, teaching styles, and licensing.'
               },
               {
                 icon: Lightbulb,
-                title: 'Clear, honest recommendations',
-                desc: 'Understand exactly why each program is suggested and what makes it special'
+                title: 'Explainable Recommendations',
+                desc: 'See why a program matches your needs — transparent, simple, and helpful.'
               },
               {
-                icon: Home,
-                title: 'See the full picture',
-                desc: 'Compare daycare, after-school, and camps side-by-side to plan ahead'
+                icon: Network,
+                title: 'Cross-Category Search',
+                desc: 'Compare care types, camps, activities, and tutoring in one search.'
               }
             ].map((feature, i) => (
               <Card key={i} className="bg-white backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
@@ -445,10 +555,7 @@ export default function Landing() {
               <div>
                 <p className="text-sm font-medium mb-2 opacity-70" style={{color: 'var(--warm-gray)'}}>Real search example:</p>
                 <p className="text-lg font-medium" style={{color: 'var(--taupe)'}}>
-                  "Full-day programs near the PATH train that take 2-year-olds starting in March"
-                </p>
-                <p className="text-sm mt-3" style={{color: 'var(--warm-gray)'}}>
-                  HappiKid understands your location, timing, and age requirements all at once.
+                  "Find full-day programs with extended hours near the PATH train that accept 2-year-olds starting in March."
                 </p>
               </div>
             </div>
@@ -456,97 +563,26 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 6. SOCIAL PROOF - Trust & Community */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left - Stats */}
-            <div className="space-y-8">
-              <h2 className="text-4xl font-display" style={{color: 'var(--taupe)'}}>
-                Trusted by families <br />across the tri-state area
-              </h2>
-              
-              <div className="space-y-6">
-                {[
-                  { number: totalCount ? `${totalCount.count.toLocaleString()}+` : '5,500+', label: 'Verified Programs', icon: Target, bg: 'hsl(6, 85%, 88%)', color: 'var(--deep-coral)' },
-                  { number: '85.3%', label: 'Government Verified', icon: Shield, bg: 'hsl(145, 30%, 82%)', color: 'var(--sage-dark)' },
-                  { number: 'NY, NJ, CT', label: 'Tri-State Coverage', icon: MapPin, bg: 'hsl(35, 85%, 85%)', color: 'var(--amber)' }
-                ].map((stat, i) => (
-                  <div key={i} className="flex items-center gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow" style={{backgroundColor: stat.bg}}>
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-white shadow-sm">
-                      <stat.icon className="h-7 w-7" style={{color: stat.color}} />
-                    </div>
-                    <div>
-                      <p className="text-3xl font-bold" style={{color: 'var(--taupe)'}}>{stat.number}</p>
-                      <p className="font-medium" style={{color: 'var(--taupe)'}}>{stat.label}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right - Testimonials */}
-            <div className="space-y-6">
-              {[
-                {
-                  quote: "Finding a daycare used to take weeks. With HappiKid, I found three great options in an afternoon.",
-                  author: "Sarah M.",
-                  role: "Parent, Brooklyn"
-                },
-                {
-                  quote: "The government verification gives me peace of mind. I know every program is licensed and legitimate.",
-                  author: "Michael T.",
-                  role: "Parent, Manhattan"
-                },
-                {
-                  quote: "I love that I can search for summer camps and after-school programs all in one place. It saves so much time!",
-                  author: "Jennifer L.",
-                  role: "Parent, Hoboken"
-                }
-              ].map((testimonial, i) => (
-                <Card key={i} className="bg-white border-2 rounded-2xl shadow-md hover:shadow-lg transition-shadow" style={{borderColor: 'var(--sage-light)'}}>
-                  <CardContent className="p-6">
-                    <div className="flex gap-1 mb-3">
-                      {[...Array(5)].map((_, j) => (
-                        <Star key={j} className="h-5 w-5 fill-current" style={{color: 'var(--amber)'}} />
-                      ))}
-                    </div>
-                    <p className="text-base mb-4 leading-relaxed" style={{color: 'var(--taupe)'}}>"{testimonial.quote}"</p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full" style={{backgroundColor: i === 0 ? 'var(--terracotta-light)' : i === 1 ? 'hsl(145, 30%, 82%)' : 'hsl(35, 85%, 85%)'}}></div>
-                      <div>
-                        <p className="font-semibold" style={{color: 'var(--taupe)'}}>{testimonial.author}</p>
-                        <p className="text-sm" style={{color: 'var(--warm-gray)'}}>{testimonial.role}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. PROVIDER GROWTH - Parent-Friendly Benefits */}
-      <section className="py-20" style={{backgroundColor: 'var(--warm-sand)'}}>
+      {/* 8. PROVIDER GROWTH OS SECTION - New Copy */}
+      <section className="py-20" style={{backgroundColor: 'hsl(75, 30%, 90%)'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
-              For Providers: <br />Reach families actively searching for you
+              Providers don't need more admin tools — <br />they need more families.
             </h2>
             <p className="text-lg" style={{color: 'var(--warm-gray)'}}>
-              Get discovered by parents who need exactly what you offer.
+              HappiKid helps you fill open spots, improve your visibility, and reach families searching for programs like yours.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left - Value Props (Parent-Friendly) */}
+            {/* Left - Features */}
             <div className="space-y-6">
               {[
-                { icon: Users, title: 'Connect with families near you', desc: 'Parents find you when they search for programs in your area' },
-                { icon: TrendingUp, title: 'Fill open spots faster', desc: 'Get inquiries from families ready to enroll' },
-                { icon: Award, title: 'Show what makes you special', desc: 'Highlight your unique approach, curriculum, and values' },
-                { icon: Clock, title: 'Save time on marketing', desc: 'Focus on teaching while we bring families to you' }
+                { icon: TrendingUp, title: 'SEO-Optimized Profiles', desc: 'Show up in local searches when families look for care, camps, and enrichment.' },
+                { icon: BarChart3, title: 'Demand Insights', desc: 'See what families in your area are searching for — and how your program compares.' },
+                { icon: Award, title: 'Profile Boosting Tools', desc: 'We guide you step-by-step to strengthen your profile and attract more inquiries.' },
+                { icon: Target, title: 'Cross-Category Exposure', desc: 'Be discovered across daycare, after-school, camps, and activities — all from one listing.' }
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 items-start">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{backgroundColor: i % 2 === 0 ? 'hsl(145, 30%, 82%)' : 'hsl(35, 85%, 85%)'}}>
@@ -618,50 +654,53 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 8. WHY NOW - Parent-Relevant */}
-      <section className="py-20" style={{backgroundColor: 'var(--sage-light)'}}>
+      {/* 9. WHY NOW SECTION - Updated Copy with Stat Badges */}
+      <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
-              Built for today's families
+              Why families and providers need HappiKid now
             </h2>
-            <p className="text-lg" style={{color: 'var(--warm-gray)'}}>
-              The childcare landscape is changing. HappiKid brings clarity and trust to the search.
-            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 icon: Users,
-                title: 'Parents need better tools',
-                desc: 'Searching for childcare is the #1 challenge for working families',
-                badge: 'For You'
+                title: 'Parents Overwhelmed',
+                desc: 'Childcare search is the #1 frustration for families.',
+                badge: '6–10 tabs per search',
+                color: 'var(--deep-coral)',
+                bg: 'hsl(6, 85%, 88%)'
               },
               {
-                icon: Shield,
-                title: 'Trust matters more than ever',
-                desc: 'Government-verified programs give you confidence and peace of mind',
-                badge: 'Verified'
+                icon: TrendingUp,
+                title: 'Providers Struggling',
+                desc: 'Enrollment is down, and programs need help reaching new families.',
+                badge: '40% vacancy increase',
+                color: 'var(--amber)',
+                bg: 'hsl(35, 85%, 85%)'
               },
               {
-                icon: Sparkles,
-                title: 'Smarter search saves time',
-                desc: 'Find programs that fit your needs without the endless scrolling',
-                badge: 'Simple'
+                icon: Zap,
+                title: 'Complexity Rising',
+                desc: 'Generic search tools can\'t handle childcare logistics, schedules, or age requirements.',
+                badge: 'Structured > Scraped',
+                color: 'var(--sage-dark)',
+                bg: 'hsl(145, 30%, 82%)'
               }
             ].map((item, i) => (
               <Card key={i} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
                 <CardContent className="p-8 text-center">
                   <div 
                     className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4"
-                    style={{backgroundColor: i === 0 ? 'hsl(6, 85%, 88%)' : i === 1 ? 'hsl(145, 30%, 82%)' : 'hsl(35, 85%, 85%)'}}
+                    style={{backgroundColor: item.bg}}
                   >
-                    <item.icon className="h-8 w-8" style={{color: i === 0 ? 'var(--deep-coral)' : i === 1 ? 'var(--sage-dark)' : 'var(--amber)'}} />
+                    <item.icon className="h-8 w-8" style={{color: item.color}} />
                   </div>
                   <h3 className="text-xl font-semibold mb-3" style={{color: 'var(--taupe)'}}>{item.title}</h3>
                   <p className="mb-4 leading-relaxed" style={{color: 'var(--warm-gray)'}}>{item.desc}</p>
-                  <Badge className="rounded-full px-4 py-1 font-medium" style={{backgroundColor: i === 0 ? 'var(--deep-coral)' : i === 1 ? 'var(--sage-dark)' : 'var(--amber)', color: 'white'}}>
+                  <Badge className="rounded-full px-4 py-1 font-medium text-xs" style={{backgroundColor: item.color, color: 'white'}}>
                     {item.badge}
                   </Badge>
                 </CardContent>
@@ -671,14 +710,14 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 9. FINAL CTA BANNER */}
+      {/* 10. FINAL CTA BANNER - Updated Copy */}
       <section className="py-20" style={{background: 'linear-gradient(135deg, var(--deep-coral) 0%, var(--amber) 100%)'}}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-display text-white mb-4">
-            Ready to find the perfect program for your child?
+            Ready to find the right fit for your child?
           </h2>
-          <p className="text-xl text-white/90 mb-8">
-            Start searching now — it's completely free for parents.
+          <p className="text-xl text-white/95 mb-8">
+            HappiKid is free for parents during MVP.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button 
@@ -688,7 +727,7 @@ export default function Landing() {
               style={{color: 'var(--deep-coral)'}}
               data-testid="button-cta-find-programs"
             >
-              Find Programs
+              Start Searching
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button 
@@ -698,12 +737,13 @@ export default function Landing() {
               data-testid="button-cta-list-program"
             >
               List Your Program
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* 10. FOOTER - Consistent Branding */}
+      {/* 11. FOOTER - Consistent Branding */}
       <footer className="py-16" style={{backgroundColor: 'var(--taupe)', color: 'white'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
