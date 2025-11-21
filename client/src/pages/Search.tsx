@@ -7,7 +7,6 @@ import ComparisonModal from "@/components/ComparisonModal";
 import MapView from "@/components/MapView";
 import { SearchInsights } from "@/components/SearchInsights";
 import { ConversationalSearch } from "@/components/ConversationalSearch";
-import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1146,32 +1145,11 @@ export default function SearchPage() {
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Header */}
-        <div className="mb-8">
-          <div className="flex max-w-4xl mx-auto gap-2">
-            <div className="flex-1">
-              <SearchAutocomplete
-                value={searchQuery}
-                onChange={setSearchQuery}
-                onSelect={(query) => {
-                  setSearchQuery(query);
-                  setTimeout(handleSearch, 100);
-                }}
-                placeholder="Try: 'Montessori programs in Jersey City' or 'after school for 6 year olds'"
-              />
-            </div>
-            <Button 
-              className="px-6 rounded-xl font-medium h-[54px] flex items-center justify-center"
-              onClick={handleSearch}
-            >
-              Search
-            </Button>
-          </div>
-        </div>
-
-        {/* Conversational Search Examples */}
-        <div className="max-w-4xl mx-auto mb-8">
+        {/* Natural Language Search Bar */}
+        <div className="mb-8 max-w-5xl mx-auto">
           <ConversationalSearch 
+            value={searchQuery}
+            onChange={setSearchQuery}
             onSearch={(query) => {
               setSearchQuery(query);
               setTimeout(handleSearch, 100);
