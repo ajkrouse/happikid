@@ -79,7 +79,7 @@ export default function Navigation() {
   );
 
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-sm border-b shadow-sm" style={{ backgroundColor: 'hsl(40, 35%, 96%)/95', borderColor: 'var(--warm-gray)/20' }}>
+    <nav className="sticky top-0 z-50 backdrop-blur-sm bg-[var(--ivory)]/95 border-b border-[var(--warm-gray)]/20 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}

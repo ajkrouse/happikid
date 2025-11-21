@@ -157,9 +157,9 @@ function TaxonomyNavigator({
   const [openCategory, setOpenCategory] = useState<string>(selectedCategory || "");
 
   return (
-    <div className="bg-white rounded-lg border p-4" data-testid="taxonomy-navigator">
-      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-        <BookOpen className="h-5 w-5 text-purple-600" />
+    <div className="rounded-2xl border p-4" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }} data-testid="taxonomy-navigator">
+      <h3 className="font-display text-lg mb-4 flex items-center gap-2" style={{ color: 'var(--taupe)' }}>
+        <BookOpen className="h-5 w-5" style={{ color: 'var(--sage-dark)' }} />
         Browse by Category
       </h3>
       <Accordion type="single" collapsible value={openCategory} onValueChange={setOpenCategory}>
@@ -170,8 +170,8 @@ function TaxonomyNavigator({
             <AccordionItem key={category.id} value={category.slug} data-testid={`accordion-category-${category.slug}`}>
               <AccordionTrigger className="hover:no-underline py-2">
                 <div className="flex items-center gap-2 text-sm">
-                  <Icon className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium text-left">{category.name}</span>
+                  <Icon className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
+                  <span className="font-medium text-left" style={{ color: 'var(--taupe)' }}>{category.name}</span>
                   <span className="text-xs text-gray-500 ml-auto">({category.subcategories?.length || 0})</span>
                 </div>
               </AccordionTrigger>
@@ -184,11 +184,12 @@ function TaxonomyNavigator({
                       <button
                         key={subcategory.id}
                         onClick={() => onCategorySelect(category.slug, subcategory.slug)}
-                        className={`w-full text-left text-sm py-2 px-3 rounded-md transition-colors ${
+                        className={`w-full text-left text-sm py-2 px-3 rounded-lg transition-colors ${
                           isSelected
-                            ? 'bg-purple-100 text-purple-700 font-medium'
-                            : 'hover:bg-gray-100 text-gray-700'
+                            ? 'font-medium'
+                            : 'hover:opacity-70'
                         }`}
+                        style={isSelected ? { backgroundColor: 'hsl(145, 30%, 95%)', color: 'var(--sage-dark)' } : { color: 'var(--taupe)' }}
                         data-testid={`button-subcategory-${subcategory.slug}`}
                       >
                         <div className="flex items-center justify-between">
@@ -481,17 +482,17 @@ function FavoritesSection({
             if (groupItems.length === 0) return null;
             
             return (
-              <div key={groupName} className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+              <div key={groupName} className="rounded-2xl border p-3" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
                 <div className="flex items-center justify-between mb-3">
                   <div 
-                    className="flex items-center cursor-pointer hover:text-blue-700 transition-colors flex-1"
+                    className="flex items-center cursor-pointer hover:opacity-70 transition-opacity flex-1"
                     onClick={() => handleLoadGroupIntoComparison(groupName, groupItems.map(item => item.provider))}
                   >
-                    <Users className="h-4 w-4 mr-2" />
-                    <h4 className="font-medium text-blue-900">
+                    <Users className="h-4 w-4 mr-2" style={{ color: 'var(--sage-dark)' }} />
+                    <h4 className="font-medium" style={{ color: 'var(--taupe)' }}>
                       {groupName} ({groupItems.length})
                     </h4>
-                    <Badge variant="outline" className="ml-2 text-xs border-blue-300 text-blue-700">
+                    <Badge variant="outline" className="ml-2 text-xs" style={{ borderColor: 'var(--sage-dark)', color: 'var(--sage-dark)' }}>
                       Click to compare
                     </Badge>
                   </div>
@@ -505,10 +506,10 @@ function FavoritesSection({
                 </div>
                 <div className="space-y-2">
                   {groupItems.map(({ favorite, provider }) => (
-                    <div key={provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                    <div key={provider.id} className="rounded-2xl border p-3" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--warm-gray)/30' }}>
                       <div className="flex items-center justify-between">
                         <div 
-                          className="flex-1 cursor-pointer hover:text-blue-600 transition-colors"
+                          className="flex-1 cursor-pointer hover:opacity-70 transition-opacity"
                           onClick={() => {
                             setSelectedProvider(provider);
                             setShowProviderModal(true);
@@ -1350,11 +1351,11 @@ export default function SearchPage() {
 
             {/* Comparison Bar */}
             {comparisonProviders.length > 0 && (
-              <Card className="mb-6 bg-primary-50 border-primary-200">
+              <Card className="mb-6 rounded-2xl border" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <span className="font-medium text-primary-800">
+                      <span className="font-medium" style={{ color: 'var(--sage-dark)' }}>
                         Compare ({comparisonProviders.length})
                       </span>
                       <div className="flex space-x-2">
@@ -1624,8 +1625,8 @@ export default function SearchPage() {
           
           <div className="space-y-6">
             {/* How it works */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="text-sm text-blue-700 space-y-2">
+            <div className="rounded-2xl border p-4" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
+              <div className="text-sm space-y-2" style={{ color: 'var(--sage-dark)' }}>
                 <p>• <strong>Save individual providers:</strong> Click the ❤️ heart icon on any provider card</p>
                 <p>• <strong>Save comparison groups:</strong> Use "Compare & Save" to create provider groups</p>
                 <p>• <strong>Launch group comparison:</strong> Click on any group name to load it into the comparison tool</p>
@@ -1651,9 +1652,9 @@ export default function SearchPage() {
 
             {/* Current Comparison Preview */}
             {comparisonProviders.length > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="font-medium text-green-800 mb-2">Current Comparison</h4>
-                <p className="text-sm text-green-700 mb-2">
+              <div className="rounded-2xl border p-4" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
+                <h4 className="font-medium mb-2" style={{ color: 'var(--sage-dark)' }}>Current Comparison</h4>
+                <p className="text-sm mb-2" style={{ color: 'var(--taupe)' }}>
                   {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} ready to save as group
                 </p>
                 <div className="flex flex-wrap gap-1 mb-3">
