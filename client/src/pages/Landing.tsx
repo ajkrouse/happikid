@@ -346,18 +346,18 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 5. FEATURED PROVIDERS - Top-Rated Section */}
+      {/* 5. CATEGORY GRID SECTION */}
       <section className="py-20" style={{backgroundColor: 'hsl(40, 45%, 92%)'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 px-4 py-2 text-sm font-semibold rounded-full" style={{backgroundColor: 'var(--amber)', color: 'white'}}>
-              ⭐ Top-Rated Providers
+              Top Categories
             </Badge>
             <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
-              Discover trusted childcare providers in the NYC tri-state area
+              Explore programs by type
             </h2>
             <p className="text-lg max-w-3xl mx-auto" style={{color: 'var(--warm-gray)'}}>
-              Every program listed has been reviewed, verified, or vetted for the information parents care about most.
+              See everything from childcare to camps in one place.
             </p>
           </div>
 
@@ -382,7 +382,7 @@ export default function Landing() {
               { 
                 icon: Trophy, 
                 title: 'Sports & Activities', 
-                desc: 'Soccer, gymnastics, dance, martial arts & more',
+                desc: 'Soccer, gymnastics, dance, martial arts, and more.',
                 color: 'var(--amber)',
                 bgColor: 'hsl(35, 85%, 85%)',
                 type: 'afterschool'
@@ -390,7 +390,7 @@ export default function Landing() {
               { 
                 icon: BookOpen, 
                 title: 'Tutoring & Enrichment', 
-                desc: 'Academic support and STEM learning',
+                desc: 'Academic support and STEM learning.',
                 color: 'var(--teal-blue)',
                 bgColor: 'hsl(185, 55%, 80%)',
                 type: 'afterschool'
@@ -398,7 +398,7 @@ export default function Landing() {
               { 
                 icon: TreePine, 
                 title: 'Summer & Holiday Camps', 
-                desc: 'Adventure, learning, and new friendships',
+                desc: 'Adventure, learning, and new friendships.',
                 color: 'var(--olive)',
                 bgColor: 'hsl(75, 35%, 82%)',
                 type: 'camp'
@@ -406,7 +406,7 @@ export default function Landing() {
               { 
                 icon: GraduationCap, 
                 title: 'Private & Microschools', 
-                desc: 'Personalized education for every learner',
+                desc: 'Personalized education for every learner.',
                 color: 'var(--terracotta)',
                 bgColor: 'hsl(12, 65%, 85%)',
                 type: 'school'
