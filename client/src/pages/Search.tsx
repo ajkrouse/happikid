@@ -1141,7 +1141,7 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'hsl(40, 25%, 97%)' }}>
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1218,94 +1218,127 @@ export default function SearchPage() {
             )}
 
             {/* Results Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900">{getResultsText()}</h2>
-                {searchQuery && (
-                  <p className="text-gray-600 mt-1">for "{searchQuery}"</p>
-                )}
+            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2" style={{ borderColor: 'var(--sage-light)' }}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-display font-bold mb-1" style={{ color: 'var(--taupe)' }}>{getResultsText()}</h2>
+                  {searchQuery && (
+                    <p className="text-sm" style={{ color: 'var(--warm-gray)' }}>for "{searchQuery}"</p>
+                  )}
+                  
+                  {/* Category Breadcrumbs */}
+                  {filters.category && filters.subcategory && (
+                    <div className="mt-2 flex items-center gap-2 text-sm">
+                      <Badge variant="secondary" style={{ backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' }}>
+                        {categories.find(c => c.slug === filters.category)?.name || filters.category}
+                      </Badge>
+                      <span style={{ color: 'var(--warm-gray)' }}>›</span>
+                      <Badge variant="secondary" style={{ backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' }}>
+                        {categories.find(c => c.slug === filters.category)?.subcategories?.find(s => s.slug === filters.subcategory)?.name || filters.subcategory}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const urlParams = new URLSearchParams(window.location.search);
+                          urlParams.delete('category');
+                          urlParams.delete('subcategory');
+                          window.history.pushState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+                          setFilters(prev => ({ ...prev, category: undefined, subcategory: undefined }));
+                          refetch();
+                        }}
+                        data-testid="button-clear-category"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 
-                {/* Category Breadcrumbs */}
-                {filters.category && filters.subcategory && (
-                  <div className="mt-2 flex items-center gap-2 text-sm">
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                      {categories.find(c => c.slug === filters.category)?.name || filters.category}
-                    </Badge>
-                    <span className="text-gray-400">›</span>
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                      {categories.find(c => c.slug === filters.category)?.subcategories?.find(s => s.slug === filters.subcategory)?.name || filters.subcategory}
-                    </Badge>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSavedGroupsModal(true)}
+                    className="rounded-xl font-medium border-2"
+                    style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)', backgroundColor: 'hsl(145, 30%, 95%)' }}
+                  >
+                    <Bookmark className="h-4 w-4 mr-2" />
+                    My Groups
+                    {groupsCount > 0 && (
+                      <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'var(--sage-dark)', color: 'white' }}>
+                        {groupsCount}
+                      </span>
+                    )}
+                  </Button>
+                  
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-48 rounded-xl border-2" style={{ borderColor: 'var(--sage-light)' }}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="best-match">Best Match</SelectItem>
+                      <SelectItem value="highest-rated">Highest Rated</SelectItem>
+                      <SelectItem value="lowest-price">Price: Low to High</SelectItem>
+                      <SelectItem value="highest-price">Price: High to Low</SelectItem>
+                      <SelectItem value="nearest">Nearest</SelectItem>
+                      <SelectItem value="newest">Newest Listings</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="flex border-2 rounded-xl overflow-hidden" style={{ borderColor: 'var(--sage-light)' }}>
                     <Button
-                      variant="ghost"
+                      variant={viewMode === "grid" ? "default" : "ghost"}
                       size="sm"
-                      onClick={() => {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        urlParams.delete('category');
-                        urlParams.delete('subcategory');
-                        window.history.pushState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
-                        setFilters(prev => ({ ...prev, category: undefined, subcategory: undefined }));
-                        refetch();
-                      }}
-                      data-testid="button-clear-category"
+                      onClick={() => setViewMode("grid")}
+                      className="rounded-none"
+                      style={viewMode === "grid" ? { backgroundColor: 'var(--deep-coral)', color: 'white' } : {}}
+                      data-testid="button-view-grid"
                     >
-                      <X className="h-4 w-4" />
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "list" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("list")}
+                      className="rounded-none"
+                      style={viewMode === "list" ? { backgroundColor: 'var(--deep-coral)', color: 'white' } : {}}
+                      data-testid="button-view-list"
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "map" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("map")}
+                      className="rounded-none"
+                      style={viewMode === "map" ? { backgroundColor: 'var(--deep-coral)', color: 'white' } : {}}
+                      data-testid="button-view-map"
+                    >
+                      <Map className="h-4 w-4" />
                     </Button>
                   </div>
-                )}
+                </div>
               </div>
-              
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowSavedGroupsModal(true)}
-                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                >
-                  <Bookmark className="h-4 w-4 mr-2" />
-                  My Groups
-                  {groupsCount > 0 && (
-                    <span className="ml-2 bg-blue-200 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                      {groupsCount}
-                    </span>
-                  )}
-                </Button>
-                
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="best-match">Best Match</SelectItem>
-                    <SelectItem value="highest-rated">Highest Rated</SelectItem>
-                    <SelectItem value="lowest-price">Lowest Price</SelectItem>
-                    <SelectItem value="nearest">Nearest</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <div className="flex border border-gray-200 rounded-lg overflow-hidden">
-                  <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("grid")}
-                    data-testid="button-view-grid"
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("list")}
-                    data-testid="button-view-list"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "map" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("map")}
-                    data-testid="button-view-map"
-                  >
-                    <Map className="h-4 w-4" />
-                  </Button>
+            </div>
+
+            {/* Trust Signal Strip */}
+            <div className="rounded-2xl p-4 mb-6 border" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
+              <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
+                  <span style={{ color: 'var(--taupe)' }} className="font-medium">Verified through public records</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
+                  <span style={{ color: 'var(--taupe)' }} className="font-medium">Real parent reviews</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
+                  <span style={{ color: 'var(--taupe)' }} className="font-medium">Updated for 2025</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
+                  <span style={{ color: 'var(--taupe)' }} className="font-medium">Personalized matching</span>
                 </div>
               </div>
             </div>
@@ -1394,18 +1427,20 @@ export default function SearchPage() {
 
             {/* Empty State */}
             {!isLoading && providers.length === 0 && (
-              <Card className="text-center py-12">
+              <Card className="text-center py-16 rounded-2xl shadow-lg border-2" style={{ borderColor: 'var(--sage-light)', backgroundColor: 'white' }}>
                 <CardContent>
-                  <SearchIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No providers found for your search
+                  <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center" style={{ backgroundColor: 'hsl(145, 30%, 92%)' }}>
+                    <SearchIcon className="h-10 w-10" style={{ color: 'var(--sage-dark)' }} />
+                  </div>
+                  <h3 className="text-2xl font-display font-bold mb-3" style={{ color: 'var(--taupe)' }}>
+                    No results match your search
                   </h3>
-                  <div className="text-gray-600 mb-6 space-y-2">
-                    <p>
-                      We couldn't find any providers matching your current filters.
+                  <div className="mb-8 space-y-2">
+                    <p className="text-lg" style={{ color: 'var(--warm-gray)' }}>
+                      Try adjusting age, location, or schedule — or explore nearby neighborhoods.
                     </p>
                     {filters.type && filters.ageRange && (
-                      <p className="text-sm bg-yellow-50 border border-yellow-200 rounded-lg p-3 inline-block">
+                      <p className="text-sm rounded-xl p-4 inline-block mt-4" style={{ backgroundColor: 'hsl(35, 85%, 92%)', color: 'var(--taupe)', border: '2px solid var(--amber)' }}>
                         <strong>Tip:</strong> {getTypeLabel(filters.type)} programs typically serve{" "}
                         {filters.type === 'daycare' && 'infants through preschool age (0-5 years)'}
                         {filters.type === 'afterschool' && 'school-age children (5+ years)'}
@@ -1417,7 +1452,8 @@ export default function SearchPage() {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button 
-                      variant="outline" 
+                      className="rounded-xl px-6 text-white font-semibold"
+                      style={{ backgroundColor: 'var(--deep-coral)' }}
                       onClick={() => {
                         setSearchQuery("");
                         setFilters({});
@@ -1425,32 +1461,25 @@ export default function SearchPage() {
                         refetch();
                       }}
                     >
-                      Clear All Filters
+                      Clear Filters
                     </Button>
-                    {filters.ageRange && (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          setFilters(prev => ({ ...prev, ageRange: undefined }));
-                          setCurrentPage(1);
-                          refetch();
-                        }}
-                      >
-                        Remove Age Filter
-                      </Button>
-                    )}
-                    {filters.borough && (
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          setFilters(prev => ({ ...prev, borough: undefined }));
-                          setCurrentPage(1);
-                          refetch();
-                        }}
-                      >
-                        Remove Location Filter
-                      </Button>
-                    )}
+                    <Button 
+                      variant="outline"
+                      className="rounded-xl px-6 font-medium border-2"
+                      style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)' }}
+                      onClick={() => {
+                        if (navigator.geolocation) {
+                          navigator.geolocation.getCurrentPosition((position) => {
+                            handleLocationSearch({ 
+                              lat: position.coords.latitude, 
+                              lng: position.coords.longitude 
+                            });
+                          });
+                        }
+                      }}
+                    >
+                      Show Programs Near Me
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -1526,6 +1555,25 @@ export default function SearchPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Bottom CTA Strip */}
+        <div className="mt-16 rounded-3xl p-12 text-center shadow-xl" style={{ background: 'linear-gradient(135deg, var(--deep-coral) 0%, var(--amber) 100%)' }}>
+          <h2 className="text-3xl sm:text-4xl font-display text-white mb-4">
+            Not ready to decide yet?
+          </h2>
+          <p className="text-xl text-white/95 mb-8 max-w-2xl mx-auto">
+            Save programs, compare options, and get updates — all in one place.
+          </p>
+          <Button 
+            size="lg"
+            className="rounded-xl px-8 py-6 bg-white font-semibold shadow-lg hover:shadow-2xl transition-all text-lg"
+            style={{ color: 'var(--deep-coral)' }}
+            onClick={() => window.location.href = '/auth/login'}
+          >
+            Create a free account
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
         </div>
       </div>
 

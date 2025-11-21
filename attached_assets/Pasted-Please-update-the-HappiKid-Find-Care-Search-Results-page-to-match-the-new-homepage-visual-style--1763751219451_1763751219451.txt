@@ -1,0 +1,286 @@
+Please update the HappiKid “Find Care / Search Results” page to match the new homepage visual style and UX:
+
+• Hybrid style: warm, family-friendly + clean marketplace
+• Colors: warm coral/peach, sage/mint, sand/ivory, very soft blues (NOT the older bright blue palette)
+• Typography: same serif headlines + sans-serif body as homepage
+• Components: rounded cards, soft shadows, pill buttons, pastel icons
+• Priority: Parents first, providers second, investors third
+
+Keep the existing overall layout (top search area, filters on the left, results on the right), but update the copy, colors, and hierarchy as described below.
+
+=====================================================
+1) PAGE BACKGROUND & GLOBAL STYLE
+=====================================================
+• Replace the current bright blue accents with the homepage palette:
+  - CTAs: warm coral/terracotta
+  - Highlights: soft peach, mint, sage
+  - Backgrounds: warm ivory / light beige
+• Use soft shadows and rounded corners on all cards and filter panels.
+• Use the same heading and body fonts as the new homepage.
+
+=====================================================
+2) MAIN NATURAL LANGUAGE SEARCH BAR (TOP)
+=====================================================
+Keep the single large input at the top, but update styling and copy:
+
+• Background: warm ivory with a very light gradient tint (subtle).
+• Shape: pill-shaped with soft shadow.
+• Left icon: ✨ or 🔍 inside a subtle circle.
+• Placeholder text:
+  Try: "Montessori programs in Jersey City" or "after-school for 6-year-olds"
+• Button on the right:
+  - Label: Search
+  - Style: solid coral button with white text, rounded, soft hover state.
+
+=====================================================
+3) NATURAL LANGUAGE SUGGESTIONS BOX (OPTION B)
+=====================================================
+Directly under the main input, keep a single rounded box for Natural Language Search suggestions. Medium height (not too tall).
+
+Box styling:
+• Background: very light teal/green gradient similar to the hero’s soft gradients.
+• Border-radius: 16–20px
+• Padding: medium vertical and horizontal
+• Soft drop shadow
+
+Inside the box:
+
+Header:
+• Title: Try Natural Language Search
+• Subtitle/body:
+  Just ask naturally. Our AI understands location, age, schedule, teaching style, and more.
+
+Below the header, show 6 suggestion pills in two rows of three, each as a rounded card with a subtle border, small icon, and a category tag.
+
+Suggestion 1:
+  Text: "Montessori programs in Jersey City"
+  Tag: Educational Philosophy
+
+Suggestion 2:
+  Text: "After-school programs near Brooklyn Heights"
+  Tag: Location + Type
+
+Suggestion 3:
+  Text: "Daycare for 2-year-old twins"
+  Tag: Age-Specific
+
+Suggestion 4:
+  Text: "Full-time preschool with extended hours"
+  Tag: Schedule
+
+Suggestion 5:
+  Text: "Affordable summer camps in Queens"
+  Tag: Budget
+
+Suggestion 6:
+  Text: "Bilingual daycare with outdoor playground"
+  Tag: Features
+
+At the bottom of the box, in smaller text:
+  Pro tip: Be specific about age and location for the best results. Try “for my 4-year-old” or “in downtown Hoboken.”
+
+=====================================================
+4) RESULTS OVERVIEW BAR (ABOVE GRID)
+=====================================================
+Immediately above the results grid/list, add a horizontal bar that summarizes the results and controls:
+
+Left side:
+• Text: 630 childcare options found
+  (Use dynamic number styling; this is just example copy.)
+
+Right side:
+• Button: My Groups (icon + text)
+• Sort dropdown:
+  - Label: Best Match (default)
+  - Options:
+    • Best Match
+    • Highest Rated
+    • Most Popular
+    • Newest Listings
+    • Price: Low to High
+    • Price: High to Low
+• View toggle icons for:
+  - Grid view (default)
+  - List view
+  - Map view
+
+All of these should use the warm palette, with active states highlighted in coral or sage.
+
+=====================================================
+5) TRUST SIGNAL STRIP (UNDER RESULTS HEADER)
+=====================================================
+Under the results overview bar, add a light, subtle trust strip in a very soft mint or ivory background:
+
+Content (inline with small icons):
+• ✓ Verified through public records
+• ✓ Real parent reviews
+• ✓ Updated for 2025
+• ✓ Personalized matching
+
+Use small checked icons and muted colors so it’s visible but not heavy.
+
+=====================================================
+6) LEFT FILTER PANEL
+=====================================================
+Update the left “Refine Your Search” panel to be cleaner and more parent-first, matching the new design.
+
+Panel title:
+  Refine Your Search
+
+Sections (in this order):
+
+Provider Type
+• Dropdown: All Types
+• Options: Daycare & Preschool, After-School, Activities, Camps, Tutoring, Private Schools
+
+County/Borough
+• Dropdown: All Counties
+
+Age Group
+• Radio or checkboxes with:
+  - All Ages
+  - Infant (0–12 months)
+  - Toddler (1–3 years)
+  - Preschool (3–5 years)
+  - Ages 5–12
+  - Teens (13–18)
+
+Availability
+• Checkboxes:
+  - Accepting new families
+  - Open now
+  - Waitlist available
+
+Schedule
+• Chips or checkboxes:
+  - Full-day
+  - Half-day
+  - After-school
+  - Weekends
+  - Summer-only
+
+Teaching Style
+• Multi-select chips:
+  - Montessori
+  - Reggio Emilia
+  - STEM-focused
+  - Play-based
+  - Language immersion
+
+Budget
+• Range slider labeled with $ on both ends and small labels like “$ · Budget” to “$$$ · Premium”
+
+At the bottom of the filter panel:
+• Link-style button: Clear all filters
+
+Styling:
+• Light card background (ivory), rounded corners, soft shadow.
+• Use small iconography for section headers where appropriate.
+
+=====================================================
+7) QUICK CATEGORY FILTER ROW (OPTIONAL)
+=====================================================
+Above the first row of program cards (or just below the trust strip), add a horizontal scroll row of category chips:
+
+Chips:
+• Daycare
+• Preschool
+• After-School
+• Activities
+• Tutoring
+• Summer Camps
+• Private Schools
+
+Style:
+• Rounded pill chips with mint/sand backgrounds.
+• Active chip uses coral background with white text.
+
+=====================================================
+8) PROGRAM RESULT CARDS (GRID)
+=====================================================
+Keep the general shape of your current cards, but align styling with the homepage cards.
+
+Card layout (each result):
+
+Top:
+• Photo of the program (16:9 ratio, rounded corners on top).
+
+Top-right:
+• Heart icon button for saving (outline heart that fills when saved).
+
+Body:
+• Program name (serif, bold)
+• Location (city/borough, optionally distance like “0.4 miles away”)
+• Rating with reviews:
+  ★ 4.9 (42 reviews)
+
+Badges row:
+• Age badge: e.g., Ages 3+
+• Program type badge: e.g., After-School Program / Preschool / Summer Camp
+• Up to 3 feature tags: e.g., STEM, Outdoor play, Bilingual, Arts & music
+
+Price line:
+• Either a range or starting price:
+  From $1,200/month
+  or
+  $$ · Mid-range
+
+CTA:
+• A primary button at the bottom right:
+  Label: View Program →
+  Style: solid coral or gradient (coral to peach), rounded, with soft hover.
+
+Card styling:
+• Background: warm ivory/very light beige
+• Border-radius: 16px
+• Soft shadow
+• Thin border in a muted sage/mint tone
+
+On hover (desktop):
+• Very slight lift and deeper shadow.
+
+=====================================================
+9) EMPTY STATE
+=====================================================
+If no results match the filters, show an empty state card centered in the results area:
+
+Headline:
+  No results match your search
+
+Body:
+  Try adjusting age, location, or schedule — or explore nearby neighborhoods.
+
+Buttons:
+  • Clear filters
+  • Show programs near me
+
+Include a small, friendly illustration if possible (e.g., a magnifying glass or map pin).
+
+=====================================================
+10) BOTTOM CTA STRIP
+=====================================================
+At the bottom of the page, add a warm gradient strip similar to the homepage’s final CTA.
+
+Background:
+• Coral → peach gradient
+
+Headline:
+  Not ready to decide yet?
+
+Subheadline:
+  Save programs, compare options, and get updates — all in one place.
+
+Button:
+  Label: Create a free account →
+  Style: solid white button with coral text, rounded; slight shadow.
+
+=====================================================
+SUMMARY
+=====================================================
+Overall, please:
+• Remove the old bright-blue heavy style and align this page with the new warm, modern homepage.
+• Keep layout responsive: one-column cards on mobile, two or three columns on desktop.
+• Make Natural Language Search feel like the primary way to start, with filters as a powerful secondary refinement.
+• Ensure all text above is used or closely paraphrased for clarity and emotional resonance with parents.
+
+Apply these changes to the current “Find Care / Search Results” page.
