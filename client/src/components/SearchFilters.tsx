@@ -186,7 +186,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
             What type of program?
           </Label>
           <Select value={filters.type || "all"} onValueChange={handleTypeChange}>
-            <SelectTrigger className="rounded-xl border-2" style={{ borderColor: 'var(--sage-light)' }}>
+            <SelectTrigger className="rounded-lg border-2" style={{ borderColor: 'var(--sage-light)' }}>
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
@@ -205,7 +205,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
             Where are you looking?
           </Label>
           <Select value={filters.borough || "all"} onValueChange={handleBoroughChange}>
-            <SelectTrigger className="rounded-xl border-2" style={{ borderColor: 'var(--sage-light)' }}>
+            <SelectTrigger className="rounded-lg border-2" style={{ borderColor: 'var(--sage-light)' }}>
               <SelectValue placeholder="All Counties" />
             </SelectTrigger>
             <SelectContent>
@@ -244,7 +244,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
               Specific neighborhood?
             </Label>
             <Select value={filters.city || "all"} onValueChange={handleCityChange}>
-              <SelectTrigger className="rounded-xl border-2" style={{ borderColor: 'var(--sage-light)' }}>
+              <SelectTrigger className="rounded-lg border-2" style={{ borderColor: 'var(--sage-light)' }}>
                 <SelectValue placeholder="All Cities" />
               </SelectTrigger>
               <SelectContent>

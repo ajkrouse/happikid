@@ -448,7 +448,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
                     onAddToComparison(provider);
                   }
                 }}
-                className={`rounded-xl font-medium ${isInComparison ? "border-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700" : ""}`}
+                className={`rounded-lg font-medium ${isInComparison ? "border-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700" : ""}`}
                 style={!isInComparison ? { backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' } : { borderColor: 'var(--sage-light)' }}
               >
                 {isInComparison ? "In Comparison" : "Compare"}
@@ -457,7 +457,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl font-medium border-2"
+              className="rounded-lg font-medium border-2"
               style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)' }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -468,7 +468,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             </Button>
             <Button
               size="sm"
-              className="rounded-xl font-semibold text-white"
+              className="rounded-lg font-semibold text-white"
               style={{ backgroundColor: 'var(--deep-coral)' }}
               onClick={(e) => {
                 e.stopPropagation();

@@ -1259,7 +1259,7 @@ export default function SearchPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowSavedGroupsModal(true)}
-                    className="rounded-xl font-medium border-2"
+                    className="rounded-lg font-medium border-2"
                     style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)', backgroundColor: 'hsl(145, 30%, 95%)' }}
                   >
                     <Bookmark className="h-4 w-4 mr-2" />
@@ -1272,7 +1272,7 @@ export default function SearchPage() {
                   </Button>
                   
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-48 rounded-xl border-2" style={{ borderColor: 'var(--sage-light)' }}>
+                    <SelectTrigger className="w-48 rounded-lg border-2" style={{ borderColor: 'var(--sage-light)' }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1285,7 +1285,7 @@ export default function SearchPage() {
                     </SelectContent>
                   </Select>
                   
-                  <div className="flex border-2 rounded-xl overflow-hidden" style={{ borderColor: 'var(--sage-light)' }}>
+                  <div className="flex border-2 rounded-lg overflow-hidden" style={{ borderColor: 'var(--sage-light)' }}>
                     <Button
                       variant={viewMode === "grid" ? "default" : "ghost"}
                       size="sm"
@@ -1452,7 +1452,7 @@ export default function SearchPage() {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button 
-                      className="rounded-xl px-6 text-white font-semibold"
+                      className="rounded-lg px-6 text-white font-semibold"
                       style={{ backgroundColor: 'var(--deep-coral)' }}
                       onClick={() => {
                         setSearchQuery("");
@@ -1465,7 +1465,7 @@ export default function SearchPage() {
                     </Button>
                     <Button 
                       variant="outline"
-                      className="rounded-xl px-6 font-medium border-2"
+                      className="rounded-lg px-6 font-medium border-2"
                       style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)' }}
                       onClick={() => {
                         if (navigator.geolocation) {
@@ -1567,7 +1567,7 @@ export default function SearchPage() {
           </p>
           <Button 
             size="lg"
-            className="rounded-xl px-8 py-6 bg-white font-semibold shadow-lg hover:shadow-2xl transition-all text-lg"
+            className="rounded-lg px-8 py-6 bg-white font-semibold shadow-lg hover:shadow-2xl transition-all text-lg"
             style={{ color: 'var(--deep-coral)' }}
             onClick={() => window.location.href = '/auth/login'}
           >
