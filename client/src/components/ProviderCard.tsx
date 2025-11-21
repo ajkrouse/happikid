@@ -295,8 +295,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onViewDetails?.(provider)}>
-      <div className="aspect-[4/3] relative overflow-hidden rounded-t-lg">
+      <Card className="hover:shadow-xl transition-all cursor-pointer rounded-2xl border-2" style={{ borderColor: 'var(--sage-light)' }} onClick={() => onViewDetails?.(provider)}>
+      <div className="aspect-[4/3] relative overflow-hidden rounded-t-2xl">
         <img
           src={
             provider.name.includes('Bright Horizons') 
@@ -332,8 +332,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">{provider.name}</h3>
-            <p className="text-gray-600 flex items-center text-sm">
+            <h3 className="text-xl font-display font-bold mb-1" style={{ color: 'var(--taupe)' }}>{provider.name}</h3>
+            <p className="flex items-center text-sm" style={{ color: 'var(--warm-gray)' }}>
               <MapPin className="h-4 w-4 mr-1" />
               {provider.borough}, {provider.city === provider.borough ? 'NYC' : provider.city}
             </p>
@@ -383,7 +383,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
         <div className="flex flex-wrap gap-2 mb-4">
           <Badge 
             variant="secondary"
-            className="cursor-pointer hover:bg-gray-200"
+            className="cursor-pointer rounded-full font-medium"
+            style={{ backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' }}
             onClick={(e) => {
               e.stopPropagation();
               const ageInYears = Math.floor(provider.ageRangeMin / 12);
@@ -405,7 +406,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             Ages {Math.floor(provider.ageRangeMin / 12)}+
           </Badge>
           <Badge 
-            className={`${getBoroughColor(provider.borough)} cursor-pointer hover:opacity-80`}
+            className="cursor-pointer rounded-full font-medium"
+            style={{ backgroundColor: 'hsl(35, 85%, 88%)', color: 'hsl(35, 85%, 30%)' }}
             onClick={(e) => {
               e.stopPropagation();
               setLocation(`/search?type=${encodeURIComponent(provider.type)}`);
@@ -417,7 +419,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             <Badge 
               key={feature} 
               variant="outline" 
-              className="text-xs cursor-pointer hover:bg-gray-100"
+              className="text-xs cursor-pointer rounded-full font-medium border-2"
+              style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)' }}
               onClick={(e) => {
                 e.stopPropagation();
                 setLocation(`/search?features=${encodeURIComponent(feature)}`);
@@ -445,7 +448,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
                     onAddToComparison(provider);
                   }
                 }}
-                className={isInComparison ? "hover:bg-red-50 hover:border-red-200 hover:text-red-700" : ""}
+                className={`rounded-xl font-medium ${isInComparison ? "border-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700" : ""}`}
+                style={!isInComparison ? { backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' } : { borderColor: 'var(--sage-light)' }}
               >
                 {isInComparison ? "In Comparison" : "Compare"}
               </Button>
@@ -453,6 +457,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             <Button
               variant="outline"
               size="sm"
+              className="rounded-xl font-medium border-2"
+              style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)' }}
               onClick={(e) => {
                 e.stopPropagation();
                 onRequestInfo?.(provider);
@@ -462,6 +468,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             </Button>
             <Button
               size="sm"
+              className="rounded-xl font-semibold text-white"
+              style={{ backgroundColor: 'var(--deep-coral)' }}
               onClick={(e) => {
                 e.stopPropagation();
                 onViewDetails?.(provider);
