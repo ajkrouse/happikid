@@ -26,7 +26,7 @@ import {
   PaginationPrevious, 
   PaginationEllipsis 
 } from "@/components/ui/pagination";
-import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft, Map, BookOpen, Palette, Dumbbell, TreePine, Laptop, Users as UsersIcon, Sparkles, Heart as HeartIcon, Calendar, ChevronRight } from "lucide-react";
+import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft, Map, BookOpen, Palette, Dumbbell, TreePine, Laptop, Users as UsersIcon, Sparkles, Heart as HeartIcon, Calendar, ChevronRight, CheckCircle2, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
