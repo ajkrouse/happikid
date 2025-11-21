@@ -41,13 +41,13 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'hsl(40, 25%, 97%)' }}>
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact HappiKid</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-display mb-4" style={{ color: 'var(--taupe)' }}>Contact HappiKid</h1>
+          <p className="text-xl max-w-2xl mx-auto" style={{ color: 'var(--taupe)' }}>
             Have questions about our childcare directory? Need help finding the perfect provider? 
             We're here to help you every step of the way.
           </p>
@@ -56,24 +56,25 @@ export default function Contact() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Information */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Mail className="h-5 w-5 mr-2 text-primary" />
+                <CardTitle className="flex items-center" style={{ color: 'var(--taupe)' }}>
+                  <Mail className="h-5 w-5 mr-2" style={{ color: 'var(--deep-coral)' }} />
                   Get in Touch
                 </CardTitle>
-                <CardDescription>
+                <CardDescription style={{ color: 'var(--taupe)/70' }}>
                   Reach out to us directly or use the contact form
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-start space-x-3">
-                  <Mail className="h-5 w-5 text-primary mt-1" />
+                  <Mail className="h-5 w-5 mt-1" style={{ color: 'var(--deep-coral)' }} />
                   <div>
-                    <p className="font-medium text-gray-900">Email</p>
+                    <p className="font-medium" style={{ color: 'var(--taupe)' }}>Email</p>
                     <a 
                       href="mailto:adam@happikid.com" 
-                      className="text-primary hover:underline"
+                      className="hover:underline"
+                      style={{ color: 'var(--deep-coral)' }}
                     >
                       adam@happikid.com
                     </a>
@@ -81,10 +82,10 @@ export default function Contact() {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <MapPin className="h-5 w-5 text-primary mt-1" />
+                  <MapPin className="h-5 w-5 mt-1" style={{ color: 'var(--sage-dark)' }} />
                   <div>
-                    <p className="font-medium text-gray-900">Service Area</p>
-                    <p className="text-gray-600">
+                    <p className="font-medium" style={{ color: 'var(--taupe)' }}>Service Area</p>
+                    <p style={{ color: 'var(--taupe)/80' }}>
                       NYC Metro Area<br />
                       New York, New Jersey, Connecticut
                     </p>
@@ -92,18 +93,18 @@ export default function Contact() {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <Clock className="h-5 w-5 text-primary mt-1" />
+                  <Clock className="h-5 w-5 mt-1" style={{ color: 'var(--mustard)' }} />
                   <div>
-                    <p className="font-medium text-gray-900">Response Time</p>
-                    <p className="text-gray-600">
+                    <p className="font-medium" style={{ color: 'var(--taupe)' }}>Response Time</p>
+                    <p style={{ color: 'var(--taupe)/80' }}>
                       We typically respond within 24 hours
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t">
-                  <p className="font-medium text-gray-900 mb-2">Adam Krouse</p>
-                  <p className="text-sm text-gray-600">
+                <div className="pt-4 border-t" style={{ borderColor: 'var(--sage-light)' }}>
+                  <p className="font-medium mb-2" style={{ color: 'var(--taupe)' }}>Adam Krouse</p>
+                  <p className="text-sm" style={{ color: 'var(--taupe)/80' }}>
                     Founder & CEO<br />
                     Connecting families with quality childcare across the tri-state area
                   </p>
@@ -112,23 +113,23 @@ export default function Contact() {
             </Card>
 
             {/* FAQ Quick Links */}
-            <Card className="mt-6">
+            <Card className="mt-6 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
               <CardHeader>
-                <CardTitle>Quick Help</CardTitle>
+                <CardTitle className="font-display" style={{ color: 'var(--taupe)' }}>Quick Help</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <p className="font-medium text-sm text-gray-900">Provider Questions?</p>
-                    <p className="text-sm text-gray-600">Visit our Provider section for enrollment info</p>
+                    <p className="font-medium text-sm" style={{ color: 'var(--taupe)' }}>Provider Questions?</p>
+                    <p className="text-sm" style={{ color: 'var(--taupe)/80' }}>Visit our Provider section for enrollment info</p>
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-900">Search Issues?</p>
-                    <p className="text-sm text-gray-600">Try adjusting filters or browse by borough</p>
+                    <p className="font-medium text-sm" style={{ color: 'var(--taupe)' }}>Search Issues?</p>
+                    <p className="text-sm" style={{ color: 'var(--taupe)/80' }}>Try adjusting filters or browse by borough</p>
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-900">Coverage Area?</p>
-                    <p className="text-sm text-gray-600">We serve 23 counties across NY, NJ, and CT</p>
+                    <p className="font-medium text-sm" style={{ color: 'var(--taupe)' }}>Coverage Area?</p>
+                    <p className="text-sm" style={{ color: 'var(--taupe)/80' }}>We serve 23 counties across NY, NJ, and CT</p>
                   </div>
                 </div>
               </CardContent>
@@ -137,10 +138,10 @@ export default function Contact() {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
               <CardHeader>
-                <CardTitle>Send us a Message</CardTitle>
-                <CardDescription>
+                <CardTitle className="font-display" style={{ color: 'var(--taupe)' }}>Send us a Message</CardTitle>
+                <CardDescription style={{ color: 'var(--taupe)/70' }}>
                   Tell us how we can help you find the perfect childcare solution
                 </CardDescription>
               </CardHeader>
@@ -213,7 +214,7 @@ export default function Contact() {
                     )}
                   </Button>
 
-                  <p className="text-sm text-gray-600 text-center">
+                  <p className="text-sm text-center" style={{ color: 'var(--taupe)/80' }}>
                     By submitting this form, you agree to be contacted by HappiKid regarding your inquiry.
                   </p>
                 </form>
@@ -223,28 +224,28 @@ export default function Contact() {
         </div>
 
         {/* Stats Section */}
-        <div className="mt-16 bg-white rounded-lg shadow-sm p-8">
+        <div className="mt-16 rounded-2xl shadow-sm p-8" style={{ backgroundColor: 'var(--ivory)' }}>
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Why Choose HappiKid?</h2>
-            <p className="text-gray-600">Trusted by families across the NYC metropolitan area</p>
+            <h2 className="text-2xl font-display mb-2" style={{ color: 'var(--taupe)' }}>Why Choose HappiKid?</h2>
+            <p style={{ color: 'var(--taupe)/80' }}>Trusted by families across the NYC metropolitan area</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-primary mb-2">510+</div>
-              <div className="text-sm text-gray-600">Verified Providers</div>
+              <div className="text-3xl font-bold mb-2" style={{ color: 'var(--deep-coral)' }}>510+</div>
+              <div className="text-sm" style={{ color: 'var(--taupe)/80' }}>Verified Providers</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary mb-2">23</div>
-              <div className="text-sm text-gray-600">Counties Covered</div>
+              <div className="text-3xl font-bold mb-2" style={{ color: 'var(--sage-dark)' }}>23</div>
+              <div className="text-sm" style={{ color: 'var(--taupe)/80' }}>Counties Covered</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary mb-2">3</div>
-              <div className="text-sm text-gray-600">States Served</div>
+              <div className="text-3xl font-bold mb-2" style={{ color: 'var(--deep-coral)' }}>3</div>
+              <div className="text-sm" style={{ color: 'var(--taupe)/80' }}>States Served</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary mb-2">100%</div>
-              <div className="text-sm text-gray-600">Authentic Data</div>
+              <div className="text-3xl font-bold mb-2" style={{ color: 'var(--sage-dark)' }}>100%</div>
+              <div className="text-sm" style={{ color: 'var(--taupe)/80' }}>Authentic Data</div>
             </div>
           </div>
         </div>
