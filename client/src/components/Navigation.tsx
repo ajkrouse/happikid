@@ -44,7 +44,7 @@ export default function Navigation() {
 
       <div className="flex items-center space-x-3">
         {isLoading ? (
-          <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
+          <div className="w-20 h-8 animate-pulse rounded-lg" style={{ backgroundColor: 'hsl(40, 15%, 90%)' }}></div>
         ) : isAuthenticated ? (
           <>
             <div className="px-4 py-2 font-medium text-sm" style={{ color: 'var(--taupe)' }}>
@@ -58,7 +58,7 @@ export default function Navigation() {
           <>
             <Button 
               onClick={() => setShowRoleSelection(true)} 
-              className="rounded-md text-white font-medium shadow-md hover:shadow-lg transition-all"
+              className="rounded-lg text-white font-medium shadow-md hover:shadow-lg transition-all"
               style={{ backgroundColor: 'var(--deep-coral)' }}
               data-testid="button-get-started"
             >
@@ -66,7 +66,7 @@ export default function Navigation() {
             </Button>
             <Button 
               variant="outline" 
-              className="rounded-md font-medium border-2 hidden sm:inline-flex hover:bg-gray-50"
+              className="rounded-lg font-medium border-2 hidden sm:inline-flex hover:opacity-90"
               style={{ borderColor: 'var(--taupe)', color: 'var(--taupe)' }}
               data-testid="button-nav-list-program"
             >
@@ -102,7 +102,7 @@ export default function Navigation() {
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm">
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-5 w-5" style={{ color: 'var(--taupe)' }} />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
@@ -110,9 +110,10 @@ export default function Navigation() {
                   {navItems.map((item) => (
                     <Link key={item.href} href={item.href}>
                       <span 
-                        className={`text-lg font-medium transition-colors hover:text-primary cursor-pointer ${
-                          location === item.href ? "text-primary" : "text-gray-600"
+                        className={`text-lg font-medium transition-opacity cursor-pointer ${
+                          location === item.href ? "font-semibold" : "hover:opacity-70"
                         }`}
+                        style={{ color: location === item.href ? 'var(--deep-coral)' : 'var(--taupe)' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.label}
@@ -120,24 +121,24 @@ export default function Navigation() {
                     </Link>
                   ))}
                   
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t" style={{ borderColor: 'rgba(120, 113, 108, 0.3)' }}>
                     {isAuthenticated ? (
                       <>
                         <div className="mb-4">
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm" style={{ color: 'var(--taupe)' }}>
                             Hello, {(user as any)?.firstName || (user as any)?.email}
                           </span>
                         </div>
-                        <Button variant="outline" className="w-full" asChild>
+                        <Button variant="outline" className="w-full rounded-lg border-2" style={{ borderColor: 'var(--taupe)', color: 'var(--taupe)' }} asChild>
                           <a href="/api/logout">Sign Out</a>
                         </Button>
                       </>
                     ) : (
                       <div className="space-y-2">
-                        <Button variant="ghost" className="w-full" asChild>
+                        <Button variant="ghost" className="w-full" style={{ color: 'var(--taupe)' }} asChild>
                           <a href="/api/login">Sign In</a>
                         </Button>
-                        <Button className="w-full" onClick={() => {setShowRoleSelection(true); setMobileMenuOpen(false);}}>
+                        <Button className="w-full rounded-lg text-white shadow-md" style={{ backgroundColor: 'var(--deep-coral)' }} onClick={() => {setShowRoleSelection(true); setMobileMenuOpen(false);}}>
                           Get Started
                         </Button>
                       </div>

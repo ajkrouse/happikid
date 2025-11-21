@@ -62,7 +62,7 @@ export default function Contact() {
                   <Mail className="h-5 w-5 mr-2" style={{ color: 'var(--deep-coral)' }} />
                   Get in Touch
                 </CardTitle>
-                <CardDescription style={{ color: 'var(--taupe)/70' }}>
+                <CardDescription style={{ color: 'rgba(77, 67, 58, 0.7)' }}>
                   Reach out to us directly or use the contact form
                 </CardDescription>
               </CardHeader>
@@ -85,7 +85,7 @@ export default function Contact() {
                   <MapPin className="h-5 w-5 mt-1" style={{ color: 'var(--sage-dark)' }} />
                   <div>
                     <p className="font-medium" style={{ color: 'var(--taupe)' }}>Service Area</p>
-                    <p style={{ color: 'var(--taupe)/80' }}>
+                    <p style={{ color: 'rgba(77, 67, 58, 0.8)' }}>
                       NYC Metro Area<br />
                       New York, New Jersey, Connecticut
                     </p>
@@ -96,7 +96,7 @@ export default function Contact() {
                   <Clock className="h-5 w-5 mt-1" style={{ color: 'var(--mustard)' }} />
                   <div>
                     <p className="font-medium" style={{ color: 'var(--taupe)' }}>Response Time</p>
-                    <p style={{ color: 'var(--taupe)/80' }}>
+                    <p style={{ color: 'rgba(77, 67, 58, 0.8)' }}>
                       We typically respond within 24 hours
                     </p>
                   </div>
@@ -104,7 +104,7 @@ export default function Contact() {
 
                 <div className="pt-4 border-t" style={{ borderColor: 'var(--sage-light)' }}>
                   <p className="font-medium mb-2" style={{ color: 'var(--taupe)' }}>Adam Krouse</p>
-                  <p className="text-sm" style={{ color: 'var(--taupe)/80' }}>
+                  <p className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>
                     Founder & CEO<br />
                     Connecting families with quality childcare across the tri-state area
                   </p>
@@ -121,15 +121,15 @@ export default function Contact() {
                 <div className="space-y-3">
                   <div>
                     <p className="font-medium text-sm" style={{ color: 'var(--taupe)' }}>Provider Questions?</p>
-                    <p className="text-sm" style={{ color: 'var(--taupe)/80' }}>Visit our Provider section for enrollment info</p>
+                    <p className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>Visit our Provider section for enrollment info</p>
                   </div>
                   <div>
                     <p className="font-medium text-sm" style={{ color: 'var(--taupe)' }}>Search Issues?</p>
-                    <p className="text-sm" style={{ color: 'var(--taupe)/80' }}>Try adjusting filters or browse by borough</p>
+                    <p className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>Try adjusting filters or browse by borough</p>
                   </div>
                   <div>
                     <p className="font-medium text-sm" style={{ color: 'var(--taupe)' }}>Coverage Area?</p>
-                    <p className="text-sm" style={{ color: 'var(--taupe)/80' }}>We serve 23 counties across NY, NJ, and CT</p>
+                    <p className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>We serve 23 counties across NY, NJ, and CT</p>
                   </div>
                 </div>
               </CardContent>
@@ -141,7 +141,7 @@ export default function Contact() {
             <Card className="rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
               <CardHeader>
                 <CardTitle className="font-display" style={{ color: 'var(--taupe)' }}>Send us a Message</CardTitle>
-                <CardDescription style={{ color: 'var(--taupe)/70' }}>
+                <CardDescription style={{ color: 'rgba(77, 67, 58, 0.7)' }}>
                   Tell us how we can help you find the perfect childcare solution
                 </CardDescription>
               </CardHeader>
@@ -214,7 +214,7 @@ export default function Contact() {
                     )}
                   </Button>
 
-                  <p className="text-sm text-center" style={{ color: 'var(--taupe)/80' }}>
+                  <p className="text-sm text-center" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>
                     By submitting this form, you agree to be contacted by HappiKid regarding your inquiry.
                   </p>
                 </form>
@@ -227,25 +227,25 @@ export default function Contact() {
         <div className="mt-16 rounded-2xl shadow-sm p-8" style={{ backgroundColor: 'var(--ivory)' }}>
           <div className="text-center mb-8">
             <h2 className="text-2xl font-display mb-2" style={{ color: 'var(--taupe)' }}>Why Choose HappiKid?</h2>
-            <p style={{ color: 'var(--taupe)/80' }}>Trusted by families across the NYC metropolitan area</p>
+            <p style={{ color: 'rgba(77, 67, 58, 0.8)' }}>Trusted by families across the NYC metropolitan area</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-3xl font-bold mb-2" style={{ color: 'var(--deep-coral)' }}>510+</div>
-              <div className="text-sm" style={{ color: 'var(--taupe)/80' }}>Verified Providers</div>
+              <div className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>Verified Providers</div>
             </div>
             <div>
               <div className="text-3xl font-bold mb-2" style={{ color: 'var(--sage-dark)' }}>23</div>
-              <div className="text-sm" style={{ color: 'var(--taupe)/80' }}>Counties Covered</div>
+              <div className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>Counties Covered</div>
             </div>
             <div>
               <div className="text-3xl font-bold mb-2" style={{ color: 'var(--deep-coral)' }}>3</div>
-              <div className="text-sm" style={{ color: 'var(--taupe)/80' }}>States Served</div>
+              <div className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>States Served</div>
             </div>
             <div>
               <div className="text-3xl font-bold mb-2" style={{ color: 'var(--sage-dark)' }}>100%</div>
-              <div className="text-sm" style={{ color: 'var(--taupe)/80' }}>Authentic Data</div>
+              <div className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>Authentic Data</div>
             </div>
           </div>
         </div>

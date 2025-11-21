@@ -48,7 +48,7 @@ export default function ProvidersOverview() {
               <Button size="lg" onClick={handleGetStarted} className="px-8 py-3 rounded-lg text-white shadow-md hover:shadow-lg" style={{ backgroundColor: 'var(--deep-coral)' }}>
                 Get Started Free
               </Button>
-              <Button variant="outline" size="lg" onClick={handleLogin} className="px-8 py-3 rounded-lg border-2 hover:bg-gray-50" style={{ borderColor: 'var(--taupe)', color: 'var(--taupe)' }}>
+              <Button variant="outline" size="lg" onClick={handleLogin} className="px-8 py-3 rounded-lg border-2 hover:opacity-90" style={{ borderColor: 'var(--taupe)', color: 'var(--taupe)' }}>
                 Provider Login
               </Button>
             </div>

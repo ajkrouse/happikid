@@ -105,13 +105,11 @@ function DropZone({
   return (
     <div 
       ref={drop}
-      className={`transition-colors ${
-        isOver 
-          ? isUngrouped 
-            ? 'bg-gray-100 border-2 border-dashed border-gray-400' 
-            : 'bg-blue-100 border-2 border-dashed border-blue-400'
-          : ''
-      }`}
+      className="transition-colors"
+      style={isOver ? (isUngrouped 
+        ? { backgroundColor: 'hsl(40, 25%, 95%)', border: '2px dashed rgba(120, 113, 108, 0.4)' }
+        : { backgroundColor: 'hsl(145, 30%, 95%)', border: '2px dashed var(--sage-light)' }
+      ) : {}}
     >
       {children}
     </div>
@@ -172,7 +170,7 @@ function TaxonomyNavigator({
                 <div className="flex items-center gap-2 text-sm">
                   <Icon className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
                   <span className="font-medium text-left" style={{ color: 'var(--taupe)' }}>{category.name}</span>
-                  <span className="text-xs text-gray-500 ml-auto">({category.subcategories?.length || 0})</span>
+                  <span className="text-xs ml-auto" style={{ color: 'rgba(77, 67, 58, 0.6)' }}>({category.subcategories?.length || 0})</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -463,10 +461,10 @@ function FavoritesSection({
   return (
     <div className="space-y-4">
       {processedFavorites.length === 0 ? (
-        <div className="text-center py-6 bg-gray-50 rounded-lg">
-          <Heart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-600 text-sm">No favorite providers yet</p>
-          <p className="text-gray-500 text-xs">Click the ❤️ on provider cards to save them</p>
+        <div className="text-center py-6 rounded-lg" style={{ backgroundColor: 'hsl(40, 20%, 95%)' }}>
+          <Heart className="h-8 w-8 mx-auto mb-2" style={{ color: 'rgba(77, 67, 58, 0.4)' }} />
+          <p className="text-sm" style={{ color: 'var(--taupe)' }}>No favorite providers yet</p>
+          <p className="text-xs" style={{ color: 'rgba(77, 67, 58, 0.6)' }}>Click the ❤️ on provider cards to save them</p>
         </div>
       ) : (
         <>
@@ -515,9 +513,9 @@ function FavoritesSection({
                             setShowProviderModal(true);
                           }}
                         >
-                          <h5 className="font-medium text-gray-900">{provider.name}</h5>
-                          <p className="text-sm text-gray-600">{provider.borough}</p>
-                          <p className="text-xs text-gray-500">
+                          <h5 className="font-medium" style={{ color: 'var(--taupe)' }}>{provider.name}</h5>
+                          <p className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>{provider.borough}</p>
+                          <p className="text-xs" style={{ color: 'rgba(77, 67, 58, 0.6)' }}>
                             Saved {new Date(favorite.createdAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -653,15 +651,15 @@ function FavoritesSection({
                         className="mr-3"
                       />
                       <div 
-                        className="flex-1 cursor-pointer hover:text-blue-600 transition-colors"
+                        className="flex-1 cursor-pointer hover:opacity-70 transition-opacity"
                         onClick={() => {
                           setSelectedProvider(provider);
                           setShowProviderModal(true);
                         }}
                       >
-                        <h5 className="font-medium text-gray-900">{provider.name}</h5>
-                        <p className="text-sm text-gray-600">{provider.borough}</p>
-                        <p className="text-xs text-gray-500">
+                        <h5 className="font-medium" style={{ color: 'var(--taupe)' }}>{provider.name}</h5>
+                        <p className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>{provider.borough}</p>
+                        <p className="text-xs" style={{ color: 'rgba(77, 67, 58, 0.6)' }}>
                           Saved {new Date(favorite.createdAt).toLocaleDateString()}
                         </p>
                       </div>
