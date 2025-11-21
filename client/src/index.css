@@ -95,6 +95,33 @@
   --space-16: 64px;
   --space-20: 80px;
   --space-24: 96px;
+  
+  /* Warm Earth Tones - New Homepage Palette */
+  --terracotta: hsl(12, 55%, 65%);
+  --terracotta-light: hsl(12, 55%, 85%);
+  --terracotta-dark: hsl(12, 55%, 45%);
+  
+  --sage: hsl(145, 20%, 65%);
+  --sage-light: hsl(145, 20%, 88%);
+  --sage-dark: hsl(145, 20%, 45%);
+  
+  --mustard: hsl(45, 70%, 70%);
+  --mustard-light: hsl(45, 70%, 88%);
+  --mustard-dark: hsl(45, 70%, 50%);
+  
+  --ivory: hsl(40, 35%, 95%);
+  --cream: hsl(40, 25%, 92%);
+  --warm-gray: hsl(30, 10%, 75%);
+  
+  --deep-coral: hsl(6, 75%, 55%);
+  --amber: hsl(35, 80%, 60%);
+  --teal-blue: hsl(185, 50%, 45%);
+  
+  --warm-sand: hsl(40, 30%, 88%);
+  --taupe: hsl(30, 15%, 45%);
+  --olive: hsl(75, 25%, 45%);
+  --mint: hsl(150, 45%, 70%);
+  --peach: hsl(20, 75%, 80%);
 }
 
 .dark {
