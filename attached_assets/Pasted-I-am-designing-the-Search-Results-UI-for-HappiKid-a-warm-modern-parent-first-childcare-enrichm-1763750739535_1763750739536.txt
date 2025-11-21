@@ -1,0 +1,246 @@
+I am designing the Search Results UI for HappiKid — a warm, modern, parent-first childcare + enrichment marketplace. Please generate a full, production-quality Search Results page using HTML + CSS (no frameworks), with a style consistent with the HappiKid homepage:
+
+• warm earth-tone palette (coral, peach, sage, mint, sand, ivory)
+• soft rounded cards
+• light tactile shadows
+• friendly pastel iconography
+• serif headlines + clean sans-serif body text
+• modern marketplace patterns (Thumbtack + Zocdoc clarity)
+• discovery-focused layout (Sawyer + Wondrfly inspiration)
+• trust-first visual style (parents first, providers second)
+
+This page should feel clean, trustworthy, warm, and easy to scan.
+
+=====================================================
+OVERALL PURPOSE
+=====================================================
+Parents should immediately understand:
+
+• What programs match their needs  
+• Why these programs are shown  
+• What filters they can adjust  
+• Which results are verified or top-rated  
+• How to compare options quickly  
+• How to view details or save programs
+
+Secondary: Providers should feel that listing with HappiKid results in a clean, professional marketplace presence.
+
+=====================================================
+PAGE STRUCTURE (HIGH-LEVEL)
+=====================================================
+1. Compact top bar summary  
+2. Filters (mobile collapsible)  
+3. Sort dropdown  
+4. AI “Best Matches” ribbon (optional but recommended)  
+5. Program cards grid/list  
+6. Pagination or infinite scroll  
+7. Empty state design  
+8. Bottom CTA strip
+
+Design MUST be mobile-first, then scale beautifully to desktop.
+
+=====================================================
+1) TOP SUMMARY BAR
+=====================================================
+A soft ivory or warm beige bar summarizing the search:
+
+• Location: “Jersey City, NJ”  
+• Category: “Daycare · After-School · Activities”  
+• Results count: “127 programs found”
+
+On mobile: stack them.  
+On desktop: inline with separators (soft sage or clay line).
+
+Typography: serif headline style for the numbers, sans-serif for labels.
+
+=====================================================
+2) FILTERS PANEL
+=====================================================
+On mobile:
+• Show a “Filters” button that opens a slide-down panel.
+
+On desktop:
+• Left sidebar filters (Thumbtack-style).
+
+Filters include:
+
+Location  
+- Input field: “Neighborhood, city, or zip”  
+- Button: “Use my location”
+
+Category (multi-select chips)  
+- Daycare & Preschool  
+- After-School  
+- Activities  
+- Tutoring  
+- Camps  
+- Private Schools  
+
+Age Range  
+- Dropdown or slider  
+- Presets like “0–2”, “3–5”, “6–9”, “10–13”
+
+Schedule (chips)  
+- Full-day  
+- Half-day  
+- After-school  
+- Weekends  
+- Summer-only  
+
+Price  
+- Range slider  
+- Preset chips: $, $$, $$$  
+- Optional toggle: “Show programs with financial aid”
+
+Trust & Safety  
+- “Licensed / Accredited”  
+- “Verified information”  
+- “Highly rated (4.5+)”
+
+Filter chip style:
+• rounded  
+• muted sage / mint backgrounds  
+• coral / amber active states  
+• soft shadow on hover
+
+Reset link:  
+“Clear all filters”
+
+=====================================================
+3) SORT DROPDOWN
+=====================================================
+Place on the right above the results.
+
+Options:
+• Best match (default)  
+• Closest distance  
+• Highest rated  
+• Price: low to high  
+
+Design:
+• rounded dropdown  
+• soft coral or sage border  
+• ivory background
+
+=====================================================
+4) AI “BEST MATCHES FOR YOU” STRIP
+=====================================================
+A narrow coral- or peach-tinted ribbon above the first few results:
+
+Left side:
+“✨ HappiKid’s best matches for your criteria”
+
+Right side (desktop):
+Small pill button:  
+“Why these results?”
+
+Below the ribbon, show 2–3 horizontal “reason cards”:
+
+Example cards:
+• “Extended hours until 7:30 PM”  
+• “Accepts 2-year-olds starting in March”  
+• “0.4 miles from your location”  
+
+Style:
+• small rounded cards  
+• warm beige background  
+• thin soft border  
+• playful minimalist icons (clock, star, map pin)
+
+=====================================================
+5) PROGRAM RESULTS GRID/LIST
+=====================================================
+On mobile: one card per row.  
+On desktop: two or three cards per row.
+
+Each card should be a warm, soft, friendly container:
+
+CARD STRUCTURE:
+---------------
+TOP
+• Program name (bold serif)  
+• Category + descriptor  
+• Neighborhood + distance  
+
+TRUST
+• Star rating + reviews  
+• Safety/verification badges  
+  (e.g., “Licensed”, “Verified info”, “Popular in your area”)
+
+ATTRIBUTES (structured data)
+• Age range badge (e.g., “Ages 3–5”)  
+• Schedule: “M–F · 3:00–6:30 PM”  
+• Price: “From $220/week” or “$$ · Mid-range”  
+• Tags for program features (e.g., “STEM”, “Outdoor play”, “Montessori”)  
+
+CTA AREA
+• Primary: “View details →”  
+• Secondary icon-only heart button: Save ♥  
+  (soft coral heart with hover animation)
+
+CARD STYLE:
+-----------
+• Warm ivory/cream background  
+• Rounded corners (large radius)  
+• Soft shadow (blurred, subtle)  
+• Thin sage/mint border  
+• Optional abstract shape behind corner for whimsy (light pastel)
+
+=====================================================
+6) PAGINATION / LOAD MORE
+=====================================================
+At bottom of results:
+
+Option A: “Load more results” button  
+OR  
+Option B: page numbers (rounded pill style)
+
+Button styling:
+• coral or amber solid  
+• white text  
+• rounded  
+• soft shadow  
+• hover: slight lift + deeper color tone
+
+=====================================================
+7) EMPTY STATE
+=====================================================
+If no results match filters:
+
+Illustration: simple hand-drawn line art (nest, magnifying glass, or map pin)
+
+Headline:
+“No exact matches yet”
+
+Subtext:
+“Try adjusting age, schedule, or distance — or explore nearby neighborhoods.”
+
+Button:
+Reset Filters
+
+=====================================================
+8) BOTTOM CTA STRIP
+=====================================================
+Warm peach or coral gradient strip:
+
+Headline:
+“Not ready to decide yet?”
+
+Subtext:
+Save programs, compare options, and get updates — all in one place.
+
+Button:
+Create a free account →
+
+=====================================================
+VISUAL & TYPOGRAPHIC GUIDANCE
+=====================================================
+• Use the same serif headline + sans-serif body font pairing as homepage.  
+• Use soft corals, sage greens, dusty mint, warm peach, and ivory backgrounds.  
+• Keep everything warm, clean, and modern — no harsh edges or neon colors.  
+• Use very soft shadows and pastel iconography to match the brand’s emotional tone.  
+• Maintain high readability: clear spacing, comfortable line height, generous padding.  
+• Buttons and chips should feel tactile and friendly, not flat or corporate.  
+• The whole page must feel consistent with the homepage (style, palette, typography).
+
+Please now generate the complete HTML + CSS for this Search Results page, following the visual system of the existing HappiKid homepage.
