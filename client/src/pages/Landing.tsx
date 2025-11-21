@@ -36,7 +36,7 @@ import {
   Network
 } from "lucide-react";
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Landing() {
@@ -78,10 +78,10 @@ export default function Landing() {
             </div>
             
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <a href="#" style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition">For Parents</a>
-              <a href="#" style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition">For Providers</a>
-              <a href="#" style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition">How It Works</a>
-              <a href="#" style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition">About</a>
+              <span onClick={() => setLocation("/search")} style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition cursor-pointer" data-testid="nav-for-parents">For Parents</span>
+              <span onClick={() => setLocation("/providers")} style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition cursor-pointer" data-testid="nav-for-providers">For Providers</span>
+              <a href="#how-it-works" style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition" data-testid="nav-how-it-works">How It Works</a>
+              <span onClick={() => setLocation("/about")} style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition cursor-pointer" data-testid="nav-about">About</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -95,7 +95,8 @@ export default function Landing() {
               </Button>
               <Button 
                 variant="outline" 
-                className="rounded-md font-medium border-2 hidden sm:inline-flex hover:bg-gray-50"
+                onClick={() => setLocation("/providers")}
+                className="rounded-md font-medium border-2 hidden sm:inline-flex hover:opacity-90"
                 style={{borderColor: 'var(--taupe)', color: 'var(--taupe)'}}
                 data-testid="button-nav-list-program"
               >
@@ -505,6 +506,62 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* 6.5. HOW IT WORKS SECTION */}
+      <section id="how-it-works" className="py-20" style={{backgroundColor: 'hsl(145, 20%, 93%)'}}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+              How It Works
+            </h2>
+            <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--warm-gray)'}}>
+              Finding the right childcare shouldn't be complicated. Here's how HappiKid makes it simple.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '1',
+                icon: Search,
+                title: 'Search Programs',
+                desc: 'Tell us what you need — age, location, type of care. We\'ll show you verified options in seconds.',
+                color: 'var(--deep-coral)',
+                bg: 'hsl(6, 85%, 88%)'
+              },
+              {
+                step: '2',
+                icon: Eye,
+                title: 'Compare & Review',
+                desc: 'See schedules, prices, reviews, and safety records all in one place. No more jumping between tabs.',
+                color: 'var(--amber)',
+                bg: 'hsl(35, 85%, 85%)'
+              },
+              {
+                step: '3',
+                icon: CheckCircle2,
+                title: 'Connect & Enroll',
+                desc: 'Reach out to your favorites directly. We make it easy to ask questions and start the enrollment process.',
+                color: 'var(--sage-dark)',
+                bg: 'hsl(145, 30%, 82%)'
+              }
+            ].map((step, i) => (
+              <Card key={i} className="relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow border-2" style={{borderColor: step.color}}>
+                <CardContent className="p-8 text-center">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white" style={{backgroundColor: step.color}}>
+                    {step.step}
+                  </div>
+                  <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 mt-4" style={{backgroundColor: step.bg}}>
+                    <step.icon className="h-9 w-9" style={{color: step.color}} />
+                  </div>
+                  <h3 className="text-xl font-display mb-3" style={{color: 'var(--taupe)'}}>{step.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{color: 'var(--warm-gray)'}}>{step.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* 7. AI SECTION - Updated to "Smarter matches. Clearer choices. Better outcomes." */}
       <section className="py-20" style={{backgroundColor: 'hsl(12, 60%, 88%)'}}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -733,6 +790,7 @@ export default function Landing() {
             <Button 
               size="lg"
               variant="outline"
+              onClick={() => setLocation("/providers")}
               className="rounded-md font-semibold border-2 border-white text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
               data-testid="button-cta-list-program"
             >
@@ -776,10 +834,10 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold mb-4">For Parents</h4>
               <ul className="space-y-3 text-white/80">
-                <li><a href="/search" className="hover:text-white transition">Find Programs</a></li>
-                <li><a href="#" className="hover:text-white transition">How It Works</a></li>
-                <li><a href="#" className="hover:text-white transition">Reviews</a></li>
-                <li><a href="#" className="hover:text-white transition">Resources</a></li>
+                <li><span onClick={() => setLocation("/search")} className="hover:text-white transition cursor-pointer" data-testid="footer-find-programs">Find Programs</span></li>
+                <li><a href="#how-it-works" className="hover:text-white transition" data-testid="footer-how-it-works">How It Works</a></li>
+                <li><span onClick={() => setLocation("/search")} className="hover:text-white transition cursor-pointer" data-testid="footer-reviews">Reviews</span></li>
+                <li><span onClick={() => setLocation("/search")} className="hover:text-white transition cursor-pointer" data-testid="footer-resources">Resources</span></li>
               </ul>
             </div>
 
@@ -787,10 +845,10 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold mb-4">For Providers</h4>
               <ul className="space-y-3 text-white/80">
-                <li><a href="#" className="hover:text-white transition">List Your Program</a></li>
-                <li><a href="#" className="hover:text-white transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition">Success Stories</a></li>
-                <li><a href="#" className="hover:text-white transition">Support</a></li>
+                <li><span onClick={() => setLocation("/providers")} className="hover:text-white transition cursor-pointer" data-testid="footer-list-program">List Your Program</span></li>
+                <li><span onClick={() => setLocation("/providers")} className="hover:text-white transition cursor-pointer" data-testid="footer-pricing">Pricing</span></li>
+                <li><span onClick={() => setLocation("/providers")} className="hover:text-white transition cursor-pointer" data-testid="footer-success-stories">Success Stories</span></li>
+                <li><span onClick={() => setLocation("/contact")} className="hover:text-white transition cursor-pointer" data-testid="footer-support">Support</span></li>
               </ul>
             </div>
 
@@ -798,10 +856,10 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-3 text-white/80">
-                <li><a href="#" className="hover:text-white transition">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
+                <li><span onClick={() => setLocation("/about")} className="hover:text-white transition cursor-pointer" data-testid="footer-about">About Us</span></li>
+                <li><span onClick={() => setLocation("/")} className="hover:text-white transition cursor-pointer" data-testid="footer-blog">Blog</span></li>
+                <li><span onClick={() => setLocation("/about")} className="hover:text-white transition cursor-pointer" data-testid="footer-careers">Careers</span></li>
+                <li><span onClick={() => setLocation("/contact")} className="hover:text-white transition cursor-pointer" data-testid="footer-contact">Contact</span></li>
               </ul>
             </div>
           </div>
