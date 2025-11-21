@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Search as SearchIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Sparkles, MapPin, Users, Clock, DollarSign, MessageCircle, Lightbulb } from "lucide-react";
 
 interface ConversationalSearchProps {
   onSearch: (query: string) => void;
@@ -20,6 +22,39 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
     "Programs for toddlers starting in March…",
     "Montessori daycare in Jersey City for 3-year-olds…",
     "Summer camps with swimming and outdoor activities…"
+  ];
+
+  const exampleQueries = [
+    {
+      icon: Sparkles,
+      text: "Montessori programs in Jersey City",
+      category: "Educational Philosophy"
+    },
+    {
+      icon: MapPin,
+      text: "after school programs near Brooklyn Heights",
+      category: "Location + Type"
+    },
+    {
+      icon: Users,
+      text: "daycare for 2 year old twins",
+      category: "Age Specific"
+    },
+    {
+      icon: Clock,
+      text: "full time preschool with extended hours",
+      category: "Schedule"
+    },
+    {
+      icon: DollarSign,
+      text: "affordable summer camps in Queens",
+      category: "Budget"
+    },
+    {
+      icon: MessageCircle,
+      text: "bilingual daycare with outdoor playground",
+      category: "Features"
+    }
   ];
 
   // Rotate placeholder text every 4 seconds
@@ -52,7 +87,8 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
 
   return (
     <div className="w-full">
-      <div className="relative group">
+      {/* Natural Language Search Input */}
+      <div className="relative group mb-6">
         {/* Sparkle Icon */}
         <div className="absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none z-10">
           <Sparkles 
@@ -61,7 +97,6 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
           />
         </div>
 
-        {/* Natural Language Search Input */}
         <Input
           type="text"
           value={localValue}
@@ -99,11 +134,67 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
         )}
       </div>
 
-      {/* Subtle helper text */}
-      <p className="text-xs mt-2 text-center" style={{ color: 'var(--warm-gray)' }}>
-        <Sparkles className="inline h-3 w-3 mr-1" style={{ color: 'var(--amber)' }} />
-        Ask naturally — we understand location, age, schedule, and more
-      </p>
+      {/* Try Natural Language Search Suggestions */}
+      <Card className="p-6 rounded-2xl shadow-sm border-2" style={{ backgroundColor: 'hsl(185, 45%, 94%)', borderColor: 'var(--teal-blue)' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <MessageCircle className="h-5 w-5" style={{ color: 'var(--teal-blue)' }} />
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--taupe)' }}>Try Natural Language Search</h3>
+        </div>
+        
+        <p className="text-sm mb-4" style={{ color: 'var(--warm-gray)' }}>
+          Just ask naturally! Our AI understands location, age, educational philosophy, and more.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {exampleQueries.map((query, index) => {
+            const Icon = query.icon;
+            return (
+              <button
+                key={index}
+                onClick={() => onSearch(query.text)}
+                className="text-left p-3 bg-white rounded-xl border-2 border-transparent hover:shadow-md transition-all group"
+                style={{
+                  borderColor: 'transparent'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--teal-blue)';
+                  e.currentTarget.style.backgroundColor = 'hsl(185, 55%, 98%)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'transparent';
+                  e.currentTarget.style.backgroundColor = 'white';
+                }}
+                data-testid={`button-example-query-${index}`}
+              >
+                <div className="flex items-start gap-2">
+                  <div className="transition-colors" style={{ color: 'var(--warm-gray)' }}>
+                    <Icon className="h-4 w-4 group-hover:scale-110 transition-transform" style={{ color: 'var(--teal-blue)' }} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-1" style={{ color: 'var(--taupe)' }}>
+                      "{query.text}"
+                    </p>
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs border-0 px-2 py-0.5" 
+                      style={{ backgroundColor: 'hsl(185, 45%, 88%)', color: 'var(--teal-blue)' }}
+                    >
+                      {query.category}
+                    </Badge>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 pt-3 border-t flex items-start gap-2" style={{ borderColor: 'var(--sage-light)' }}>
+          <Lightbulb className="h-4 w-4 shrink-0 mt-0.5" style={{ color: 'var(--amber)' }} />
+          <p className="text-xs" style={{ color: 'var(--warm-gray)' }}>
+            <strong>Pro tip:</strong> Be specific about location and age for best results. Try phrases like "for my 4-year-old" or "in downtown Hoboken"
+          </p>
+        </div>
+      </Card>
     </div>
   );
 }
