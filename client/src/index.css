@@ -109,19 +109,19 @@
   --mustard-light: hsl(45, 70%, 88%);
   --mustard-dark: hsl(45, 70%, 50%);
   
-  --ivory: hsl(40, 35%, 95%);
-  --cream: hsl(40, 25%, 92%);
+  --ivory: hsl(40, 35%, 96%);
+  --cream: hsl(40, 25%, 95%);
   --warm-gray: hsl(30, 10%, 75%);
   
-  --deep-coral: hsl(6, 75%, 55%);
-  --amber: hsl(35, 80%, 60%);
-  --teal-blue: hsl(185, 50%, 45%);
+  --deep-coral: hsl(6, 80%, 58%);
+  --amber: hsl(35, 85%, 63%);
+  --teal-blue: hsl(185, 55%, 48%);
   
-  --warm-sand: hsl(40, 30%, 88%);
+  --warm-sand: hsl(40, 30%, 92%);
   --taupe: hsl(30, 15%, 45%);
   --olive: hsl(75, 25%, 45%);
-  --mint: hsl(150, 45%, 70%);
-  --peach: hsl(20, 75%, 80%);
+  --mint: hsl(150, 50%, 72%);
+  --peach: hsl(20, 80%, 82%);
 }
 
 .dark {
