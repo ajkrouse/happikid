@@ -17,12 +17,12 @@ export default function Navigation() {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   const navItems = isAuthenticated ? [
-    { href: "/search", label: "Find Care" },
+    { href: "/search", label: "Find Programs" },
     { href: "/provider/dashboard", label: "Provider Dashboard" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ] : [
-    { href: "/search", label: "Find Care" },
+    { href: "/search", label: "Find Programs" },
     { href: "/providers", label: "For Providers" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
@@ -33,38 +33,44 @@ export default function Navigation() {
       <div className="flex items-center space-x-8">
         {navItems.map((item) => (
           <Link key={item.href} href={item.href}>
-            <span className={`text-sm font-medium transition-colors cursor-pointer ${
-              location === item.href ? "text-primary font-semibold" : "text-gray-700 hover:text-primary"
-            }`}>
+            <span className={`text-sm font-medium transition cursor-pointer ${
+              location === item.href ? "font-semibold" : "hover:opacity-70"
+            }`} style={{ color: 'var(--taupe)' }}>
               {item.label}
             </span>
           </Link>
         ))}
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
         {isLoading ? (
           <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
         ) : isAuthenticated ? (
           <>
-            <div className="text-gray-700 px-4 py-2 font-medium text-sm">
+            <div className="px-4 py-2 font-medium text-sm" style={{ color: 'var(--taupe)' }}>
               {(user as any)?.firstName || (user as any)?.email?.split('@')[0]}
             </div>
-            <Button variant="ghost" className="px-4 font-medium" asChild>
+            <Button variant="ghost" className="px-4 font-medium" style={{ color: 'var(--taupe)' }} asChild>
               <a href="/api/logout">Sign Out</a>
             </Button>
           </>
         ) : (
           <>
-            <Button variant="ghost" className="px-4 font-medium" asChild>
-              <a href="/api/login">Sign In</a>
-            </Button>
             <Button 
               onClick={() => setShowRoleSelection(true)} 
-              className="bg-primary hover:bg-primary-600 text-white font-medium"
+              className="rounded-md text-white font-medium shadow-md hover:shadow-lg transition-all"
+              style={{ backgroundColor: 'var(--deep-coral)' }}
               data-testid="button-get-started"
             >
-              Get Started
+              Find Programs
+            </Button>
+            <Button 
+              variant="outline" 
+              className="rounded-md font-medium border-2 hidden sm:inline-flex hover:bg-gray-50"
+              style={{ borderColor: 'var(--taupe)', color: 'var(--taupe)' }}
+              data-testid="button-nav-list-program"
+            >
+              List Your Program
             </Button>
           </>
         )}
@@ -73,14 +79,14 @@ export default function Navigation() {
   );
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav className="sticky top-0 z-50 backdrop-blur-sm border-b shadow-sm" style={{ backgroundColor: 'hsl(40, 35%, 96%)/95', borderColor: 'var(--warm-gray)/20' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center cursor-pointer space-x-2">
-              <Heart className="h-6 w-6 text-primary" />
-              <span className="text-display text-2xl text-gray-900">
+              <Heart className="h-6 w-6" style={{ color: 'var(--deep-coral)' }} />
+              <span className="text-xl font-display" style={{ color: 'var(--taupe)' }}>
                 HappiKid
               </span>
             </div>

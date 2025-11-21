@@ -1140,6 +1140,11 @@ export default function SearchPage() {
     return `${totalCount} childcare options found`;
   };
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Find Programs | HappiKid - Childcare & Enrichment Directory";
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'hsl(40, 25%, 97%)' }}>
       <Navigation />
