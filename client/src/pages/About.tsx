@@ -14,22 +14,22 @@ import {
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'hsl(40, 25%, 97%)' }}>
       <Navigation />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16">
+      <section className="py-16" style={{ background: 'linear-gradient(135deg, hsl(145, 30%, 95%) 0%, hsl(40, 35%, 96%) 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-            About <span className="text-primary">HappiKid</span>
+          <h1 className="text-4xl sm:text-5xl font-display mb-6" style={{ color: 'var(--taupe)' }}>
+            About <span style={{ color: 'var(--deep-coral)' }}>HappiKid</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8">
+          <p className="text-xl max-w-4xl mx-auto mb-8" style={{ color: 'var(--taupe)' }}>
             HappiKid is a parent-first marketplace that uses AI to help families effortlessly search, compare, 
             and book trusted care and enrichment programs for kids—spanning daycare, camps, after-school activities, and private schools.
           </p>
           <div className="flex justify-center">
-            <div className="bg-white rounded-lg shadow-sm p-4 max-w-2xl">
-              <p className="text-sm text-gray-600 italic">
+            <div className="rounded-2xl shadow-sm p-4 max-w-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+              <p className="text-sm italic" style={{ color: 'var(--taupe)' }}>
                 "Finding safe, reliable care for your child shouldn't feel like a full-time job."
               </p>
             </div>
@@ -38,14 +38,14 @@ export default function About() {
       </section>
 
       {/* Our Story Section */}
-      <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
+      <section className="py-16" style={{ background: 'linear-gradient(135deg, hsl(40, 25%, 97%) 0%, var(--ivory) 100%)' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Story</h2>
-            <div className="w-20 h-1 bg-primary mx-auto"></div>
+            <h2 className="text-3xl font-display mb-4" style={{ color: 'var(--taupe)' }}>Our Story</h2>
+            <div className="w-20 h-1 mx-auto rounded-full" style={{ backgroundColor: 'var(--deep-coral)' }}></div>
           </div>
           
-          <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
+          <div className="prose prose-lg max-w-none space-y-6" style={{ color: 'var(--taupe)' }}>
             <p>
               HappiKid started with our own parenting journey.
             </p>
@@ -62,8 +62,8 @@ export default function About() {
               In the months that followed, life tested us in ways we could never have imagined. Our twins, Chloe and Charlie, were born extremely premature. Chloe came home after 69 days in the NICU, but we heartbreakingly lost our son, Charlie, due to complications. Through it all, the idea for HappiKid stayed with me: parents deserve a simpler, more transparent way to find trusted care and enrichment options for their kids.
             </p>
             
-            <div className="bg-white rounded-lg p-8 shadow-sm border-l-4 border-primary my-8">
-              <p className="text-xl font-medium text-gray-900 italic">
+            <div className="rounded-2xl p-8 shadow-sm border-l-4 my-8" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--deep-coral)' }}>
+              <p className="text-xl font-medium italic font-display" style={{ color: 'var(--taupe)' }}>
                 That mission became HappiKid.
               </p>
             </div>
@@ -78,7 +78,7 @@ export default function About() {
           </div>
           
           <div className="text-center mt-12">
-            <div className="flex items-center justify-center text-primary font-semibold">
+            <div className="flex items-center justify-center font-semibold" style={{ color: 'var(--deep-coral)' }}>
               <Heart className="h-6 w-6 mr-2 fill-current" />
               <span className="text-lg">For Charlie, for Chloe, for all families</span>
             </div>
@@ -87,56 +87,56 @@ export default function About() {
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16" style={{ backgroundColor: 'var(--ivory)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">The HappiKid Solution</h2>
-              <p className="text-lg text-gray-600 mb-6">
+              <h2 className="text-3xl font-display mb-6" style={{ color: 'var(--taupe)' }}>The HappiKid Solution</h2>
+              <p className="text-lg mb-6" style={{ color: 'var(--taupe)' }}>
                 Today's parents are left piecing together outdated websites, scattered reviews, and word-of-mouth 
                 recommendations just to find a daycare, after-school program, private school, or camp that meets their needs.
               </p>
-              <p className="text-lg text-gray-600 mb-6">
+              <p className="text-lg mb-6" style={{ color: 'var(--taupe)' }}>
                 HappiKid is an AI-powered marketplace that simplifies this search. With our "just ask" LLM search, 
                 parents describe what they're looking for and receive a curated list of trusted providers—displayed 
                 side-by-side for easy comparison based on what matters most: safety, schedule, budget, and real parent reviews.
               </p>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg mb-8" style={{ color: 'var(--taupe)' }}>
                 We bring clarity and confidence to one of the most stressful decisions families face.
               </p>
-              <div className="flex items-center text-primary font-semibold">
+              <div className="flex items-center font-semibold" style={{ color: 'var(--deep-coral)' }}>
                 <Heart className="h-5 w-5 mr-2" />
                 <span>Making childcare discovery joyful for families</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6">
-              <Card className="text-center p-6">
-                <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
-                  <Users className="h-8 w-8 text-primary" />
+              <Card className="text-center p-6 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+                <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(145, 30%, 90%)' }}>
+                  <Users className="h-8 w-8" style={{ color: 'var(--sage-dark)' }} />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">700+</h3>
 <p className="text-gray-600 text-sm">Verified Providers</p>
               </Card>
-              <Card className="text-center p-6">
-                <div className="bg-secondary-100 p-4 rounded-full inline-block mb-4">
-                  <Shield className="h-8 w-8 text-secondary-500" />
+              <Card className="text-center p-6 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+                <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(25, 45%, 90%)' }}>
+                  <Shield className="h-8 w-8" style={{ color: 'var(--terracotta)' }} />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">23</h3>
-                <p className="text-gray-600 text-sm">Counties Covered</p>
+                <h3 className="font-semibold mb-2" style={{ color: 'var(--taupe)' }}>23</h3>
+                <p className="text-sm" style={{ color: 'var(--taupe)/70' }}>Counties Covered</p>
               </Card>
-              <Card className="text-center p-6">
-                <div className="bg-accent-100 p-4 rounded-full inline-block mb-4">
-                  <Search className="h-8 w-8 text-accent-500" />
+              <Card className="text-center p-6 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+                <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(40, 60%, 90%)' }}>
+                  <Search className="h-8 w-8" style={{ color: 'var(--mustard)' }} />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">AI</h3>
-                <p className="text-gray-600 text-sm">Powered Search</p>
+                <h3 className="font-semibold mb-2" style={{ color: 'var(--taupe)' }}>AI</h3>
+                <p className="text-sm" style={{ color: 'var(--taupe)/70' }}>Powered Search</p>
               </Card>
-              <Card className="text-center p-6">
-                <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
-                  <Star className="h-8 w-8 text-primary" />
+              <Card className="text-center p-6 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+                <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(145, 30%, 90%)' }}>
+                  <Star className="h-8 w-8" style={{ color: 'var(--sage-dark)' }} />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">100%</h3>
-                <p className="text-gray-600 text-sm">Authentic Data</p>
+                <h3 className="font-semibold mb-2" style={{ color: 'var(--taupe)' }}>100%</h3>
+                <p className="text-sm" style={{ color: 'var(--taupe)/70' }}>Authentic Data</p>
               </Card>
             </div>
           </div>
@@ -144,97 +144,97 @@ export default function About() {
       </section>
 
       {/* What Makes Us Different */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16" style={{ backgroundColor: 'hsl(40, 25%, 97%)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Makes HappiKid Different</h2>
+            <h2 className="text-3xl font-display mb-4" style={{ color: 'var(--taupe)' }}>What Makes HappiKid Different</h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            <Card className="p-8">
-              <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
-                <Heart className="h-8 w-8 text-primary" />
+            <Card className="p-8 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+              <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(5, 50%, 90%)' }}>
+                <Heart className="h-8 w-8" style={{ color: 'var(--deep-coral)' }} />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Built for Parents, Not Providers</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--taupe)' }}>Built for Parents, Not Providers</h3>
+              <p style={{ color: 'var(--taupe)' }}>
                 HappiKid was designed from the ground up as a parent-first platform, removing the stress of finding safe, reliable childcare and enrichment.
               </p>
             </Card>
             
-            <Card className="p-8">
-              <div className="bg-primary-100 p-4 rounded-full inline-block mb-4">
-                <Search className="h-8 w-8 text-primary" />
+            <Card className="p-8 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+              <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(40, 60%, 90%)' }}>
+                <Search className="h-8 w-8" style={{ color: 'var(--mustard)' }} />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Ask, and We'll Find It</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--taupe)' }}>Ask, and We'll Find It</h3>
+              <p style={{ color: 'var(--taupe)' }}>
                 Tell us what you need — "a preschool with early drop-off" or "a camp with STEM programs" — and our AI instantly matches you with trusted options that fit your family.
               </p>
             </Card>
             
-            <Card className="p-8">
-              <div className="bg-secondary-100 p-4 rounded-full inline-block mb-4">
-                <Shield className="h-8 w-8 text-secondary-500" />
+            <Card className="p-8 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+              <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(145, 30%, 90%)' }}>
+                <Shield className="h-8 w-8" style={{ color: 'var(--sage-dark)' }} />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Trust You Can See</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--taupe)' }}>Trust You Can See</h3>
+              <p style={{ color: 'var(--taupe)' }}>
                 Every provider is verified against official licensing and safety data. Real reviews, transparent details, no hidden surprises.
               </p>
             </Card>
             
-            <Card className="p-8">
-              <div className="bg-accent-100 p-4 rounded-full inline-block mb-4">
-                <Clock className="h-8 w-8 text-accent-500" />
+            <Card className="p-8 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+              <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(25, 45%, 90%)' }}>
+                <Clock className="h-8 w-8" style={{ color: 'var(--terracotta)' }} />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Clarity at a Glance</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--taupe)' }}>Clarity at a Glance</h3>
+              <p style={{ color: 'var(--taupe)' }}>
                 Side-by-side comparisons show cost, schedule, safety, and reviews so you can make confident choices in minutes, not weeks.
               </p>
             </Card>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-8 mt-12">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Families Choose HappiKid</h3>
-            <p className="text-lg text-gray-600 text-center mb-8">
+          <div className="rounded-2xl shadow-sm p-8 mt-12 border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
+            <h3 className="text-2xl font-display mb-6 text-center" style={{ color: 'var(--taupe)' }}>Why Families Choose HappiKid</h3>
+            <p className="text-lg text-center mb-8" style={{ color: 'var(--taupe)' }}>
               Other sites leave parents digging through outdated listings and unverified ads. HappiKid is different:
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div className="flex items-start">
-                  <div className="bg-primary-100 p-2 rounded-full mr-4 mt-1">
-                    <Search className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-full mr-4 mt-1" style={{ backgroundColor: 'hsl(40, 60%, 90%)' }}>
+                    <Search className="h-5 w-5" style={{ color: 'var(--mustard)' }} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">AI-powered natural language search ("just ask")</h4>
+                    <h4 className="font-semibold" style={{ color: 'var(--taupe)' }}>AI-powered natural language search ("just ask")</h4>
                   </div>
                 </div>
                 
                 <div className="flex items-start">
-                  <div className="bg-primary-100 p-2 rounded-full mr-4 mt-1">
-                    <Shield className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-full mr-4 mt-1" style={{ backgroundColor: 'hsl(145, 30%, 90%)' }}>
+                    <Shield className="h-5 w-5" style={{ color: 'var(--sage-dark)' }} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Verified licensing data and authentic parent reviews</h4>
+                    <h4 className="font-semibold" style={{ color: 'var(--taupe)' }}>Verified licensing data and authentic parent reviews</h4>
                   </div>
                 </div>
               </div>
               
               <div className="space-y-4">
                 <div className="flex items-start">
-                  <div className="bg-primary-100 p-2 rounded-full mr-4 mt-1">
-                    <MessageCircle className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-full mr-4 mt-1" style={{ backgroundColor: 'hsl(25, 45%, 90%)' }}>
+                    <MessageCircle className="h-5 w-5" style={{ color: 'var(--terracotta)' }} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Side-by-side comparisons of what matters most</h4>
+                    <h4 className="font-semibold" style={{ color: 'var(--taupe)' }}>Side-by-side comparisons of what matters most</h4>
                   </div>
                 </div>
                 
                 <div className="flex items-start">
-                  <div className="bg-primary-100 p-2 rounded-full mr-4 mt-1">
-                    <Heart className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-full mr-4 mt-1" style={{ backgroundColor: 'hsl(5, 50%, 90%)' }}>
+                    <Heart className="h-5 w-5" style={{ color: 'var(--deep-coral)' }} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Always free for parents, with providers powering the marketplace</h4>
+                    <h4 className="font-semibold" style={{ color: 'var(--taupe)' }}>Always free for parents, with providers powering the marketplace</h4>
                   </div>
                 </div>
               </div>
