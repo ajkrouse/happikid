@@ -139,7 +139,7 @@ export default function Landing() {
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="rounded-md font-medium border-2 border-white text-white hover:bg-white/10"
+                  className="rounded-md font-medium border-2 border-white text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
                   data-testid="button-hero-list-program"
                 >
                   List Your Program
@@ -733,7 +733,7 @@ export default function Landing() {
             <Button 
               size="lg"
               variant="outline"
-              className="rounded-md font-semibold border-2 border-white text-white hover:bg-white/10"
+              className="rounded-md font-semibold border-2 border-white text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
               data-testid="button-cta-list-program"
             >
               List Your Program
