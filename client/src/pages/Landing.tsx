@@ -33,7 +33,8 @@ import {
   Eye,
   Lightbulb,
   Database,
-  Network
+  Network,
+  X
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -107,40 +108,41 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* 1. HERO SECTION - New Copy */}
+      {/* 1. HERO SECTION - SEO Optimized */}
       <section className="relative overflow-hidden py-20 sm:py-28" style={{background: 'linear-gradient(135deg, var(--peach) 0%, var(--deep-coral) 100%)'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left Side */}
             <div className="text-left space-y-6">
-              <h1 className="text-5xl sm:text-6xl font-display text-white leading-tight">
-                Find the <span className="relative inline-block">
-                  <span className="relative z-10">right care</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display text-white leading-tight">
+                Find <span className="relative inline-block">
+                  <span className="relative z-10">childcare</span>
                   <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" style={{fill: 'var(--mustard)'}}>
                     <path d="M0,8 Q50,2 100,6 T200,8 L200,12 L0,12 Z" opacity="0.7"/>
                   </svg>
-                </span>, camps, and activities for your little ones
+                </span>, camps, and after-school programs—with real transparency
               </h1>
 
               <p className="text-lg text-white/95 leading-relaxed">
-                Discover trusted daycares, after-school programs, summer camps, sports, tutoring, and private schools — all in one easy search.
+                70%+ of parents start their search online, yet essential info—pricing, availability, safety, and quality—is scattered across outdated websites and word-of-mouth. HappiKid uses AI to gather and standardize this data into one clear comparison-and-booking tool.
               </p>
 
               <div className="flex flex-wrap gap-4">
                 <Button 
                   size="lg"
                   onClick={() => setLocation("/search")}
-                  className="rounded-md text-white font-semibold shadow-lg hover:shadow-xl transition-all px-8"
+                  className="rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transition-all px-8"
                   style={{backgroundColor: 'var(--taupe)'}}
                   data-testid="button-hero-find-programs"
                 >
-                  Find Programs
+                  Search Childcare Near You
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="rounded-md font-medium border-2 border-white text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+                  onClick={() => setLocation("/providers")}
+                  className="rounded-lg font-medium border-2 border-white text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
                   data-testid="button-hero-list-program"
                 >
                   List Your Program
@@ -229,120 +231,116 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 2. TRUST BENEFITS SECTION - NEW */}
+      {/* 2. SUPPORTING BLOCK 1 - No More Digging */}
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Shield,
-                title: 'Verified Providers',
-                desc: 'We confirm each program\'s details using public records and trusted sources.',
-                color: 'var(--sage-dark)',
-                bg: 'hsl(145, 30%, 88%)'
-              },
-              {
-                icon: Star,
-                title: 'Real Parent Reviews',
-                desc: 'Read honest experiences from families who\'ve been there.',
-                color: 'var(--amber)',
-                bg: 'hsl(35, 85%, 88%)'
-              },
-              {
-                icon: Clock,
-                title: 'Save Time',
-                desc: 'Find the right fit in minutes — not after weeks of searching.',
-                color: 'var(--deep-coral)',
-                bg: 'hsl(6, 85%, 90%)'
-              }
-            ].map((benefit, i) => (
-              <Card key={i} className="border-2 border-transparent hover:shadow-lg transition-all rounded-2xl">
-                <CardContent className="p-6 text-center">
-                  <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-4" style={{backgroundColor: benefit.bg}}>
-                    <benefit.icon className="h-7 w-7" style={{color: benefit.color}} />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-display mb-6" style={{color: 'var(--taupe)'}}>
+                No more digging through Facebook groups, outdated sites, or endless calls
+              </h2>
+              <p className="text-lg leading-relaxed mb-6" style={{color: 'var(--warm-gray)'}}>
+                HappiKid shows you real choices with real information in one place, saving families hours and eliminating guesswork around pricing, availability, reviews, and safety.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {['Pricing', 'Availability', 'Reviews', 'Safety'].map((item, i) => (
+                  <Badge key={i} className="px-4 py-2 text-sm font-medium rounded-full" style={{backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)'}}>
+                    {item}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { icon: MessageSquare, label: 'Facebook Groups', color: 'var(--deep-coral)', bg: 'hsl(6, 85%, 90%)' },
+                { icon: Search, label: 'Google Maps', color: 'var(--amber)', bg: 'hsl(35, 85%, 88%)' },
+                { icon: BookOpen, label: 'Parent Blogs', color: 'var(--sage-dark)', bg: 'hsl(145, 30%, 88%)' },
+                { icon: Shield, label: 'State PDFs', color: 'var(--teal-blue)', bg: 'hsl(185, 55%, 85%)' }
+              ].map((item, i) => (
+                <Card key={i} className="p-4 text-center rounded-2xl relative overflow-hidden" style={{backgroundColor: item.bg}}>
+                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{backgroundColor: 'white'}}>
+                    <X className="h-4 w-4" style={{color: 'var(--deep-coral)'}} />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--taupe)'}}>{benefit.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{color: 'var(--warm-gray)'}}>{benefit.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  <item.icon className="h-8 w-8 mx-auto mb-2" style={{color: item.color}} />
+                  <p className="text-xs font-medium" style={{color: 'var(--taupe)'}}>{item.label}</p>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 3. PROBLEM SECTION - Updated Copy */}
-      <section className="py-20" style={{backgroundColor: 'hsl(145, 20%, 88%)'}}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl sm:text-5xl font-display mb-8" style={{color: 'var(--taupe)'}}>
-            Childcare search is <span style={{color: 'var(--deep-coral)'}}>broken</span>.
-          </h2>
-          
-          <p className="text-xl mb-6" style={{color: 'var(--taupe)', opacity: 0.9}}>
-            Parents bounce across Facebook groups, Google Maps, mom blogs, and state PDFs just to find one option. It's chaotic, outdated, and overwhelming.
-          </p>
-
-          <Badge className="px-5 py-2 mb-12 text-sm font-semibold rounded-full" style={{backgroundColor: 'var(--deep-coral)', color: 'white'}}>
-            6–10 tabs per search
-          </Badge>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10">
-            {[
-              { icon: MessageSquare, label: 'Facebook Groups', color: 'var(--deep-coral)' },
-              { icon: Search, label: 'Google Maps', color: 'var(--amber)' },
-              { icon: BookOpen, label: 'Parent Blogs', color: 'var(--sage-dark)' },
-              { icon: Shield, label: 'State PDFs', color: 'var(--teal-blue)' }
-            ].map((item, i) => (
-              <Card key={i} className="p-6 text-center hover:shadow-lg transition-shadow bg-white backdrop-blur-sm rounded-xl">
-                <item.icon className="h-9 w-9 mx-auto mb-3" style={{color: item.color}} />
-                <p className="text-sm font-medium" style={{color: 'var(--taupe)'}}>{item.label}</p>
-              </Card>
-            ))}
+      {/* 3. SUPPORTING BLOCK 2 - AI Section */}
+      <section className="py-20" style={{backgroundColor: 'hsl(185, 30%, 92%)'}}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="order-2 md:order-1">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: Database, title: 'Collect', desc: 'Gather data from multiple sources', color: 'var(--deep-coral)', bg: 'hsl(6, 85%, 90%)' },
+                  { icon: Sparkles, title: 'Clean', desc: 'Standardize and verify information', color: 'var(--amber)', bg: 'hsl(35, 85%, 88%)' },
+                  { icon: BarChart3, title: 'Compare', desc: 'Side-by-side program comparison', color: 'var(--sage-dark)', bg: 'hsl(145, 30%, 88%)' },
+                  { icon: Target, title: 'Connect', desc: 'Direct enrollment pathways', color: 'var(--teal-blue)', bg: 'hsl(185, 55%, 85%)' }
+                ].map((step, i) => (
+                  <Card key={i} className="p-5 rounded-2xl text-center" style={{backgroundColor: step.bg}}>
+                    <step.icon className="h-8 w-8 mx-auto mb-2" style={{color: step.color}} />
+                    <h4 className="font-semibold text-sm mb-1" style={{color: 'var(--taupe)'}}>{step.title}</h4>
+                    <p className="text-xs" style={{color: 'var(--warm-gray)'}}>{step.desc}</p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+            <div className="order-1 md:order-2">
+              <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full" style={{backgroundColor: 'var(--teal-blue)', color: 'white'}}>
+                AI-Powered
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-display mb-6" style={{color: 'var(--taupe)'}}>
+                AI that organizes a fragmented childcare ecosystem
+              </h2>
+              <p className="text-lg leading-relaxed" style={{color: 'var(--warm-gray)'}}>
+                HappiKid collects, cleans, and standardizes provider data into a searchable, side-by-side comparison tool. Families can compare instantly; providers gain visibility, trust, and full enrollment.
+              </p>
+            </div>
           </div>
-
-          <p className="text-lg font-semibold" style={{color: 'var(--taupe)'}}>
-            <span className="px-6 py-3 rounded-full inline-block" style={{backgroundColor: 'hsl(12, 60%, 85%)', color: 'var(--taupe)'}}>
-              HappiKid brings everything together in one intelligent platform.
-            </span>
-          </p>
         </div>
       </section>
 
-      {/* 4. CATEGORY JOURNEY SECTION - Updated Copy */}
+      {/* 4. SUPPORTING BLOCK 3 - What We Cover */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
-              Families move across categories — <br />HappiKid keeps everything in one place.
+          <div className="text-center mb-12">
+            <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full" style={{backgroundColor: 'var(--amber)', color: 'white'}}>
+              Ages 0–13
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+              All the child-focused programs you rely on
             </h2>
-            <p className="text-lg" style={{color: 'var(--warm-gray)'}}>
-              One journey. One platform. From infant care to school age and beyond.
+            <p className="text-lg max-w-3xl mx-auto" style={{color: 'var(--warm-gray)'}}>
+              HappiKid serves the full ecosystem: daycare and early learning centers, after-school programs, camps, youth sports, tutoring, arts and STEM enrichment, and other activity-based businesses for ages 0–13. Our mission is to bring transparency, structure, and accessibility to all services families depend on year-round.
             </p>
           </div>
 
-          <div className="relative">
-            <div className="absolute top-1/2 left-0 right-0 h-1 -translate-y-1/2 hidden md:block" style={{backgroundColor: 'var(--sage-light)'}}></div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-6 relative">
-              {[
-                { icon: Baby, label: 'Infant Care', age: '0-12mo', color: 'var(--deep-coral)' },
-                { icon: School, label: 'Preschool', age: '2-4yr', color: 'var(--amber)' },
-                { icon: BookOpen, label: 'After-School', age: '5-12yr', color: 'var(--sage-dark)' },
-                { icon: Trophy, label: 'Activities', age: '3-12yr', color: 'var(--teal-blue)' },
-                { icon: GraduationCap, label: 'Tutoring', age: '6-18yr', color: 'var(--terracotta)' },
-                { icon: TreePine, label: 'Camps', age: 'All ages', color: 'var(--olive)' }
-              ].map((stage, i) => (
-                <div key={i} className="text-center">
-                  <div 
-                    className="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                    style={{backgroundColor: i % 3 === 0 ? 'hsl(6, 85%, 88%)' : i % 3 === 1 ? 'hsl(45, 85%, 88%)' : 'hsl(145, 30%, 88%)'}}
-                  >
-                    <stage.icon className="h-10 w-10" style={{color: stage.color}} />
-                  </div>
-                  <p className="font-semibold mb-1" style={{color: 'var(--taupe)'}}>{stage.label}</p>
-                  <p className="text-sm" style={{color: 'var(--warm-gray)'}}>{stage.age}</p>
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {[
+              { icon: Baby, label: 'Daycare & Early Learning', color: 'var(--deep-coral)', bg: 'hsl(6, 85%, 90%)' },
+              { icon: School, label: 'Preschools', color: 'var(--amber)', bg: 'hsl(35, 85%, 88%)' },
+              { icon: BookOpen, label: 'After-School Programs', color: 'var(--sage-dark)', bg: 'hsl(145, 30%, 88%)' },
+              { icon: TreePine, label: 'Summer & Day Camps', color: 'var(--olive)', bg: 'hsl(75, 40%, 88%)' },
+              { icon: Trophy, label: 'Youth Sports', color: 'var(--teal-blue)', bg: 'hsl(185, 55%, 85%)' },
+              { icon: GraduationCap, label: 'Tutoring', color: 'var(--terracotta)', bg: 'hsl(12, 65%, 88%)' },
+              { icon: Sparkles, label: 'Arts & STEM Enrichment', color: 'var(--amber)', bg: 'hsl(45, 85%, 88%)' },
+              { icon: Users, label: 'Activity Programs', color: 'var(--sage-dark)', bg: 'hsl(145, 25%, 90%)' }
+            ].map((category, i) => (
+              <Card 
+                key={i} 
+                className="p-5 text-center rounded-2xl cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+                style={{backgroundColor: category.bg}}
+                onClick={() => setLocation("/search")}
+              >
+                <category.icon className="h-8 w-8 mx-auto mb-3" style={{color: category.color}} />
+                <p className="text-sm font-medium" style={{color: 'var(--taupe)'}}>{category.label}</p>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
