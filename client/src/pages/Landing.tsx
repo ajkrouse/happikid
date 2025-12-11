@@ -149,7 +149,7 @@ export default function Landing() {
             {/* The Action Button */}
             <button 
               onClick={handleSearch}
-              className="bg-brand-evergreen hover:bg-action-teal text-white px-6 py-3 rounded-lg font-medium transition-colors whitespace-nowrap"
+              className="bg-action-clay hover:bg-action-clay/90 text-white px-6 py-3 rounded-lg font-medium transition-colors whitespace-nowrap"
               data-testid="button-hero-ask"
             >
               Ask HappiKid
@@ -461,34 +461,28 @@ export default function Landing() {
                 step: '1',
                 icon: Search,
                 title: 'Search Programs',
-                desc: 'Tell us what you need — age, location, type of care. We\'ll show you verified options in seconds.',
-                color: 'var(--deep-coral)',
-                bg: 'hsl(6, 85%, 88%)'
+                desc: 'Tell us what you need — age, location, type of care. We\'ll show you verified options in seconds.'
               },
               {
                 step: '2',
                 icon: Eye,
                 title: 'Compare & Review',
-                desc: 'See schedules, prices, reviews, and safety records all in one place. No more jumping between tabs.',
-                color: 'var(--amber)',
-                bg: 'hsl(35, 85%, 85%)'
+                desc: 'See schedules, prices, reviews, and safety records all in one place. No more jumping between tabs.'
               },
               {
                 step: '3',
                 icon: CheckCircle2,
                 title: 'Connect & Enroll',
-                desc: 'Reach out to your favorites directly. We make it easy to ask questions and start the enrollment process.',
-                color: 'var(--sage-dark)',
-                bg: 'hsl(145, 30%, 82%)'
+                desc: 'Reach out to your favorites directly. We make it easy to ask questions and start the enrollment process.'
               }
             ].map((step, i) => (
-              <Card key={i} className="relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow border-2" style={{borderColor: step.color}}>
+              <Card key={i} className="relative bg-brand-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow border border-brand-evergreen/10">
                 <CardContent className="p-8 text-center">
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white" style={{backgroundColor: step.color}}>
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-action-clay">
                     {step.step}
                   </div>
-                  <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 mt-4" style={{backgroundColor: step.bg}}>
-                    <step.icon className="h-9 w-9" style={{color: step.color}} />
+                  <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 mt-4 bg-brand-sage">
+                    <step.icon className="h-9 w-9 text-brand-evergreen" />
                   </div>
                   <h3 className="text-xl font-display mb-3" style={{color: 'var(--taupe)'}}>{step.title}</h3>
                   <p className="text-sm leading-relaxed" style={{color: 'var(--warm-gray)'}}>{step.desc}</p>
@@ -663,38 +657,29 @@ export default function Landing() {
                 icon: Users,
                 title: 'Parents Overwhelmed',
                 desc: 'Childcare search is the #1 frustration for families.',
-                badge: '6–10 tabs per search',
-                color: 'var(--deep-coral)',
-                bg: 'hsl(6, 85%, 88%)'
+                badge: '6–10 tabs per search'
               },
               {
                 icon: TrendingUp,
                 title: 'Providers Struggling',
                 desc: 'Enrollment is down, and programs need help reaching new families.',
-                badge: '40% vacancy increase',
-                color: 'var(--amber)',
-                bg: 'hsl(35, 85%, 85%)'
+                badge: '40% vacancy increase'
               },
               {
                 icon: Zap,
                 title: 'Complexity Rising',
                 desc: 'Generic search tools can\'t handle childcare logistics, schedules, or age requirements.',
-                badge: 'Structured > Scraped',
-                color: 'var(--sage-dark)',
-                bg: 'hsl(145, 30%, 82%)'
+                badge: 'Structured > Scraped'
               }
             ].map((item, i) => (
-              <Card key={i} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+              <Card key={i} className="bg-brand-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow border border-brand-evergreen/10">
                 <CardContent className="p-8 text-center">
-                  <div 
-                    className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4"
-                    style={{backgroundColor: item.bg}}
-                  >
-                    <item.icon className="h-8 w-8" style={{color: item.color}} />
+                  <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 bg-brand-sage">
+                    <item.icon className="h-8 w-8 text-brand-evergreen" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3" style={{color: 'var(--taupe)'}}>{item.title}</h3>
                   <p className="mb-4 leading-relaxed" style={{color: 'var(--warm-gray)'}}>{item.desc}</p>
-                  <Badge className="rounded-full px-4 py-1 font-medium text-xs" style={{backgroundColor: item.color, color: 'white'}}>
+                  <Badge className="rounded-full px-4 py-1 font-medium text-xs bg-action-teal text-white">
                     {item.badge}
                   </Badge>
                 </CardContent>
@@ -705,7 +690,7 @@ export default function Landing() {
       </section>
 
       {/* 10. FINAL CTA BANNER - Updated Copy */}
-      <section className="py-20" style={{background: 'linear-gradient(135deg, var(--deep-coral) 0%, var(--amber) 100%)'}}>
+      <section className="py-20 bg-brand-evergreen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-display text-white mb-4">
             Ready to find the right fit for your child?
