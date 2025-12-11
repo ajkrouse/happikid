@@ -476,18 +476,16 @@ export default function Landing() {
                 desc: 'Reach out to your favorites directly. We make it easy to ask questions and start the enrollment process.'
               }
             ].map((step, i) => (
-              <Card key={i} className="relative bg-brand-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow border border-brand-evergreen/10">
-                <CardContent className="p-8 text-center">
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-action-clay">
-                    {step.step}
-                  </div>
-                  <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 mt-4 bg-brand-sage">
-                    <step.icon className="h-9 w-9 text-brand-evergreen" />
-                  </div>
-                  <h3 className="text-xl font-display mb-3" style={{color: 'var(--taupe)'}}>{step.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{color: 'var(--warm-gray)'}}>{step.desc}</p>
-                </CardContent>
-              </Card>
+              <div key={i} className="relative bg-brand-white border border-brand-evergreen/10 rounded-2xl p-8 text-center shadow-sm hover:shadow-md transition-all">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-action-clay">
+                  {step.step}
+                </div>
+                <div className="w-16 h-16 mx-auto bg-brand-sage rounded-full flex items-center justify-center mb-6 mt-4 text-brand-evergreen">
+                  <step.icon className="h-8 w-8" />
+                </div>
+                <h3 className="font-headline text-xl text-brand-evergreen mb-3">{step.title}</h3>
+                <p className="font-body text-text-muted">{step.desc}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -672,18 +670,16 @@ export default function Landing() {
                 badge: 'Structured > Scraped'
               }
             ].map((item, i) => (
-              <Card key={i} className="bg-brand-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow border border-brand-evergreen/10">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 bg-brand-sage">
-                    <item.icon className="h-8 w-8 text-brand-evergreen" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3" style={{color: 'var(--taupe)'}}>{item.title}</h3>
-                  <p className="mb-4 leading-relaxed" style={{color: 'var(--warm-gray)'}}>{item.desc}</p>
-                  <Badge className="rounded-full px-4 py-1 font-medium text-xs bg-action-teal text-white">
-                    {item.badge}
-                  </Badge>
-                </CardContent>
-              </Card>
+              <div key={i} className="bg-brand-white border border-brand-evergreen/10 rounded-2xl p-8 text-center shadow-sm hover:shadow-md transition-all">
+                <div className="w-16 h-16 mx-auto bg-brand-sage rounded-full flex items-center justify-center mb-6 text-brand-evergreen">
+                  <item.icon className="h-8 w-8" />
+                </div>
+                <h3 className="font-headline text-xl text-brand-evergreen mb-3">{item.title}</h3>
+                <p className="font-body text-text-muted mb-4">{item.desc}</p>
+                <Badge className="rounded-full px-4 py-1 font-medium text-xs bg-action-teal text-white">
+                  {item.badge}
+                </Badge>
+              </div>
             ))}
           </div>
         </div>
