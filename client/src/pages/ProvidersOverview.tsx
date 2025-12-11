@@ -10,12 +10,16 @@ import {
   Shield, 
   Star,
   CheckCircle,
+  CheckCircle2,
   BarChart3,
   Globe,
   Clock,
   DollarSign,
-  Award
+  Award,
+  Target,
+  ArrowRight
 } from "lucide-react";
+import { CardContent } from "@/components/ui/card";
 import { useState } from "react";
 
 export default function ProvidersOverview() {
@@ -52,6 +56,95 @@ export default function ProvidersOverview() {
                 Provider Login
               </Button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Provider Value Proposition */}
+      <section className="py-20 bg-lime-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
+              Providers don't need more admin tools — <br />they need more families.
+            </h2>
+            <p className="text-lg text-text-muted">
+              HappiKid helps you fill open spots, improve your visibility, and reach families searching for programs like yours.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              {[
+                { icon: TrendingUp, title: 'SEO-Optimized Profiles', desc: 'Show up in local searches when families look for care, camps, and enrichment.', iconBg: 'bg-brand-sage', iconColor: 'text-action-teal' },
+                { icon: BarChart3, title: 'Demand Insights', desc: 'See what families in your area are searching for — and how your program compares.', iconBg: 'bg-amber-100', iconColor: 'text-amber-500' },
+                { icon: Award, title: 'Profile Boosting Tools', desc: 'We guide you step-by-step to strengthen your profile and attract more inquiries.', iconBg: 'bg-brand-sage', iconColor: 'text-action-teal' },
+                { icon: Target, title: 'Cross-Category Exposure', desc: 'Be discovered across daycare, after-school, camps, and activities — all from one listing.', iconBg: 'bg-amber-100', iconColor: 'text-amber-500' }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4 items-start">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${item.iconBg}`}>
+                    <item.icon className={`h-6 w-6 ${item.iconColor}`} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1 text-brand-evergreen">{item.title}</h3>
+                    <p className="text-text-muted">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+              
+              <Button 
+                size="lg"
+                onClick={handleGetStarted}
+                className="rounded-md bg-action-clay text-white font-semibold shadow-lg hover:shadow-xl hover:bg-action-clay/90 transition-all mt-6"
+                data-testid="button-provider-list-program"
+              >
+                List Your Program (Free During MVP)
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+
+            <Card className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+              <div className="bg-gradient-to-br from-action-teal to-cyan-600 p-6">
+                <p className="text-white font-semibold">Your Provider Dashboard</p>
+              </div>
+              <CardContent className="p-6 space-y-4">
+                <div className="p-4 rounded-xl bg-brand-sage/50">
+                  <p className="text-sm mb-2 font-medium text-brand-evergreen">Profile Visibility Score</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-4xl font-bold text-action-teal">87</div>
+                    <div className="flex-1 h-3 rounded-full bg-brand-evergreen/10">
+                      <div className="h-full rounded-full bg-action-teal w-[87%]"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-action-sand">
+                    <p className="text-sm mb-1 font-medium text-brand-evergreen">New Inquiries</p>
+                    <p className="text-2xl font-bold text-action-clay">24</p>
+                    <p className="text-xs opacity-70 text-brand-evergreen">This month</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-amber-100">
+                    <p className="text-sm mb-1 font-medium text-brand-evergreen">Profile Views</p>
+                    <p className="text-2xl font-bold text-amber-500">342</p>
+                    <p className="text-xs opacity-70 text-brand-evergreen">This month</p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border-2 border-brand-evergreen/10">
+                  <p className="text-sm mb-3 font-semibold text-brand-evergreen">Quick Tips</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-action-teal" />
+                      <span className="text-brand-evergreen">Add photos to get 40% more inquiries</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-action-teal" />
+                      <span className="text-brand-evergreen">Complete pricing to rank higher</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
