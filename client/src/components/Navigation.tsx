@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Heart, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import RoleSelectionModal from "@/components/RoleSelectionModal";
@@ -84,12 +84,17 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/">
-            <div className="flex items-center cursor-pointer space-x-2">
-              <Heart className="h-6 w-6" style={{ color: 'var(--deep-coral)' }} />
-              <span className="text-xl font-display" style={{ color: 'var(--taupe)' }}>
-                HappiKid
-              </span>
-            </div>
+            <a className="flex items-center gap-2 group">
+              <div className="w-8 h-8 text-brand-evergreen">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="20" y="10" width="15" height="80" rx="4" fill="currentColor" />
+                  <rect x="65" y="10" width="15" height="80" rx="4" fill="currentColor" />
+                  <path d="M35 60 C35 60, 50 75, 65 60" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+                  <circle cx="50" cy="35" r="7" className="text-action-clay fill-current" />
+                </svg>
+              </div>
+              <span className="font-headline text-2xl text-brand-evergreen tracking-wide">HappiKid</span>
+            </a>
           </Link>
 
           {/* Desktop Navigation */}

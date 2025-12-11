@@ -73,10 +73,17 @@ export default function Landing() {
       <nav className="sticky top-0 z-50 backdrop-blur-sm bg-white/95 border-b border-brand-evergreen/10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/")}>
-              <Heart className="h-6 w-6 text-action-clay" />
-              <span className="text-xl font-display text-brand-evergreen">HappiKid</span>
-            </div>
+            <a href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 text-brand-evergreen">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="20" y="10" width="15" height="80" rx="4" fill="currentColor" />
+                  <rect x="65" y="10" width="15" height="80" rx="4" fill="currentColor" />
+                  <path d="M35 60 C35 60, 50 75, 65 60" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+                  <circle cx="50" cy="35" r="7" className="text-action-clay fill-current" />
+                </svg>
+              </div>
+              <span className="font-headline text-2xl text-brand-evergreen tracking-wide">HappiKid</span>
+            </a>
             
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
               <span onClick={() => setLocation("/search")} className="text-brand-evergreen hover:text-action-clay transition cursor-pointer" data-testid="nav-for-parents">For Parents</span>
@@ -797,10 +804,17 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Company */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Heart className="h-6 w-6" style={{color: 'var(--deep-coral)'}} />
-                <span className="text-xl font-display">HappiKid</span>
-              </div>
+              <a href="/" className="flex items-center gap-2 mb-4 group">
+                <div className="w-8 h-8 text-white">
+                  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="10" width="15" height="80" rx="4" fill="currentColor" />
+                    <rect x="65" y="10" width="15" height="80" rx="4" fill="currentColor" />
+                    <path d="M35 60 C35 60, 50 75, 65 60" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+                    <circle cx="50" cy="35" r="7" className="text-action-clay fill-current" />
+                  </svg>
+                </div>
+                <span className="font-headline text-2xl text-white tracking-wide">HappiKid</span>
+              </a>
               <p className="text-white/80 mb-6 leading-relaxed">
                 Connecting families with trusted childcare and enrichment programs across NY, NJ & CT.
               </p>
