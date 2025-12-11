@@ -11,7 +11,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        headline: ['"DM Serif Display"', 'serif'],
+        headline: ['Fraunces', 'serif'],
         body: ['Inter', 'sans-serif'],
       },
       colors: {
