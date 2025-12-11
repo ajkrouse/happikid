@@ -594,8 +594,8 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="py-20 bg-brand-evergreen">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="bg-brand-evergreen py-20 px-6 text-center">
+        <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl sm:text-5xl font-headline text-white mb-4">
             Ready to find the right fit for your child?
           </h2>
