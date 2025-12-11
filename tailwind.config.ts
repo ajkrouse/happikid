@@ -11,6 +11,20 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        brand: {
+          evergreen: "#1A4D3E",
+          sage: "#E8F1ED",
+          white: "#FFFFFF",
+        },
+        action: {
+          clay: "#E07A5F",
+          teal: "#3D9990",
+          sand: "#F4F1EA",
+        },
+        text: {
+          main: "#1A4D3E",
+          muted: "#5C6F66",
+        },
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: {

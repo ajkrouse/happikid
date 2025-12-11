@@ -69,27 +69,26 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen">
-      {/* Modern Warm Navbar - Consistent Branding */}
-      <nav className="sticky top-0 z-50 backdrop-blur-sm bg-[var(--ivory)]/95 border-b border-[var(--warm-gray)]/20 shadow-sm">
+      {/* Modern Navbar - New Brand Colors */}
+      <nav className="sticky top-0 z-50 backdrop-blur-sm bg-white/95 border-b border-brand-evergreen/10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/")}>
-              <Heart className="h-6 w-6" style={{color: 'var(--deep-coral)'}} />
-              <span className="text-xl font-display" style={{color: 'var(--taupe)'}}>HappiKid</span>
+              <Heart className="h-6 w-6 text-action-clay" />
+              <span className="text-xl font-display text-brand-evergreen">HappiKid</span>
             </div>
             
             <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <span onClick={() => setLocation("/search")} style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition cursor-pointer" data-testid="nav-for-parents">For Parents</span>
-              <span onClick={() => setLocation("/providers")} style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition cursor-pointer" data-testid="nav-for-providers">For Providers</span>
-              <a href="#how-it-works" style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition" data-testid="nav-how-it-works">How It Works</a>
-              <span onClick={() => setLocation("/about")} style={{color: 'var(--taupe)'}} className="hover:opacity-70 transition cursor-pointer" data-testid="nav-about">About</span>
+              <span onClick={() => setLocation("/search")} className="text-brand-evergreen hover:text-action-clay transition cursor-pointer" data-testid="nav-for-parents">For Parents</span>
+              <span onClick={() => setLocation("/providers")} className="text-brand-evergreen hover:text-action-clay transition cursor-pointer" data-testid="nav-for-providers">For Providers</span>
+              <a href="#how-it-works" className="text-brand-evergreen hover:text-action-clay transition" data-testid="nav-how-it-works">How It Works</a>
+              <span onClick={() => setLocation("/about")} className="text-brand-evergreen hover:text-action-clay transition cursor-pointer" data-testid="nav-about">About</span>
             </div>
 
             <div className="flex items-center gap-3">
               <Button 
                 onClick={() => setLocation("/search")}
-                className="rounded-md text-white font-medium shadow-md hover:shadow-lg transition-all"
-                style={{backgroundColor: 'var(--deep-coral)'}}
+                className="rounded-lg bg-action-clay text-white font-medium shadow-md hover:shadow-lg hover:bg-action-clay/90 transition-all"
                 data-testid="button-nav-find-programs"
               >
                 Find Programs
@@ -97,8 +96,7 @@ export default function Landing() {
               <Button 
                 variant="outline" 
                 onClick={() => setLocation("/providers")}
-                className="rounded-md font-medium border-2 hidden sm:inline-flex hover:opacity-90"
-                style={{borderColor: 'var(--taupe)', color: 'var(--taupe)'}}
+                className="rounded-lg font-medium border-2 border-brand-evergreen text-brand-evergreen hidden sm:inline-flex hover:bg-brand-evergreen hover:text-white transition-all"
                 data-testid="button-nav-list-program"
               >
                 List Your Program
@@ -108,22 +106,22 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* 1. HERO SECTION - SEO Optimized */}
-      <section className="relative overflow-hidden py-20 sm:py-28" style={{background: 'linear-gradient(135deg, var(--peach) 0%, var(--deep-coral) 100%)'}}>
+      {/* 1. HERO SECTION - SEO Optimized with New Brand Colors */}
+      <section className="relative overflow-hidden py-20 sm:py-28 bg-brand-sage">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left Side */}
             <div className="text-left space-y-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display text-white leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display text-brand-evergreen leading-tight">
                 Find <span className="relative inline-block">
                   <span className="relative z-10">childcare</span>
-                  <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" style={{fill: 'var(--mustard)'}}>
-                    <path d="M0,8 Q50,2 100,6 T200,8 L200,12 L0,12 Z" opacity="0.7"/>
+                  <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" fill="#E07A5F">
+                    <path d="M0,8 Q50,2 100,6 T200,8 L200,12 L0,12 Z" opacity="0.5"/>
                   </svg>
                 </span>, camps, and after-school programs—with real transparency
               </h1>
 
-              <p className="text-lg text-white/95 leading-relaxed">
+              <p className="text-lg text-text-muted leading-relaxed">
                 70%+ of parents start their search online, yet essential info—pricing, availability, safety, and quality—is scattered across outdated websites and word-of-mouth. HappiKid uses AI to gather and standardize this data into one clear comparison-and-booking tool.
               </p>
 
@@ -131,8 +129,7 @@ export default function Landing() {
                 <Button 
                   size="lg"
                   onClick={() => setLocation("/search")}
-                  className="rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transition-all px-8"
-                  style={{backgroundColor: 'var(--taupe)'}}
+                  className="rounded-lg bg-action-clay text-white font-semibold shadow-lg hover:shadow-xl hover:bg-action-clay/90 transition-all px-8"
                   data-testid="button-hero-find-programs"
                 >
                   Search Childcare Near You
@@ -142,7 +139,7 @@ export default function Landing() {
                   size="lg"
                   variant="outline"
                   onClick={() => setLocation("/providers")}
-                  className="rounded-lg font-medium border-2 border-white text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+                  className="rounded-lg font-medium border-2 border-brand-evergreen text-brand-evergreen hover:bg-brand-evergreen hover:text-white transition-all"
                   data-testid="button-hero-list-program"
                 >
                   List Your Program
@@ -150,19 +147,19 @@ export default function Landing() {
               </div>
 
               {/* Updated Reassurance Line */}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-white font-medium pt-2">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-brand-evergreen font-medium pt-2">
                 <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-5 w-5" />
+                  <CheckCircle2 className="h-5 w-5 text-action-teal" />
                   <span>Free for parents</span>
                 </div>
-                <span>•</span>
+                <span className="text-text-muted">•</span>
                 <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-5 w-5" />
+                  <CheckCircle2 className="h-5 w-5 text-action-teal" />
                   <span>Verified programs</span>
                 </div>
-                <span>•</span>
+                <span className="text-text-muted">•</span>
                 <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-5 w-5" />
+                  <CheckCircle2 className="h-5 w-5 text-action-teal" />
                   <span>Clear details, no guesswork</span>
                 </div>
               </div>
@@ -170,19 +167,18 @@ export default function Landing() {
 
             {/* Right Side - Search Card */}
             <div className="relative">
-              <Card className="relative z-10 shadow-2xl rounded-2xl overflow-hidden backdrop-blur-sm bg-white/95">
+              <Card className="relative z-10 shadow-2xl rounded-2xl overflow-hidden bg-white">
                 <CardContent className="p-8">
-                  <h3 className="text-2xl font-display mb-6" style={{color: 'var(--taupe)'}}>Start Your Search</h3>
+                  <h3 className="text-2xl font-display mb-6 text-brand-evergreen">Start Your Search</h3>
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium mb-2 block" style={{color: 'var(--taupe)'}}>What are you looking for?</label>
+                      <label className="text-sm font-medium mb-2 block text-brand-evergreen">What are you looking for?</label>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" style={{color: 'var(--warm-gray)'}} />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-text-muted" />
                         <Input
                           placeholder="Daycare, camp, tutoring..."
-                          className="pl-10 rounded-lg border-2"
-                          style={{borderColor: 'var(--sage-light)'}}
+                          className="pl-10 rounded-lg border-2 border-brand-sage focus:border-action-teal"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           onKeyPress={handleKeyPress}
@@ -192,29 +188,26 @@ export default function Landing() {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block" style={{color: 'var(--taupe)'}}>Child's age</label>
+                      <label className="text-sm font-medium mb-2 block text-brand-evergreen">Child's age</label>
                       <Input
                         placeholder="e.g., 3 years old"
-                        className="rounded-lg border-2"
-                        style={{borderColor: 'var(--sage-light)'}}
+                        className="rounded-lg border-2 border-brand-sage focus:border-action-teal"
                         data-testid="input-hero-card-age"
                       />
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block" style={{color: 'var(--taupe)'}}>Location</label>
+                      <label className="text-sm font-medium mb-2 block text-brand-evergreen">Location</label>
                       <Input
                         placeholder="Manhattan, Brooklyn..."
-                        className="rounded-lg border-2"
-                        style={{borderColor: 'var(--sage-light)'}}
+                        className="rounded-lg border-2 border-brand-sage focus:border-action-teal"
                         data-testid="input-hero-card-location"
                       />
                     </div>
 
                     <Button 
                       onClick={handleSearch}
-                      className="w-full rounded-lg text-white font-semibold py-6 shadow-md hover:shadow-lg transition-all"
-                      style={{backgroundColor: 'var(--deep-coral)'}}
+                      className="w-full rounded-lg bg-action-clay text-white font-semibold py-6 shadow-md hover:shadow-lg hover:bg-action-clay/90 transition-all"
                       data-testid="button-hero-card-search"
                     >
                       Search Programs
@@ -223,9 +216,9 @@ export default function Landing() {
                 </CardContent>
               </Card>
               
-              {/* Brighter decorative shapes */}
-              <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-35 blur-2xl" style={{backgroundColor: 'var(--amber)'}}></div>
-              <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full opacity-35 blur-3xl" style={{backgroundColor: 'var(--mint)'}}></div>
+              {/* Decorative shapes with new brand colors */}
+              <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-25 blur-2xl bg-action-teal"></div>
+              <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full opacity-25 blur-3xl bg-action-clay"></div>
             </div>
           </div>
         </div>
@@ -236,15 +229,15 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-display mb-6" style={{color: 'var(--taupe)'}}>
+              <h2 className="text-3xl sm:text-4xl font-display mb-6 text-brand-evergreen">
                 No more digging through Facebook groups, outdated sites, or endless calls
               </h2>
-              <p className="text-lg leading-relaxed mb-6" style={{color: 'var(--warm-gray)'}}>
+              <p className="text-lg leading-relaxed mb-6 text-text-muted">
                 HappiKid shows you real choices with real information in one place, saving families hours and eliminating guesswork around pricing, availability, reviews, and safety.
               </p>
               <div className="flex flex-wrap gap-3">
                 {['Pricing', 'Availability', 'Reviews', 'Safety'].map((item, i) => (
-                  <Badge key={i} className="px-4 py-2 text-sm font-medium rounded-full" style={{backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)'}}>
+                  <Badge key={i} className="px-4 py-2 text-sm font-medium rounded-full bg-brand-sage text-action-teal">
                     {item}
                   </Badge>
                 ))}
@@ -252,17 +245,17 @@ export default function Landing() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { icon: MessageSquare, label: 'Facebook Groups', color: 'var(--deep-coral)', bg: 'hsl(6, 85%, 90%)' },
-                { icon: Search, label: 'Google Maps', color: 'var(--amber)', bg: 'hsl(35, 85%, 88%)' },
-                { icon: BookOpen, label: 'Parent Blogs', color: 'var(--sage-dark)', bg: 'hsl(145, 30%, 88%)' },
-                { icon: Shield, label: 'State PDFs', color: 'var(--teal-blue)', bg: 'hsl(185, 55%, 85%)' }
+                { icon: MessageSquare, label: 'Facebook Groups', color: 'text-action-clay', bg: 'bg-action-sand' },
+                { icon: Search, label: 'Google Maps', color: 'text-action-teal', bg: 'bg-brand-sage' },
+                { icon: BookOpen, label: 'Parent Blogs', color: 'text-brand-evergreen', bg: 'bg-action-sand' },
+                { icon: Shield, label: 'State PDFs', color: 'text-action-teal', bg: 'bg-brand-sage' }
               ].map((item, i) => (
-                <Card key={i} className="p-4 text-center rounded-2xl relative overflow-hidden" style={{backgroundColor: item.bg}}>
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{backgroundColor: 'white'}}>
-                    <X className="h-4 w-4" style={{color: 'var(--deep-coral)'}} />
+                <Card key={i} className={`p-4 text-center rounded-2xl relative overflow-hidden ${item.bg}`}>
+                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center bg-white">
+                    <X className="h-4 w-4 text-action-clay" />
                   </div>
-                  <item.icon className="h-8 w-8 mx-auto mb-2" style={{color: item.color}} />
-                  <p className="text-xs font-medium" style={{color: 'var(--taupe)'}}>{item.label}</p>
+                  <item.icon className={`h-8 w-8 mx-auto mb-2 ${item.color}`} />
+                  <p className="text-xs font-medium text-brand-evergreen">{item.label}</p>
                 </Card>
               ))}
             </div>
@@ -271,33 +264,33 @@ export default function Landing() {
       </section>
 
       {/* 3. SUPPORTING BLOCK 2 - AI Section */}
-      <section className="py-20" style={{backgroundColor: 'hsl(185, 30%, 92%)'}}>
+      <section className="py-20 bg-brand-sage">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1">
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: Database, title: 'Collect', desc: 'Gather data from multiple sources', color: 'var(--deep-coral)', bg: 'hsl(6, 85%, 90%)' },
-                  { icon: Sparkles, title: 'Clean', desc: 'Standardize and verify information', color: 'var(--amber)', bg: 'hsl(35, 85%, 88%)' },
-                  { icon: BarChart3, title: 'Compare', desc: 'Side-by-side program comparison', color: 'var(--sage-dark)', bg: 'hsl(145, 30%, 88%)' },
-                  { icon: Target, title: 'Connect', desc: 'Direct enrollment pathways', color: 'var(--teal-blue)', bg: 'hsl(185, 55%, 85%)' }
+                  { icon: Database, title: 'Collect', desc: 'Gather data from multiple sources', color: 'text-action-clay', bg: 'bg-white' },
+                  { icon: Sparkles, title: 'Clean', desc: 'Standardize and verify information', color: 'text-action-teal', bg: 'bg-white' },
+                  { icon: BarChart3, title: 'Compare', desc: 'Side-by-side program comparison', color: 'text-action-clay', bg: 'bg-white' },
+                  { icon: Target, title: 'Connect', desc: 'Direct enrollment pathways', color: 'text-action-teal', bg: 'bg-white' }
                 ].map((step, i) => (
-                  <Card key={i} className="p-5 rounded-2xl text-center" style={{backgroundColor: step.bg}}>
-                    <step.icon className="h-8 w-8 mx-auto mb-2" style={{color: step.color}} />
-                    <h4 className="font-semibold text-sm mb-1" style={{color: 'var(--taupe)'}}>{step.title}</h4>
-                    <p className="text-xs" style={{color: 'var(--warm-gray)'}}>{step.desc}</p>
+                  <Card key={i} className={`p-5 rounded-2xl text-center shadow-md ${step.bg}`}>
+                    <step.icon className={`h-8 w-8 mx-auto mb-2 ${step.color}`} />
+                    <h4 className="font-semibold text-sm mb-1 text-brand-evergreen">{step.title}</h4>
+                    <p className="text-xs text-text-muted">{step.desc}</p>
                   </Card>
                 ))}
               </div>
             </div>
             <div className="order-1 md:order-2">
-              <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full" style={{backgroundColor: 'var(--teal-blue)', color: 'white'}}>
+              <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full bg-action-teal text-white">
                 AI-Powered
               </Badge>
-              <h2 className="text-3xl sm:text-4xl font-display mb-6" style={{color: 'var(--taupe)'}}>
+              <h2 className="text-3xl sm:text-4xl font-display mb-6 text-brand-evergreen">
                 AI that organizes a fragmented childcare ecosystem
               </h2>
-              <p className="text-lg leading-relaxed" style={{color: 'var(--warm-gray)'}}>
+              <p className="text-lg leading-relaxed text-text-muted">
                 HappiKid collects, cleans, and standardizes provider data into a searchable, side-by-side comparison tool. Families can compare instantly; providers gain visibility, trust, and full enrollment.
               </p>
             </div>
@@ -309,36 +302,35 @@ export default function Landing() {
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full" style={{backgroundColor: 'var(--amber)', color: 'white'}}>
+            <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full bg-action-clay text-white">
               Ages 0–13
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+            <h2 className="text-3xl sm:text-4xl font-display mb-4 text-brand-evergreen">
               All the child-focused programs you rely on
             </h2>
-            <p className="text-lg max-w-3xl mx-auto" style={{color: 'var(--warm-gray)'}}>
+            <p className="text-lg max-w-3xl mx-auto text-text-muted">
               HappiKid serves the full ecosystem: daycare and early learning centers, after-school programs, camps, youth sports, tutoring, arts and STEM enrichment, and other activity-based businesses for ages 0–13. Our mission is to bring transparency, structure, and accessibility to all services families depend on year-round.
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {[
-              { icon: Baby, label: 'Daycare & Early Learning', color: 'var(--deep-coral)', bg: 'hsl(6, 85%, 90%)' },
-              { icon: School, label: 'Preschools', color: 'var(--amber)', bg: 'hsl(35, 85%, 88%)' },
-              { icon: BookOpen, label: 'After-School Programs', color: 'var(--sage-dark)', bg: 'hsl(145, 30%, 88%)' },
-              { icon: TreePine, label: 'Summer & Day Camps', color: 'var(--olive)', bg: 'hsl(75, 40%, 88%)' },
-              { icon: Trophy, label: 'Youth Sports', color: 'var(--teal-blue)', bg: 'hsl(185, 55%, 85%)' },
-              { icon: GraduationCap, label: 'Tutoring', color: 'var(--terracotta)', bg: 'hsl(12, 65%, 88%)' },
-              { icon: Sparkles, label: 'Arts & STEM Enrichment', color: 'var(--amber)', bg: 'hsl(45, 85%, 88%)' },
-              { icon: Users, label: 'Activity Programs', color: 'var(--sage-dark)', bg: 'hsl(145, 25%, 90%)' }
+              { icon: Baby, label: 'Daycare & Early Learning', color: 'text-action-clay', bg: 'bg-action-sand' },
+              { icon: School, label: 'Preschools', color: 'text-action-teal', bg: 'bg-brand-sage' },
+              { icon: BookOpen, label: 'After-School Programs', color: 'text-action-clay', bg: 'bg-action-sand' },
+              { icon: TreePine, label: 'Summer & Day Camps', color: 'text-action-teal', bg: 'bg-brand-sage' },
+              { icon: Trophy, label: 'Youth Sports', color: 'text-action-clay', bg: 'bg-action-sand' },
+              { icon: GraduationCap, label: 'Tutoring', color: 'text-action-teal', bg: 'bg-brand-sage' },
+              { icon: Sparkles, label: 'Arts & STEM Enrichment', color: 'text-action-clay', bg: 'bg-action-sand' },
+              { icon: Users, label: 'Activity Programs', color: 'text-action-teal', bg: 'bg-brand-sage' }
             ].map((category, i) => (
               <Card 
                 key={i} 
-                className="p-5 text-center rounded-2xl cursor-pointer hover:shadow-lg transition-all hover:scale-105"
-                style={{backgroundColor: category.bg}}
+                className={`p-5 text-center rounded-2xl cursor-pointer hover:shadow-lg transition-all hover:scale-105 ${category.bg}`}
                 onClick={() => setLocation("/search")}
               >
-                <category.icon className="h-8 w-8 mx-auto mb-3" style={{color: category.color}} />
-                <p className="text-sm font-medium" style={{color: 'var(--taupe)'}}>{category.label}</p>
+                <category.icon className={`h-8 w-8 mx-auto mb-3 ${category.color}`} />
+                <p className="text-sm font-medium text-brand-evergreen">{category.label}</p>
               </Card>
             ))}
           </div>
@@ -346,16 +338,16 @@ export default function Landing() {
       </section>
 
       {/* 5. CATEGORY GRID SECTION */}
-      <section className="py-20" style={{backgroundColor: 'hsl(40, 45%, 92%)'}}>
+      <section className="py-20 bg-action-sand">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge className="mb-4 px-4 py-2 text-sm font-semibold rounded-full" style={{backgroundColor: 'var(--amber)', color: 'white'}}>
+            <Badge className="mb-4 px-4 py-2 text-sm font-semibold rounded-full bg-action-teal text-white">
               Top Categories
             </Badge>
-            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+            <h2 className="text-4xl sm:text-5xl font-display mb-4 text-brand-evergreen">
               Explore programs by type
             </h2>
-            <p className="text-lg max-w-3xl mx-auto" style={{color: 'var(--warm-gray)'}}>
+            <p className="text-lg max-w-3xl mx-auto text-text-muted">
               See everything from childcare to camps in one place.
             </p>
           </div>

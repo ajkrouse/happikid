@@ -96,32 +96,51 @@
   --space-20: 80px;
   --space-24: 96px;
   
-  /* Warm Earth Tones - New Homepage Palette */
-  --terracotta: hsl(12, 55%, 65%);
-  --terracotta-light: hsl(12, 55%, 85%);
-  --terracotta-dark: hsl(12, 55%, 45%);
+  /* ===== NEW BRAND COLOR SYSTEM ===== */
   
-  --sage: hsl(145, 20%, 65%);
-  --sage-light: hsl(145, 20%, 88%);
-  --sage-dark: hsl(145, 20%, 45%);
+  /* BRAND CORE (The Trust Layer) */
+  --brand-evergreen: #1A4D3E;       /* Headings, Nav Bar, Footer, Main Text */
+  --brand-sage: #E8F1ED;            /* Section Backgrounds (Hero, Why Us) */
+  --brand-white: #FFFFFF;           /* Cards, Search Box background */
   
-  --mustard: hsl(45, 70%, 70%);
-  --mustard-light: hsl(45, 70%, 88%);
-  --mustard-dark: hsl(45, 70%, 50%);
+  /* FUNCTIONAL (The Action Layer) */
+  --action-clay: #E07A5F;           /* Primary Buttons (Book, Search), Logo Dot */
+  --action-teal: #3D9990;           /* Verified Badges, Checkmarks, Active Borders */
+  --action-sand: #F4F1EA;           /* Secondary inputs, warm neutral areas */
   
-  --ivory: hsl(40, 35%, 96%);
-  --cream: hsl(40, 25%, 95%);
-  --warm-gray: hsl(30, 10%, 75%);
+  /* TEXT COLORS */
+  --text-main: #1A4D3E;             /* Deep Evergreen (replaces pure black) */
+  --text-muted: #5C6F66;            /* Softer Green-Grey for subtitles */
   
-  --deep-coral: hsl(6, 80%, 58%);
-  --amber: hsl(35, 85%, 63%);
-  --teal-blue: hsl(185, 55%, 48%);
+  /* ACCENT VARIATIONS */
+  --clay-light: #F2A895;
+  --clay-dark: #C45A42;
+  --teal-light: #6FBDB5;
+  --teal-dark: #2A7A72;
+  --sage-light: #F3F8F5;
+  --sage-dark: #C5D9CF;
   
-  --warm-sand: hsl(40, 30%, 92%);
-  --taupe: hsl(30, 15%, 45%);
-  --olive: hsl(75, 25%, 45%);
-  --mint: hsl(150, 50%, 72%);
-  --peach: hsl(20, 80%, 82%);
+  /* Legacy colors for backwards compatibility */
+  --terracotta: #E07A5F;
+  --terracotta-light: #F2A895;
+  --terracotta-dark: #C45A42;
+  --sage: #E8F1ED;
+  --sage-light: #F3F8F5;
+  --sage-dark: #C5D9CF;
+  --mustard: #E9C46A;
+  --mustard-light: #F4DDA0;
+  --mustard-dark: #D4A23E;
+  --ivory: #FAFAF7;
+  --cream: #F4F1EA;
+  --warm-gray: #5C6F66;
+  --deep-coral: #E07A5F;
+  --amber: #E9C46A;
+  --teal-blue: #3D9990;
+  --warm-sand: #F4F1EA;
+  --taupe: #1A4D3E;
+  --olive: #3D9990;
+  --mint: #6FBDB5;
+  --peach: #F2A895;
 }
 
 .dark {
