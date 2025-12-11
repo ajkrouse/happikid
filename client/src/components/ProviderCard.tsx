@@ -32,7 +32,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   const [newGroupName, setNewGroupName] = useState("");
   const [groups, setGroups] = useState<{[key: string]: number[]}>({});
 
-  // Load groups from localStorage and listen for updates
   useEffect(() => {
     const loadGroups = () => {
       const savedGroups = localStorage.getItem('favoriteGroups');
@@ -41,10 +40,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       }
     };
 
-    // Load groups initially
     loadGroups();
 
-    // Listen for custom events from other components
     const handleGroupsUpdated = () => {
       loadGroups();
     };
@@ -56,7 +53,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     };
   }, []);
 
-  // Check if provider is favorited
   const { data: favoriteData } = useQuery({
     queryKey: [`/api/favorites/${provider.id}/check`],
     enabled: isAuthenticated,
@@ -64,13 +60,11 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
 
   const isFavorite = (favoriteData as { isFavorite?: boolean })?.isFavorite || false;
 
-  // Remove favorite mutation
   const removeFavoriteMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("DELETE", `/api/favorites/${provider.id}`);
     },
     onSuccess: () => {
-      // Remove from all groups in localStorage
       const savedGroups = localStorage.getItem('favoriteGroups');
       if (savedGroups) {
         const groups = JSON.parse(savedGroups);
@@ -78,7 +72,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
         
         Object.keys(groups).forEach(groupName => {
           const updatedProviders = groups[groupName].filter((id: number) => id !== provider.id);
-          // Only keep groups that still have providers
           if (updatedProviders.length > 0) {
             updatedGroups[groupName] = updatedProviders;
           }
@@ -103,7 +96,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     },
   });
 
-  // Add favorite mutation
   const addFavoriteMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", `/api/favorites/${provider.id}`);
@@ -127,32 +119,23 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     },
   });
 
-  // Save groups to localStorage
   const saveGroups = (newGroups: {[key: string]: number[]}) => {
     setGroups(newGroups);
     localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
-    // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('groupsUpdated', { detail: newGroups }));
   };
 
-  // Function to get relative cost level based on calculated price range midpoint
   const getCostLevel = (provider: Provider, costRange: {min: number, max: number}) => {
-    // Calculate $$ meter based on the midpoint of the estimated cost range
-    // This provides a visual indicator of relative affordability
     const midpoint = (costRange.min + costRange.max) / 2;
     
-    // Define thresholds for $$ meter (1-5 dollar signs)
-    // Based on typical NYC childcare pricing ranges
-    if (midpoint <= 1500) return 1;      // $ (most affordable)
-    else if (midpoint <= 2200) return 2; // $$
-    else if (midpoint <= 2900) return 3; // $$$
-    else if (midpoint <= 3600) return 4; // $$$$
-    else return 5;                       // $$$$$ (premium)
+    if (midpoint <= 1500) return 1;
+    else if (midpoint <= 2200) return 2;
+    else if (midpoint <= 2900) return 3;
+    else if (midpoint <= 3600) return 4;
+    else return 5;
   };
 
-  // Function to get cost range based on provider characteristics
   const getCostRange = (provider: Provider) => {
-    // Generate realistic cost ranges based on provider type and location
     const typeRanges = {
       daycare: { min: 1800, max: 3500 },
       afterschool: { min: 800, max: 1500 },
@@ -162,7 +145,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     
     const baseRange = typeRanges[provider.type as keyof typeof typeRanges] || typeRanges.daycare;
     
-    // Adjust based on borough (Manhattan premium, others slightly lower)
     let multiplier = 1.0;
     if (provider.borough === 'Manhattan') multiplier = 1.2;
     else if (provider.borough === 'Brooklyn') multiplier = 1.0;
@@ -176,9 +158,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     return { min, max };
   };
 
-  // Function to render cost display
   const renderCostDisplay = (provider: Provider) => {
-    // Use actual price range from database if available
     const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
     const costRange = hasDbPriceRange ? 
       { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) } :
@@ -186,7 +166,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     
     const dollarSigns = getCostLevel(provider, costRange);
     
-    // Always show the $$ meter first (more compact spacing)
     const dollarMeter = (
       <div className="flex items-center gap-0.5 mb-0.5">
         {[1, 2, 3, 4, 5].map((i) => (
@@ -200,7 +179,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       </div>
     );
     
-    // Always show the full price range (never single price)
     return (
       <div className="text-left">
         {dollarMeter}
@@ -211,7 +189,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     );
   };
 
-  // Handle adding to existing group
   const handleAddToGroup = (groupName: string) => {
     const newGroups = {
       ...groups,
@@ -221,7 +198,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     addFavoriteMutation.mutate();
   };
 
-  // Handle creating new group
   const handleCreateNewGroup = () => {
     if (!newGroupName.trim()) {
       toast({
@@ -240,7 +216,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     addFavoriteMutation.mutate();
   };
 
-  // Handle saving ungrouped
   const handleSaveUngrouped = () => {
     addFavoriteMutation.mutate();
   };
@@ -295,23 +270,23 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
 
   return (
     <>
-      <Card className="hover:shadow-xl transition-all cursor-pointer rounded-2xl border-2" style={{ borderColor: 'var(--sage-light)' }} onClick={() => onViewDetails?.(provider)}>
+      <Card className="hover:shadow-xl transition-all cursor-pointer rounded-2xl border-2 border-brand-evergreen/10" onClick={() => onViewDetails?.(provider)}>
       <div className="aspect-[4/3] relative overflow-hidden rounded-t-2xl">
         <img
           src={
             provider.name.includes('Bright Horizons') 
-              ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children in modern daycare
+              ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
               : provider.name.includes('Learning Experience') 
-              ? "https://images.pexels.com/photos/8613097/pexels-photo-8613097.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children in classroom setting
+              ? "https://images.pexels.com/photos/8613097/pexels-photo-8613097.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
               : provider.name.includes('Little Sunshine') 
-              ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Happy children playing
+              ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
               : provider.name.includes('Montessori') 
-              ? "https://images.pexels.com/photos/8613106/pexels-photo-8613106.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children with Montessori materials
+              ? "https://images.pexels.com/photos/8613106/pexels-photo-8613106.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
               : provider.name.includes('Bronx Academy') 
-              ? "https://images.pexels.com/photos/8613090/pexels-photo-8613090.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children after school learning
+              ? "https://images.pexels.com/photos/8613090/pexels-photo-8613090.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
               : provider.name.includes('Camp') 
-              ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Children summer camp activities
-              : "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" // Default children
+              ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
+              : "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
           }
           alt={provider.name}
           className="w-full h-full object-cover"
@@ -332,8 +307,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
-            <h3 className="text-xl font-display font-bold mb-1" style={{ color: 'var(--taupe)' }}>{provider.name}</h3>
-            <p className="flex items-center text-sm" style={{ color: 'var(--warm-gray)' }}>
+            <h3 className="text-xl font-display font-bold mb-1 text-brand-evergreen">{provider.name}</h3>
+            <p className="flex items-center text-sm text-gray-500">
               <MapPin className="h-4 w-4 mr-1" />
               {provider.borough}, {provider.city === provider.borough ? 'NYC' : provider.city}
             </p>
@@ -350,9 +325,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
                 
                 return (
                   <div key={i} className="relative">
-                    {/* Background star */}
                     <Star className="h-4 w-4 text-gray-400 fill-gray-400" />
-                    {/* Filled star overlay */}
                     {(isFilled || isPartial) && (
                       <Star 
                         className="h-4 w-4 text-yellow-400 fill-yellow-400 absolute top-0 left-0"
@@ -371,7 +344,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
           </div>
         )}
 
-        {/* Achievement Badges */}
         {provider.badges && provider.badges.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {provider.badges.slice(0, 3).map((badgeType: string, index: number) => (
@@ -383,8 +355,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
         <div className="flex flex-wrap gap-2 mb-4">
           <Badge 
             variant="secondary"
-            className="cursor-pointer rounded-full font-medium"
-            style={{ backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' }}
+            className="cursor-pointer rounded-full font-medium bg-brand-sage text-action-teal"
             onClick={(e) => {
               e.stopPropagation();
               const ageInYears = Math.floor(provider.ageRangeMin / 12);
@@ -406,8 +377,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             Ages {Math.floor(provider.ageRangeMin / 12)}+
           </Badge>
           <Badge 
-            className="cursor-pointer rounded-full font-medium"
-            style={{ backgroundColor: 'hsl(35, 85%, 88%)', color: 'hsl(35, 85%, 30%)' }}
+            className="cursor-pointer rounded-full font-medium bg-amber-100 text-amber-700"
             onClick={(e) => {
               e.stopPropagation();
               setLocation(`/search?type=${encodeURIComponent(provider.type)}`);
@@ -419,8 +389,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             <Badge 
               key={feature} 
               variant="outline" 
-              className="text-xs cursor-pointer rounded-full font-medium border-2"
-              style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)' }}
+              className="text-xs cursor-pointer rounded-full font-medium border-2 border-brand-evergreen/10 text-action-teal"
               onClick={(e) => {
                 e.stopPropagation();
                 setLocation(`/search?features=${encodeURIComponent(feature)}`);
@@ -448,8 +417,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
                     onAddToComparison(provider);
                   }
                 }}
-                className={`rounded-lg font-medium ${isInComparison ? "border-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700" : ""}`}
-                style={!isInComparison ? { backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' } : { borderColor: 'var(--sage-light)' }}
+                className={`rounded-lg font-medium ${isInComparison ? "border-2 border-brand-evergreen/10 hover:bg-red-50 hover:border-red-200 hover:text-red-700" : "bg-brand-sage text-action-teal"}`}
               >
                 {isInComparison ? "In Comparison" : "Compare"}
               </Button>
@@ -457,8 +425,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             <Button
               variant="outline"
               size="sm"
-              className="rounded-lg font-medium border-2"
-              style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)' }}
+              className="rounded-lg font-medium border-2 border-brand-evergreen/10 text-action-teal"
               onClick={(e) => {
                 e.stopPropagation();
                 onRequestInfo?.(provider);
@@ -468,8 +435,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             </Button>
             <Button
               size="sm"
-              className="rounded-lg font-semibold text-white"
-              style={{ backgroundColor: 'var(--deep-coral)' }}
+              className="rounded-lg font-semibold text-white bg-action-clay hover:bg-action-clay/90"
               onClick={(e) => {
                 e.stopPropagation();
                 onViewDetails?.(provider);
@@ -482,7 +448,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       </CardContent>
     </Card>
 
-    {/* Group Selection Dialog */}
     <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -493,7 +458,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             How would you like to organize "{provider.name}" in your favorites?
           </p>
           
-          {/* Existing Groups */}
           {Object.keys(groups).length > 0 && (
             <div className="space-y-2">
               <Label className="text-sm font-medium">Add to existing group:</Label>
@@ -512,7 +476,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             </div>
           )}
 
-          {/* Create New Group */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Create new group:</Label>
             <div className="flex space-x-2">
@@ -536,7 +499,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             </div>
           </div>
 
-          {/* Save Ungrouped */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Or save without grouping:</Label>
             <Button

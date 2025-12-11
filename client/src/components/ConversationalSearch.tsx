@@ -91,10 +91,7 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
       <div className="relative group mb-6">
         {/* Sparkle Icon */}
         <div className="absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-          <Sparkles 
-            className="h-5 w-5 transition-colors" 
-            style={{ color: 'var(--deep-coral)' }}
-          />
+          <Sparkles className="h-5 w-5 transition-colors text-action-clay" />
         </div>
 
         <Input
@@ -103,45 +100,26 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
           onChange={handleChange}
           onKeyPress={handleKeyPress}
           placeholder={placeholderExamples[placeholderIndex]}
-          className="w-full h-16 pl-14 pr-6 text-base rounded-full shadow-md transition-all duration-300 border-2"
-          style={{
-            backgroundColor: 'hsl(40, 25%, 97%)', // warm ivory
-            borderColor: 'var(--sage-light)',
-            color: 'var(--taupe)'
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = 'var(--deep-coral)';
-            e.target.style.boxShadow = '0 4px 12px rgba(242, 107, 91, 0.15)';
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = 'var(--sage-light)';
-            e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
-          }}
+          className="w-full h-16 pl-14 pr-6 text-base rounded-full shadow-md transition-all duration-300 border-2 bg-brand-sage border-brand-evergreen/10 text-brand-evergreen placeholder:text-brand-evergreen/50 focus:border-action-clay focus:shadow-lg focus:ring-action-clay/20"
           data-testid="input-natural-language-search"
         />
 
         {/* Search hint */}
         {!localValue && (
-          <div 
-            className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-xs font-medium px-3 py-1 rounded-full"
-            style={{
-              backgroundColor: 'hsl(145, 30%, 88%)',
-              color: 'var(--sage-dark)'
-            }}
-          >
+          <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-xs font-medium px-3 py-1 rounded-full bg-brand-evergreen/10 text-brand-evergreen">
             Press Enter ↵
           </div>
         )}
       </div>
 
       {/* Try Natural Language Search Suggestions */}
-      <Card className="p-6 rounded-2xl shadow-sm border-2" style={{ backgroundColor: 'hsl(185, 45%, 94%)', borderColor: 'var(--teal-blue)' }}>
+      <Card className="p-6 rounded-2xl shadow-sm border-2 bg-sky-50 border-sky-400">
         <div className="flex items-center gap-2 mb-3">
-          <MessageCircle className="h-5 w-5" style={{ color: 'var(--teal-blue)' }} />
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--taupe)' }}>Try Natural Language Search</h3>
+          <MessageCircle className="h-5 w-5 text-sky-500" />
+          <h3 className="text-sm font-semibold text-brand-evergreen">Try Natural Language Search</h3>
         </div>
         
-        <p className="text-sm mb-4" style={{ color: 'var(--warm-gray)' }}>
+        <p className="text-sm mb-4 text-brand-evergreen/70">
           Just ask naturally! Our AI understands location, age, educational philosophy, and more.
         </p>
 
@@ -152,32 +130,20 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
               <button
                 key={index}
                 onClick={() => onSearch(query.text)}
-                className="text-left p-3 bg-white rounded-xl border-2 border-transparent hover:shadow-md transition-all group"
-                style={{
-                  borderColor: 'transparent'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--teal-blue)';
-                  e.currentTarget.style.backgroundColor = 'hsl(185, 55%, 98%)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'transparent';
-                  e.currentTarget.style.backgroundColor = 'white';
-                }}
+                className="text-left p-3 bg-white rounded-xl border-2 border-transparent hover:border-sky-400 hover:bg-sky-50 hover:shadow-md transition-all group"
                 data-testid={`button-example-query-${index}`}
               >
                 <div className="flex items-start gap-2">
-                  <div className="transition-colors" style={{ color: 'var(--warm-gray)' }}>
-                    <Icon className="h-4 w-4 group-hover:scale-110 transition-transform" style={{ color: 'var(--teal-blue)' }} />
+                  <div className="text-sky-500">
+                    <Icon className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium mb-1" style={{ color: 'var(--taupe)' }}>
+                    <p className="text-sm font-medium mb-1 text-brand-evergreen">
                       "{query.text}"
                     </p>
                     <Badge 
                       variant="outline" 
-                      className="text-xs border-0 px-2 py-0.5" 
-                      style={{ backgroundColor: 'hsl(185, 45%, 88%)', color: 'var(--teal-blue)' }}
+                      className="text-xs border-0 px-2 py-0.5 bg-sky-100 text-sky-600"
                     >
                       {query.category}
                     </Badge>
@@ -188,9 +154,9 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
           })}
         </div>
 
-        <div className="mt-4 pt-3 border-t flex items-start gap-2" style={{ borderColor: 'var(--sage-light)' }}>
-          <Lightbulb className="h-4 w-4 shrink-0 mt-0.5" style={{ color: 'var(--amber)' }} />
-          <p className="text-xs" style={{ color: 'var(--warm-gray)' }}>
+        <div className="mt-4 pt-3 border-t border-brand-evergreen/10 flex items-start gap-2">
+          <Lightbulb className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
+          <p className="text-xs text-brand-evergreen/70">
             <strong>Pro tip:</strong> Be specific about location and age for best results. Try phrases like "for my 4-year-old" or "in downtown Hoboken"
           </p>
         </div>

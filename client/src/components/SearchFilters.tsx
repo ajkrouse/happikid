@@ -166,13 +166,13 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
   const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || (filters.features && filters.features.length > 0);
 
   return (
-    <Card className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl shadow-lg border-2" style={{ borderColor: 'var(--sage-light)', backgroundColor: 'white' }}>
+    <Card className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl shadow-lg border-2 border-brand-evergreen/10 bg-white">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-display" style={{ color: 'var(--taupe)' }}>Narrow Your Search</CardTitle>
+          <CardTitle className="text-lg font-display text-brand-evergreen">Narrow Your Search</CardTitle>
           <div className="w-20 h-8 flex items-center justify-end">
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={onClearFilters} className="text-xs px-2 py-1 h-6 rounded-lg" style={{ color: 'var(--deep-coral)' }}>
+              <Button variant="ghost" size="sm" onClick={onClearFilters} className="text-xs px-2 py-1 h-6 rounded-lg text-action-clay">
                 Clear All
               </Button>
             )}
@@ -182,11 +182,11 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
       <CardContent className="space-y-6">
         {/* Provider Type */}
         <div>
-          <Label className="text-sm font-medium mb-2 block" style={{ color: 'var(--taupe)' }}>
+          <Label className="text-sm font-medium mb-2 block text-brand-evergreen">
             What type of program?
           </Label>
           <Select value={filters.type || "all"} onValueChange={handleTypeChange}>
-            <SelectTrigger className="rounded-lg border-2" style={{ borderColor: 'var(--sage-light)' }}>
+            <SelectTrigger className="rounded-lg border-2 border-brand-evergreen/10">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
@@ -201,11 +201,11 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
 
         {/* County Selection */}
         <div>
-          <Label className="text-sm font-medium mb-2 block" style={{ color: 'var(--taupe)' }}>
+          <Label className="text-sm font-medium mb-2 block text-brand-evergreen">
             Where are you looking?
           </Label>
           <Select value={filters.borough || "all"} onValueChange={handleBoroughChange}>
-            <SelectTrigger className="rounded-lg border-2" style={{ borderColor: 'var(--sage-light)' }}>
+            <SelectTrigger className="rounded-lg border-2 border-brand-evergreen/10">
               <SelectValue placeholder="All Counties" />
             </SelectTrigger>
             <SelectContent>
@@ -240,11 +240,11 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
         {/* City Selection (only show if county is selected) */}
         {filters.borough && filters.borough !== "all" && (
           <div>
-            <Label className="text-sm font-medium mb-2 block" style={{ color: 'var(--taupe)' }}>
+            <Label className="text-sm font-medium mb-2 block text-brand-evergreen">
               Specific neighborhood?
             </Label>
             <Select value={filters.city || "all"} onValueChange={handleCityChange}>
-              <SelectTrigger className="rounded-lg border-2" style={{ borderColor: 'var(--sage-light)' }}>
+              <SelectTrigger className="rounded-lg border-2 border-brand-evergreen/10">
                 <SelectValue placeholder="All Cities" />
               </SelectTrigger>
               <SelectContent>
@@ -261,13 +261,13 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
 
         {/* Age Group */}
         <div>
-          <Label className="text-sm font-medium mb-3 block" style={{ color: 'var(--taupe)' }}>
+          <Label className="text-sm font-medium mb-3 block text-brand-evergreen">
             Your child's age
           </Label>
           <RadioGroup value={filters.ageRange || "all"} onValueChange={handleAgeRangeChange}>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="all" id="age-all" />
-              <Label htmlFor="age-all" className="text-sm" style={{ color: 'var(--warm-gray)' }}>
+              <Label htmlFor="age-all" className="text-sm text-muted-foreground">
                 All Ages
               </Label>
             </div>
@@ -279,7 +279,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
             ].map((age) => (
               <div key={age.id} className="flex items-center space-x-2">
                 <RadioGroupItem value={age.value} id={age.id} />
-                <Label htmlFor={age.id} className="text-sm" style={{ color: 'var(--warm-gray)' }}>
+                <Label htmlFor={age.id} className="text-sm text-muted-foreground">
                   {age.label}
                 </Label>
               </div>
@@ -289,7 +289,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
 
         {/* Price Range */}
         <div>
-          <Label className="text-sm font-medium mb-3 block" style={{ color: 'var(--taupe)' }}>
+          <Label className="text-sm font-medium mb-3 block text-brand-evergreen">
             What can you budget?
           </Label>
           <RadioGroup value={filters.priceRange || "all"} onValueChange={handlePriceRangeChange}>
@@ -302,7 +302,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
             ].map((price) => (
               <div key={price.value} className="flex items-center space-x-2">
                 <RadioGroupItem value={price.value} id={price.value} />
-                <Label htmlFor={price.value} className="text-sm" style={{ color: 'var(--warm-gray)' }}>
+                <Label htmlFor={price.value} className="text-sm text-muted-foreground">
                   {price.label}
                 </Label>
               </div>
@@ -312,7 +312,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
 
         {/* Special Features */}
         <div>
-          <Label className="text-sm font-medium mb-3 block" style={{ color: 'var(--taupe)' }}>
+          <Label className="text-sm font-medium mb-3 block text-brand-evergreen">
             What matters to you?
           </Label>
           <div className="space-y-3">
@@ -350,7 +350,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
                     handleFeatureToggle(feature, checked as boolean)
                   }
                 />
-                <Label htmlFor={feature} className="text-sm" style={{ color: 'var(--warm-gray)' }}>
+                <Label htmlFor={feature} className="text-sm text-muted-foreground">
                   {feature}
                 </Label>
               </div>

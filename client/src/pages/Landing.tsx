@@ -44,7 +44,6 @@ export default function Landing() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch total provider count
   const { data: totalCount } = useQuery<{count: number}>({
     queryKey: ['/api/providers/stats'],
   });
@@ -69,7 +68,6 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen">
-      {/* Modern Navbar - New Brand Colors */}
       <nav className="sticky top-0 z-50 backdrop-blur-sm bg-white/95 border-b border-brand-evergreen/10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -113,10 +111,7 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* 1. HERO SECTION - "Sage Ally" Design */}
       <section className="relative w-full bg-brand-sage px-6 pt-20 pb-32 flex flex-col items-center justify-center text-center">
-        
-        {/* The "Sage Ally" Headline */}
         <h1 className="font-headline text-5xl md:text-6xl text-brand-evergreen mb-6 max-w-4xl leading-tight">
           The village, <span className="text-action-clay italic">verified.</span>
         </h1>
@@ -125,17 +120,13 @@ export default function Landing() {
           Describe what you need. Our AI checks availability, safety records, and pricing across the entire ecosystem.
         </p>
 
-        {/* The "Floating Console" Search Input */}
         <div className="relative w-full max-w-2xl group">
           <div className="absolute -inset-1 bg-action-teal/20 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
           <div className="relative flex items-center bg-brand-white rounded-xl shadow-xl border border-brand-evergreen/10 p-2">
-            
-            {/* Search Icon */}
             <div className="pl-4 text-action-clay">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
 
-            {/* The Input Field */}
             <input 
               type="text" 
               className="w-full bg-transparent border-none text-brand-evergreen placeholder-text-muted/60 text-lg px-4 py-3 focus:ring-0 focus:outline-none"
@@ -146,7 +137,6 @@ export default function Landing() {
               data-testid="input-hero-search"
             />
 
-            {/* The Action Button */}
             <button 
               onClick={handleSearch}
               className="bg-action-clay hover:bg-action-clay/90 text-white px-6 py-3 rounded-lg font-medium transition-colors whitespace-nowrap"
@@ -157,7 +147,6 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Trust Signals below search */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-text-muted font-medium">
           <span className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-action-teal"></div> Verified Safety
@@ -171,11 +160,9 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* QUICK ACCESS BAR - Category Navigation */}
       <section className="w-full bg-brand-white border-b border-brand-evergreen/10 py-8">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-            
             <button 
               onClick={() => setLocation("/search?type=daycare")}
               className="group flex flex-col items-center gap-3 min-w-[100px] p-2 rounded-xl hover:bg-brand-sage/50 transition-colors"
@@ -230,17 +217,15 @@ export default function Landing() {
               </div>
               <span className="font-body text-sm font-semibold text-brand-evergreen">Tutoring</span>
             </button>
-
           </div>
         </div>
       </section>
 
-      {/* 2. SUPPORTING BLOCK 1 - No More Digging */}
       <section className="py-16 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-display mb-6 text-brand-evergreen">
+              <h2 className="text-3xl sm:text-4xl font-headline mb-6 text-brand-evergreen">
                 No more digging through Facebook groups, outdated sites, or endless calls
               </h2>
               <p className="text-lg leading-relaxed mb-6 text-text-muted">
@@ -274,7 +259,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 3. SUPPORTING BLOCK 2 - AI Section */}
       <section className="py-20 bg-brand-sage">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -298,7 +282,7 @@ export default function Landing() {
               <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full bg-action-teal text-white">
                 AI-Powered
               </Badge>
-              <h2 className="text-3xl sm:text-4xl font-display mb-6 text-brand-evergreen">
+              <h2 className="text-3xl sm:text-4xl font-headline mb-6 text-brand-evergreen">
                 AI that organizes a fragmented childcare ecosystem
               </h2>
               <p className="text-lg leading-relaxed text-text-muted">
@@ -309,14 +293,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. SUPPORTING BLOCK 3 - What We Cover */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full bg-action-clay text-white">
               Ages 0–13
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-display mb-4 text-brand-evergreen">
+            <h2 className="text-3xl sm:text-4xl font-headline mb-4 text-brand-evergreen">
               All the child-focused programs you rely on
             </h2>
             <p className="text-lg max-w-3xl mx-auto text-text-muted">
@@ -348,14 +331,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 5. CATEGORY GRID SECTION */}
       <section className="py-20 bg-action-sand">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 px-4 py-2 text-sm font-semibold rounded-full bg-action-teal text-white">
               Top Categories
             </Badge>
-            <h2 className="text-4xl sm:text-5xl font-display mb-4 text-brand-evergreen">
+            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
               Explore programs by type
             </h2>
             <p className="text-lg max-w-3xl mx-auto text-text-muted">
@@ -369,68 +351,64 @@ export default function Landing() {
                 icon: Baby, 
                 title: 'Daycare & Preschool', 
                 desc: 'Safe, nurturing care for infants through pre-K',
-                color: 'var(--deep-coral)',
-                bgColor: 'hsl(6, 85%, 88%)',
+                iconColor: 'text-action-clay',
+                iconBg: 'bg-action-sand',
                 type: 'daycare'
               },
               { 
                 icon: School, 
                 title: 'After-School Programs', 
                 desc: 'Fun activities that keep kids learning and growing',
-                color: 'var(--sage-dark)',
-                bgColor: 'hsl(145, 30%, 82%)',
+                iconColor: 'text-action-teal',
+                iconBg: 'bg-brand-sage',
                 type: 'afterschool'
               },
               { 
                 icon: Trophy, 
                 title: 'Sports & Activities', 
                 desc: 'Soccer, gymnastics, dance, martial arts, and more.',
-                color: 'var(--amber)',
-                bgColor: 'hsl(35, 85%, 85%)',
+                iconColor: 'text-amber-500',
+                iconBg: 'bg-amber-100',
                 type: 'afterschool'
               },
               { 
                 icon: BookOpen, 
                 title: 'Tutoring & Enrichment', 
                 desc: 'Academic support and STEM learning.',
-                color: 'var(--teal-blue)',
-                bgColor: 'hsl(185, 55%, 80%)',
+                iconColor: 'text-action-teal',
+                iconBg: 'bg-cyan-100',
                 type: 'afterschool'
               },
               { 
                 icon: TreePine, 
                 title: 'Summer & Holiday Camps', 
                 desc: 'Adventure, learning, and new friendships.',
-                color: 'var(--olive)',
-                bgColor: 'hsl(75, 35%, 82%)',
+                iconColor: 'text-brand-evergreen',
+                iconBg: 'bg-lime-100',
                 type: 'camp'
               },
               { 
                 icon: GraduationCap, 
                 title: 'Private & Microschools', 
                 desc: 'Personalized education for every learner.',
-                color: 'var(--terracotta)',
-                bgColor: 'hsl(12, 65%, 85%)',
+                iconColor: 'text-action-clay',
+                iconBg: 'bg-orange-100',
                 type: 'school'
               }
             ].map((cat, i) => (
               <Card 
                 key={i} 
-                className="group cursor-pointer overflow-hidden hover:shadow-2xl transition-all duration-300 rounded-2xl border-2 border-transparent hover:scale-105"
-                style={{backgroundColor: 'white'}}
+                className="group cursor-pointer overflow-hidden hover:shadow-2xl transition-all duration-300 rounded-2xl border-2 border-transparent hover:scale-105 bg-white"
                 onClick={() => handleCategoryClick(cat.type)}
                 data-testid={`card-category-${cat.type}`}
               >
                 <CardContent className="p-8">
-                  <div 
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
-                    style={{backgroundColor: cat.bgColor}}
-                  >
-                    <cat.icon className="h-9 w-9" style={{color: cat.color}} />
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${cat.iconBg}`}>
+                    <cat.icon className={`h-9 w-9 ${cat.iconColor}`} />
                   </div>
-                  <h3 className="text-xl font-display mb-2" style={{color: 'var(--taupe)'}}>{cat.title}</h3>
-                  <p className="text-sm mb-4" style={{color: 'var(--warm-gray)'}}>{cat.desc}</p>
-                  <div className="flex items-center gap-2 text-sm font-semibold" style={{color: cat.color}}>
+                  <h3 className="text-xl font-headline mb-2 text-brand-evergreen">{cat.title}</h3>
+                  <p className="text-sm mb-4 text-text-muted">{cat.desc}</p>
+                  <div className={`flex items-center gap-2 text-sm font-semibold ${cat.iconColor}`}>
                     Learn More
                     <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </div>
@@ -441,36 +419,33 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 6. SOCIAL PROOF - Updated Copy */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
               Trusted by thousands across NY, NJ & CT
             </h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-start">
-            {/* Left - Stats */}
             <div className="space-y-6">
               {[
-                { number: totalCount ? `${totalCount.count.toLocaleString()}+` : '5,515+', label: 'Programs Analyzed', icon: Target, bg: 'hsl(6, 85%, 88%)', color: 'var(--deep-coral)' },
-                { number: '85%', label: 'Verified Through Public Records', icon: Shield, bg: 'hsl(145, 30%, 82%)', color: 'var(--sage-dark)' },
-                { number: '3', label: 'States', icon: MapPin, bg: 'hsl(35, 85%, 85%)', color: 'var(--amber)' }
+                { number: totalCount ? `${totalCount.count.toLocaleString()}+` : '5,515+', label: 'Programs Analyzed', icon: Target, bg: 'bg-action-sand', color: 'text-action-clay' },
+                { number: '85%', label: 'Verified Through Public Records', icon: Shield, bg: 'bg-brand-sage', color: 'text-action-teal' },
+                { number: '3', label: 'States', icon: MapPin, bg: 'bg-amber-100', color: 'text-amber-500' }
               ].map((stat, i) => (
-                <div key={i} className="flex items-center gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow" style={{backgroundColor: stat.bg}}>
+                <div key={i} className={`flex items-center gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${stat.bg}`}>
                   <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-white shadow-sm">
-                    <stat.icon className="h-7 w-7" style={{color: stat.color}} />
+                    <stat.icon className={`h-7 w-7 ${stat.color}`} />
                   </div>
                   <div>
-                    <p className="text-3xl font-bold" style={{color: 'var(--taupe)'}}>{stat.number}</p>
-                    <p className="font-medium" style={{color: 'var(--taupe)'}}>{stat.label}</p>
+                    <p className="text-3xl font-bold text-brand-evergreen">{stat.number}</p>
+                    <p className="font-medium text-brand-evergreen">{stat.label}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Right - Testimonials */}
             <div className="space-y-6">
               {[
                 {
@@ -484,19 +459,19 @@ export default function Landing() {
                   role: "Manhattan"
                 }
               ].map((testimonial, i) => (
-                <Card key={i} className="bg-white border-2 rounded-2xl shadow-md hover:shadow-lg transition-shadow" style={{borderColor: 'var(--sage-light)'}}>
+                <Card key={i} className="bg-white border-2 rounded-2xl shadow-md hover:shadow-lg transition-shadow border-brand-evergreen/10">
                   <CardContent className="p-6">
                     <div className="flex gap-1 mb-3">
                       {[...Array(5)].map((_, j) => (
-                        <Star key={j} className="h-5 w-5 fill-current" style={{color: 'var(--amber)'}} />
+                        <Star key={j} className="h-5 w-5 fill-current text-amber-500" />
                       ))}
                     </div>
-                    <p className="text-base mb-4 leading-relaxed" style={{color: 'var(--taupe)'}}>"{testimonial.quote}"</p>
+                    <p className="text-base mb-4 leading-relaxed text-brand-evergreen">"{testimonial.quote}"</p>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full" style={{backgroundColor: i === 0 ? 'hsl(6, 85%, 88%)' : 'hsl(145, 30%, 82%)'}}></div>
+                      <div className={`w-10 h-10 rounded-full ${i === 0 ? 'bg-action-sand' : 'bg-brand-sage'}`}></div>
                       <div>
-                        <p className="font-semibold" style={{color: 'var(--taupe)'}}>{testimonial.author}</p>
-                        <p className="text-sm" style={{color: 'var(--warm-gray)'}}>{testimonial.role}</p>
+                        <p className="font-semibold text-brand-evergreen">{testimonial.author}</p>
+                        <p className="text-sm text-text-muted">{testimonial.role}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -507,14 +482,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 6.5. HOW IT WORKS SECTION */}
-      <section id="how-it-works" className="py-20" style={{backgroundColor: 'hsl(145, 20%, 93%)'}}>
+      <section id="how-it-works" className="py-20 bg-brand-sage">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
               How It Works
             </h2>
-            <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--warm-gray)'}}>
+            <p className="text-lg max-w-2xl mx-auto text-text-muted">
               Finding the right childcare shouldn't be complicated. Here's how HappiKid makes it simple.
             </p>
           </div>
@@ -555,14 +529,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 7. AI SECTION - Updated to "Smarter matches. Clearer choices. Better outcomes." */}
-      <section className="py-20" style={{backgroundColor: 'hsl(12, 60%, 88%)'}}>
+      <section className="py-20 bg-action-sand">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
               Smarter matches. <br />Clearer choices. Better outcomes.
             </h2>
-            <p className="text-lg max-w-3xl mx-auto" style={{color: 'var(--taupe)', opacity: 0.9}}>
+            <p className="text-lg max-w-3xl mx-auto text-brand-evergreen/90">
               We organize the details that matter — schedules, age ranges, teaching styles, safety info, and more — so you can make confident decisions without the guesswork.
             </p>
           </div>
@@ -572,26 +545,32 @@ export default function Landing() {
               {
                 icon: Database,
                 title: 'Childcare Knowledge Graph',
-                desc: 'Structured, reliable information on programs, teaching styles, and licensing.'
+                desc: 'Structured, reliable information on programs, teaching styles, and licensing.',
+                iconBg: 'bg-amber-100',
+                iconColor: 'text-amber-500'
               },
               {
                 icon: Lightbulb,
                 title: 'Explainable Recommendations',
-                desc: 'See why a program matches your needs — transparent, simple, and helpful.'
+                desc: 'See why a program matches your needs — transparent, simple, and helpful.',
+                iconBg: 'bg-cyan-100',
+                iconColor: 'text-action-teal'
               },
               {
                 icon: Network,
                 title: 'Cross-Category Search',
-                desc: 'Compare care types, camps, activities, and tutoring in one search.'
+                desc: 'Compare care types, camps, activities, and tutoring in one search.',
+                iconBg: 'bg-brand-sage',
+                iconColor: 'text-action-teal'
               }
             ].map((feature, i) => (
               <Card key={i} className="bg-white backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
                 <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4" style={{backgroundColor: i === 0 ? 'hsl(35, 85%, 85%)' : i === 1 ? 'hsl(185, 55%, 80%)' : 'hsl(145, 30%, 82%)'}}>
-                    <feature.icon className="h-9 w-9" style={{color: i === 0 ? 'var(--amber)' : i === 1 ? 'var(--teal-blue)' : 'var(--sage-dark)'}} />
+                  <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${feature.iconBg}`}>
+                    <feature.icon className={`h-9 w-9 ${feature.iconColor}`} />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3" style={{color: 'var(--taupe)'}}>{feature.title}</h3>
-                  <p style={{color: 'var(--warm-gray)'}}>{feature.desc}</p>
+                  <h3 className="text-xl font-semibold mb-3 text-brand-evergreen">{feature.title}</h3>
+                  <p className="text-text-muted">{feature.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -599,12 +578,12 @@ export default function Landing() {
 
           <Card className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl mx-auto">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{backgroundColor: 'hsl(145, 30%, 82%)'}}>
-                <Search className="h-5 w-5" style={{color: 'var(--sage-dark)'}} />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-brand-sage">
+                <Search className="h-5 w-5 text-action-teal" />
               </div>
               <div>
-                <p className="text-sm font-medium mb-2 opacity-70" style={{color: 'var(--warm-gray)'}}>Real search example:</p>
-                <p className="text-lg font-medium" style={{color: 'var(--taupe)'}}>
+                <p className="text-sm font-medium mb-2 opacity-70 text-text-muted">Real search example:</p>
+                <p className="text-lg font-medium text-brand-evergreen">
                   "Find full-day programs with extended hours near the PATH train that accept 2-year-olds starting in March."
                 </p>
               </div>
@@ -613,42 +592,39 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 8. PROVIDER GROWTH OS SECTION - New Copy */}
-      <section className="py-20" style={{backgroundColor: 'hsl(75, 30%, 90%)'}}>
+      <section className="py-20 bg-lime-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
               Providers don't need more admin tools — <br />they need more families.
             </h2>
-            <p className="text-lg" style={{color: 'var(--warm-gray)'}}>
+            <p className="text-lg text-text-muted">
               HappiKid helps you fill open spots, improve your visibility, and reach families searching for programs like yours.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left - Features */}
             <div className="space-y-6">
               {[
-                { icon: TrendingUp, title: 'SEO-Optimized Profiles', desc: 'Show up in local searches when families look for care, camps, and enrichment.' },
-                { icon: BarChart3, title: 'Demand Insights', desc: 'See what families in your area are searching for — and how your program compares.' },
-                { icon: Award, title: 'Profile Boosting Tools', desc: 'We guide you step-by-step to strengthen your profile and attract more inquiries.' },
-                { icon: Target, title: 'Cross-Category Exposure', desc: 'Be discovered across daycare, after-school, camps, and activities — all from one listing.' }
+                { icon: TrendingUp, title: 'SEO-Optimized Profiles', desc: 'Show up in local searches when families look for care, camps, and enrichment.', iconBg: 'bg-brand-sage', iconColor: 'text-action-teal' },
+                { icon: BarChart3, title: 'Demand Insights', desc: 'See what families in your area are searching for — and how your program compares.', iconBg: 'bg-amber-100', iconColor: 'text-amber-500' },
+                { icon: Award, title: 'Profile Boosting Tools', desc: 'We guide you step-by-step to strengthen your profile and attract more inquiries.', iconBg: 'bg-brand-sage', iconColor: 'text-action-teal' },
+                { icon: Target, title: 'Cross-Category Exposure', desc: 'Be discovered across daycare, after-school, camps, and activities — all from one listing.', iconBg: 'bg-amber-100', iconColor: 'text-amber-500' }
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 items-start">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{backgroundColor: i % 2 === 0 ? 'hsl(145, 30%, 82%)' : 'hsl(35, 85%, 85%)'}}>
-                    <item.icon className="h-6 w-6" style={{color: i % 2 === 0 ? 'var(--sage-dark)' : 'var(--amber)'}} />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${item.iconBg}`}>
+                    <item.icon className={`h-6 w-6 ${item.iconColor}`} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1" style={{color: 'var(--taupe)'}}>{item.title}</h3>
-                    <p style={{color: 'var(--warm-gray)'}}>{item.desc}</p>
+                    <h3 className="font-semibold text-lg mb-1 text-brand-evergreen">{item.title}</h3>
+                    <p className="text-text-muted">{item.desc}</p>
                   </div>
                 </div>
               ))}
               
               <Button 
                 size="lg"
-                className="rounded-md text-white font-semibold shadow-lg hover:shadow-xl transition-all mt-6"
-                style={{backgroundColor: 'var(--deep-coral)'}}
+                className="rounded-md bg-action-clay text-white font-semibold shadow-lg hover:shadow-xl hover:bg-action-clay/90 transition-all mt-6"
                 data-testid="button-provider-list-program"
               >
                 List Your Program (Free During MVP)
@@ -656,45 +632,44 @@ export default function Landing() {
               </Button>
             </div>
 
-            {/* Right - Dashboard Mockup */}
             <Card className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-              <div className="bg-gradient-to-br p-6" style={{background: 'linear-gradient(135deg, var(--sage-dark) 0%, var(--teal-blue) 100%)'}}>
+              <div className="bg-gradient-to-br from-action-teal to-cyan-600 p-6">
                 <p className="text-white font-semibold">Your Provider Dashboard</p>
               </div>
               <CardContent className="p-6 space-y-4">
-                <div className="p-4 rounded-xl" style={{backgroundColor: 'hsl(145, 30%, 90%)'}}>
-                  <p className="text-sm mb-2 font-medium" style={{color: 'var(--taupe)'}}>Profile Visibility Score</p>
+                <div className="p-4 rounded-xl bg-brand-sage/50">
+                  <p className="text-sm mb-2 font-medium text-brand-evergreen">Profile Visibility Score</p>
                   <div className="flex items-center gap-3">
-                    <div className="text-4xl font-bold" style={{color: 'var(--sage-dark)'}}>87</div>
-                    <div className="flex-1 h-3 rounded-full" style={{backgroundColor: 'var(--sage-light)'}}>
-                      <div className="h-full rounded-full" style={{backgroundColor: 'var(--sage-dark)', width: '87%'}}></div>
+                    <div className="text-4xl font-bold text-action-teal">87</div>
+                    <div className="flex-1 h-3 rounded-full bg-brand-evergreen/10">
+                      <div className="h-full rounded-full bg-action-teal w-[87%]"></div>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl" style={{backgroundColor: 'hsl(6, 85%, 88%)'}}>
-                    <p className="text-sm mb-1 font-medium" style={{color: 'var(--taupe)'}}>New Inquiries</p>
-                    <p className="text-2xl font-bold" style={{color: 'var(--deep-coral)'}}>24</p>
-                    <p className="text-xs opacity-70" style={{color: 'var(--taupe)'}}>This month</p>
+                  <div className="p-4 rounded-xl bg-action-sand">
+                    <p className="text-sm mb-1 font-medium text-brand-evergreen">New Inquiries</p>
+                    <p className="text-2xl font-bold text-action-clay">24</p>
+                    <p className="text-xs opacity-70 text-brand-evergreen">This month</p>
                   </div>
-                  <div className="p-4 rounded-xl" style={{backgroundColor: 'hsl(35, 85%, 85%)'}}>
-                    <p className="text-sm mb-1 font-medium" style={{color: 'var(--taupe)'}}>Profile Views</p>
-                    <p className="text-2xl font-bold" style={{color: 'var(--amber)'}}>342</p>
-                    <p className="text-xs opacity-70" style={{color: 'var(--taupe)'}}>This month</p>
+                  <div className="p-4 rounded-xl bg-amber-100">
+                    <p className="text-sm mb-1 font-medium text-brand-evergreen">Profile Views</p>
+                    <p className="text-2xl font-bold text-amber-500">342</p>
+                    <p className="text-xs opacity-70 text-brand-evergreen">This month</p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl border-2" style={{borderColor: 'var(--sage-light)'}}>
-                  <p className="text-sm mb-3 font-semibold" style={{color: 'var(--taupe)'}}>Quick Tips</p>
+                <div className="p-4 rounded-xl border-2 border-brand-evergreen/10">
+                  <p className="text-sm mb-3 font-semibold text-brand-evergreen">Quick Tips</p>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4" style={{color: 'var(--sage-dark)'}} />
-                      <span style={{color: 'var(--taupe)'}}>Add photos to get 40% more inquiries</span>
+                      <CheckCircle2 className="h-4 w-4 text-action-teal" />
+                      <span className="text-brand-evergreen">Add photos to get 40% more inquiries</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4" style={{color: 'var(--sage-dark)'}} />
-                      <span style={{color: 'var(--taupe)'}}>Complete pricing to rank higher</span>
+                      <CheckCircle2 className="h-4 w-4 text-action-teal" />
+                      <span className="text-brand-evergreen">Complete pricing to rank higher</span>
                     </div>
                   </div>
                 </div>
@@ -704,11 +679,10 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 9. WHY NOW SECTION - Updated Copy with Stat Badges */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl sm:text-5xl font-display mb-4" style={{color: 'var(--taupe)'}}>
+            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
               Why families and providers need HappiKid now
             </h2>
           </div>
@@ -749,10 +723,9 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 10. FINAL CTA BANNER - Updated Copy */}
       <section className="py-20 bg-brand-evergreen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl sm:text-5xl font-display text-white mb-4">
+          <h2 className="text-4xl sm:text-5xl font-headline text-white mb-4">
             Ready to find the right fit for your child?
           </h2>
           <p className="text-xl text-white/95 mb-8">
@@ -762,8 +735,7 @@ export default function Landing() {
             <Button 
               size="lg"
               onClick={() => setLocation("/search")}
-              className="rounded-md bg-white font-semibold shadow-xl hover:shadow-2xl transition-all px-8"
-              style={{color: 'var(--deep-coral)'}}
+              className="rounded-md bg-white text-action-clay font-semibold shadow-xl hover:shadow-2xl transition-all px-8"
               data-testid="button-cta-find-programs"
             >
               Start Searching
@@ -783,11 +755,9 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 11. FOOTER - Consistent Branding */}
-      <footer className="py-16" style={{backgroundColor: 'var(--taupe)', color: 'white'}}>
+      <footer className="py-16 bg-brand-evergreen text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            {/* Company */}
             <div>
               <a href="/" className="flex items-center gap-2 mb-4 group">
                 <div className="w-8 h-8 text-white">
@@ -819,7 +789,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* For Parents */}
             <div>
               <h4 className="font-semibold mb-4">For Parents</h4>
               <ul className="space-y-3 text-white/80">
@@ -830,7 +799,6 @@ export default function Landing() {
               </ul>
             </div>
 
-            {/* For Providers */}
             <div>
               <h4 className="font-semibold mb-4">For Providers</h4>
               <ul className="space-y-3 text-white/80">
@@ -841,7 +809,6 @@ export default function Landing() {
               </ul>
             </div>
 
-            {/* Company */}
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-3 text-white/80">
