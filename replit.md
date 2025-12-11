@@ -9,7 +9,23 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### UI/UX Decisions
-The platform features a warm, sophisticated design with an earth-toned color palette (terracotta, sage, mustard, deep coral, amber, teal-blue) and warm neutrals. Design elements include rounded cards, soft shadows, tactile textures, and asymmetric layouts. Typography uses DM Serif Display for headlines and Inter for UI text. All border radii are standardized (e.g., `rounded-lg` for buttons/inputs, `rounded-2xl` for cards). The search results page mirrors this aesthetic with a warm ivory background, sage-themed accents, and coral call-to-actions. Mobile responsiveness is a core design principle, with a mobile-first approach implemented across all pages, including a responsive navigation and adjusted typography.
+The platform uses a refined brand color system:
+
+**Brand Core (Trust Layer):**
+- `brand-evergreen` (#1A4D3E): Headings, Nav Bar, Footer, Main Text
+- `brand-sage` (#E8F1ED): Section Backgrounds (Hero, Why Us)
+- `brand-white` (#FFFFFF): Cards, Search Box background
+
+**Functional (Action Layer):**
+- `action-clay` (#E07A5F): Primary Buttons (Book, Search), Logo Dot
+- `action-teal` (#3D9990): Verified Badges, Checkmarks, Active Borders
+- `action-sand` (#F4F1EA): Secondary inputs, warm neutral areas
+
+**Text Colors:**
+- `text-main` (#1A4D3E): Deep Evergreen for primary text
+- `text-muted` (#5C6F66): Softer Green-Grey for subtitles
+
+Design elements include rounded cards (`rounded-2xl`), rounded buttons (`rounded-lg`), soft shadows, and a mobile-first responsive approach. Typography uses DM Serif Display for headlines and Inter for UI text.
 
 ### Technical Implementations
 - **Frontend**: React 18 with TypeScript, Wouter for routing, Tailwind CSS with shadcn/ui for styling, TanStack Query for state management, and Vite as the build tool.
