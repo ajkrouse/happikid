@@ -98,7 +98,7 @@ export default function Landing() {
 
             <button 
               onClick={handleSearch}
-              className="bg-action-clay hover:bg-action-clay/90 text-white px-6 py-3 rounded-lg font-medium transition-colors whitespace-nowrap"
+              className="bg-action-clay hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg whitespace-nowrap"
               data-testid="button-hero-ask"
             >
               Ask HappiKid
