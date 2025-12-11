@@ -40,12 +40,10 @@ import type { TaxonomyResponse, Category } from "../../../types/taxonomy";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-// Define item type for drag and drop
 const ItemTypes = {
   PROVIDER: 'provider',
 };
 
-// Draggable Provider Item Component
 function DraggableProviderItem({ 
   provider, 
   favorite, 
@@ -78,7 +76,6 @@ function DraggableProviderItem({
   );
 }
 
-// Drop Zone Component
 function DropZone({ 
   groupName, 
   onDrop, 
@@ -105,18 +102,16 @@ function DropZone({
   return (
     <div 
       ref={drop}
-      className="transition-colors"
-      style={isOver ? (isUngrouped 
-        ? { backgroundColor: 'hsl(40, 25%, 95%)', border: '2px dashed rgba(120, 113, 108, 0.4)' }
-        : { backgroundColor: 'hsl(145, 30%, 95%)', border: '2px dashed var(--sage-light)' }
-      ) : {}}
+      className={`transition-colors ${isOver ? (isUngrouped 
+        ? 'bg-action-sand border-2 border-dashed border-text-muted/40'
+        : 'bg-brand-sage border-2 border-dashed border-brand-evergreen/20'
+      ) : ''}`}
     >
       {children}
     </div>
   );
 }
 
-// Helper function to get full type labels
 function getTypeLabel(type: string): string {
   switch(type) {
     case 'daycare': return 'Daycare Center';
@@ -127,7 +122,6 @@ function getTypeLabel(type: string): string {
   }
 }
 
-// Category icons for taxonomy
 const categoryIcons: Record<string, any> = {
   "academic-enrichment": BookOpen,
   "creative-performing-arts": Palette,
@@ -140,7 +134,6 @@ const categoryIcons: Record<string, any> = {
   "seasonal-hybrid": Calendar,
 };
 
-// Taxonomy Navigator Component
 function TaxonomyNavigator({
   categories,
   selectedCategory,
@@ -155,9 +148,9 @@ function TaxonomyNavigator({
   const [openCategory, setOpenCategory] = useState<string>(selectedCategory || "");
 
   return (
-    <div className="rounded-2xl border p-4" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }} data-testid="taxonomy-navigator">
-      <h3 className="font-display text-lg mb-4 flex items-center gap-2" style={{ color: 'var(--taupe)' }}>
-        <BookOpen className="h-5 w-5" style={{ color: 'var(--sage-dark)' }} />
+    <div className="rounded-2xl border p-4 bg-brand-white border-brand-evergreen/10" data-testid="taxonomy-navigator">
+      <h3 className="font-headline text-lg mb-4 flex items-center gap-2 text-brand-evergreen">
+        <BookOpen className="h-5 w-5 text-action-teal" />
         Browse by Category
       </h3>
       <Accordion type="single" collapsible value={openCategory} onValueChange={setOpenCategory}>
@@ -168,9 +161,9 @@ function TaxonomyNavigator({
             <AccordionItem key={category.id} value={category.slug} data-testid={`accordion-category-${category.slug}`}>
               <AccordionTrigger className="hover:no-underline py-2">
                 <div className="flex items-center gap-2 text-sm">
-                  <Icon className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
-                  <span className="font-medium text-left" style={{ color: 'var(--taupe)' }}>{category.name}</span>
-                  <span className="text-xs ml-auto" style={{ color: 'rgba(77, 67, 58, 0.6)' }}>({category.subcategories?.length || 0})</span>
+                  <Icon className="h-4 w-4 text-action-teal" />
+                  <span className="font-medium text-left text-brand-evergreen">{category.name}</span>
+                  <span className="text-xs ml-auto text-brand-evergreen/60">({category.subcategories?.length || 0})</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -184,10 +177,9 @@ function TaxonomyNavigator({
                         onClick={() => onCategorySelect(category.slug, subcategory.slug)}
                         className={`w-full text-left text-sm py-2 px-3 rounded-lg transition-colors ${
                           isSelected
-                            ? 'font-medium'
-                            : 'hover:opacity-70'
+                            ? 'font-medium bg-brand-sage text-action-teal'
+                            : 'hover:opacity-70 text-brand-evergreen'
                         }`}
-                        style={isSelected ? { backgroundColor: 'hsl(145, 30%, 95%)', color: 'var(--sage-dark)' } : { color: 'var(--taupe)' }}
                         data-testid={`button-subcategory-${subcategory.slug}`}
                       >
                         <div className="flex items-center justify-between">
@@ -207,7 +199,6 @@ function TaxonomyNavigator({
   );
 }
 
-// Inline FavoritesSection component
 function FavoritesSection({ 
   setSelectedProvider, 
   setShowProviderModal,
@@ -237,12 +228,10 @@ function FavoritesSection({
     enabled: true,
   });
 
-  // Load groups from localStorage and refresh when favorites change
   useEffect(() => {
     const savedGroups = localStorage.getItem('favoriteGroups');
     if (savedGroups) {
       const groups = JSON.parse(savedGroups);
-      // Clean up empty groups
       const cleanGroups: {[key: string]: number[]} = {};
       Object.keys(groups).forEach(groupName => {
         if (groups[groupName] && groups[groupName].length > 0) {
@@ -250,16 +239,14 @@ function FavoritesSection({
         }
       });
       
-      // Update localStorage if we removed any empty groups
       if (Object.keys(cleanGroups).length !== Object.keys(groups).length) {
         localStorage.setItem('favoriteGroups', JSON.stringify(cleanGroups));
       }
       
       setGroups(cleanGroups);
     }
-  }, [favorites]); // Refresh groups when favorites data changes
+  }, [favorites]);
 
-  // Function to refresh groups from localStorage
   const refreshGroups = () => {
     const savedGroups = localStorage.getItem('favoriteGroups');
     if (savedGroups) {
@@ -267,7 +254,6 @@ function FavoritesSection({
     }
   };
 
-  // Function to load a group into comparison tool
   const handleLoadGroupIntoComparison = (groupName: string, groupProviders: Provider[]) => {
     setComparisonProviders(groupProviders);
     setShowSavedGroupsModal(false);
@@ -279,15 +265,12 @@ function FavoritesSection({
     });
   };
 
-  // Save groups to localStorage
   const saveGroups = (newGroups: {[key: string]: number[]}) => {
     setGroups(newGroups);
     localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
-    // Dispatch custom event to notify parent component about groups count update
     window.dispatchEvent(new CustomEvent('groupsUpdated', { detail: newGroups }));
   };
 
-  // Remove favorite mutation
   const removeFavoriteMutation = useMutation({
     mutationFn: async (providerId: number) => {
       await apiRequest("DELETE", `/api/favorites/${providerId}`);
@@ -351,7 +334,6 @@ function FavoritesSection({
     });
   };
 
-  // Handle moving ungrouped item to existing group
   const handleMoveToGroup = (groupName: string, providerId: number) => {
     const newGroups = {
       ...groups,
@@ -365,7 +347,6 @@ function FavoritesSection({
     });
   };
 
-  // Handle creating new group for ungrouped item
   const handleCreateNewGroupForMove = (providerId: number) => {
     if (!newGroupForMove.trim()) {
       toast({
@@ -390,7 +371,6 @@ function FavoritesSection({
     });
   };
 
-  // Handle moving selected items to existing group
   const handleMoveSelectedToGroup = (groupName: string) => {
     const selectedArray = Array.from(selectedItems);
     const newGroups = {
@@ -406,11 +386,9 @@ function FavoritesSection({
     });
   };
 
-  // Handle drag and drop provider movement
   const handleDragDropMove = (providerId: number, fromGroup: string | null, toGroup: string | null) => {
     const newGroups = { ...groups };
     
-    // Remove from source group
     if (fromGroup) {
       newGroups[fromGroup] = newGroups[fromGroup].filter(id => id !== providerId);
       if (newGroups[fromGroup].length === 0) {
@@ -418,7 +396,6 @@ function FavoritesSection({
       }
     }
     
-    // Add to target group (null means ungrouped)
     if (toGroup) {
       newGroups[toGroup] = [...(newGroups[toGroup] || []), providerId];
     }
@@ -461,17 +438,13 @@ function FavoritesSection({
   return (
     <div className="space-y-4">
       {processedFavorites.length === 0 ? (
-        <div className="text-center py-6 rounded-lg" style={{ backgroundColor: 'hsl(40, 20%, 95%)' }}>
-          <Heart className="h-8 w-8 mx-auto mb-2" style={{ color: 'rgba(77, 67, 58, 0.4)' }} />
-          <p className="text-sm" style={{ color: 'var(--taupe)' }}>No favorite providers yet</p>
-          <p className="text-xs" style={{ color: 'rgba(77, 67, 58, 0.6)' }}>Click the ❤️ on provider cards to save them</p>
+        <div className="text-center py-6 rounded-lg bg-action-sand">
+          <Heart className="h-8 w-8 mx-auto mb-2 text-brand-evergreen/40" />
+          <p className="text-sm text-brand-evergreen">No favorite providers yet</p>
+          <p className="text-xs text-brand-evergreen/60">Click the ❤️ on provider cards to save them</p>
         </div>
       ) : (
         <>
-          {/* Action Bar */}
-
-
-          {/* Groups */}
           {Object.entries(groups).map(([groupName, providerIds]) => {
             const groupItems = processedFavorites.filter(item => 
               providerIds.includes(item.provider.id)
@@ -480,17 +453,17 @@ function FavoritesSection({
             if (groupItems.length === 0) return null;
             
             return (
-              <div key={groupName} className="rounded-2xl border p-3" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
+              <div key={groupName} className="rounded-2xl border p-3 bg-brand-sage border-brand-evergreen/10">
                 <div className="flex items-center justify-between mb-3">
                   <div 
                     className="flex items-center cursor-pointer hover:opacity-70 transition-opacity flex-1"
                     onClick={() => handleLoadGroupIntoComparison(groupName, groupItems.map(item => item.provider))}
                   >
-                    <Users className="h-4 w-4 mr-2" style={{ color: 'var(--sage-dark)' }} />
-                    <h4 className="font-medium" style={{ color: 'var(--taupe)' }}>
+                    <Users className="h-4 w-4 mr-2 text-action-teal" />
+                    <h4 className="font-medium text-brand-evergreen">
                       {groupName} ({groupItems.length})
                     </h4>
-                    <Badge variant="outline" className="ml-2 text-xs" style={{ borderColor: 'var(--sage-dark)', color: 'var(--sage-dark)' }}>
+                    <Badge variant="outline" className="ml-2 text-xs border-action-teal text-action-teal">
                       Click to compare
                     </Badge>
                   </div>
@@ -504,7 +477,7 @@ function FavoritesSection({
                 </div>
                 <div className="space-y-2">
                   {groupItems.map(({ favorite, provider }) => (
-                    <div key={provider.id} className="rounded-2xl border p-3" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--warm-gray)/30' }}>
+                    <div key={provider.id} className="rounded-2xl border p-3 bg-brand-white border-text-muted/30">
                       <div className="flex items-center justify-between">
                         <div 
                           className="flex-1 cursor-pointer hover:opacity-70 transition-opacity"
@@ -513,9 +486,9 @@ function FavoritesSection({
                             setShowProviderModal(true);
                           }}
                         >
-                          <h5 className="font-medium" style={{ color: 'var(--taupe)' }}>{provider.name}</h5>
-                          <p className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>{provider.borough}</p>
-                          <p className="text-xs" style={{ color: 'rgba(77, 67, 58, 0.6)' }}>
+                          <h5 className="font-medium text-brand-evergreen">{provider.name}</h5>
+                          <p className="text-sm text-brand-evergreen/80">{provider.borough}</p>
+                          <p className="text-xs text-brand-evergreen/60">
                             Saved {new Date(favorite.createdAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -571,7 +544,6 @@ function FavoritesSection({
             );
           })}
 
-          {/* Ungrouped Items */}
           {ungroupedItems.length > 0 && (
             <div className="border border-brand-evergreen/10 rounded-lg p-3 bg-gray-50">
               <div className="flex items-center justify-between mb-3">
@@ -581,7 +553,6 @@ function FavoritesSection({
                 </h4>
               </div>
               
-              {/* Selection UI for ungrouped items */}
               {ungroupedItems.length > 1 && (
                 <div className="bg-white p-3 rounded-lg mb-3 border border-brand-evergreen/10 space-y-2">
                   <div className="text-sm text-gray-600">
@@ -657,9 +628,9 @@ function FavoritesSection({
                           setShowProviderModal(true);
                         }}
                       >
-                        <h5 className="font-medium" style={{ color: 'var(--taupe)' }}>{provider.name}</h5>
-                        <p className="text-sm" style={{ color: 'rgba(77, 67, 58, 0.8)' }}>{provider.borough}</p>
-                        <p className="text-xs" style={{ color: 'rgba(77, 67, 58, 0.6)' }}>
+                        <h5 className="font-medium text-brand-evergreen">{provider.name}</h5>
+                        <p className="text-sm text-brand-evergreen/80">{provider.borough}</p>
+                        <p className="text-xs text-brand-evergreen/60">
                           Saved {new Date(favorite.createdAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -669,7 +640,6 @@ function FavoritesSection({
                         {getTypeLabel(provider.type)}
                       </Badge>
                       
-                      {/* Move to Group Dropdown */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" variant="ghost">
@@ -716,7 +686,6 @@ function FavoritesSection({
         </>
       )}
 
-      {/* Create Group Dialog */}
       <Dialog open={isCreatingGroup} onOpenChange={setIsCreatingGroup}>
         <DialogContent>
           <DialogHeader>
@@ -750,7 +719,6 @@ function FavoritesSection({
         </DialogContent>
       </Dialog>
 
-      {/* Remove Confirmation Dialog */}
       <AlertDialog open={!!itemToRemove} onOpenChange={() => setItemToRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -776,7 +744,6 @@ function FavoritesSection({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Group Deletion Confirmation Dialog */}
       <AlertDialog open={!!groupToDelete} onOpenChange={() => setGroupToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -810,7 +777,6 @@ function FavoritesSection({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Move to New Group Dialog */}
       <Dialog open={!!itemToMove} onOpenChange={() => setItemToMove(null)}>
         <DialogContent>
           <DialogHeader>
@@ -862,7 +828,6 @@ export default function SearchPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{
     type?: string;
@@ -878,13 +843,10 @@ export default function SearchPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
-  // Modal state
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   
-  // Map-specific functions
   const handleLocationSearch = (location: { lat: number; lng: number; radius: number }) => {
     setUserLocation({ lat: location.lat, lng: location.lng });
-    // TODO: Implement proximity filtering in backend
     toast({
       title: "Location Search",
       description: `Searching within ${location.radius} miles of your location`,
@@ -901,19 +863,14 @@ export default function SearchPage() {
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [showSavedGroupsModal, setShowSavedGroupsModal] = useState(false);
   
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalProviders, setTotalProviders] = useState(0);
   
-  // Function to refresh groups when comparison is saved
   const handleGroupsSaved = () => {
-    // Force a re-render by invalidating the favorites query
-    // This will trigger the useEffect in FavoritesSection that loads groups
     queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
   };
 
-  // Handle category selection from taxonomy navigator
   const handleCategorySelect = (category: string, subcategory: string) => {
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.set('category', category);
@@ -925,7 +882,6 @@ export default function SearchPage() {
     refetch();
   };
 
-  // Get search params from URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const q = urlParams.get('q');
@@ -951,11 +907,9 @@ export default function SearchPage() {
       setFilters(prev => ({ ...prev, city }));
     }
     if (features) {
-      // Split features by comma and set as array
       setFilters(prev => ({ ...prev, features: features.split(',') }));
     }
     if (cost) {
-      // Map cost level to price range
       const costToPrice: { [key: string]: string } = {
         '1': '0-1000',
         '2': '1000-2000', 
@@ -976,14 +930,13 @@ export default function SearchPage() {
     }
   }, []);
 
-  // Fetch providers with pagination
   const { data: providerResponse, isLoading, refetch } = useQuery({
     queryKey: ['/api/providers', { 
       search: searchQuery,
       type: filters.type,
       borough: filters.borough,
       city: filters.city,
-      ageRange: filters.ageRange, // Send age range to backend
+      ageRange: filters.ageRange,
       features: filters.features?.join(','),
       priceRange: filters.priceRange,
       limit: itemsPerPage,
@@ -991,24 +944,20 @@ export default function SearchPage() {
     }],
     enabled: true,
     onSuccess: (data) => {
-      // If the response includes total count, update it
       if (data && typeof data === 'object' && 'total' in data) {
         setTotalProviders(data.total);
       }
     }
   });
 
-  // Extract providers from response (handle both array and object with providers/total)
   const providers = Array.isArray(providerResponse) ? providerResponse : providerResponse?.providers || [];
   const totalCount = Array.isArray(providerResponse) ? providers.length : providerResponse?.total || providers.length;
 
-  // Fetch favorites if authenticated
   const { data: favorites = [] } = useQuery({
     queryKey: ['/api/favorites'],
     enabled: isAuthenticated,
   });
 
-  // Fetch taxonomy data when viewing after-school programs
   const { data: taxonomyData } = useQuery<TaxonomyResponse>({
     queryKey: ["/api/taxonomy/after-school-programs"],
     enabled: filters.type === 'afterschool',
@@ -1018,7 +967,6 @@ export default function SearchPage() {
 
   const favoriteProviderIds = favorites.map((fav: any) => fav.provider?.id || fav.providerId);
 
-  // Load groups from localStorage and count them
   const [groupsCount, setGroupsCount] = useState(0);
   
   useEffect(() => {
@@ -1027,12 +975,10 @@ export default function SearchPage() {
       if (savedGroups) {
         try {
           const groups = JSON.parse(savedGroups);
-          // Only count groups that have providers in them
           const nonEmptyGroups = Object.keys(groups).filter(groupName => 
             groups[groupName] && groups[groupName].length > 0
           );
           
-          // Clean up empty groups
           const cleanGroups: {[key: string]: number[]} = {};
           Object.keys(groups).forEach(groupName => {
             if (groups[groupName] && groups[groupName].length > 0) {
@@ -1040,14 +986,12 @@ export default function SearchPage() {
             }
           });
           
-          // Update localStorage if we removed any empty groups
           if (Object.keys(cleanGroups).length !== Object.keys(groups).length) {
             localStorage.setItem('favoriteGroups', JSON.stringify(cleanGroups));
           }
           
           setGroupsCount(nonEmptyGroups.length);
         } catch (e) {
-          // If parsing fails, clear localStorage and set count to 0
           localStorage.removeItem('favoriteGroups');
           setGroupsCount(0);
         }
@@ -1056,10 +1000,8 @@ export default function SearchPage() {
       }
     };
 
-    // Initial load
     updateGroupsCount();
     
-    // Listen for custom events from ProviderCard
     const handleGroupsUpdated = () => {
       updateGroupsCount();
     };
@@ -1069,7 +1011,7 @@ export default function SearchPage() {
     return () => {
       window.removeEventListener('groupsUpdated', handleGroupsUpdated);
     };
-  }, [favorites]); // Refresh when favorites change
+  }, [favorites]);
 
   const handleSearch = () => {
     refetch();
@@ -1139,17 +1081,15 @@ export default function SearchPage() {
     return `${totalCount} childcare options found`;
   };
 
-  // Set page title
   useEffect(() => {
     document.title = "Find Programs | HappiKid - Childcare & Enrichment Directory";
   }, []);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'hsl(40, 25%, 97%)' }}>
+    <div className="min-h-screen bg-brand-sage">
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Natural Language Search Bar */}
         <div className="mb-8 max-w-5xl mx-auto">
           <ConversationalSearch 
             value={searchQuery}
@@ -1163,7 +1103,6 @@ export default function SearchPage() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
           <div className="lg:w-1/4">
             <SearchFilters
               filters={filters}
@@ -1171,7 +1110,6 @@ export default function SearchPage() {
               onClearFilters={() => setFilters({})}
             />
 
-            {/* Taxonomy Navigator for After-School Programs */}
             {filters.type === 'afterschool' && categories.length > 0 && (
               <div className="mt-6">
                 <TaxonomyNavigator
@@ -1183,7 +1121,6 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Mobile Taxonomy Navigator Sheet */}
             {filters.type === 'afterschool' && categories.length > 0 && (
               <div className="lg:hidden mt-4">
                 <Sheet>
@@ -1211,9 +1148,7 @@ export default function SearchPage() {
             )}
           </div>
 
-          {/* Results */}
           <div className="lg:w-3/4">
-            {/* Search Insights */}
             {searchQuery && providerResponse?.searchMetadata && (
               <SearchInsights 
                 metadata={providerResponse.searchMetadata}
@@ -1221,23 +1156,21 @@ export default function SearchPage() {
               />
             )}
 
-            {/* Results Header */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2" style={{ borderColor: 'var(--sage-light)' }}>
+            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 border-brand-evergreen/10">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex-1">
-                  <h2 className="text-2xl font-display font-bold mb-1" style={{ color: 'var(--taupe)' }}>{getResultsText()}</h2>
+                  <h2 className="text-2xl font-headline font-bold mb-1 text-brand-evergreen">{getResultsText()}</h2>
                   {searchQuery && (
-                    <p className="text-sm" style={{ color: 'var(--warm-gray)' }}>for "{searchQuery}"</p>
+                    <p className="text-sm text-text-muted">for "{searchQuery}"</p>
                   )}
                   
-                  {/* Category Breadcrumbs */}
                   {filters.category && filters.subcategory && (
                     <div className="mt-2 flex items-center gap-2 text-sm">
-                      <Badge variant="secondary" style={{ backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' }}>
+                      <Badge variant="secondary" className="bg-action-teal/20 text-action-teal">
                         {categories.find(c => c.slug === filters.category)?.name || filters.category}
                       </Badge>
-                      <span style={{ color: 'var(--warm-gray)' }}>›</span>
-                      <Badge variant="secondary" style={{ backgroundColor: 'hsl(145, 30%, 88%)', color: 'var(--sage-dark)' }}>
+                      <span className="text-text-muted">›</span>
+                      <Badge variant="secondary" className="bg-action-teal/20 text-action-teal">
                         {categories.find(c => c.slug === filters.category)?.subcategories?.find(s => s.slug === filters.subcategory)?.name || filters.subcategory}
                       </Badge>
                       <Button
@@ -1263,20 +1196,19 @@ export default function SearchPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowSavedGroupsModal(true)}
-                    className="rounded-lg font-medium border-2"
-                    style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)', backgroundColor: 'hsl(145, 30%, 95%)' }}
+                    className="rounded-lg font-medium border-2 border-brand-evergreen/10 text-action-teal bg-brand-sage"
                   >
                     <Bookmark className="h-4 w-4 mr-2" />
                     My Groups
                     {groupsCount > 0 && (
-                      <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'var(--sage-dark)', color: 'white' }}>
+                      <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium bg-action-teal text-white">
                         {groupsCount}
                       </span>
                     )}
                   </Button>
                   
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-48 rounded-lg border-2" style={{ borderColor: 'var(--sage-light)' }}>
+                    <SelectTrigger className="w-48 rounded-lg border-2 border-brand-evergreen/10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1289,13 +1221,12 @@ export default function SearchPage() {
                     </SelectContent>
                   </Select>
                   
-                  <div className="flex border-2 rounded-lg overflow-hidden" style={{ borderColor: 'var(--sage-light)' }}>
+                  <div className="flex border-2 rounded-lg overflow-hidden border-brand-evergreen/10">
                     <Button
                       variant={viewMode === "grid" ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setViewMode("grid")}
-                      className="rounded-none"
-                      style={viewMode === "grid" ? { backgroundColor: 'var(--deep-coral)', color: 'white' } : {}}
+                      className={`rounded-none ${viewMode === "grid" ? "bg-action-clay text-white" : ""}`}
                       data-testid="button-view-grid"
                     >
                       <Grid className="h-4 w-4" />
@@ -1304,8 +1235,7 @@ export default function SearchPage() {
                       variant={viewMode === "list" ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setViewMode("list")}
-                      className="rounded-none"
-                      style={viewMode === "list" ? { backgroundColor: 'var(--deep-coral)', color: 'white' } : {}}
+                      className={`rounded-none ${viewMode === "list" ? "bg-action-clay text-white" : ""}`}
                       data-testid="button-view-list"
                     >
                       <List className="h-4 w-4" />
@@ -1314,8 +1244,7 @@ export default function SearchPage() {
                       variant={viewMode === "map" ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setViewMode("map")}
-                      className="rounded-none"
-                      style={viewMode === "map" ? { backgroundColor: 'var(--deep-coral)', color: 'white' } : {}}
+                      className={`rounded-none ${viewMode === "map" ? "bg-action-clay text-white" : ""}`}
                       data-testid="button-view-map"
                     >
                       <Map className="h-4 w-4" />
@@ -1325,35 +1254,33 @@ export default function SearchPage() {
               </div>
             </div>
 
-            {/* Trust Signal Strip */}
-            <div className="rounded-2xl p-4 mb-6 border" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
+            <div className="rounded-2xl p-4 mb-6 border bg-brand-sage border-brand-evergreen/10">
               <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
-                  <span style={{ color: 'var(--taupe)' }} className="font-medium">Verified through public records</span>
+                  <CheckCircle2 className="h-4 w-4 text-action-teal" />
+                  <span className="text-brand-evergreen font-medium">Verified through public records</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
-                  <span style={{ color: 'var(--taupe)' }} className="font-medium">Real parent reviews</span>
+                  <CheckCircle2 className="h-4 w-4 text-action-teal" />
+                  <span className="text-brand-evergreen font-medium">Real parent reviews</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
-                  <span style={{ color: 'var(--taupe)' }} className="font-medium">Updated for 2025</span>
+                  <CheckCircle2 className="h-4 w-4 text-action-teal" />
+                  <span className="text-brand-evergreen font-medium">Updated for 2025</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--sage-dark)' }} />
-                  <span style={{ color: 'var(--taupe)' }} className="font-medium">Personalized matching</span>
+                  <CheckCircle2 className="h-4 w-4 text-action-teal" />
+                  <span className="text-brand-evergreen font-medium">Personalized matching</span>
                 </div>
               </div>
             </div>
 
-            {/* Comparison Bar */}
             {comparisonProviders.length > 0 && (
-              <Card className="mb-6 rounded-2xl border" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
+              <Card className="mb-6 rounded-2xl border bg-brand-sage border-brand-evergreen/10">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <span className="font-medium" style={{ color: 'var(--sage-dark)' }}>
+                      <span className="font-medium text-action-teal">
                         Compare ({comparisonProviders.length})
                       </span>
                       <div className="flex space-x-2">
@@ -1380,7 +1307,6 @@ export default function SearchPage() {
               </Card>
             )}
 
-            {/* Loading State */}
             {isLoading && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[...Array(6)].map((_, i) => (
@@ -1398,7 +1324,6 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Provider Grid/List/Map */}
             {!isLoading && providers.length > 0 && (
               viewMode === "map" ? (
                 <div className="h-[600px]">
@@ -1429,22 +1354,21 @@ export default function SearchPage() {
               )
             )}
 
-            {/* Empty State */}
             {!isLoading && providers.length === 0 && (
-              <Card className="text-center py-16 rounded-2xl shadow-lg border-2" style={{ borderColor: 'var(--sage-light)', backgroundColor: 'white' }}>
+              <Card className="text-center py-16 rounded-2xl shadow-lg border-2 border-brand-evergreen/10 bg-white">
                 <CardContent>
-                  <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center" style={{ backgroundColor: 'hsl(145, 30%, 92%)' }}>
-                    <SearchIcon className="h-10 w-10" style={{ color: 'var(--sage-dark)' }} />
+                  <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-brand-sage">
+                    <SearchIcon className="h-10 w-10 text-action-teal" />
                   </div>
-                  <h3 className="text-2xl font-display font-bold mb-3" style={{ color: 'var(--taupe)' }}>
+                  <h3 className="text-2xl font-headline font-bold mb-3 text-brand-evergreen">
                     No results match your search
                   </h3>
                   <div className="mb-8 space-y-2">
-                    <p className="text-lg" style={{ color: 'var(--warm-gray)' }}>
+                    <p className="text-lg text-text-muted">
                       Try adjusting age, location, or schedule — or explore nearby neighborhoods.
                     </p>
                     {filters.type && filters.ageRange && (
-                      <p className="text-sm rounded-xl p-4 inline-block mt-4" style={{ backgroundColor: 'hsl(35, 85%, 92%)', color: 'var(--taupe)', border: '2px solid var(--amber)' }}>
+                      <p className="text-sm rounded-xl p-4 inline-block mt-4 bg-action-sand text-brand-evergreen border-2 border-action-clay">
                         <strong>Tip:</strong> {getTypeLabel(filters.type)} programs typically serve{" "}
                         {filters.type === 'daycare' && 'infants through preschool age (0-5 years)'}
                         {filters.type === 'afterschool' && 'school-age children (5+ years)'}
@@ -1456,8 +1380,7 @@ export default function SearchPage() {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button 
-                      className="rounded-lg px-6 text-white font-semibold"
-                      style={{ backgroundColor: 'var(--deep-coral)' }}
+                      className="rounded-lg px-6 text-white font-semibold bg-action-clay hover:bg-action-clay/90"
                       onClick={() => {
                         setSearchQuery("");
                         setFilters({});
@@ -1469,8 +1392,7 @@ export default function SearchPage() {
                     </Button>
                     <Button 
                       variant="outline"
-                      className="rounded-lg px-6 font-medium border-2"
-                      style={{ borderColor: 'var(--sage-light)', color: 'var(--sage-dark)' }}
+                      className="rounded-lg px-6 font-medium border-2 border-brand-evergreen/10 text-action-teal"
                       onClick={() => {
                         if (navigator.geolocation) {
                           navigator.geolocation.getCurrentPosition((position) => {
@@ -1489,11 +1411,10 @@ export default function SearchPage() {
               </Card>
             )}
 
-            {/* Pagination */}
             {!isLoading && providers.length > 0 && totalCount > itemsPerPage && (
               <div className="flex flex-col items-center space-y-4 mt-8">
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-text-muted">
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} results
                   </span>
                   <Select value={itemsPerPage.toString()} onValueChange={(value) => {
@@ -1509,7 +1430,7 @@ export default function SearchPage() {
                       <SelectItem value="50">50</SelectItem>
                     </SelectContent>
                   </Select>
-                  <span className="text-sm text-gray-600">per page</span>
+                  <span className="text-sm text-text-muted">per page</span>
                 </div>
                 
                 <Pagination>
@@ -1561,9 +1482,8 @@ export default function SearchPage() {
           </div>
         </div>
 
-        {/* Bottom CTA Strip */}
-        <div className="mt-16 rounded-3xl p-12 text-center shadow-xl" style={{ background: 'linear-gradient(135deg, var(--deep-coral) 0%, var(--amber) 100%)' }}>
-          <h2 className="text-3xl sm:text-4xl font-display text-white mb-4">
+        <div className="mt-16 rounded-3xl p-12 text-center shadow-xl bg-action-clay">
+          <h2 className="text-3xl sm:text-4xl font-headline text-white mb-4">
             Not ready to decide yet?
           </h2>
           <p className="text-xl text-white/95 mb-8 max-w-2xl mx-auto">
@@ -1571,8 +1491,7 @@ export default function SearchPage() {
           </p>
           <Button 
             size="lg"
-            className="rounded-lg px-8 py-6 bg-white font-semibold shadow-lg hover:shadow-2xl transition-all text-lg"
-            style={{ color: 'var(--deep-coral)' }}
+            className="rounded-lg px-8 py-6 bg-white font-semibold shadow-lg hover:shadow-2xl transition-all text-lg text-action-clay hover:bg-white/90"
             onClick={() => window.location.href = '/auth/login'}
           >
             Create a free account
@@ -1581,7 +1500,6 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* Contact Inquiry Modal */}
       <ContactInquiryModal
         provider={selectedProvider}
         isOpen={showContactModal}
@@ -1591,7 +1509,6 @@ export default function SearchPage() {
         }}
       />
 
-      {/* Provider Detail Modal */}
       <ProviderModal
         provider={selectedProvider}
         isOpen={showProviderModal}
@@ -1601,7 +1518,6 @@ export default function SearchPage() {
         }}
       />
 
-      {/* Comparison Modal */}
       <ComparisonModal
         providers={comparisonProviders}
         isOpen={showComparisonModal}
@@ -1611,7 +1527,6 @@ export default function SearchPage() {
         onGroupsSaved={handleGroupsSaved}
       />
 
-      {/* Saved Groups Dialog */}
       <Dialog open={showSavedGroupsModal} onOpenChange={setShowSavedGroupsModal}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
@@ -1622,9 +1537,8 @@ export default function SearchPage() {
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* How it works */}
-            <div className="rounded-2xl border p-4" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
-              <div className="text-sm space-y-2" style={{ color: 'var(--sage-dark)' }}>
+            <div className="rounded-2xl border p-4 bg-brand-sage border-brand-evergreen/10">
+              <div className="text-sm space-y-2 text-action-teal">
                 <p>• <strong>Save individual providers:</strong> Click the ❤️ heart icon on any provider card</p>
                 <p>• <strong>Save comparison groups:</strong> Use "Compare & Save" to create provider groups</p>
                 <p>• <strong>Launch group comparison:</strong> Click on any group name to load it into the comparison tool</p>
@@ -1632,7 +1546,6 @@ export default function SearchPage() {
               </div>
             </div>
 
-            {/* Unified Groups Display */}
             {isAuthenticated ? (
               <FavoritesSection 
                 setSelectedProvider={setSelectedProvider}
@@ -1648,11 +1561,10 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Current Comparison Preview */}
             {comparisonProviders.length > 0 && (
-              <div className="rounded-2xl border p-4" style={{ backgroundColor: 'hsl(145, 30%, 95%)', borderColor: 'var(--sage-light)' }}>
-                <h4 className="font-medium mb-2" style={{ color: 'var(--sage-dark)' }}>Current Comparison</h4>
-                <p className="text-sm mb-2" style={{ color: 'var(--taupe)' }}>
+              <div className="rounded-2xl border p-4 bg-brand-sage border-brand-evergreen/10">
+                <h4 className="font-medium mb-2 text-action-teal">Current Comparison</h4>
+                <p className="text-sm mb-2 text-brand-evergreen">
                   {comparisonProviders.length} provider{comparisonProviders.length !== 1 ? 's' : ''} ready to save as group
                 </p>
                 <div className="flex flex-wrap gap-1 mb-3">
