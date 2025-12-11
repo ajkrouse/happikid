@@ -188,6 +188,40 @@ export default function Landing() {
         </div>
       </div>
 
+      <section className="py-20 bg-brand-sage">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="order-2 md:order-1">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: Database, title: 'Collect', desc: 'Gather data from multiple sources', color: 'text-action-clay', bg: 'bg-white' },
+                  { icon: Sparkles, title: 'Clean', desc: 'Standardize and verify information', color: 'text-action-teal', bg: 'bg-white' },
+                  { icon: BarChart3, title: 'Compare', desc: 'Side-by-side program comparison', color: 'text-action-clay', bg: 'bg-white' },
+                  { icon: Target, title: 'Connect', desc: 'Direct enrollment pathways', color: 'text-action-teal', bg: 'bg-white' }
+                ].map((step, i) => (
+                  <Card key={i} className={`p-5 rounded-2xl text-center shadow-md ${step.bg}`}>
+                    <step.icon className={`h-8 w-8 mx-auto mb-2 ${step.color}`} />
+                    <h4 className="font-semibold text-sm mb-1 text-brand-evergreen">{step.title}</h4>
+                    <p className="text-xs text-text-muted">{step.desc}</p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+            <div className="order-1 md:order-2">
+              <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full bg-action-teal text-white">
+                AI-Powered
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-headline mb-6 text-brand-evergreen">
+                AI that organizes a fragmented childcare ecosystem
+              </h2>
+              <p className="text-lg leading-relaxed text-text-muted">
+                HappiKid collects, cleans, and standardizes provider data into a searchable, side-by-side comparison tool. Families can compare instantly; providers gain visibility, trust, and full enrollment.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
