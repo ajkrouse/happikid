@@ -11,8 +11,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        headline: ["DM Serif Display", "Georgia", "serif"],
-        body: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        headline: ['"DM Serif Display"', 'serif'],
+        body: ['Inter', 'sans-serif'],
       },
       colors: {
         brand: {
