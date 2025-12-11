@@ -242,7 +242,7 @@ export default function MapView({
                 <Popup maxWidth={300}>
                   <div className="space-y-3">
                     <div>
-                      <h3 className="font-semibold text-lg text-gray-900">
+                      <h3 className="font-semibold text-lg text-brand-evergreen">
                         {provider.name}
                       </h3>
                       <p className="text-sm text-gray-600 flex items-center">

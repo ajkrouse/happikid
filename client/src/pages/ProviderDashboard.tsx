@@ -189,7 +189,7 @@ export default function ProviderDashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-brand-evergreen mb-2">
                 Provider Dashboard
               </h1>
               <p className="text-gray-600">
@@ -276,7 +276,7 @@ export default function ProviderDashboard() {
         {/* Achievements/Badges */}
         {providerScore && providerScore.badges && providerScore.badges.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Your Achievements</h3>
+            <h3 className="text-lg font-semibold text-brand-evergreen mb-3">Your Achievements</h3>
             <div className="flex flex-wrap gap-3">
               {providerScore.badges.map((badgeType: string, index: number) => (
                 <ProviderBadge key={index} type={badgeType as BadgeType} />

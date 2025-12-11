@@ -45,10 +45,10 @@ export function ProfileOptimizationCard({ score, onRefresh, isRefreshing = false
   };
 
   return (
-    <Card className="border-gray-200 shadow-sm">
+    <Card className="border-brand-evergreen/10 shadow-sm">
       <CardHeader className="border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-serif text-gray-900">Profile Optimization Score</CardTitle>
+          <CardTitle className="text-xl font-serif text-brand-evergreen">Profile Optimization Score</CardTitle>
           {onRefresh && (
             <Button
               variant="outline"
@@ -95,7 +95,7 @@ export function ProfileOptimizationCard({ score, onRefresh, isRefreshing = false
 
         {/* Score Breakdown */}
         <div className="space-y-3">
-          <h4 className="font-semibold text-gray-900 mb-3">Score Breakdown</h4>
+          <h4 className="font-semibold text-brand-evergreen mb-3">Score Breakdown</h4>
           
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
@@ -143,7 +143,7 @@ export function ProfileOptimizationCard({ score, onRefresh, isRefreshing = false
         {/* Badges */}
         {score.badges && score.badges.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-semibold text-gray-900">Earned Badges</h4>
+            <h4 className="font-semibold text-brand-evergreen">Earned Badges</h4>
             <div className="flex flex-wrap gap-2">
               {score.badges.map((badge) => (
                 <Badge 
@@ -163,19 +163,19 @@ export function ProfileOptimizationCard({ score, onRefresh, isRefreshing = false
         {/* Improvement Suggestions */}
         {score.improvementSuggestions && score.improvementSuggestions.length > 0 && (
           <div className="space-y-3">
-            <h4 className="font-semibold text-gray-900">Top Improvement Suggestions</h4>
+            <h4 className="font-semibold text-brand-evergreen">Top Improvement Suggestions</h4>
             <div className="space-y-2">
               {score.improvementSuggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-3 bg-gray-50 rounded-md border border-gray-200"
+                  className="flex items-start gap-3 p-3 bg-gray-50 rounded-md border border-brand-evergreen/10"
                   data-testid={`suggestion-${index}`}
                 >
                   <div className="mt-0.5">
                     {getPriorityIcon(suggestion.priority)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{suggestion.action}</p>
+                    <p className="text-sm text-brand-evergreen">{suggestion.action}</p>
                     <p className="text-xs text-gray-600 mt-0.5">
                       Category: {suggestion.category} • +{suggestion.points} points
                     </p>

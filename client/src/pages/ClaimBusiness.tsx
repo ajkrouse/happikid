@@ -137,7 +137,7 @@ export default function ClaimBusiness() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto p-6 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-brand-evergreen dark:text-white mb-2">
             Claim Your Business
           </h1>
           <p className="text-gray-600 dark:text-gray-300">

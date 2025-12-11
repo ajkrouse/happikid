@@ -165,7 +165,7 @@ export default function ContactInquiryModal({ provider, isOpen, onClose }: Conta
                 className="w-16 h-16 rounded-lg object-cover"
               />
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{provider.name}</h3>
+                <h3 className="font-semibold text-brand-evergreen">{provider.name}</h3>
                 <p className="text-sm text-gray-600">{provider.address}</p>
                 <p className="text-sm text-gray-600">
                   {provider.type} • Ages {Math.floor(provider.ageRangeMin / 12)}+ years

@@ -649,7 +649,7 @@ export default function ProviderOnboarding() {
         {/* Sticky Profile Completeness Sidebar */}
         <div className="w-80 bg-white border-r sticky top-20 h-screen overflow-y-auto">
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Progress</h2>
+            <h2 className="text-lg font-semibold text-brand-evergreen mb-4">Profile Progress</h2>
             
             {/* Progress Bar */}
             <div className="mb-6">
@@ -762,7 +762,7 @@ export default function ProviderOnboarding() {
         <div className="flex-1 p-8">
           {/* Page Header */}
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-3xl font-bold text-brand-evergreen mb-2">
               Set Up Your Provider Profile
             </h2>
             <p className="text-gray-600">

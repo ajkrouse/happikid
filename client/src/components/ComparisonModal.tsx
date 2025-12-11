@@ -532,7 +532,7 @@ export default function ComparisonModal({
               {!isAuthenticated ? (
                 <div className="text-center py-8">
                   <Bookmark className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Sign In Required</h4>
+                  <h4 className="text-lg font-semibold text-brand-evergreen mb-2">Sign In Required</h4>
                   <p className="text-gray-600 mb-4">
                     Please sign in to save and manage comparison groups.
                   </p>
@@ -573,7 +573,7 @@ export default function ComparisonModal({
                       </div>
                     ) : (
                       savedGroups.map((group) => (
-                        <div key={group.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                        <div key={group.id} className="bg-white border border-brand-evergreen/10 rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
                             {editingGroupId === group.id ? (
                               <div className="flex gap-2 flex-1">
@@ -590,7 +590,7 @@ export default function ComparisonModal({
                                 />
                               </div>
                             ) : (
-                              <h4 className="font-medium text-gray-900">{group.name}</h4>
+                              <h4 className="font-medium text-brand-evergreen">{group.name}</h4>
                             )}
                             <div className="flex gap-1">
                               <Button
@@ -794,7 +794,7 @@ export default function ComparisonModal({
           </div>
           {sortedProviders.map((provider) => (
             <div key={provider.id} className="col-span-3 text-center">
-              <div className="bg-white rounded-lg border border-gray-200 p-3 mb-2">
+              <div className="bg-white rounded-lg border border-brand-evergreen/10 p-3 mb-2">
                 <img
                   src={
                     provider.id === 7 ? "https://images.unsplash.com/photo-1609220136736-443140cffec6?w=150&h=100&fit=crop&crop=center" :
@@ -804,7 +804,7 @@ export default function ComparisonModal({
                   alt={provider.name}
                   className="w-full h-24 object-cover rounded-lg mb-2"
                 />
-                <h3 className="font-semibold text-sm text-gray-900 mb-1">{provider.name}</h3>
+                <h3 className="font-semibold text-sm text-brand-evergreen mb-1">{provider.name}</h3>
                 {preferences.priorities && (
                   <div className="flex items-center justify-center">
                     <Badge 

@@ -165,7 +165,7 @@ export default function AdminClaims() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto p-6 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-brand-evergreen dark:text-white mb-2">
             Business Claims Administration
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
@@ -245,7 +245,7 @@ export default function AdminClaims() {
             <Card>
               <CardContent className="p-8 text-center">
                 <Building2 className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No claims found</h3>
+                <h3 className="text-lg font-medium text-brand-evergreen dark:text-white mb-2">No claims found</h3>
                 <p className="text-gray-600 dark:text-gray-300">
                   {statusFilter === "all" 
                     ? "There are no business claims yet." 

@@ -41,7 +41,7 @@ export function SearchInsights({ metadata, resultsCount }: SearchInsightsProps) 
           {/* Search Understanding */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium text-gray-900">Search Understanding</h3>
+              <h3 className="text-sm font-medium text-brand-evergreen">Search Understanding</h3>
               <Badge 
                 variant="outline" 
                 className={`text-xs ${getConfidenceColor(metadata.confidence)}`}

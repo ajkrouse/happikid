@@ -164,7 +164,7 @@ export default function ProviderCelebration() {
 
           {/* Success Tips */}
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-brand-evergreen mb-4">
               🚀 YOUR SUCCESS GAMEPLAN
             </h2>
             <p className="text-lg text-gray-600 mb-8">
@@ -182,7 +182,7 @@ export default function ProviderCelebration() {
                           <IconComponent className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 mb-2">
+                          <h3 className="font-semibold text-brand-evergreen mb-2">
                             {tip.title}
                           </h3>
                           <p className="text-gray-600 text-sm mb-2">
@@ -203,7 +203,7 @@ export default function ProviderCelebration() {
           {/* Next Steps */}
           <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 mb-8">
             <CardContent className="p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-xl font-semibold text-brand-evergreen mb-4">
                 What happens next?
               </h3>
               
@@ -213,7 +213,7 @@ export default function ProviderCelebration() {
                     1
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Profile Review</p>
+                    <p className="font-medium text-brand-evergreen">Profile Review</p>
                     <p className="text-sm text-gray-600">Our team will verify your profile within 24 hours</p>
                   </div>
                 </div>
@@ -223,7 +223,7 @@ export default function ProviderCelebration() {
                     2
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Go Live</p>
+                    <p className="font-medium text-brand-evergreen">Go Live</p>
                     <p className="text-sm text-gray-600">Your profile becomes visible to parents searching</p>
                   </div>
                 </div>
@@ -233,7 +233,7 @@ export default function ProviderCelebration() {
                     3
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Connect</p>
+                    <p className="font-medium text-brand-evergreen">Connect</p>
                     <p className="text-sm text-gray-600">Start receiving inquiries from interested families</p>
                   </div>
                 </div>

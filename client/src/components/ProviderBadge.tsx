@@ -132,7 +132,7 @@ export function ProviderBadgeList({
       {remaining > 0 && (
         <Badge 
           variant="outline" 
-          className={`bg-gray-50 text-gray-600 border-gray-200 ${size === 'sm' ? 'text-xs' : 'text-sm'}`}
+          className={`bg-gray-50 text-gray-600 border-brand-evergreen/10 ${size === 'sm' ? 'text-xs' : 'text-sm'}`}
         >
           +{remaining} more
         </Badge>

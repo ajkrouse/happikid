@@ -117,7 +117,7 @@ export default function ParentSignup() {
       <div className="max-w-2xl mx-auto pt-16 pb-24 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl font-bold text-brand-evergreen mb-4">
             {isAuthenticated && showPreferences ? 'Tell Us About Your Needs' : 'Join HappiKid as a Parent'}
           </h1>
           <p className="text-lg text-gray-600">
@@ -143,7 +143,7 @@ export default function ParentSignup() {
               <div className="space-y-6">
                 <div className="bg-blue-50 p-6 rounded-lg text-center">
                   <LogIn className="h-8 w-8 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold text-gray-900 mb-2">Safe & Secure Login</h3>
+                  <h3 className="font-semibold text-brand-evergreen mb-2">Safe & Secure Login</h3>
                   <p className="text-sm text-gray-600 mb-4">
                     We use Replit's secure authentication to protect your account and ensure a safe experience.
                   </p>
@@ -158,7 +158,7 @@ export default function ParentSignup() {
                 </div>
 
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                  <h4 className="font-semibold text-brand-evergreen mb-2 flex items-center">
                     <Shield className="h-4 w-4 mr-2 text-primary" />
                     What You'll Get
                   </h4>
@@ -191,7 +191,7 @@ export default function ParentSignup() {
                     )}
                   </div>
                   <div className="ml-4">
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-brand-evergreen">
                       {user?.firstName ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}` : user?.email}
                     </p>
                     <p className="text-sm text-gray-600">Signed in successfully</p>
@@ -201,7 +201,7 @@ export default function ParentSignup() {
 
               {/* Childcare Preferences */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <h3 className="text-lg font-semibold text-brand-evergreen mb-4 flex items-center">
                   <Baby className="h-5 w-5 mr-2 text-primary" />
                   Your Childcare Needs
                 </h3>
@@ -253,7 +253,7 @@ export default function ParentSignup() {
 
               {/* Features */}
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <h4 className="font-semibold text-brand-evergreen mb-2 flex items-center">
                   <Shield className="h-4 w-4 mr-2 text-primary" />
                   What You'll Get
                 </h4>

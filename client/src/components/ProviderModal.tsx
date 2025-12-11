@@ -153,7 +153,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     return (
       <div className="text-center">
         {dollarMeter}
-        <div className="text-lg font-semibold text-gray-900">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}</div>
+        <div className="text-lg font-semibold text-brand-evergreen">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}</div>
         <div className="text-gray-600">per month</div>
       </div>
     );
@@ -412,7 +412,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                           <div key={feature} className="flex items-center p-4 bg-primary-50 rounded-lg">
                             <IconComponent className="h-5 w-5 text-primary mr-3" />
                             <div>
-                              <div className="font-medium text-gray-900">{feature}</div>
+                              <div className="font-medium text-brand-evergreen">{feature}</div>
                             </div>
                           </div>
                         );
@@ -442,7 +442,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                                   />
                                 ))}
                               </div>
-                              <span className="font-medium text-gray-900">
+                              <span className="font-medium text-brand-evergreen">
                                 {review.title}
                               </span>
                             </div>
@@ -537,7 +537,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                 {/* Contact Info */}
                 <Card>
                   <CardContent className="p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">Contact Information</h4>
+                    <h4 className="font-semibold text-brand-evergreen mb-3">Contact Information</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center text-gray-600">
                         <MapPin className="h-4 w-4 mr-3" />

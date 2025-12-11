@@ -144,7 +144,7 @@ export function SearchAutocomplete({ value, onChange, onSelect, placeholder }: S
           <input
             type="text"
             placeholder={placeholder || "Try: 'Montessori programs in Jersey City'"}
-            className="w-full pl-12 pr-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full pl-12 pr-4 py-3 text-lg border-2 border-brand-evergreen/10 rounded-xl focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onFocus={() => setOpen(true)}

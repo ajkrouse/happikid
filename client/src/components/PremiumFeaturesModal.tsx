@@ -120,11 +120,11 @@ export default function PremiumFeaturesModal({ isOpen, onClose, onUpgrade }: Pre
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Everything Premium Included</h3>
+                  <h3 className="text-xl font-semibold text-brand-evergreen">Everything Premium Included</h3>
                   <p className="text-gray-600 mt-1">Complete suite of professional tools</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900">${totalValue}</div>
+                  <div className="text-2xl font-bold text-brand-evergreen">${totalValue}</div>
                   <div className="text-sm text-gray-500 line-through">Monthly Value</div>
                   <div className="text-lg font-semibold text-green-600">Now $49/month</div>
                 </div>
@@ -145,7 +145,7 @@ export default function PremiumFeaturesModal({ isOpen, onClose, onUpgrade }: Pre
                         <IconComponent className="h-5 w-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <CardTitle className="text-lg font-semibold text-gray-900 leading-tight">
+                        <CardTitle className="text-lg font-semibold text-brand-evergreen leading-tight">
                           {feature.title}
                         </CardTitle>
                         <Badge variant="secondary" className="mt-1 text-xs bg-green-100 text-green-700">
@@ -181,7 +181,7 @@ export default function PremiumFeaturesModal({ isOpen, onClose, onUpgrade }: Pre
           <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
             <CardContent className="pt-6">
               <div className="text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Start Your Free Trial Today</h3>
+                <h3 className="text-xl font-bold text-brand-evergreen mb-2">Start Your Free Trial Today</h3>
                 <p className="text-gray-600 mb-4">
                   Try all premium features risk-free for 14 days. Cancel anytime.
                 </p>

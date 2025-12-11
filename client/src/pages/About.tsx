@@ -114,7 +114,7 @@ export default function About() {
                 <div className="p-4 rounded-full inline-block mb-4" style={{ backgroundColor: 'hsl(145, 30%, 90%)' }}>
                   <Users className="h-8 w-8" style={{ color: 'var(--sage-dark)' }} />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">700+</h3>
+                <h3 className="font-semibold text-brand-evergreen mb-2">700+</h3>
 <p className="text-gray-600 text-sm">Verified Providers</p>
               </Card>
               <Card className="text-center p-6 rounded-2xl border" style={{ backgroundColor: 'var(--ivory)', borderColor: 'var(--sage-light)' }}>
@@ -240,7 +240,7 @@ export default function About() {
               </div>
             </div>
             
-            <div className="mt-8 pt-8 border-t border-gray-200 text-center">
+            <div className="mt-8 pt-8 border-t border-brand-evergreen/10 text-center">
               <p className="text-gray-600">
                 HappiKid is launching first in the NYC tri-state area with a depth-over-breadth approach, ensuring every parent has access to trusted, complete, and transparent choices—before expanding to new markets.
               </p>
@@ -253,7 +253,7 @@ export default function About() {
       <section className="py-16 bg-gradient-to-br from-primary-50 to-secondary-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Serving the NYC Tri-State Area</h2>
+            <h2 className="text-3xl font-bold text-brand-evergreen mb-4">Serving the NYC Tri-State Area</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Comprehensive childcare coverage across New York City, Long Island, Westchester, and Northern New Jersey
             </p>
@@ -264,7 +264,7 @@ export default function About() {
               {/* Coverage Stats */}
               <div className="bg-white rounded-2xl shadow-lg p-6">
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">NYC Tri-State Coverage</h3>
+                  <h3 className="text-2xl font-bold text-brand-evergreen mb-2">NYC Tri-State Coverage</h3>
                   <p className="text-gray-600">Comprehensive childcare provider network</p>
                 </div>
 
@@ -295,29 +295,29 @@ export default function About() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-primary">
-                  <h3 className="font-semibold text-gray-900 mb-1">New York City</h3>
+                  <h3 className="font-semibold text-brand-evergreen mb-1">New York City</h3>
                   <p className="text-gray-600 text-sm">All 5 boroughs covered</p>
                   <p className="text-primary font-semibold text-lg">450+ providers</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-secondary-500">
-                  <h3 className="font-semibold text-gray-900 mb-1">Long Island</h3>
+                  <h3 className="font-semibold text-brand-evergreen mb-1">Long Island</h3>
                   <p className="text-gray-600 text-sm">Nassau & Suffolk counties</p>
                   <p className="text-secondary-500 font-semibold text-lg">280+ providers</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-accent-500">
-                  <h3 className="font-semibold text-gray-900 mb-1">Westchester</h3>
+                  <h3 className="font-semibold text-brand-evergreen mb-1">Westchester</h3>
                   <p className="text-gray-600 text-sm">Full county coverage</p>
                   <p className="text-accent-500 font-semibold text-lg">180+ providers</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-green-500">
-                  <h3 className="font-semibold text-gray-900 mb-1">Northern NJ</h3>
+                  <h3 className="font-semibold text-brand-evergreen mb-1">Northern NJ</h3>
                   <p className="text-gray-600 text-sm">Bergen, Essex, Hudson</p>
                   <p className="text-green-500 font-semibold text-lg">90+ providers</p>
                 </div>
               </div>
 
               <div className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Why This Coverage Matters</h3>
+                <h3 className="text-lg font-semibold text-brand-evergreen mb-3">Why This Coverage Matters</h3>
                 <ul className="space-y-2 text-gray-600">
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></div>
@@ -346,7 +346,7 @@ export default function About() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How HappiKid Works</h2>
+            <h2 className="text-3xl font-bold text-brand-evergreen mb-4">How HappiKid Works</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Finding quality childcare has never been easier
             </p>
@@ -357,7 +357,7 @@ export default function About() {
               <div className="bg-primary p-4 rounded-2xl inline-block mb-6">
                 <Search className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">1. Search Naturally</h3>
+              <h3 className="text-xl font-semibold text-brand-evergreen mb-4">1. Search Naturally</h3>
               <p className="text-gray-600">
                 Use everyday language to describe what you're looking for. 
                 Our smart search understands your needs and preferences.
@@ -368,7 +368,7 @@ export default function About() {
               <div className="bg-secondary-500 p-4 rounded-2xl inline-block mb-6">
                 <Shield className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">2. Browse Verified Options</h3>
+              <h3 className="text-xl font-semibold text-brand-evergreen mb-4">2. Browse Verified Options</h3>
               <p className="text-gray-600">
                 Every provider is verified through public records and background checks. 
                 See real photos, reviews, and detailed information.
@@ -379,7 +379,7 @@ export default function About() {
               <div className="bg-accent-500 p-4 rounded-2xl inline-block mb-6">
                 <MessageCircle className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">3. Connect & Decide</h3>
+              <h3 className="text-xl font-semibold text-brand-evergreen mb-4">3. Connect & Decide</h3>
               <p className="text-gray-600">
                 Contact providers directly, schedule tours, and make confident decisions 
                 based on comprehensive, trustworthy information.
@@ -393,7 +393,7 @@ export default function About() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Values</h2>
+            <h2 className="text-3xl font-bold text-brand-evergreen mb-4">Our Values</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -401,7 +401,7 @@ export default function About() {
               <div className="bg-primary-50 p-4 rounded-full inline-block mb-4">
                 <Shield className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-3">Trust & Safety</h3>
+              <h3 className="font-semibold text-brand-evergreen mb-3">Trust & Safety</h3>
               <p className="text-gray-600 text-sm">
                 Every provider is thoroughly verified and backgrounds checked for your peace of mind.
               </p>
@@ -411,7 +411,7 @@ export default function About() {
               <div className="bg-secondary-50 p-4 rounded-full inline-block mb-4">
                 <Users className="h-6 w-6 text-secondary-500" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-3">Community First</h3>
+              <h3 className="font-semibold text-brand-evergreen mb-3">Community First</h3>
               <p className="text-gray-600 text-sm">
                 Built by parents, for parents. Real reviews from real families in your community.
               </p>
@@ -421,7 +421,7 @@ export default function About() {
               <div className="bg-accent-50 p-4 rounded-full inline-block mb-4">
                 <Search className="h-6 w-6 text-accent-500" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-3">Simplicity</h3>
+              <h3 className="font-semibold text-brand-evergreen mb-3">Simplicity</h3>
               <p className="text-gray-600 text-sm">
                 Complex decisions made simple through intuitive design and smart technology.
               </p>
@@ -431,7 +431,7 @@ export default function About() {
               <div className="bg-primary-50 p-4 rounded-full inline-block mb-4">
                 <Heart className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-3">Empathy</h3>
+              <h3 className="font-semibold text-brand-evergreen mb-3">Empathy</h3>
               <p className="text-gray-600 text-sm">
                 We understand the challenges of parenting and strive to make your life easier.
               </p>

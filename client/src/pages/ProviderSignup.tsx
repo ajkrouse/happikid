@@ -66,7 +66,7 @@ export default function ProviderSignup() {
               <span className="text-sm font-semibold text-gray-700">Provider Signup</span>
               <Crown className="h-5 w-5 text-accent-500" />
             </div>
-            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl lg:text-5xl font-bold text-brand-evergreen mb-4">
               Claim Your <span className="text-secondary-500">Free Page</span> 
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
@@ -88,28 +88,28 @@ export default function ProviderSignup() {
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-gray-900">Free Profile Setup</h4>
+                      <h4 className="font-semibold text-brand-evergreen">Free Profile Setup</h4>
                       <p className="text-gray-600 text-sm">Create your profile at no cost - no hidden fees</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-gray-900">Qualified Leads</h4>
+                      <h4 className="font-semibold text-brand-evergreen">Qualified Leads</h4>
                       <p className="text-gray-600 text-sm">Connect with pre-qualified families in your area</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-gray-900">Professional Presence</h4>
+                      <h4 className="font-semibold text-brand-evergreen">Professional Presence</h4>
                       <p className="text-gray-600 text-sm">Stand out with verified badge and professional profile</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-gray-900">Growth Analytics</h4>
+                      <h4 className="font-semibold text-brand-evergreen">Growth Analytics</h4>
                       <p className="text-gray-600 text-sm">Track profile views, inquiries, and enrollment trends</p>
                     </div>
                   </div>
@@ -124,21 +124,21 @@ export default function ProviderSignup() {
                       <div className="bg-secondary-100 p-4 rounded-full w-12 h-12 mx-auto mb-2 flex items-center justify-center">
                         <Shield className="h-6 w-6 text-secondary-500" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">100%</p>
+                      <p className="text-2xl font-bold text-brand-evergreen">100%</p>
                       <p className="text-xs text-gray-600">Verified</p>
                     </div>
                     <div>
                       <div className="bg-primary-100 p-4 rounded-full w-12 h-12 mx-auto mb-2 flex items-center justify-center">
                         <Users className="h-6 w-6 text-primary-500" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">700+</p>
+                      <p className="text-2xl font-bold text-brand-evergreen">700+</p>
                       <p className="text-xs text-gray-600">Providers</p>
                     </div>
                     <div>
                       <div className="bg-accent-100 p-4 rounded-full w-12 h-12 mx-auto mb-2 flex items-center justify-center">
                         <Star className="h-6 w-6 text-accent-500" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">4.8</p>
+                      <p className="text-2xl font-bold text-brand-evergreen">4.8</p>
                       <p className="text-xs text-gray-600">Avg Rating</p>
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export default function ProviderSignup() {
                 <div className="space-y-6">
                   {/* Trust Message */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">Safe & Secure Login</h3>
+                    <h3 className="font-semibold text-brand-evergreen mb-2">Safe & Secure Login</h3>
                     <p className="text-sm text-gray-700">
                       We use Replit's secure authentication system. Your personal information is protected and never shared.
                     </p>
@@ -178,7 +178,7 @@ export default function ProviderSignup() {
 
                   {/* What's Next */}
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-900">What happens next?</h4>
+                    <h4 className="font-semibold text-brand-evergreen">What happens next?</h4>
                     <div className="space-y-2 text-sm text-gray-600">
                       <div className="flex items-center space-x-2">
                         <Badge variant="outline" className="text-xs">1</Badge>
@@ -205,21 +205,21 @@ export default function ProviderSignup() {
               <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block border border-secondary-100">
                 <Heart className="h-10 w-10 text-coral-500" />
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 text-lg">❤️ Parent-First Platform</h3>
+              <h3 className="font-bold text-brand-evergreen mb-2 text-lg">❤️ Parent-First Platform</h3>
               <p className="text-gray-700 leading-relaxed">Designed to help parents find the perfect fit for their families</p>
             </div>
             <div className="text-center">
               <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block border border-accent-100">
                 <MessageCircle className="h-10 w-10 text-accent-500" />
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 text-lg">💬 Direct Communication</h3>
+              <h3 className="font-bold text-brand-evergreen mb-2 text-lg">💬 Direct Communication</h3>
               <p className="text-gray-700 leading-relaxed">Connect directly with interested families in your area</p>
             </div>
             <div className="text-center">
               <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg mb-4 inline-block border border-primary-100">
                 <Clock className="h-10 w-10 text-primary-500" />
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 text-lg">⚡ Quick Setup</h3>
+              <h3 className="font-bold text-brand-evergreen mb-2 text-lg">⚡ Quick Setup</h3>
               <p className="text-gray-700 leading-relaxed">Get your profile live in minutes, not days</p>
             </div>
           </div>

@@ -1250,7 +1250,7 @@ export default function ProviderOnboarding() {
                   onClick={() => document.getElementById('file-upload')?.click()}
                 >
                   <Upload className={`h-10 w-10 mx-auto mb-3 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
-                  <p className="text-lg font-medium text-gray-900 mb-2">
+                  <p className="text-lg font-medium text-brand-evergreen mb-2">
                     {isDragOver ? 'Drop photos here' : 'Upload Photos'}
                   </p>
                   <p className="text-sm text-gray-600 mb-4">
@@ -1275,7 +1275,7 @@ export default function ProviderOnboarding() {
                 </div>
 
                 {/* URL Upload Section */}
-                <div className="border border-gray-200 rounded-lg p-4">
+                <div className="border border-brand-evergreen/10 rounded-lg p-4">
                   <Label className="text-sm font-medium mb-2 block">Or add image from URL</Label>
                   <div className="flex gap-2">
                     <Input
@@ -1548,7 +1548,7 @@ export default function ProviderOnboarding() {
       <div className="max-w-4xl mx-auto py-8 px-4">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-brand-evergreen mb-2">
             Set Up Your Provider Profile
           </h1>
           <p className="text-gray-600">

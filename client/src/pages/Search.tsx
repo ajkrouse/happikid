@@ -573,7 +573,7 @@ function FavoritesSection({
 
           {/* Ungrouped Items */}
           {ungroupedItems.length > 0 && (
-            <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+            <div className="border border-brand-evergreen/10 rounded-lg p-3 bg-gray-50">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-gray-700 flex items-center">
                   <Heart className="h-4 w-4 mr-2" />
@@ -583,7 +583,7 @@ function FavoritesSection({
               
               {/* Selection UI for ungrouped items */}
               {ungroupedItems.length > 1 && (
-                <div className="bg-white p-3 rounded-lg mb-3 border border-gray-200 space-y-2">
+                <div className="bg-white p-3 rounded-lg mb-3 border border-brand-evergreen/10 space-y-2">
                   <div className="text-sm text-gray-600">
                     {selectedItems.size > 0 ? `${selectedItems.size} selected` : `Select multiple to organize`}
                   </div>
@@ -633,7 +633,7 @@ function FavoritesSection({
                 </div>
               )}
               {ungroupedItems.map(({ favorite, provider }) => (
-                <div key={provider.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                <div key={provider.id} className="bg-white border border-brand-evergreen/10 rounded-lg p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center flex-1">
                       <input
