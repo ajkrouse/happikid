@@ -33,9 +33,9 @@ export default function Navigation() {
       <div className="flex items-center space-x-8">
         {navItems.map((item) => (
           <Link key={item.href} href={item.href}>
-            <span className={`text-sm font-medium transition cursor-pointer ${
-              location === item.href ? "font-semibold" : "hover:opacity-70"
-            }`} style={{ color: 'var(--taupe)' }}>
+            <span className={`text-sm font-medium transition cursor-pointer text-brand-evergreen ${
+              location === item.href ? "font-semibold" : "hover:text-action-clay"
+            }`}>
               {item.label}
             </span>
           </Link>
@@ -44,13 +44,13 @@ export default function Navigation() {
 
       <div className="flex items-center space-x-3">
         {isLoading ? (
-          <div className="w-20 h-8 animate-pulse rounded-lg" style={{ backgroundColor: 'hsl(40, 15%, 90%)' }}></div>
+          <div className="w-20 h-8 animate-pulse rounded-lg bg-brand-sage"></div>
         ) : isAuthenticated ? (
           <>
-            <div className="px-4 py-2 font-medium text-sm" style={{ color: 'var(--taupe)' }}>
+            <div className="px-4 py-2 font-medium text-sm text-brand-evergreen">
               {(user as any)?.firstName || (user as any)?.email?.split('@')[0]}
             </div>
-            <Button variant="ghost" className="px-4 font-medium" style={{ color: 'var(--taupe)' }} asChild>
+            <Button variant="ghost" className="px-4 font-medium text-brand-evergreen hover:text-action-clay" asChild>
               <a href="/api/logout">Sign Out</a>
             </Button>
           </>
@@ -58,16 +58,14 @@ export default function Navigation() {
           <>
             <Button 
               onClick={() => setShowRoleSelection(true)} 
-              className="rounded-lg text-white font-medium shadow-md hover:shadow-lg transition-all"
-              style={{ backgroundColor: 'var(--deep-coral)' }}
+              className="rounded-lg bg-action-clay text-white font-medium shadow-md hover:shadow-lg hover:bg-action-clay/90 transition-all"
               data-testid="button-get-started"
             >
               Find Programs
             </Button>
             <Button 
               variant="outline" 
-              className="rounded-lg font-medium border-2 hidden sm:inline-flex hover:opacity-90"
-              style={{ borderColor: 'var(--taupe)', color: 'var(--taupe)' }}
+              className="rounded-lg font-medium border-2 border-brand-evergreen text-brand-evergreen hidden sm:inline-flex hover:bg-brand-evergreen hover:text-white transition-all"
               data-testid="button-nav-list-program"
             >
               List Your Program
@@ -79,7 +77,7 @@ export default function Navigation() {
   );
 
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-sm bg-[var(--ivory)]/95 border-b border-[var(--warm-gray)]/20 shadow-sm">
+    <nav className="sticky top-0 z-50 backdrop-blur-sm bg-brand-white/95 border-b border-brand-evergreen/10 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -107,18 +105,17 @@ export default function Navigation() {
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm">
-                  <Menu className="h-5 w-5" style={{ color: 'var(--taupe)' }} />
+                  <Menu className="h-5 w-5 text-brand-evergreen" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent side="right" className="w-80 bg-brand-white">
                 <div className="flex flex-col space-y-6 mt-6">
                   {navItems.map((item) => (
                     <Link key={item.href} href={item.href}>
                       <span 
                         className={`text-lg font-medium transition-opacity cursor-pointer ${
-                          location === item.href ? "font-semibold" : "hover:opacity-70"
+                          location === item.href ? "font-semibold text-action-clay" : "text-brand-evergreen hover:text-action-clay"
                         }`}
-                        style={{ color: location === item.href ? 'var(--deep-coral)' : 'var(--taupe)' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.label}
@@ -126,24 +123,24 @@ export default function Navigation() {
                     </Link>
                   ))}
                   
-                  <div className="pt-4 border-t" style={{ borderColor: 'rgba(120, 113, 108, 0.3)' }}>
+                  <div className="pt-4 border-t border-brand-evergreen/20">
                     {isAuthenticated ? (
                       <>
                         <div className="mb-4">
-                          <span className="text-sm" style={{ color: 'var(--taupe)' }}>
+                          <span className="text-sm text-brand-evergreen">
                             Hello, {(user as any)?.firstName || (user as any)?.email}
                           </span>
                         </div>
-                        <Button variant="outline" className="w-full rounded-lg border-2" style={{ borderColor: 'var(--taupe)', color: 'var(--taupe)' }} asChild>
+                        <Button variant="outline" className="w-full rounded-lg border-2 border-brand-evergreen text-brand-evergreen hover:bg-brand-evergreen hover:text-white" asChild>
                           <a href="/api/logout">Sign Out</a>
                         </Button>
                       </>
                     ) : (
                       <div className="space-y-2">
-                        <Button variant="ghost" className="w-full" style={{ color: 'var(--taupe)' }} asChild>
+                        <Button variant="ghost" className="w-full text-brand-evergreen hover:text-action-clay" asChild>
                           <a href="/api/login">Sign In</a>
                         </Button>
-                        <Button className="w-full rounded-lg text-white shadow-md" style={{ backgroundColor: 'var(--deep-coral)' }} onClick={() => {setShowRoleSelection(true); setMobileMenuOpen(false);}}>
+                        <Button className="w-full rounded-lg bg-action-clay text-white shadow-md hover:bg-action-clay/90" onClick={() => {setShowRoleSelection(true); setMobileMenuOpen(false);}}>
                           Get Started
                         </Button>
                       </div>
