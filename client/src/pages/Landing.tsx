@@ -113,121 +113,61 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* 1. HERO SECTION - SEO Optimized with New Brand Colors */}
-      <section className="relative overflow-hidden py-20 sm:py-28 bg-brand-sage">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left Side */}
-            <div className="text-left space-y-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display text-brand-evergreen leading-tight">
-                Find <span className="relative inline-block">
-                  <span className="relative z-10">childcare</span>
-                  <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" fill="#E07A5F">
-                    <path d="M0,8 Q50,2 100,6 T200,8 L200,12 L0,12 Z" opacity="0.5"/>
-                  </svg>
-                </span>, camps, and after-school programs—with real transparency
-              </h1>
+      {/* 1. HERO SECTION - "Sage Ally" Design */}
+      <section className="relative w-full bg-brand-sage px-6 pt-20 pb-32 flex flex-col items-center justify-center text-center">
+        
+        {/* The "Sage Ally" Headline */}
+        <h1 className="font-headline text-5xl md:text-6xl text-brand-evergreen mb-6 max-w-4xl leading-tight">
+          The village, <span className="text-action-clay italic">verified.</span>
+        </h1>
+        
+        <p className="font-body text-text-muted text-lg md:text-xl mb-10 max-w-2xl">
+          Describe what you need. Our AI checks availability, safety records, and pricing across the entire ecosystem.
+        </p>
 
-              <p className="text-lg text-text-muted leading-relaxed">
-                70%+ of parents start their search online, yet essential info—pricing, availability, safety, and quality—is scattered across outdated websites and word-of-mouth. HappiKid uses AI to gather and standardize this data into one clear comparison-and-booking tool.
-              </p>
-
-              <div className="flex flex-wrap gap-4">
-                <Button 
-                  size="lg"
-                  onClick={() => setLocation("/search")}
-                  className="rounded-lg bg-action-clay text-white font-semibold shadow-lg hover:shadow-xl hover:bg-action-clay/90 transition-all px-8"
-                  data-testid="button-hero-find-programs"
-                >
-                  Search Childcare Near You
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  onClick={() => setLocation("/providers")}
-                  className="rounded-lg font-medium border-2 border-brand-evergreen text-brand-evergreen hover:bg-brand-evergreen hover:text-white transition-all"
-                  data-testid="button-hero-list-program"
-                >
-                  List Your Program
-                </Button>
-              </div>
-
-              {/* Updated Reassurance Line */}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-brand-evergreen font-medium pt-2">
-                <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-5 w-5 text-action-teal" />
-                  <span>Free for parents</span>
-                </div>
-                <span className="text-text-muted">•</span>
-                <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-5 w-5 text-action-teal" />
-                  <span>Verified programs</span>
-                </div>
-                <span className="text-text-muted">•</span>
-                <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-5 w-5 text-action-teal" />
-                  <span>Clear details, no guesswork</span>
-                </div>
-              </div>
+        {/* The "Floating Console" Search Input */}
+        <div className="relative w-full max-w-2xl group">
+          <div className="absolute -inset-1 bg-action-teal/20 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+          <div className="relative flex items-center bg-brand-white rounded-xl shadow-xl border border-brand-evergreen/10 p-2">
+            
+            {/* Search Icon */}
+            <div className="pl-4 text-action-clay">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
 
-            {/* Right Side - Search Card */}
-            <div className="relative">
-              <Card className="relative z-10 shadow-2xl rounded-2xl overflow-hidden bg-white">
-                <CardContent className="p-8">
-                  <h3 className="text-2xl font-display mb-6 text-brand-evergreen">Start Your Search</h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block text-brand-evergreen">What are you looking for?</label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-text-muted" />
-                        <Input
-                          placeholder="Daycare, camp, tutoring..."
-                          className="pl-10 rounded-lg border-2 border-brand-sage focus:border-action-teal"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyPress={handleKeyPress}
-                          data-testid="input-hero-card-search"
-                        />
-                      </div>
-                    </div>
+            {/* The Input Field */}
+            <input 
+              type="text" 
+              className="w-full bg-transparent border-none text-brand-evergreen placeholder-text-muted/60 text-lg px-4 py-3 focus:ring-0 focus:outline-none"
+              placeholder="Try 'Montessori preschool in Jersey City under $2k/mo'..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
+              data-testid="input-hero-search"
+            />
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block text-brand-evergreen">Child's age</label>
-                      <Input
-                        placeholder="e.g., 3 years old"
-                        className="rounded-lg border-2 border-brand-sage focus:border-action-teal"
-                        data-testid="input-hero-card-age"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block text-brand-evergreen">Location</label>
-                      <Input
-                        placeholder="Manhattan, Brooklyn..."
-                        className="rounded-lg border-2 border-brand-sage focus:border-action-teal"
-                        data-testid="input-hero-card-location"
-                      />
-                    </div>
-
-                    <Button 
-                      onClick={handleSearch}
-                      className="w-full rounded-lg bg-action-clay text-white font-semibold py-6 shadow-md hover:shadow-lg hover:bg-action-clay/90 transition-all"
-                      data-testid="button-hero-card-search"
-                    >
-                      Search Programs
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Decorative shapes with new brand colors */}
-              <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-25 blur-2xl bg-action-teal"></div>
-              <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full opacity-25 blur-3xl bg-action-clay"></div>
-            </div>
+            {/* The Action Button */}
+            <button 
+              onClick={handleSearch}
+              className="bg-brand-evergreen hover:bg-action-teal text-white px-6 py-3 rounded-lg font-medium transition-colors whitespace-nowrap"
+              data-testid="button-hero-ask"
+            >
+              Ask HappiKid
+            </button>
           </div>
+        </div>
+
+        {/* Trust Signals below search */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-text-muted font-medium">
+          <span className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-action-teal"></div> Verified Safety
+          </span>
+          <span className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-action-teal"></div> Real-time Pricing
+          </span>
+          <span className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-action-teal"></div> No Ads
+          </span>
         </div>
       </section>
 

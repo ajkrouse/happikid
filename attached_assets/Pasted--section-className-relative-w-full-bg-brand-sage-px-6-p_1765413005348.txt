@@ -1,0 +1,48 @@
+<section className="relative w-full bg-brand-sage px-6 pt-20 pb-32 flex flex-col items-center justify-center text-center">
+  
+  {/* The "Sage Ally" Headline */}
+  <h1 className="font-headline text-5xl md:text-6xl text-brand-evergreen mb-6 max-w-4xl leading-tight">
+    The village, <span className="text-action-clay italic">verified.</span>
+  </h1>
+  
+  <p className="font-body text-text-muted text-lg md:text-xl mb-10 max-w-2xl">
+    Describe what you need. Our AI checks availability, safety records, and pricing across the entire ecosystem.
+  </p>
+
+  {/* The "Floating Console" Search Input */}
+  <div className="relative w-full max-w-2xl group">
+    <div className="absolute -inset-1 bg-action-teal/20 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+    <div className="relative flex items-center bg-brand-white rounded-xl shadow-xl border border-brand-evergreen/10 p-2">
+      
+      {/* Search Icon */}
+      <div className="pl-4 text-action-clay">
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      </div>
+
+      {/* The Input Field */}
+      <input 
+        type="text" 
+        className="w-full bg-transparent border-none text-brand-evergreen placeholder-text-muted/60 text-lg px-4 py-3 focus:ring-0"
+        placeholder="Try 'Montessori preschool in Jersey City under $2k/mo'..." 
+      />
+
+      {/* The Action Button */}
+      <button className="bg-brand-evergreen hover:bg-action-teal text-white px-6 py-3 rounded-lg font-medium transition-colors">
+        Ask HappiKid
+      </button>
+    </div>
+  </div>
+
+  {/* Trust Signals below search */}
+  <div className="mt-8 flex items-center gap-6 text-sm text-text-muted font-medium">
+    <span className="flex items-center gap-2">
+      <div className="w-2 h-2 rounded-full bg-action-teal"></div> Verified Safety
+    </span>
+    <span className="flex items-center gap-2">
+      <div className="w-2 h-2 rounded-full bg-action-teal"></div> Real-time Pricing
+    </span>
+    <span className="flex items-center gap-2">
+      <div className="w-2 h-2 rounded-full bg-action-teal"></div> No Ads
+    </span>
+  </div>
+</section>
