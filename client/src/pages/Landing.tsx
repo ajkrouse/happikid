@@ -119,176 +119,74 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="w-full bg-brand-white border-b border-brand-evergreen/10 py-8">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+      {/* QUICK ACCESS BAR */}
+      <div className="w-full bg-brand-white border-b border-brand-evergreen/10 py-6">
+        <div className="max-w-7xl mx-auto px-4 overflow-x-auto">
+          <div className="flex justify-between md:justify-center gap-8 min-w-max">
+            
+            {/* Icon 1: Daycare */}
             <button 
               onClick={() => setLocation("/search?type=daycare")}
-              className="group flex flex-col items-center gap-3 min-w-[100px] p-2 rounded-xl hover:bg-brand-sage/50 transition-colors"
-              data-testid="category-daycare"
+              className="flex flex-col items-center gap-2 group cursor-pointer"
+              data-testid="quick-access-daycare"
             >
-              <div className="w-12 h-12 rounded-full bg-brand-sage flex items-center justify-center text-brand-evergreen group-hover:bg-brand-evergreen group-hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               </div>
-              <span className="font-body text-sm font-semibold text-brand-evergreen">Daycare</span>
+              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Daycare</span>
             </button>
 
+            {/* Icon 2: Camps */}
             <button 
               onClick={() => setLocation("/search?type=camp")}
-              className="group flex flex-col items-center gap-3 min-w-[100px] p-2 rounded-xl hover:bg-brand-sage/50 transition-colors"
-              data-testid="category-camps"
+              className="flex flex-col items-center gap-2 group cursor-pointer"
+              data-testid="quick-access-camps"
             >
-              <div className="w-12 h-12 rounded-full bg-brand-sage flex items-center justify-center text-brand-evergreen group-hover:bg-brand-evergreen group-hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
               </div>
-              <span className="font-body text-sm font-semibold text-brand-evergreen">Summer Camps</span>
+              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Camps</span>
             </button>
 
+            {/* Icon 3: Schools */}
             <button 
               onClick={() => setLocation("/search?type=afterschool")}
-              className="group flex flex-col items-center gap-3 min-w-[100px] p-2 rounded-xl hover:bg-brand-sage/50 transition-colors"
-              data-testid="category-afterschool"
+              className="flex flex-col items-center gap-2 group cursor-pointer"
+              data-testid="quick-access-schools"
             >
-              <div className="w-12 h-12 rounded-full bg-brand-sage flex items-center justify-center text-brand-evergreen group-hover:bg-brand-evergreen group-hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
               </div>
-              <span className="font-body text-sm font-semibold text-brand-evergreen">After School</span>
+              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Schools</span>
             </button>
 
+            {/* Icon 4: Sports */}
             <button 
               onClick={() => setLocation("/search?type=sports")}
-              className="group flex flex-col items-center gap-3 min-w-[100px] p-2 rounded-xl hover:bg-brand-sage/50 transition-colors"
-              data-testid="category-sports"
+              className="flex flex-col items-center gap-2 group cursor-pointer"
+              data-testid="quick-access-sports"
             >
-              <div className="w-12 h-12 rounded-full bg-brand-sage flex items-center justify-center text-brand-evergreen group-hover:bg-brand-evergreen group-hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h18v18H3zM8 12h8m-4-4v8"></path></svg>
+              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h18v18H3zM8 12h8m-4-4v8"></path></svg>
               </div>
-              <span className="font-body text-sm font-semibold text-brand-evergreen">Youth Sports</span>
+              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Sports</span>
             </button>
-
+            
+            {/* Icon 5: Tutors */}
             <button 
               onClick={() => setLocation("/search?type=tutoring")}
-              className="group flex flex-col items-center gap-3 min-w-[100px] p-2 rounded-xl hover:bg-brand-sage/50 transition-colors"
-              data-testid="category-tutoring"
+              className="flex flex-col items-center gap-2 group cursor-pointer"
+              data-testid="quick-access-tutors"
             >
-              <div className="w-12 h-12 rounded-full bg-brand-sage flex items-center justify-center text-brand-evergreen group-hover:bg-brand-evergreen group-hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
               </div>
-              <span className="font-body text-sm font-semibold text-brand-evergreen">Tutoring</span>
+              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Tutors</span>
             </button>
+
           </div>
         </div>
-      </section>
-
-      <section className="py-16 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-headline mb-6 text-brand-evergreen">
-                No more digging through Facebook groups, outdated sites, or endless calls
-              </h2>
-              <p className="text-lg leading-relaxed mb-6 text-text-muted">
-                HappiKid shows you real choices with real information in one place, saving families hours and eliminating guesswork around pricing, availability, reviews, and safety.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {['Pricing', 'Availability', 'Reviews', 'Safety'].map((item, i) => (
-                  <Badge key={i} className="px-4 py-2 text-sm font-medium rounded-full bg-brand-sage text-action-teal">
-                    {item}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { icon: MessageSquare, label: 'Facebook Groups', color: 'text-action-clay', bg: 'bg-action-sand' },
-                { icon: Search, label: 'Google Maps', color: 'text-action-teal', bg: 'bg-brand-sage' },
-                { icon: BookOpen, label: 'Parent Blogs', color: 'text-brand-evergreen', bg: 'bg-action-sand' },
-                { icon: Shield, label: 'State PDFs', color: 'text-action-teal', bg: 'bg-brand-sage' }
-              ].map((item, i) => (
-                <Card key={i} className={`p-4 text-center rounded-2xl relative overflow-hidden ${item.bg}`}>
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center bg-white">
-                    <X className="h-4 w-4 text-action-clay" />
-                  </div>
-                  <item.icon className={`h-8 w-8 mx-auto mb-2 ${item.color}`} />
-                  <p className="text-xs font-medium text-brand-evergreen">{item.label}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-brand-sage">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="order-2 md:order-1">
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { icon: Database, title: 'Collect', desc: 'Gather data from multiple sources', color: 'text-action-clay', bg: 'bg-white' },
-                  { icon: Sparkles, title: 'Clean', desc: 'Standardize and verify information', color: 'text-action-teal', bg: 'bg-white' },
-                  { icon: BarChart3, title: 'Compare', desc: 'Side-by-side program comparison', color: 'text-action-clay', bg: 'bg-white' },
-                  { icon: Target, title: 'Connect', desc: 'Direct enrollment pathways', color: 'text-action-teal', bg: 'bg-white' }
-                ].map((step, i) => (
-                  <Card key={i} className={`p-5 rounded-2xl text-center shadow-md ${step.bg}`}>
-                    <step.icon className={`h-8 w-8 mx-auto mb-2 ${step.color}`} />
-                    <h4 className="font-semibold text-sm mb-1 text-brand-evergreen">{step.title}</h4>
-                    <p className="text-xs text-text-muted">{step.desc}</p>
-                  </Card>
-                ))}
-              </div>
-            </div>
-            <div className="order-1 md:order-2">
-              <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full bg-action-teal text-white">
-                AI-Powered
-              </Badge>
-              <h2 className="text-3xl sm:text-4xl font-headline mb-6 text-brand-evergreen">
-                AI that organizes a fragmented childcare ecosystem
-              </h2>
-              <p className="text-lg leading-relaxed text-text-muted">
-                HappiKid collects, cleans, and standardizes provider data into a searchable, side-by-side comparison tool. Families can compare instantly; providers gain visibility, trust, and full enrollment.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge className="mb-4 px-4 py-2 text-xs font-semibold rounded-full bg-action-clay text-white">
-              Ages 0–13
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-headline mb-4 text-brand-evergreen">
-              All the child-focused programs you rely on
-            </h2>
-            <p className="text-lg max-w-3xl mx-auto text-text-muted">
-              HappiKid serves the full ecosystem: daycare and early learning centers, after-school programs, camps, youth sports, tutoring, arts and STEM enrichment, and other activity-based businesses for ages 0–13. Our mission is to bring transparency, structure, and accessibility to all services families depend on year-round.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {[
-              { icon: Baby, label: 'Daycare & Early Learning', color: 'text-action-clay', bg: 'bg-action-sand' },
-              { icon: School, label: 'Preschools', color: 'text-action-teal', bg: 'bg-brand-sage' },
-              { icon: BookOpen, label: 'After-School Programs', color: 'text-action-clay', bg: 'bg-action-sand' },
-              { icon: TreePine, label: 'Summer & Day Camps', color: 'text-action-teal', bg: 'bg-brand-sage' },
-              { icon: Trophy, label: 'Youth Sports', color: 'text-action-clay', bg: 'bg-action-sand' },
-              { icon: GraduationCap, label: 'Tutoring', color: 'text-action-teal', bg: 'bg-brand-sage' },
-              { icon: Sparkles, label: 'Arts & STEM Enrichment', color: 'text-action-clay', bg: 'bg-action-sand' },
-              { icon: Users, label: 'Activity Programs', color: 'text-action-teal', bg: 'bg-brand-sage' }
-            ].map((category, i) => (
-              <Card 
-                key={i} 
-                className={`p-5 text-center rounded-2xl cursor-pointer hover:shadow-lg transition-all hover:scale-105 ${category.bg}`}
-                onClick={() => setLocation("/search")}
-              >
-                <category.icon className={`h-8 w-8 mx-auto mb-3 ${category.color}`} />
-                <p className="text-sm font-medium text-brand-evergreen">{category.label}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      </div>
 
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

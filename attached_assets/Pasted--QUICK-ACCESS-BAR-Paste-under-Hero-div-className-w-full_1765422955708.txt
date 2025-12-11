@@ -1,0 +1,48 @@
+{/* QUICK ACCESS BAR - Paste under Hero */}
+<div className="w-full bg-brand-white border-b border-brand-evergreen/10 py-6">
+  <div className="max-w-7xl mx-auto px-4 overflow-x-auto">
+    <div className="flex justify-between md:justify-center gap-8 min-w-max">
+      
+      {/* Icon 1: Daycare */}
+      <button className="flex flex-col items-center gap-2 group cursor-pointer">
+        <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Daycare</span>
+      </button>
+
+      {/* Icon 2: Camps */}
+      <button className="flex flex-col items-center gap-2 group cursor-pointer">
+        <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+        </div>
+        <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Camps</span>
+      </button>
+
+      {/* Icon 3: Schools */}
+      <button className="flex flex-col items-center gap-2 group cursor-pointer">
+        <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+        </div>
+        <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Schools</span>
+      </button>
+
+      {/* Icon 4: Sports */}
+      <button className="flex flex-col items-center gap-2 group cursor-pointer">
+        <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h18v18H3zM8 12h8m-4-4v8"></path></svg>
+        </div>
+        <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Sports</span>
+      </button>
+      
+      {/* Icon 5: Tutors */}
+      <button className="flex flex-col items-center gap-2 group cursor-pointer">
+        <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+        </div>
+        <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Tutors</span>
+      </button>
+
+    </div>
+  </div>
+</div>
