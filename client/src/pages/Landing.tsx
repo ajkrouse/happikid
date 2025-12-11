@@ -68,50 +68,9 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen">
-      <nav className="sticky top-0 z-50 backdrop-blur-sm bg-white/95 border-b border-brand-evergreen/10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <a href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 text-brand-evergreen">
-                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="20" y="10" width="15" height="80" rx="4" fill="currentColor" />
-                  <rect x="65" y="10" width="15" height="80" rx="4" fill="currentColor" />
-                  <path d="M35 60 C35 60, 50 75, 65 60" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
-                  <circle cx="50" cy="35" r="7" className="text-action-clay fill-current" />
-                </svg>
-              </div>
-              <span className="font-headline text-2xl text-brand-evergreen tracking-wide">HappiKid</span>
-            </a>
-            
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <span onClick={() => setLocation("/search")} className="text-brand-evergreen hover:text-action-clay transition cursor-pointer" data-testid="nav-for-parents">For Parents</span>
-              <span onClick={() => setLocation("/providers")} className="text-brand-evergreen hover:text-action-clay transition cursor-pointer" data-testid="nav-for-providers">For Providers</span>
-              <a href="#how-it-works" className="text-brand-evergreen hover:text-action-clay transition" data-testid="nav-how-it-works">How It Works</a>
-              <span onClick={() => setLocation("/about")} className="text-brand-evergreen hover:text-action-clay transition cursor-pointer" data-testid="nav-about">About</span>
-            </div>
+      <Navigation />
 
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={() => setLocation("/search")}
-                className="rounded-lg bg-action-clay text-white font-medium shadow-md hover:shadow-lg hover:bg-action-clay/90 transition-all"
-                data-testid="button-nav-find-programs"
-              >
-                Find Programs
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation("/providers")}
-                className="rounded-lg font-medium border-2 border-brand-evergreen text-brand-evergreen hidden sm:inline-flex hover:bg-brand-evergreen hover:text-white transition-all"
-                data-testid="button-nav-list-program"
-              >
-                List Your Program
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <section className="relative w-full bg-brand-sage px-6 pt-20 pb-32 flex flex-col items-center justify-center text-center">
+      <section className="relative w-full bg-gradient-to-br from-brand-sage via-brand-white to-action-sand px-6 pt-20 pb-32 flex flex-col items-center justify-center text-center">
         <h1 className="font-headline text-5xl md:text-6xl text-brand-evergreen mb-6 max-w-4xl leading-tight">
           The village, <span className="text-action-clay italic">verified.</span>
         </h1>
