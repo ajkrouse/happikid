@@ -72,7 +72,7 @@ export default function Landing() {
 
       <section className="relative w-full bg-gradient-to-br from-brand-sage via-brand-white to-action-sand px-6 pt-20 pb-32 flex flex-col items-center justify-center text-center">
         <h1 className="font-headline text-5xl md:text-6xl text-brand-evergreen mb-6 max-w-4xl leading-tight">
-          The village, <span className="text-action-clay italic">verified.</span>
+          Find Care. Compare. <span className="text-action-clay italic">Book with Confidence.</span>
         </h1>
         
         <p className="font-body text-text-muted text-lg md:text-xl mb-10 max-w-2xl">
