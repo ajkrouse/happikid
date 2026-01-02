@@ -14,6 +14,7 @@ import {
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
 import { intelligentSearch } from "./intelligentSearch";
+import { generateSearchSummary } from "./services/aiSummaries";
 
 // User preferences schema
 const userPreferencesSchema = z.object({
@@ -16415,7 +16416,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         category,
         subcategory,
         limit = 20,
-        offset = 0
+        offset = 0,
+        aiSummary: requestAiSummary
       } = req.query;
 
       // Convert age group strings to numeric ranges (in months)
@@ -16502,17 +16504,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           explanation: intelligentSearch.explainParsing(parsed)
         };
 
+        // Generate AI summary if requested
+        let aiSummaryResult = null;
+        if (requestAiSummary === 'true') {
+          try {
+            const providersArray = Array.isArray(result) ? result : result.providers;
+            aiSummaryResult = await generateSearchSummary(
+              search as string,
+              providersArray,
+              { matchedTerms: parsed.matchedTerms, confidence: parsed.confidence }
+            );
+          } catch (aiError) {
+            console.error("Error generating AI summary:", aiError);
+          }
+        }
+
         // Add metadata to response
         if (Array.isArray(result)) {
           res.json({
             providers: result,
             total: result.length,
-            searchMetadata
+            searchMetadata,
+            ...(aiSummaryResult && { aiInsights: aiSummaryResult })
           });
         } else {
           res.json({
             ...result,
-            searchMetadata
+            searchMetadata,
+            ...(aiSummaryResult && { aiInsights: aiSummaryResult })
           });
         }
       } else {

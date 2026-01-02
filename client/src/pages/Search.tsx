@@ -7,6 +7,7 @@ import ComparisonModal from "@/components/ComparisonModal";
 import MapView from "@/components/MapView";
 import { SearchInsights } from "@/components/SearchInsights";
 import { ConversationalSearch } from "@/components/ConversationalSearch";
+import { AIInsights, AIInsightsSkeleton } from "@/components/AIInsights";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -941,6 +942,7 @@ export default function SearchPage() {
       priceRange: filters.priceRange,
       limit: itemsPerPage,
       offset: (currentPage - 1) * itemsPerPage,
+      aiSummary: searchQuery ? 'true' : undefined,
     }],
     enabled: true,
     onSuccess: (data) => {
@@ -1153,6 +1155,22 @@ export default function SearchPage() {
               <SearchInsights 
                 metadata={providerResponse.searchMetadata}
                 resultsCount={providers.length}
+              />
+            )}
+
+            {searchQuery && isLoading && (
+              <AIInsightsSkeleton />
+            )}
+
+            {searchQuery && !isLoading && providerResponse?.aiInsights && (
+              <AIInsights 
+                summary={providerResponse.aiInsights.summary}
+                highlights={providerResponse.aiInsights.highlights || []}
+                followUpSuggestions={providerResponse.aiInsights.followUpSuggestions || []}
+                onFollowUp={(query) => {
+                  setSearchQuery(query);
+                  refetch();
+                }}
               />
             )}
 
