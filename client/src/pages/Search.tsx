@@ -28,7 +28,7 @@ import {
   PaginationEllipsis 
 } from "@/components/ui/pagination";
 import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft, Map, BookOpen, Palette, Dumbbell, TreePine, Laptop, Users as UsersIcon, Sparkles, Heart as HeartIcon, Calendar, ChevronRight, CheckCircle2, ArrowRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
@@ -831,6 +831,26 @@ export default function SearchPage() {
   
   const [urlParsed, setUrlParsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Debounce search query to avoid excessive API calls while typing
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // Wait 500ms after user stops typing
+    
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+  
   const [filters, setFilters] = useState<{
     type?: string;
     borough?: string;
@@ -907,6 +927,7 @@ export default function SearchPage() {
     // Set all URL params in a single batch to avoid multiple re-renders
     if (q) {
       setSearchQuery(q);
+      setDebouncedSearchQuery(q); // Also set debounced query immediately for URL-based searches
     }
     
     const newFilters: typeof filters = {};
@@ -929,7 +950,7 @@ export default function SearchPage() {
 
   const { data: providerResponse, isLoading, refetch } = useQuery({
     queryKey: ['/api/providers', { 
-      search: searchQuery,
+      search: debouncedSearchQuery,
       type: filters.type,
       borough: filters.borough,
       city: filters.city,
@@ -938,7 +959,7 @@ export default function SearchPage() {
       priceRange: filters.priceRange,
       limit: itemsPerPage,
       offset: (currentPage - 1) * itemsPerPage,
-      aiSummary: searchQuery ? 'true' : undefined,
+      aiSummary: debouncedSearchQuery ? 'true' : undefined,
     }],
     enabled: urlParsed,
     onSuccess: (data) => {
@@ -1154,11 +1175,11 @@ export default function SearchPage() {
               />
             )}
 
-            {searchQuery && isLoading && (
+            {debouncedSearchQuery && isLoading && (
               <AIInsightsSkeleton />
             )}
 
-            {searchQuery && !isLoading && providerResponse?.aiInsights && (
+            {debouncedSearchQuery && !isLoading && providerResponse?.aiInsights && (
               <AIInsights 
                 summary={providerResponse.aiInsights.summary}
                 highlights={providerResponse.aiInsights.highlights || []}
