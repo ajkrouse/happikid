@@ -829,6 +829,7 @@ export default function SearchPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  const [urlParsed, setUrlParsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{
     type?: string;
@@ -895,40 +896,35 @@ export default function SearchPage() {
     const category = urlParams.get('category');
     const subcategory = urlParams.get('subcategory');
     
+    const costToPrice: { [key: string]: string } = {
+      '1': '0-1000',
+      '2': '1000-2000', 
+      '3': '2000-3000',
+      '4': '3000+',
+      '5': '3000+'
+    };
+    
+    // Set all URL params in a single batch to avoid multiple re-renders
     if (q) {
       setSearchQuery(q);
     }
-    if (type) {
-      setFilters(prev => ({ ...prev, type }));
+    
+    const newFilters: typeof filters = {};
+    if (type) newFilters.type = type;
+    if (borough) newFilters.borough = borough;
+    if (city) newFilters.city = city;
+    if (features) newFilters.features = features.split(',');
+    if (cost) newFilters.priceRange = costToPrice[cost];
+    if (ageRange) newFilters.ageRange = ageRange;
+    if (category) newFilters.category = category;
+    if (subcategory) newFilters.subcategory = subcategory;
+    
+    if (Object.keys(newFilters).length > 0) {
+      setFilters(newFilters);
     }
-    if (borough) {
-      setFilters(prev => ({ ...prev, borough }));
-    }
-    if (city) {
-      setFilters(prev => ({ ...prev, city }));
-    }
-    if (features) {
-      setFilters(prev => ({ ...prev, features: features.split(',') }));
-    }
-    if (cost) {
-      const costToPrice: { [key: string]: string } = {
-        '1': '0-1000',
-        '2': '1000-2000', 
-        '3': '2000-3000',
-        '4': '3000+',
-        '5': '3000+'
-      };
-      setFilters(prev => ({ ...prev, priceRange: costToPrice[cost] }));
-    }
-    if (ageRange) {
-      setFilters(prev => ({ ...prev, ageRange }));
-    }
-    if (category) {
-      setFilters(prev => ({ ...prev, category }));
-    }
-    if (subcategory) {
-      setFilters(prev => ({ ...prev, subcategory }));
-    }
+    
+    // Mark URL parsing as complete
+    setUrlParsed(true);
   }, []);
 
   const { data: providerResponse, isLoading, refetch } = useQuery({
@@ -944,7 +940,7 @@ export default function SearchPage() {
       offset: (currentPage - 1) * itemsPerPage,
       aiSummary: searchQuery ? 'true' : undefined,
     }],
-    enabled: true,
+    enabled: urlParsed,
     onSuccess: (data) => {
       if (data && typeof data === 'object' && 'total' in data) {
         setTotalProviders(data.total);
