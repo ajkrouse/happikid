@@ -57,24 +57,24 @@ const LOCATIONS: { [key: string]: { city: string; borough: string } } = {
   'ridgewood': { city: 'Ridgewood', borough: 'Bergen County' },
   'mahwah': { city: 'Mahwah', borough: 'Bergen County' },
   
-  // NYC Boroughs
-  'manhattan': { city: 'Manhattan', borough: 'New York County' },
-  'brooklyn': { city: 'Brooklyn', borough: 'Kings County' },
-  'queens': { city: 'Queens', borough: 'Queens County' },
-  'bronx': { city: 'Bronx', borough: 'Bronx County' },
-  'staten island': { city: 'Staten Island', borough: 'Richmond County' },
+  // NYC Boroughs (use borough name that matches database)
+  'manhattan': { city: 'Manhattan', borough: 'Manhattan' },
+  'brooklyn': { city: 'Brooklyn', borough: 'Brooklyn' },
+  'queens': { city: 'Queens', borough: 'Queens' },
+  'bronx': { city: 'Bronx', borough: 'Bronx' },
+  'staten island': { city: 'Staten Island', borough: 'Staten Island' },
   
   // NYC Neighborhoods (map to boroughs)
-  'upper east side': { city: 'Manhattan', borough: 'New York County' },
-  'upper west side': { city: 'Manhattan', borough: 'New York County' },
-  'tribeca': { city: 'Manhattan', borough: 'New York County' },
-  'soho': { city: 'Manhattan', borough: 'New York County' },
-  'chelsea': { city: 'Manhattan', borough: 'New York County' },
-  'williamsburg': { city: 'Brooklyn', borough: 'Kings County' },
-  'park slope': { city: 'Brooklyn', borough: 'Kings County' },
-  'dumbo': { city: 'Brooklyn', borough: 'Kings County' },
-  'long island city': { city: 'Queens', borough: 'Queens County' },
-  'astoria': { city: 'Queens', borough: 'Queens County' },
+  'upper east side': { city: 'Manhattan', borough: 'Manhattan' },
+  'upper west side': { city: 'Manhattan', borough: 'Manhattan' },
+  'tribeca': { city: 'Manhattan', borough: 'Manhattan' },
+  'soho': { city: 'Manhattan', borough: 'Manhattan' },
+  'chelsea': { city: 'Manhattan', borough: 'Manhattan' },
+  'williamsburg': { city: 'Brooklyn', borough: 'Brooklyn' },
+  'park slope': { city: 'Brooklyn', borough: 'Brooklyn' },
+  'dumbo': { city: 'Brooklyn', borough: 'Brooklyn' },
+  'long island city': { city: 'Queens', borough: 'Queens' },
+  'astoria': { city: 'Queens', borough: 'Queens' },
 };
 
 // Provider types
