@@ -50,6 +50,7 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
   const { toast } = useToast();
   const [messageType, setMessageType] = useState("tour_request");
   const [message, setMessage] = useState(MESSAGE_TEMPLATES[0].template);
+  const [parentName, setParentName] = useState("");
   const [childAge, setChildAge] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -58,9 +59,10 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
     mutationFn: async (data: {
       providerId: number;
       message: string;
-      messageType: string;
+      parentName: string;
+      parentEmail: string;
+      messageType?: string;
       childAge?: string;
-      parentEmail?: string;
       parentPhone?: string;
     }) => {
       return apiRequest('POST', '/api/inquiries', data);
@@ -86,6 +88,7 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
   const resetForm = () => {
     setMessageType("tour_request");
     setMessage(MESSAGE_TEMPLATES[0].template);
+    setParentName("");
     setChildAge("");
     setContactEmail("");
     setContactPhone("");
@@ -102,6 +105,9 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const finalName = parentName.trim() || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '');
+    const finalEmail = contactEmail.trim() || user?.email || '';
+    
     if (!message.trim()) {
       toast({
         title: "Message required",
@@ -111,12 +117,31 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
       return;
     }
 
+    if (!finalName) {
+      toast({
+        title: "Name required",
+        description: "Please provide your name so the provider can respond.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!finalEmail) {
+      toast({
+        title: "Email required",
+        description: "Please provide your email so the provider can respond.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     sendMessageMutation.mutate({
       providerId: provider.id,
       message: message.trim(),
+      parentName: finalName,
+      parentEmail: finalEmail,
       messageType,
       childAge: childAge || undefined,
-      parentEmail: contactEmail || user?.email || undefined,
       parentPhone: contactPhone || undefined,
     });
   };
@@ -214,13 +239,37 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
             />
           </div>
 
-          {/* Optional details */}
+          {/* Contact info - show fields if user data is missing */}
           <div className="space-y-4 bg-brand-sage/30 p-4 rounded-lg">
-            <p className="text-sm font-medium text-brand-evergreen">Optional Details</p>
+            <p className="text-sm font-medium text-brand-evergreen">Your Contact Info</p>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="childAge" className="text-sm">Child's Age</Label>
+                <Label htmlFor="parentName" className="text-sm">Your Name *</Label>
+                <Input
+                  id="parentName"
+                  value={parentName || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '')}
+                  onChange={(e) => setParentName(e.target.value)}
+                  placeholder="Your full name"
+                  data-testid="input-parent-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail" className="text-sm">Email *</Label>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  value={contactEmail || user?.email || ''}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  data-testid="input-email"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="childAge" className="text-sm">Child's Age (optional)</Label>
                 <Input
                   id="childAge"
                   value={childAge}
@@ -241,20 +290,6 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
                 />
               </div>
             </div>
-
-            {!user?.email && (
-              <div className="space-y-2">
-                <Label htmlFor="contactEmail" className="text-sm">Email for Reply</Label>
-                <Input
-                  id="contactEmail"
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  data-testid="input-email"
-                />
-              </div>
-            )}
           </div>
 
           <div className="flex gap-3 pt-2">
