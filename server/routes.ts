@@ -16417,7 +16417,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subcategory,
         limit = 20,
         offset = 0,
-        aiSummary: requestAiSummary
+        aiSummary: requestAiSummary,
+        acceptsSubsidies
       } = req.query;
 
       // Convert age group strings to numeric ranges (in months)
@@ -16439,7 +16440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      let filters = {
+      let filters: any = {
         type: type as string,
         borough: borough as string,
         city: city as string,
@@ -16452,6 +16453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
         returnTotal: true, // Always return total count for pagination
+        acceptsSubsidies: acceptsSubsidies === 'true',
       };
 
       // Use intelligent search if there's a search query
@@ -16468,6 +16470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ageRangeMax: filters.ageRangeMax || parsed.filters.ageRangeMax,
           features: filters.features || parsed.filters.features,
           search: parsed.filters.search, // Use processed search terms or original query
+          acceptsSubsidies: filters.acceptsSubsidies || parsed.filters.acceptsSubsidies,
         };
         
         console.log('Intelligent search parsed:', {

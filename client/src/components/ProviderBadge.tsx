@@ -6,7 +6,8 @@ import {
   Shield, 
   Crown, 
   Heart, 
-  TrendingUp 
+  TrendingUp,
+  DollarSign
 } from "lucide-react";
 
 export type BadgeType = 
@@ -16,7 +17,8 @@ export type BadgeType =
   | "verified" 
   | "premium" 
   | "complete_profile" 
-  | "parent_favorite";
+  | "parent_favorite"
+  | "subsidy_accepted";
 
 interface ProviderBadgeProps {
   type: BadgeType;
@@ -71,6 +73,12 @@ const badgeConfig: Record<BadgeType, {
     icon: Heart,
     className: "bg-coral/10 text-coral border-coral/20",
     description: "Favorited by 20+ parents"
+  },
+  subsidy_accepted: {
+    label: "Accepts Subsidies",
+    icon: DollarSign,
+    className: "bg-action-teal/10 text-action-teal border-action-teal/20",
+    description: "Accepts CCAP, vouchers, and government childcare assistance"
   }
 };
 

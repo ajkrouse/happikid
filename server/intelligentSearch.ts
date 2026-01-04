@@ -13,6 +13,7 @@ interface ParsedSearchQuery {
     ageRangeMax?: number;
     features?: string[];
     search?: string;
+    acceptsSubsidies?: boolean;
   };
   originalQuery: string;
   matchedTerms: string[];
@@ -226,6 +227,16 @@ export class IntelligentSearchService {
         matchedTerms.push(`special requirements: ${term}`);
         if (!filters.features) filters.features = [];
         filters.features.push('Special needs');
+      }
+    }
+    
+    // Subsidy/financial assistance indicators
+    const subsidyTerms = ['subsidy', 'subsidies', 'ccap', 'voucher', 'vouchers', 'government assistance', 'financial assistance', 'childcare assistance', 'child care assistance', 'wic', 'head start', 'low income', 'affordable care'];
+    for (const term of subsidyTerms) {
+      if (query.includes(term)) {
+        filters.acceptsSubsidies = true;
+        matchedTerms.push('accepts subsidies');
+        break;
       }
     }
   }

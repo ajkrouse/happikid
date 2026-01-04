@@ -860,6 +860,7 @@ export default function SearchPage() {
     features?: string[];
     category?: string;
     subcategory?: string;
+    acceptsSubsidies?: boolean;
   }>({});
   const [sortBy, setSortBy] = useState("best-match");
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
@@ -957,6 +958,7 @@ export default function SearchPage() {
       ageRange: filters.ageRange,
       features: filters.features?.join(','),
       priceRange: filters.priceRange,
+      acceptsSubsidies: filters.acceptsSubsidies ? 'true' : undefined,
       limit: itemsPerPage,
       offset: (currentPage - 1) * itemsPerPage,
       aiSummary: debouncedSearchQuery ? 'true' : undefined,

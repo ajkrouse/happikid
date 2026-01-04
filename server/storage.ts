@@ -61,6 +61,7 @@ export interface IStorage {
     offset?: number;
     includeUnconfirmed?: boolean;
     returnTotal?: boolean;
+    acceptsSubsidies?: boolean;
   }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number }>;
   getProvider(id: number): Promise<Provider | undefined>;
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
@@ -202,6 +203,7 @@ export class DatabaseStorage implements IStorage {
     offset?: number;
     includeUnconfirmed?: boolean;
     returnTotal?: boolean;
+    acceptsSubsidies?: boolean;
   }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number }> {
     try {
       let conditions: any[] = [eq(providers.isActive, true)];
@@ -276,6 +278,11 @@ export class DatabaseStorage implements IStorage {
           sql`array_to_string(${providers.features}, ',') ILIKE ${`%${feature}%`}`
         );
         conditions.push(or(...featureConditions));
+      }
+
+      // Filter by subsidy acceptance
+      if (filters?.acceptsSubsidies) {
+        conditions.push(eq(providers.acceptsSubsidies, true));
       }
 
       // Import provider_scores table for ranking

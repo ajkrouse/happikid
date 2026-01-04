@@ -344,13 +344,16 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
           </div>
         )}
 
-        {provider.badges && provider.badges.length > 0 && (
+        {(provider.badges && provider.badges.length > 0) || provider.acceptsSubsidies ? (
           <div className="flex flex-wrap gap-2 mb-3">
-            {provider.badges.slice(0, 3).map((badgeType: string, index: number) => (
+            {provider.acceptsSubsidies && (
+              <ProviderBadge type="subsidy_accepted" size="sm" />
+            )}
+            {provider.badges?.slice(0, provider.acceptsSubsidies ? 2 : 3).map((badgeType: string, index: number) => (
               <ProviderBadge key={index} type={badgeType as BadgeType} size="sm" />
             ))}
           </div>
-        )}
+        ) : null}
 
         <div className="flex flex-wrap gap-2 mb-4">
           <Badge 

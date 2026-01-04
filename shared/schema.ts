@@ -127,6 +127,9 @@ export const providers = pgTable("providers", {
   isVerifiedByGov: boolean("is_verified_by_gov").default(false),
   isProfilePublic: boolean("is_profile_public").default(true),
   
+  // Subsidy/financial assistance fields
+  acceptsSubsidies: boolean("accepts_subsidies").default(false),
+  
   // Summer camp specific fields
   campId: text("camp_id"),
   dohInspectionYear: integer("doh_inspection_year"),

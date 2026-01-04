@@ -13,6 +13,7 @@ interface SearchFiltersProps {
     ageRange?: string;
     priceRange?: string;
     features?: string[];
+    acceptsSubsidies?: boolean;
   };
   onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
@@ -163,7 +164,11 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
     onFiltersChange({ ...filters, features: newFeatures });
   };
 
-  const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || (filters.features && filters.features.length > 0);
+  const handleSubsidyToggle = (checked: boolean) => {
+    onFiltersChange({ ...filters, acceptsSubsidies: checked || undefined });
+  };
+
+  const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || (filters.features && filters.features.length > 0);
 
   return (
     <Card className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl shadow-lg border-2 border-brand-evergreen/10 bg-white">
@@ -285,6 +290,30 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
               </div>
             ))}
           </RadioGroup>
+        </div>
+
+        {/* Financial Assistance */}
+        <div className="p-3 bg-action-teal/5 rounded-lg border border-action-teal/20">
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="accepts-subsidies"
+              checked={filters.acceptsSubsidies || false}
+              onCheckedChange={(checked) => handleSubsidyToggle(checked as boolean)}
+              className="mt-0.5"
+              aria-label="Filter providers that accept childcare subsidies and vouchers"
+            />
+            <div>
+              <Label 
+                htmlFor="accepts-subsidies" 
+                className="text-sm font-medium text-action-teal cursor-pointer"
+              >
+                Accepts Subsidies
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                CCAP, vouchers & government assistance
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Price Range */}
