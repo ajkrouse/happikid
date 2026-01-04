@@ -16,13 +16,24 @@ export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
 
+  // Simplified nav: About and Contact only (CTAs handle primary actions)
   const navItems = isAuthenticated ? [
-    { href: "/search", label: "Find Programs" },
     { href: "/provider/dashboard", label: "Provider Dashboard" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ] : [
-    { href: "/search", label: "Find Programs" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+  ];
+  
+  // Mobile nav prioritizes Find Programs action first
+  const mobileNavItems = isAuthenticated ? [
+    { href: "/search", label: "Find Programs", isPrimary: true },
+    { href: "/provider/dashboard", label: "Provider Dashboard" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+  ] : [
+    { href: "/search", label: "Find Programs", isPrimary: true },
     { href: "/providers", label: "For Providers" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
@@ -63,13 +74,15 @@ export default function Navigation() {
             >
               Find Programs
             </Button>
-            <Button 
-              variant="outline" 
-              className="rounded-lg font-medium border-2 border-brand-evergreen text-brand-evergreen hidden sm:inline-flex hover:bg-brand-evergreen hover:text-white transition-all"
-              data-testid="button-nav-list-program"
-            >
-              List Your Program
-            </Button>
+            <Link href="/providers">
+              <Button 
+                variant="outline" 
+                className="rounded-lg font-medium border border-brand-evergreen/50 text-brand-evergreen/80 hidden sm:inline-flex hover:border-brand-evergreen hover:text-brand-evergreen hover:bg-transparent transition-all"
+                data-testid="button-nav-list-program"
+              >
+                List Your Program
+              </Button>
+            </Link>
           </>
         )}
       </div>
@@ -77,7 +90,7 @@ export default function Navigation() {
   );
 
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-sm bg-brand-white/95 border-b border-brand-evergreen/10 shadow-sm">
+    <nav className="sticky top-0 z-50 backdrop-blur-sm bg-brand-white/95 border-b border-brand-evergreen/15 shadow-[0_2px_8px_rgba(26,77,62,0.08)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -108,11 +121,15 @@ export default function Navigation() {
               </SheetTrigger>
               <SheetContent side="right" className="w-80 bg-brand-white">
                 <div className="flex flex-col space-y-6 mt-6">
-                  {navItems.map((item) => (
+                  {mobileNavItems.map((item) => (
                     <Link key={item.href} href={item.href}>
                       <span 
                         className={`text-lg font-medium transition-opacity cursor-pointer ${
-                          location === item.href ? "font-semibold text-action-clay" : "text-brand-evergreen hover:text-action-clay"
+                          item.isPrimary 
+                            ? "text-action-clay font-semibold" 
+                            : location === item.href 
+                              ? "font-semibold text-action-clay" 
+                              : "text-brand-evergreen hover:text-action-clay"
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
