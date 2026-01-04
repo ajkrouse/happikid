@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Heart, MapPin, Star, Phone, Mail, Users, Plus } from "lucide-react";
+import { Heart, MapPin, Star, Phone, Mail, Users, Plus, MessageSquare } from "lucide-react";
 import { Provider, ProviderWithScore } from "@shared/schema";
 import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
+import { MessageProviderModal } from "@/components/MessageProviderModal";
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -29,6 +30,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [showGroupDialog, setShowGroupDialog] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [groups, setGroups] = useState<{[key: string]: number[]}>({});
 
@@ -431,10 +433,12 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
               className="rounded-lg font-medium border-2 border-brand-evergreen/10 text-action-teal"
               onClick={(e) => {
                 e.stopPropagation();
-                onRequestInfo?.(provider);
+                setShowMessageModal(true);
               }}
+              data-testid={`button-message-provider-${provider.id}`}
             >
-              Get Info
+              <MessageSquare className="h-4 w-4 mr-1" />
+              Message
             </Button>
             <Button
               size="sm"
@@ -527,6 +531,12 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
         </div>
       </DialogContent>
     </Dialog>
+
+    <MessageProviderModal
+      isOpen={showMessageModal}
+      onClose={() => setShowMessageModal(false)}
+      provider={provider}
+    />
     </>
   );
 }

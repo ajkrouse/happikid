@@ -628,3 +628,45 @@ export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+// Parent-Provider Messaging System
+export const providerInquiries = pgTable("provider_inquiries", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  parentId: varchar("parent_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  subject: varchar("subject", { length: 255 }),
+  message: text("message").notNull(),
+  messageType: varchar("message_type", { enum: ["tour_request", "rates_inquiry", "availability", "general"] }).default("general"),
+  status: varchar("status", { enum: ["sent", "read", "replied", "archived"] }).default("sent"),
+  parentEmail: varchar("parent_email"),
+  parentPhone: varchar("parent_phone"),
+  childAge: varchar("child_age"),
+  preferredStartDate: date("preferred_start_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
+export const inquiryReplies = pgTable("inquiry_replies", {
+  id: serial("id").primaryKey(),
+  inquiryId: integer("inquiry_id").notNull().references(() => providerInquiries.id, { onDelete: "cascade" }),
+  senderId: varchar("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  senderRole: varchar("sender_role", { enum: ["parent", "provider"] }).notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertProviderInquirySchema = createInsertSchema(providerInquiries).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+});
+
+export const insertInquiryReplySchema = createInsertSchema(inquiryReplies).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ProviderInquiry = typeof providerInquiries.$inferSelect;
+export type InsertProviderInquiry = z.infer<typeof insertProviderInquirySchema>;
+export type InquiryReply = typeof inquiryReplies.$inferSelect;
+export type InsertInquiryReply = z.infer<typeof insertInquiryReplySchema>;

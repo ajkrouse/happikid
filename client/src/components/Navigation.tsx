@@ -67,13 +67,21 @@ export default function Navigation() {
           </>
         ) : (
           <>
-            <Button 
-              onClick={() => setShowRoleSelection(true)} 
-              className="rounded-lg bg-action-clay text-white font-medium shadow-md hover:shadow-lg hover:bg-action-clay/90 transition-all"
-              data-testid="button-get-started"
+            <a 
+              href="/api/login" 
+              className="text-sm font-medium text-brand-evergreen hover:text-action-clay transition cursor-pointer hidden sm:inline"
+              data-testid="link-sign-in"
             >
-              Find Programs
-            </Button>
+              Sign In
+            </a>
+            <Link href="/search">
+              <Button 
+                className="rounded-lg bg-action-clay text-white font-medium shadow-md hover:shadow-lg hover:bg-action-clay/90 transition-all"
+                data-testid="button-get-started"
+              >
+                Find Programs
+              </Button>
+            </Link>
             <Link href="/providers">
               <Button 
                 variant="outline" 

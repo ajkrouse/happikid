@@ -1,0 +1,43 @@
+Improve the parent signup and authentication flow:
+
+PROBLEM: Currently parents have to click through 3 pages to signup (Homepage → Find Programs button → Find Childcare button → Signup page). We need a streamlined flow with social login.
+
+1. SIMPLIFY NAVIGATION TO SIGNUP:
+   - Add "Sign In" link to the header next to the CTAs
+   - Make it easy for returning users to login from anywhere
+   - The "Find Programs" button should go directly to search (not require login)
+   - Only require signup when they want to save favorites or message providers
+
+2. ADD SOCIAL LOGIN OPTIONS:
+   - Replace "Sign in with Replit" with proper OAuth providers:
+     * "Continue with Google" (highest priority - most parents use Gmail)
+     * "Continue with Apple" (for iOS users)
+     * Keep email/password as backup option
+   - Use standard OAuth libraries (like @auth/core or next-auth)
+   - Store user sessions securely
+
+3. ADD GOOGLE CALENDAR INTEGRATION:
+   - After signup, show optional onboarding step: "Connect your calendar"
+   - Use Google Calendar API to sync provider tour appointments
+   - Allow parents to book tours and have them automatically added to calendar
+
+4. ADD EMAIL INTEGRATION:
+   - Request email permissions during Google OAuth
+   - Allow parents to message providers directly from HappiKid
+   - Store message history in the database
+   - Send email notifications when providers respond
+
+5. CREATE MESSAGING FEATURE:
+   - Add a "Message Provider" button on each provider card
+   - Create a simple message composer modal
+   - Template messages like "I'd like to schedule a tour" or "What are your rates for [age]?"
+   - Store messages in database with parent_id, provider_id, message, timestamp
+
+6. IMPROVE ONBOARDING FLOW:
+   After successful signup:
+   - Step 1: "Tell us about your child" (age, needs)
+   - Step 2: "Connect your calendar" (optional)
+   - Step 3: "Start searching" → redirect to search page
+   - Save preferences to personalize search results
+
+Make the flow feel seamless - parents should be able to browse without signing up, but when they find a place they like, signing up and messaging should be one smooth flow.
