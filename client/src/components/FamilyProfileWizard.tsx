@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +92,31 @@ export function FamilyProfileWizard({ isOpen, onClose, onComplete }: FamilyProfi
     queryKey: ['/api/family-profile'],
     enabled: isOpen,
   });
+
+  // Prefill form from existing profile when loaded
+  useEffect(() => {
+    if (existingProfile) {
+      if (existingProfile.childrenAges && Array.isArray(existingProfile.childrenAges)) {
+        setChildrenAges(existingProfile.childrenAges as ChildAge[]);
+      }
+      if (existingProfile.preferredBorough) setPreferredBorough(existingProfile.preferredBorough);
+      if (existingProfile.preferredZipCode) setPreferredZipCode(existingProfile.preferredZipCode);
+      if (existingProfile.maxDistanceMiles) setMaxDistanceMiles(existingProfile.maxDistanceMiles);
+      if (existingProfile.scheduleType) setScheduleType(existingProfile.scheduleType);
+      if (existingProfile.budgetMin) setBudgetMin(existingProfile.budgetMin);
+      if (existingProfile.budgetMax) setBudgetMax(existingProfile.budgetMax);
+      if (existingProfile.needsSubsidy) setNeedsSubsidy(existingProfile.needsSubsidy);
+      if (existingProfile.mustHaveFeatures && Array.isArray(existingProfile.mustHaveFeatures)) {
+        setMustHaveFeatures(existingProfile.mustHaveFeatures as string[]);
+      }
+      if (existingProfile.specialNeeds && Array.isArray(existingProfile.specialNeeds)) {
+        setSpecialNeeds(existingProfile.specialNeeds as string[]);
+      }
+      if (existingProfile.preferredLanguages && Array.isArray(existingProfile.preferredLanguages)) {
+        setPreferredLanguages(existingProfile.preferredLanguages as string[]);
+      }
+    }
+  }, [existingProfile]);
 
   // Save profile mutation
   const saveProfileMutation = useMutation({

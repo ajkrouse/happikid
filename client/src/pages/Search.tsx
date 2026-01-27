@@ -890,10 +890,16 @@ export default function SearchPage() {
   const [showFamilyProfileWizard, setShowFamilyProfileWizard] = useState(false);
   
   // Fetch family profile to check if user has completed onboarding
-  const { data: familyProfile } = useQuery<FamilyProfile | null>({
+  const { data: familyProfile, isLoading: isFamilyProfileLoading } = useQuery<FamilyProfile | null>({
     queryKey: ['/api/family-profile'],
     enabled: isAuthenticated && user?.role === 'parent',
   });
+  
+  // Determine if we should show the profile completion banner
+  const showProfileBanner = isAuthenticated && 
+    user?.role === 'parent' && 
+    !isFamilyProfileLoading && 
+    familyProfile === null;
   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -1120,7 +1126,7 @@ export default function SearchPage() {
       <Navigation />
       
       {/* Profile completion banner for logged-in parents */}
-      {isAuthenticated && user?.role === 'parent' && familyProfile === null && (
+      {showProfileBanner && (
         <div className="bg-gradient-to-r from-action-teal/10 to-action-clay/10 border-b border-action-teal/20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between gap-4">
