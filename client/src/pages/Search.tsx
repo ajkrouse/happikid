@@ -8,6 +8,8 @@ import MapView from "@/components/MapView";
 import { SearchInsights } from "@/components/SearchInsights";
 import { ConversationalSearch } from "@/components/ConversationalSearch";
 import { AIInsights, AIInsightsSkeleton } from "@/components/AIInsights";
+import { FamilyProfileWizard } from "@/components/FamilyProfileWizard";
+import type { FamilyProfile } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -885,6 +887,13 @@ export default function SearchPage() {
   const [comparisonProviders, setComparisonProviders] = useState<Provider[]>([]);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [showSavedGroupsModal, setShowSavedGroupsModal] = useState(false);
+  const [showFamilyProfileWizard, setShowFamilyProfileWizard] = useState(false);
+  
+  // Fetch family profile to check if user has completed onboarding
+  const { data: familyProfile } = useQuery<FamilyProfile | null>({
+    queryKey: ['/api/family-profile'],
+    enabled: isAuthenticated && user?.role === 'parent',
+  });
   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -1109,6 +1118,32 @@ export default function SearchPage() {
   return (
     <div className="min-h-screen bg-brand-sage">
       <Navigation />
+      
+      {/* Profile completion banner for logged-in parents */}
+      {isAuthenticated && user?.role === 'parent' && familyProfile === null && (
+        <div className="bg-gradient-to-r from-action-teal/10 to-action-clay/10 border-b border-action-teal/20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-action-teal/20 rounded-full">
+                  <Sparkles className="h-4 w-4 text-action-teal" />
+                </div>
+                <div>
+                  <p className="font-medium text-brand-evergreen text-sm">Get personalized matches!</p>
+                  <p className="text-text-muted text-xs">Tell us about your family to unlock AI-powered recommendations.</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => setShowFamilyProfileWizard(true)}
+                size="sm"
+                className="bg-action-clay hover:bg-action-clay/90 whitespace-nowrap"
+              >
+                Complete Profile <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 max-w-5xl mx-auto">
@@ -1626,6 +1661,19 @@ export default function SearchPage() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Family Profile Wizard */}
+      <FamilyProfileWizard
+        isOpen={showFamilyProfileWizard}
+        onClose={() => setShowFamilyProfileWizard(false)}
+        onComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/family-profile'] });
+          toast({
+            title: "Profile complete!",
+            description: "We'll now show you personalized matches.",
+          });
+        }}
+      />
     </div>
   );
 }
