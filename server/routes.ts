@@ -17409,6 +17409,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Family Profile API endpoints
+  app.get('/api/family-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.getFamilyProfile(userId);
+      res.json(profile || null);
+    } catch (error) {
+      console.error("Error fetching family profile:", error);
+      res.status(500).json({ message: "Failed to fetch family profile" });
+    }
+  });
+
+  app.post('/api/family-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profileData = { ...req.body, userId };
+      const profile = await storage.upsertFamilyProfile(profileData);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error saving family profile:", error);
+      res.status(500).json({ message: "Failed to save family profile" });
+    }
+  });
+
+  app.patch('/api/family-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.updateFamilyProfile(userId, req.body);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error updating family profile:", error);
+      res.status(500).json({ message: "Failed to update family profile" });
+    }
+  });
+
   // Claims API endpoints
   
   // Search providers for claiming
