@@ -8,6 +8,7 @@ import {
   providerLocations,
   providerPrograms,
   providerAmenities,
+  familyProfiles,
   type User,
   type UpsertUser,
   type Provider,
@@ -37,6 +38,8 @@ import {
   type ProviderScore,
   type InsertProviderScore,
   type ProviderWithScore,
+  type FamilyProfile,
+  type InsertFamilyProfile,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "drizzle-orm";
@@ -893,6 +896,34 @@ export class DatabaseStorage implements IStorage {
 
   async getProviderInquiries(providerId: number): Promise<Inquiry[]> {
     return await db.select().from(inquiries).where(eq(inquiries.providerId, providerId)).orderBy(desc(inquiries.createdAt));
+  }
+
+  // Family Profile operations
+  async getFamilyProfile(userId: string): Promise<FamilyProfile | undefined> {
+    const [profile] = await db.select().from(familyProfiles).where(eq(familyProfiles.userId, userId));
+    return profile;
+  }
+
+  async createFamilyProfile(profile: InsertFamilyProfile): Promise<FamilyProfile> {
+    const [created] = await db.insert(familyProfiles).values(profile).returning();
+    return created;
+  }
+
+  async updateFamilyProfile(userId: string, profile: Partial<InsertFamilyProfile>): Promise<FamilyProfile> {
+    const [updated] = await db
+      .update(familyProfiles)
+      .set({ ...profile, updatedAt: new Date() })
+      .where(eq(familyProfiles.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  async upsertFamilyProfile(profile: InsertFamilyProfile): Promise<FamilyProfile> {
+    const existing = await this.getFamilyProfile(profile.userId);
+    if (existing) {
+      return await this.updateFamilyProfile(profile.userId, profile);
+    }
+    return await this.createFamilyProfile(profile);
   }
 }
 

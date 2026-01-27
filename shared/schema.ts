@@ -670,3 +670,54 @@ export type ProviderInquiry = typeof providerInquiries.$inferSelect;
 export type InsertProviderInquiry = z.infer<typeof insertProviderInquirySchema>;
 export type InquiryReply = typeof inquiryReplies.$inferSelect;
 export type InsertInquiryReply = z.infer<typeof insertInquiryReplySchema>;
+
+// Family profiles for AI matching
+export const familyProfiles = pgTable("family_profiles", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  
+  // Children info
+  childrenAges: jsonb("children_ages").default(sql`'[]'::jsonb`), // Array of {age: number, ageUnit: 'months'|'years'}
+  
+  // Location preferences
+  preferredBorough: varchar("preferred_borough"),
+  preferredCity: varchar("preferred_city"),
+  preferredZipCode: varchar("preferred_zip_code"),
+  maxDistanceMiles: integer("max_distance_miles").default(5),
+  
+  // Schedule needs
+  scheduleType: varchar("schedule_type", { enum: ["full_time", "part_time", "after_school", "flexible"] }),
+  preferredDays: jsonb("preferred_days").default(sql`'[]'::jsonb`), // Array of days like ["monday", "tuesday"]
+  preferredStartTime: varchar("preferred_start_time"),
+  preferredEndTime: varchar("preferred_end_time"),
+  
+  // Budget
+  budgetMin: integer("budget_min"),
+  budgetMax: integer("budget_max"),
+  needsSubsidy: boolean("needs_subsidy").default(false),
+  
+  // Must-haves (deal breakers)
+  mustHaveFeatures: jsonb("must_have_features").default(sql`'[]'::jsonb`), // Array of feature IDs
+  specialNeeds: jsonb("special_needs").default(sql`'[]'::jsonb`), // Array like ["speech_therapy", "wheelchair_accessible"]
+  preferredLanguages: jsonb("preferred_languages").default(sql`'[]'::jsonb`), // Array like ["spanish", "mandarin"]
+  
+  // Nice-to-haves (bonus points)
+  niceToHaveFeatures: jsonb("nice_to_have_features").default(sql`'[]'::jsonb`),
+  preferredProviderTypes: jsonb("preferred_provider_types").default(sql`'[]'::jsonb`), // Array like ["daycare", "preschool"]
+  
+  // Profile completion
+  isComplete: boolean("is_complete").default(false),
+  completedSteps: jsonb("completed_steps").default(sql`'[]'::jsonb`), // Track which wizard steps are done
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertFamilyProfileSchema = createInsertSchema(familyProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type FamilyProfile = typeof familyProfiles.$inferSelect;
+export type InsertFamilyProfile = z.infer<typeof insertFamilyProfileSchema>;
