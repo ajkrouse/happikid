@@ -114,8 +114,8 @@ export default function About() {
                 <div className="p-4 rounded-full inline-block mb-4 bg-brand-sage">
                   <Users className="h-8 w-8 text-brand-evergreen" />
                 </div>
-                <h3 className="font-semibold text-brand-evergreen mb-2">700+</h3>
-                <p className="text-text-muted text-sm">Verified Providers</p>
+                <h3 className="font-semibold text-brand-evergreen mb-2">5,500+</h3>
+                <p className="text-text-muted text-sm">Providers Listed</p>
               </Card>
               <Card className="text-center p-6 rounded-2xl border bg-brand-white border-brand-sage">
                 <div className="p-4 rounded-full inline-block mb-4 bg-action-clay/20">
@@ -255,7 +255,7 @@ export default function About() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-headline text-brand-evergreen mb-4">Serving the NYC Tri-State Area</h2>
             <p className="text-xl text-text-muted max-w-2xl mx-auto">
-              Comprehensive childcare coverage across New York City, Long Island, Westchester, and Northern New Jersey
+              5,500+ childcare and enrichment providers across New York City, Northern New Jersey, Long Island, Hudson Valley, and Connecticut
             </p>
           </div>
 
@@ -270,7 +270,7 @@ export default function About() {
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="text-center bg-brand-sage rounded-lg p-4">
-                    <div className="text-3xl font-bold text-brand-evergreen">700+</div>
+                    <div className="text-3xl font-bold text-brand-evergreen">5,500+</div>
                     <div className="text-sm text-text-muted">Providers</div>
                   </div>
                   <div className="text-center bg-brand-sage rounded-lg p-4">
@@ -297,22 +297,22 @@ export default function About() {
                 <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-brand-evergreen">
                   <h3 className="font-semibold text-brand-evergreen mb-1">New York City</h3>
                   <p className="text-text-muted text-sm">All 5 boroughs covered</p>
-                  <p className="text-brand-evergreen font-semibold text-lg">450+ providers</p>
-                </div>
-                <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-action-teal">
-                  <h3 className="font-semibold text-brand-evergreen mb-1">Long Island</h3>
-                  <p className="text-text-muted text-sm">Nassau & Suffolk counties</p>
-                  <p className="text-action-teal font-semibold text-lg">280+ providers</p>
-                </div>
-                <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-action-clay">
-                  <h3 className="font-semibold text-brand-evergreen mb-1">Westchester</h3>
-                  <p className="text-text-muted text-sm">Full county coverage</p>
-                  <p className="text-action-clay font-semibold text-lg">180+ providers</p>
+                  <p className="text-brand-evergreen font-semibold text-lg">1,040+ providers</p>
                 </div>
                 <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-action-teal">
                   <h3 className="font-semibold text-brand-evergreen mb-1">Northern NJ</h3>
-                  <p className="text-text-muted text-sm">Bergen, Essex, Hudson</p>
-                  <p className="text-action-teal font-semibold text-lg">90+ providers</p>
+                  <p className="text-text-muted text-sm">Jersey City, Hoboken, Bergen, Hudson, Essex & more</p>
+                  <p className="text-action-teal font-semibold text-lg">280+ providers</p>
+                </div>
+                <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-action-clay">
+                  <h3 className="font-semibold text-brand-evergreen mb-1">Hudson Valley</h3>
+                  <p className="text-text-muted text-sm">Westchester, Rockland, Orange, Putnam, Dutchess</p>
+                  <p className="text-action-clay font-semibold text-lg">35+ providers</p>
+                </div>
+                <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-action-teal">
+                  <h3 className="font-semibold text-brand-evergreen mb-1">Long Island & CT</h3>
+                  <p className="text-text-muted text-sm">Nassau, Suffolk & Fairfield counties</p>
+                  <p className="text-action-teal font-semibold text-lg">65+ providers</p>
                 </div>
               </div>
 
