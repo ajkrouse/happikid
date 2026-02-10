@@ -1,27 +1,57 @@
-# HappiKid - Childcare Provider Directory
+# HappiKid
 
 A comprehensive React-based platform connecting NYC tri-state area families with trusted childcare providers through an intelligent, data-driven search and recommendation system.
 
-## 🌟 Features
+The project is in **pre-MVP development stage**. The following describes its current capabilities and future plans.
+
+## Database Coverage
+
+The platform includes **5,588+ diverse childcare and enrichment providers** across the NYC tri-state area:
+
+- **Daycare Centers** — Infant through pre-K programs (0–6 years)
+- **Preschools & Schools** — Private, Montessori, faith-based, and progressive programs (2–18 years)
+- **Summer Camps** — Day camps, specialty camps, and outdoor programs (4–17 years)
+- **After-School & Enrichment Programs** — Arts, sports, STEM, indoor play, therapy, and more (0–18 years)
+
+**85%+ of providers are government-verified** with trust badges displayed on profiles.
+
+**Geographic Coverage:**
+- All 5 NYC boroughs (Manhattan, Brooklyn, Queens, Bronx, Staten Island)
+- Northern New Jersey (Jersey City, Hoboken, Bergen, Hudson, Essex, Morris, Somerset, Union counties)
+- Long Island (Nassau, Suffolk counties)
+- Hudson Valley (Westchester, Rockland, Orange, Putnam, Dutchess counties)
+- Connecticut (Fairfield County)
+
+## Current Features
 
 ### For Parents
-- **Smart Search & Filtering**: Advanced search with multiple criteria (type, location, age range, features, pricing)
-- **Provider Comparison**: Side-by-side comparison tool with personalized match scores
-- **Favorites & Groups**: Save and organize providers into custom groups
-- **Detailed Provider Profiles**: Comprehensive information including photos, reviews, pricing, and amenities
-- **Review System**: Read and contribute authentic parent reviews
-- **Inquiry Management**: Direct communication with providers
+- **Smart Search & Filtering** — Advanced search with multiple criteria including provider type, location (county to city), age range, amenities, and pricing
+- **AI-Powered Conversational Search** — Ask questions in plain English and get provider recommendations powered by GPT-4o-mini
+- **Interactive Map View** — Leaflet-based map with proximity search, radius filtering, and location detection
+- **Provider Profiles** — Comprehensive information including photos, reviews, pricing, amenities, and verification status
+- **Parent-Provider Messaging** — Contact providers directly with pre-built templates for tour requests, availability checks, and rate inquiries
+- **Family Profiles** — Build a family profile capturing children's ages, location preferences, schedule needs, budget, and must-have features
+- **Favorites** — Save and organize providers for easy access
+- **Review System** — Read and contribute authentic parent reviews
+- **Subsidy Eligibility Filtering** — Find providers that accept childcare subsidies
+- **After-School Programs Directory** — Browse 9 categories and 55+ subcategories of enrichment programs
 
 ### For Providers
-- **Comprehensive Onboarding**: Step-by-step guided setup with profile completeness tracking
-- **Multi-Location Support**: Manage multiple facility locations with detailed information
-- **Flexible Pricing System**: Support for various pricing models (hourly, daily, weekly, monthly, yearly)
-- **Dynamic Amenities**: Customizable features and amenities based on provider type
-- **License Verification**: Integrated license confirmation system
-- **Analytics Dashboard**: Performance insights and recommendations
-- **Inquiry Management**: Respond to parent inquiries and manage communications
+- **Provider Dashboard** — Manage profile information, location, services, pricing, amenities, and photo galleries
+- **Profile Optimization Score** — LinkedIn-style scoring based on completeness, engagement, verification, and freshness
+- **Achievement Badges** — Earn badges like Top Rated and Quick Responder displayed on provider cards
+- **Inquiry Management** — View and respond to parent messages and tour requests
+- **Claim & Verify** — Providers can claim their listing and verify their credentials
 
-## 🏗️ Architecture
+## Planned Features
+- **AI-Powered Matching** — Personalized provider recommendations based on family profiles
+- **Provider Comparison** — Side-by-side comparison tool with personalized match scores
+- **Favorites Groups** — Organize saved providers into custom groups
+- **Enhanced Analytics** — Performance insights and recommendations for providers
+- **Multi-Location Support** — Manage multiple facility locations from one dashboard
+- **Community Features** — Social interaction for parents to connect and share recommendations
+
+## Architecture
 
 ### Frontend
 - **React 18** with TypeScript for type safety
@@ -36,18 +66,30 @@ A comprehensive React-based platform connecting NYC tri-state area families with
 - **Neon** serverless PostgreSQL hosting
 - **Replit Auth** with OpenID Connect for authentication
 - **Session-based authentication** with PostgreSQL storage
+- **OpenAI GPT-4o-mini** via Replit AI Integrations for conversational search
 
 ### Database Schema
-- **Users**: Parent and provider profiles with role-based access
-- **Providers**: Comprehensive childcare provider information
-- **Provider Locations**: Multiple facility locations per provider
-- **Provider Programs**: Flexible pricing and program offerings
-- **Provider Amenities**: Dynamic features based on provider type
-- **Reviews**: Parent feedback and ratings system
-- **Inquiries**: Communication between parents and providers
-- **Favorites**: User bookmarking and group management
+- **Users** — Parent and provider profiles with role-based access
+- **Providers** — Comprehensive childcare provider information with optimization scoring
+- **Reviews** — Parent feedback and ratings
+- **Provider Inquiries** — Messaging between parents and providers
+- **Favorites** — User bookmarking
+- **Family Profiles** — Parent preferences for AI-powered matching
+- **After-School Taxonomy** — Categories and subcategories for enrichment programs
 
-## 🚀 Getting Started
+## Design System
+
+HappiKid uses a **"Botanical"** design aesthetic — professional, data-driven, and trust-focused:
+
+- **Deep Evergreen** `#1A4D3E` — Navigation, headings, primary text
+- **Sage** `#E8F1ED` — Section backgrounds
+- **Coral Clay** `#E07A5F` — Primary action buttons, logo accent
+- **Trust Teal** `#3D9990` — Verified badges, active states
+- **Sand** `#F4F1EA` — Secondary inputs, warm neutral areas
+
+Typography: DM Serif Display for headlines, Inter for UI text. Rounded cards, soft shadows, and mobile-first responsive approach.
+
+## Getting Started
 
 ### Prerequisites
 - Node.js 18 or higher
@@ -71,8 +113,6 @@ A comprehensive React-based platform connecting NYC tri-state area families with
    Create a `.env` file with:
    ```env
    DATABASE_URL=your_postgresql_connection_string
-   REPLIT_AUTH_CLIENT_ID=your_replit_auth_client_id
-   REPLIT_AUTH_CLIENT_SECRET=your_replit_auth_client_secret
    ```
 
 4. **Set up the database**
@@ -87,102 +127,41 @@ A comprehensive React-based platform connecting NYC tri-state area families with
 
 The application will be available at `http://localhost:5000`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-├── client/                 # Frontend React application
-│   ├── src/
-│   │   ├── components/     # Reusable React components
-│   │   ├── pages/          # Route components
-│   │   ├── hooks/          # Custom React hooks
-│   │   └── lib/            # Utility functions
-├── server/                 # Backend Express application
-│   ├── routes.ts           # API route definitions
-│   ├── storage.ts          # Database operations
-│   ├── replitAuth.ts       # Authentication logic
-│   └── index.ts            # Server entry point
-├── shared/                 # Shared types and schemas
-│   └── schema.ts           # Database schema definitions
-├── package.json            # Dependencies and scripts
-└── README.md              # This file
+client/                     # Frontend React application
+  src/
+    components/             # Reusable React components
+    pages/                  # Route components
+    hooks/                  # Custom React hooks
+    lib/                    # Utility functions
+server/                     # Backend Express application
+  routes.ts                 # API route definitions
+  storage.ts                # Database operations
+  replitAuth.ts             # Authentication logic
+  index.ts                  # Server entry point
+shared/                     # Shared types and schemas
+  schema.ts                 # Database schema definitions
+scripts/                    # Data import scripts
+README.md
 ```
 
-## 🔧 Available Scripts
+## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run db:push` - Push schema changes to database
-- `npm run db:generate` - Generate database migrations
+- `npm run dev` — Start development server
+- `npm run build` — Build for production
+- `npm run start` — Start production server
+- `npm run db:push` — Push schema changes to database
 
-## 🎯 Key Components
+## Security Features
 
-### Search & Filtering
-- Real-time search with debouncing
-- Multi-criteria filtering (type, location, age, features, price)
-- Pagination support for large result sets
+- **Government Verification** — 85%+ of providers verified against licensing databases
+- **Data Validation** — Comprehensive input validation using Zod schemas
+- **Session Security** — Secure session management with PostgreSQL storage
+- **Role-Based Access Control** — Separate permissions for parents and providers
 
-### Provider Comparison
-- Side-by-side comparison of up to 5 providers
-- Personalized match scores based on user preferences
-- Save comparison groups for future reference
-
-### Authentication System
-- Role-based access (parent vs provider)
-- OAuth 2.0 integration with Replit Auth
-- Session management with PostgreSQL storage
-
-### Provider Management
-- Guided onboarding process
-- Profile completeness tracking
-- Multi-location and program management
-- License verification system
-
-## 📊 Database Coverage
-
-The platform includes **55 diverse childcare providers** across the NYC tri-state area:
-
-- **21 Daycare Centers** (6 months - 6 years)
-- **15 Private Schools** (3 years - 18 years)
-- **10 Summer Camps** (4 years - 17 years)
-- **9 After-School Programs** (6 years - 15 years)
-
-**Geographic Coverage:**
-- All 5 NYC boroughs
-- Long Island (Nassau, Suffolk counties)
-- Westchester, Rockland, Orange, Putnam, Dutchess counties (NY)
-- Bergen, Hudson, Essex, Morris, Somerset, Union counties (NJ)
-- Fairfield County (CT)
-
-## 🔐 Security Features
-
-- **License Verification**: Only confirmed licensed providers shown publicly
-- **Data Validation**: Comprehensive input validation using Zod schemas
-- **Session Security**: Secure session management with PostgreSQL storage
-- **Role-based Access Control**: Separate permissions for parents and providers
-
-## 🎨 Design System
-
-- **Consistent Pricing Display**: Full price ranges across all components
-- **12-hour Time Format**: User-friendly time display throughout
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Accessibility**: ARIA labels and keyboard navigation support
-
-## 📱 Mobile Optimization
-
-- Responsive grid layouts
-- Touch-friendly interfaces
-- Optimized for mobile search and browsing
-- Progressive Web App capabilities
-
-## 🔄 Data Flow
-
-1. **User Authentication**: OAuth flow with Replit Auth
-2. **Search Process**: Real-time filtering with optimized database queries
-3. **Provider Interaction**: Favorites, inquiries, and reviews
-4. **Provider Management**: Onboarding, profile updates, and analytics
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -190,23 +169,12 @@ The platform includes **55 diverse childcare providers** across the NYC tri-stat
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Support
-
-For support, please contact the development team or open an issue in the GitHub repository.
-
-## 🏆 Acknowledgments
-
-- Built with modern web technologies for optimal performance
-- Designed with user experience and accessibility in mind
-- Comprehensive data coverage across the NYC tri-state area
-- Real provider data for authentic user experience
-
 ---
 
-**Last Updated**: July 11, 2025
-**Version**: 1.0.0
-**Status**: Production Ready
+**Last Updated:** February 2026
+**Version:** 0.9.0
+**Status:** Pre-MVP Development
