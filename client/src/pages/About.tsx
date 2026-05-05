@@ -9,10 +9,24 @@ import {
   Search, 
   MessageCircle,
   Star,
-  ChevronRight
+  ChevronRight,
+  Building2,
+  BrainCircuit,
+  Database,
+  TrendingUp,
+  Target,
+  MapPin,
+  DollarSign,
+  CheckCheck,
+  X,
+  Layers,
+  Lock
 } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export default function About() {
+  const [, setLocation] = useLocation();
+
   return (
     <div className="min-h-screen bg-brand-sage">
       <Navigation />
@@ -20,18 +34,20 @@ export default function About() {
       {/* Hero Section */}
       <section className="py-16 bg-brand-sage">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-action-teal mb-4">Our Mission</p>
           <h1 className="text-4xl sm:text-5xl font-headline mb-6 text-brand-evergreen">
             About <span className="text-action-clay">HappiKid</span>
           </h1>
           <p className="text-xl max-w-4xl mx-auto mb-8 text-brand-evergreen">
-            HappiKid is a parent-first marketplace that uses AI to help families effortlessly search, compare, 
-            and book trusted care and enrichment programs for kids—spanning daycare, camps, after-school activities, and private schools.
+            HappiKid is building the trusted discovery and enrollment layer for childcare and kids' enrichment — 
+            starting with after-school programs, camps, and K–5 enrichment in the NYC Tri-State area.
           </p>
           <div className="flex justify-center">
-            <div className="rounded-2xl shadow-sm p-4 max-w-2xl border bg-brand-white border-brand-sage">
-              <p className="text-sm italic text-brand-evergreen">
-                "Finding safe, reliable care for your child shouldn't feel like a full-time job."
+            <div className="rounded-2xl shadow-sm p-5 max-w-2xl border bg-brand-white border-brand-sage">
+              <p className="text-sm italic text-brand-evergreen font-medium">
+                "Happy Parents. HappiKid."
               </p>
+              <p className="text-xs text-text-muted mt-1">Vision: To become the trusted operating system for how families discover, compare, and enroll in childcare and enrichment — and how providers acquire, convert, and retain families.</p>
             </div>
           </div>
         </div>
@@ -55,7 +71,7 @@ export default function About() {
             </p>
             
             <p>
-              What should have been straightforward turned into a maze of spreadsheets, Facebook group posts, Google and Yelp reviews, endless phone calls, and daycare walkthroughs. Every step felt fragmented and inefficient. It was clear the process was broken—and parents everywhere were asking the same questions over and over again: "Can anyone recommend a daycare? A camp? A birthday party spot?"
+              What should have been straightforward turned into a maze of spreadsheets, Facebook group posts, Google and Yelp reviews, endless phone calls, and daycare walkthroughs. Every step felt fragmented and inefficient. It was clear the process was broken — and parents everywhere were asking the same questions over and over: "Can anyone recommend a daycare? A camp? A birthday party spot?"
             </p>
             
             <p>
@@ -69,11 +85,11 @@ export default function About() {
             </div>
             
             <p>
-              Today, HappiKid is an AI-powered marketplace where parents can "just ask" for what they need and instantly compare trusted providers side-by-side—daycares, after-school programs, private schools, camps, and more—based on what matters most: safety, schedule, budget, and real parent reviews.
+              Today, HappiKid is an AI-powered marketplace where parents can search in plain language, compare verified providers side-by-side, and move from discovery to enrollment in one place — daycares, after-school programs, private schools, camps, enrichment, and more.
             </p>
             
             <p>
-              We built HappiKid to bring clarity, trust, and peace of mind to one of life's most important decisions. Because families deserve better.
+              We built HappiKid to bring clarity, trust, and efficiency to one of life's most important decisions. Because families deserve better — and because the infrastructure to make that possible has never existed, until now.
             </p>
           </div>
           
@@ -86,27 +102,49 @@ export default function About() {
         </div>
       </section>
 
+      {/* The Problem We're Solving */}
+      <section className="py-16 bg-brand-evergreen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-headline mb-4 text-white">The Problem is Real. The Market is Massive.</h2>
+            <p className="text-white/70 max-w-2xl mx-auto">
+              Childcare and enrichment discovery is broken — for parents and providers alike.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[
+              { stat: '13+ hrs', label: 'Average time parents spend searching for childcare' },
+              { stat: '70%', label: 'of families have 3 weeks or less to make their decision' },
+              { stat: '$200B+', label: 'U.S. child-related services market annually' },
+              { stat: 'Zero', label: 'dominant platform exists for institutional program discovery' },
+            ].map((item, i) => (
+              <div key={i} className="px-2">
+                <div className="text-3xl md:text-4xl font-bold text-action-clay mb-2">{item.stat}</div>
+                <div className="text-white/70 text-sm leading-snug">{item.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Mission Section */}
       <section className="py-16 bg-brand-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-headline mb-6 text-brand-evergreen">The HappiKid Solution</h2>
-              <p className="text-lg mb-6 text-brand-evergreen">
-                Today's parents are left piecing together outdated websites, scattered reviews, and word-of-mouth 
-                recommendations just to find a daycare, after-school program, private school, or camp that meets their needs.
+              <h2 className="text-3xl font-headline mb-6 text-brand-evergreen">What HappiKid Does</h2>
+              <p className="text-lg mb-4 text-brand-evergreen">
+                HappiKid is a two-sided AI-powered marketplace that streamlines how parents discover and book care and enrichment, and how providers acquire and manage families.
               </p>
-              <p className="text-lg mb-6 text-brand-evergreen">
-                HappiKid is an AI-powered marketplace that simplifies this search. With our "just ask" LLM search, 
-                parents describe what they're looking for and receive a curated list of trusted providers—displayed 
-                side-by-side for easy comparison based on what matters most: safety, schedule, budget, and real parent reviews.
+              <p className="text-lg mb-4 text-brand-evergreen">
+                AI normalizes messy provider data, surfaces licensing and safety signals, and matches parent queries to real-world constraints — age, schedule, location, budget, and start date.
               </p>
               <p className="text-lg mb-8 text-brand-evergreen">
-                We bring clarity and confidence to one of the most stressful decisions families face.
+                The result is a measurable improvement in time-to-shortlist and inquiry-to-enrollment conversion — not a novelty feature.
               </p>
               <div className="flex items-center font-semibold text-action-clay">
                 <Heart className="h-5 w-5 mr-2" />
-                <span>Making childcare discovery joyful for families</span>
+                <span>AI-native from day one — not AI bolted on</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6">
@@ -118,224 +156,153 @@ export default function About() {
                 <p className="text-text-muted text-sm">Providers Listed</p>
               </Card>
               <Card className="text-center p-6 rounded-2xl border bg-brand-white border-brand-sage">
-                <div className="p-4 rounded-full inline-block mb-4 bg-action-clay/20">
-                  <Shield className="h-8 w-8 text-action-clay" />
+                <div className="p-4 rounded-full inline-block mb-4 bg-action-teal/20">
+                  <Shield className="h-8 w-8 text-action-teal" />
                 </div>
-                <h3 className="font-semibold mb-2 text-brand-evergreen">23</h3>
-                <p className="text-sm text-text-muted">Counties Covered</p>
+                <h3 className="font-semibold mb-2 text-brand-evergreen">85%</h3>
+                <p className="text-sm text-text-muted">Gov't Verified</p>
               </Card>
               <Card className="text-center p-6 rounded-2xl border bg-brand-white border-brand-sage">
                 <div className="p-4 rounded-full inline-block mb-4 bg-action-teal/20">
                   <Search className="h-8 w-8 text-action-teal" />
                 </div>
-                <h3 className="font-semibold mb-2 text-brand-evergreen">AI</h3>
-                <p className="text-sm text-text-muted">Powered Search</p>
+                <h3 className="font-semibold mb-2 text-brand-evergreen">AI-Native</h3>
+                <p className="text-sm text-text-muted">Search & Matching</p>
               </Card>
               <Card className="text-center p-6 rounded-2xl border bg-brand-white border-brand-sage">
                 <div className="p-4 rounded-full inline-block mb-4 bg-brand-sage">
-                  <Star className="h-8 w-8 text-brand-evergreen" />
+                  <MapPin className="h-8 w-8 text-brand-evergreen" />
                 </div>
-                <h3 className="font-semibold mb-2 text-brand-evergreen">100%</h3>
-                <p className="text-sm text-text-muted">Authentic Data</p>
+                <h3 className="font-semibold mb-2 text-brand-evergreen">23</h3>
+                <p className="text-sm text-text-muted">Counties Covered</p>
               </Card>
             </div>
           </div>
         </div>
       </section>
 
-      {/* What Makes Us Different */}
+      {/* Two-Sided Marketplace */}
       <section className="py-16 bg-brand-sage">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-headline mb-4 text-brand-evergreen">What Makes HappiKid Different</h2>
+            <h2 className="text-3xl font-headline mb-4 text-brand-evergreen">A Marketplace Built for Both Sides</h2>
+            <p className="text-lg text-text-muted max-w-2xl mx-auto">
+              HappiKid creates compounding value — more families improve provider ROI, better providers improve parent outcomes.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             <Card className="p-8 rounded-2xl border bg-brand-white border-brand-sage">
-              <div className="p-4 rounded-full inline-block mb-4 bg-action-clay/20">
-                <Heart className="h-8 w-8 text-action-clay" />
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-3 rounded-full bg-action-clay/15">
+                  <Heart className="h-6 w-6 text-action-clay" />
+                </div>
+                <h3 className="text-xl font-semibold text-brand-evergreen">For Parents</h3>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-brand-evergreen">Built for Parents, Not Providers</h3>
-              <p className="text-brand-evergreen">
-                HappiKid was designed from the ground up as a parent-first platform, removing the stress of finding safe, reliable childcare and enrichment.
-              </p>
+              <ul className="space-y-3 text-brand-evergreen">
+                {[
+                  'AI natural language search — "just describe what you need"',
+                  'Verified licensing data and safety signals',
+                  'Side-by-side comparison: age, schedule, price, distance',
+                  'Direct messaging and inquiry — no more email tag',
+                  'Saved favorites and family profile for personalized matching',
+                  'Always free',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <CheckCheck className="h-4 w-4 text-action-teal shrink-0 mt-1" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </Card>
             
             <Card className="p-8 rounded-2xl border bg-brand-white border-brand-sage">
-              <div className="p-4 rounded-full inline-block mb-4 bg-action-teal/20">
-                <Search className="h-8 w-8 text-action-teal" />
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-3 rounded-full bg-action-teal/15">
+                  <Building2 className="h-6 w-6 text-action-teal" />
+                </div>
+                <h3 className="text-xl font-semibold text-brand-evergreen">For Providers</h3>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-brand-evergreen">Ask, and We'll Find It</h3>
-              <p className="text-brand-evergreen">
-                Tell us what you need — "a preschool with early drop-off" or "a camp with STEM programs" — and our AI instantly matches you with trusted options that fit your family.
-              </p>
+              <ul className="space-y-3 text-brand-evergreen">
+                {[
+                  'Free, SEO-optimized profile — claimable in minutes',
+                  'High-intent parent leads, not unqualified ad clicks',
+                  'Enrollment and inquiry dashboard with conversion tracking',
+                  'Centralized messaging to manage all family inquiries',
+                  'Performance-based monetization — pay per lead, then subscribe',
+                  'Analytics dashboard for demand and utilization insights',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <CheckCheck className="h-4 w-4 text-action-teal shrink-0 mt-1" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </Card>
-            
-            <Card className="p-8 rounded-2xl border bg-brand-white border-brand-sage">
-              <div className="p-4 rounded-full inline-block mb-4 bg-brand-sage">
-                <Shield className="h-8 w-8 text-brand-evergreen" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-brand-evergreen">Trust You Can See</h3>
-              <p className="text-brand-evergreen">
-                Every provider is verified against official licensing and safety data. Real reviews, transparent details, no hidden surprises.
-              </p>
-            </Card>
-            
-            <Card className="p-8 rounded-2xl border bg-brand-white border-brand-sage">
-              <div className="p-4 rounded-full inline-block mb-4 bg-action-clay/20">
-                <Clock className="h-8 w-8 text-action-clay" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-brand-evergreen">Clarity at a Glance</h3>
-              <p className="text-brand-evergreen">
-                Side-by-side comparisons show cost, schedule, safety, and reviews so you can make confident choices in minutes, not weeks.
-              </p>
-            </Card>
-          </div>
-
-          <div className="rounded-2xl shadow-sm p-8 mt-12 border bg-brand-white border-brand-sage">
-            <h3 className="text-2xl font-headline mb-6 text-center text-brand-evergreen">Why Families Choose HappiKid</h3>
-            <p className="text-lg text-center mb-8 text-brand-evergreen">
-              Other sites leave parents digging through outdated listings and unverified ads. HappiKid is different:
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="p-2 rounded-full mr-4 mt-1 bg-action-teal/20">
-                    <Search className="h-5 w-5 text-action-teal" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-brand-evergreen">AI-powered natural language search ("just ask")</h4>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="p-2 rounded-full mr-4 mt-1 bg-brand-sage">
-                    <Shield className="h-5 w-5 text-brand-evergreen" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-brand-evergreen">Verified licensing data and authentic parent reviews</h4>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="p-2 rounded-full mr-4 mt-1 bg-action-clay/20">
-                    <MessageCircle className="h-5 w-5 text-action-clay" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-brand-evergreen">Side-by-side comparisons of what matters most</h4>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="p-2 rounded-full mr-4 mt-1 bg-action-clay/20">
-                    <Heart className="h-5 w-5 text-action-clay" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-brand-evergreen">Always free for parents, with providers powering the marketplace</h4>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-8 pt-8 border-t border-brand-evergreen/10 text-center">
-              <p className="text-text-muted">
-                HappiKid is launching first in the NYC tri-state area with a depth-over-breadth approach, ensuring every parent has access to trusted, complete, and transparent choices—before expanding to new markets.
-              </p>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Coverage Area Map */}
-      <section className="py-16 bg-brand-sage">
+      {/* Coverage Area */}
+      <section className="py-16 bg-brand-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-headline text-brand-evergreen mb-4">Serving the NYC Tri-State Area</h2>
+            <h2 className="text-3xl font-headline text-brand-evergreen mb-4">Density Before Breadth</h2>
             <p className="text-xl text-text-muted max-w-2xl mx-auto">
-              5,500+ childcare and enrichment providers across New York City, Northern New Jersey, Long Island, Hudson Valley, and Connecticut
+              Launching in the NYC Tri-State area first — 5,500+ providers across the region most parents rely on.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="relative">
-              {/* Coverage Stats */}
-              <div className="bg-brand-white rounded-2xl shadow-lg p-6">
+              <div className="bg-brand-sage rounded-2xl shadow-lg p-6">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-headline text-brand-evergreen mb-2">NYC Tri-State Coverage</h3>
-                  <p className="text-text-muted">Comprehensive childcare provider network</p>
+                  <p className="text-text-muted">Beachhead market before national expansion</p>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="text-center bg-brand-sage rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center bg-brand-white rounded-lg p-4">
                     <div className="text-3xl font-bold text-brand-evergreen">5,500+</div>
                     <div className="text-sm text-text-muted">Providers</div>
                   </div>
-                  <div className="text-center bg-brand-sage rounded-lg p-4">
+                  <div className="text-center bg-brand-white rounded-lg p-4">
                     <div className="text-3xl font-bold text-action-teal">23</div>
                     <div className="text-sm text-text-muted">Counties</div>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center bg-action-clay/10 rounded-lg p-4">
+                  <div className="text-center bg-brand-white rounded-lg p-4">
                     <div className="text-3xl font-bold text-action-clay">3</div>
                     <div className="text-sm text-text-muted">States</div>
                   </div>
-                  <div className="text-center bg-action-teal/10 rounded-lg p-4">
-                    <div className="text-3xl font-bold text-action-teal">100%</div>
-                    <div className="text-sm text-text-muted">Authentic</div>
+                  <div className="text-center bg-brand-white rounded-lg p-4">
+                    <div className="text-3xl font-bold text-action-teal">85%</div>
+                    <div className="text-sm text-text-muted">Gov't Verified</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-brand-evergreen">
-                  <h3 className="font-semibold text-brand-evergreen mb-1">New York City</h3>
-                  <p className="text-text-muted text-sm">All 5 boroughs covered</p>
-                  <p className="text-brand-evergreen font-semibold text-lg">1,040+ providers</p>
+            <div className="space-y-4">
+              {[
+                { region: 'New York City', detail: 'All 5 boroughs — priority focus', count: '1,040+', color: 'border-brand-evergreen' },
+                { region: 'Northern NJ', detail: 'Hoboken, Jersey City, Bergen, Hudson, Essex', count: '280+', color: 'border-action-teal' },
+                { region: 'Hudson Valley', detail: 'Westchester, Rockland, Orange, Putnam, Dutchess', count: '35+', color: 'border-action-clay' },
+                { region: 'Long Island & CT', detail: 'Nassau, Suffolk & Fairfield counties', count: '65+', color: 'border-action-teal' },
+              ].map((area, i) => (
+                <div key={i} className={`bg-brand-sage rounded-lg p-4 shadow-sm border-l-4 ${area.color}`}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-brand-evergreen">{area.region}</h3>
+                      <p className="text-text-muted text-sm">{area.detail}</p>
+                    </div>
+                    <span className="font-bold text-brand-evergreen text-lg">{area.count}</span>
+                  </div>
                 </div>
-                <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-action-teal">
-                  <h3 className="font-semibold text-brand-evergreen mb-1">Northern NJ</h3>
-                  <p className="text-text-muted text-sm">Jersey City, Hoboken, Bergen, Hudson, Essex & more</p>
-                  <p className="text-action-teal font-semibold text-lg">280+ providers</p>
-                </div>
-                <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-action-clay">
-                  <h3 className="font-semibold text-brand-evergreen mb-1">Hudson Valley</h3>
-                  <p className="text-text-muted text-sm">Westchester, Rockland, Orange, Putnam, Dutchess</p>
-                  <p className="text-action-clay font-semibold text-lg">35+ providers</p>
-                </div>
-                <div className="bg-brand-white rounded-lg p-4 shadow-sm border-l-4 border-action-teal">
-                  <h3 className="font-semibold text-brand-evergreen mb-1">Long Island & CT</h3>
-                  <p className="text-text-muted text-sm">Nassau, Suffolk & Fairfield counties</p>
-                  <p className="text-action-teal font-semibold text-lg">65+ providers</p>
-                </div>
-              </div>
+              ))}
 
-              <div className="bg-brand-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-brand-evergreen mb-3">Why This Coverage Matters</h3>
-                <ul className="space-y-2 text-text-muted">
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-brand-evergreen rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span>Cross-borough searches for families living on borders</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-brand-evergreen rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span>Commuter-friendly options near transit hubs</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-brand-evergreen rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span>Suburban and urban childcare options</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-brand-evergreen rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span>Consistent quality standards across all areas</span>
-                  </li>
-                </ul>
+              <div className="bg-brand-evergreen/5 rounded-lg p-4 border border-brand-evergreen/10">
+                <p className="text-sm text-text-muted">
+                  <strong className="text-brand-evergreen">Strategy:</strong> Build density and local liquidity in the NYC Tri-State market first, then expand into the surrounding suburban corridors and new metros once unit economics are proven.
+                </p>
               </div>
             </div>
           </div>
@@ -343,99 +310,55 @@ export default function About() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 bg-brand-white">
+      <section className="py-16 bg-brand-sage">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-headline text-brand-evergreen mb-4">How HappiKid Works</h2>
             <p className="text-xl text-text-muted max-w-2xl mx-auto">
-              Finding quality childcare has never been easier
+              From search to enrolled — in minutes, not weeks.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-brand-evergreen p-4 rounded-2xl inline-block mb-6">
-                <Search className="h-8 w-8 text-white" />
+            {[
+              { icon: Search, color: 'bg-brand-evergreen', step: '1', title: 'Search Naturally', desc: 'Use everyday language to describe what you need — age, location, schedule, budget. Our AI finds the right matches instantly.' },
+              { icon: Shield, color: 'bg-action-teal', step: '2', title: 'Compare Verified Options', desc: 'Side-by-side comparison of verified providers — schedules, pricing, safety records, and real reviews. No more tab-switching.' },
+              { icon: MessageCircle, color: 'bg-action-clay', step: '3', title: 'Inquire & Enroll', desc: 'Message providers directly, ask questions, and start enrollment — all from one place.' },
+            ].map((step, i) => (
+              <div key={i} className="text-center">
+                <div className={`${step.color} p-4 rounded-2xl inline-block mb-6`}>
+                  <step.icon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-brand-evergreen mb-4">{step.step}. {step.title}</h3>
+                <p className="text-text-muted">{step.desc}</p>
               </div>
-              <h3 className="text-xl font-semibold text-brand-evergreen mb-4">1. Search Naturally</h3>
-              <p className="text-text-muted">
-                Use everyday language to describe what you're looking for. 
-                Our smart search understands your needs and preferences.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-action-teal p-4 rounded-2xl inline-block mb-6">
-                <Shield className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-brand-evergreen mb-4">2. Browse Verified Options</h3>
-              <p className="text-text-muted">
-                Every provider is verified through public records and background checks. 
-                See real photos, reviews, and detailed information.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-action-clay p-4 rounded-2xl inline-block mb-6">
-                <MessageCircle className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-brand-evergreen mb-4">3. Connect & Decide</h3>
-              <p className="text-text-muted">
-                Contact providers directly, schedule tours, and make confident decisions 
-                based on comprehensive, trustworthy information.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Values Section */}
-      <section className="py-16 bg-brand-sage">
+      <section className="py-16 bg-brand-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-headline text-brand-evergreen mb-4">Our Values</h2>
+            <h2 className="text-3xl font-headline text-brand-evergreen mb-4">Our Principles</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <Card className="p-6 text-center hover:shadow-lg transition-shadow bg-brand-white">
-              <div className="bg-brand-sage p-4 rounded-full inline-block mb-4">
-                <Shield className="h-6 w-6 text-brand-evergreen" />
-              </div>
-              <h3 className="font-semibold text-brand-evergreen mb-3">Trust & Safety</h3>
-              <p className="text-text-muted text-sm">
-                Every provider is thoroughly verified and backgrounds checked for your peace of mind.
-              </p>
-            </Card>
-
-            <Card className="p-6 text-center hover:shadow-lg transition-shadow bg-brand-white">
-              <div className="bg-action-teal/20 p-4 rounded-full inline-block mb-4">
-                <Users className="h-6 w-6 text-action-teal" />
-              </div>
-              <h3 className="font-semibold text-brand-evergreen mb-3">Community First</h3>
-              <p className="text-text-muted text-sm">
-                Built by parents, for parents. Real reviews from real families in your community.
-              </p>
-            </Card>
-
-            <Card className="p-6 text-center hover:shadow-lg transition-shadow bg-brand-white">
-              <div className="bg-action-clay/20 p-4 rounded-full inline-block mb-4">
-                <Heart className="h-6 w-6 text-action-clay" />
-              </div>
-              <h3 className="font-semibold text-brand-evergreen mb-3">Family Focused</h3>
-              <p className="text-text-muted text-sm">
-                We understand the challenges of modern parenting and design for real family needs.
-              </p>
-            </Card>
-
-            <Card className="p-6 text-center hover:shadow-lg transition-shadow bg-brand-white">
-              <div className="bg-brand-sage p-4 rounded-full inline-block mb-4">
-                <Star className="h-6 w-6 text-brand-evergreen" />
-              </div>
-              <h3 className="font-semibold text-brand-evergreen mb-3">Quality First</h3>
-              <p className="text-text-muted text-sm">
-                We prioritize depth over breadth, ensuring comprehensive coverage where we operate.
-              </p>
-            </Card>
+            {[
+              { icon: Shield, bg: 'bg-brand-sage', color: 'text-brand-evergreen', title: 'Trust-First Data', desc: 'Verified licensing and safety signals at the program level — not user-generated listings.' },
+              { icon: Database, bg: 'bg-action-teal/20', color: 'text-action-teal', title: 'Structured Inventory', desc: 'We normalize messy provider data into machine-readable, comparable, AI-ready inventory.' },
+              { icon: Users, bg: 'bg-action-clay/20', color: 'text-action-clay', title: 'Density Over Breadth', desc: 'Build deep local liquidity first, then expand — not the reverse.' },
+              { icon: TrendingUp, bg: 'bg-brand-sage', color: 'text-brand-evergreen', title: 'Compounding Value', desc: 'Each new provider and family makes the platform more useful for everyone.' },
+            ].map((v, i) => (
+              <Card key={i} className="p-6 text-center hover:shadow-lg transition-shadow bg-brand-white border border-brand-sage">
+                <div className={`${v.bg} p-4 rounded-full inline-block mb-4`}>
+                  <v.icon className={`h-6 w-6 ${v.color}`} />
+                </div>
+                <h3 className="font-semibold text-brand-evergreen mb-3">{v.title}</h3>
+                <p className="text-text-muted text-sm">{v.desc}</p>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -443,17 +366,17 @@ export default function About() {
       {/* CTA Section */}
       <section className="py-16 bg-brand-evergreen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-headline text-white mb-6">Ready to Find the Perfect Care?</h2>
+          <h2 className="text-3xl font-headline text-white mb-6">Ready to explore HappiKid?</h2>
           <p className="text-xl text-white/80 mb-8">
-            Join thousands of families who trust HappiKid to find safe, reliable childcare and enrichment programs.
+            Search 5,500+ verified providers across NY, NJ &amp; CT — free for parents, always.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-action-clay hover:bg-action-clay/90 text-white px-8 py-3 rounded-lg font-medium">
+            <Button onClick={() => setLocation("/search")} className="bg-action-clay hover:bg-action-clay/90 text-white px-8 py-3 rounded-lg font-medium">
               Start Your Search
               <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-brand-evergreen px-8 py-3 rounded-lg font-medium">
-              Learn More
+            <Button onClick={() => setLocation("/providers")} variant="outline" className="border-white text-white hover:bg-white hover:text-brand-evergreen px-8 py-3 rounded-lg font-medium">
+              I'm a Provider
             </Button>
           </div>
         </div>
@@ -462,8 +385,8 @@ export default function About() {
       {/* Footer */}
       <footer className="py-8 bg-brand-evergreen border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-white/70">
-            Making childcare discovery joyful for families in the NYC tri-state area.
+          <p className="text-white/60 text-sm">
+            &copy; 2026 HappiKid. The trusted discovery and enrollment layer for childcare and kids' enrichment.
           </p>
         </div>
       </footer>
