@@ -23,12 +23,8 @@ import {
   X,
   Building2,
   CheckCheck,
-  CalendarDays,
   BrainCircuit,
-  Clock,
   Layers,
-  Play,
-  ChevronRight,
   Sparkles
 } from "lucide-react";
 import { useState } from "react";
@@ -38,8 +34,6 @@ import { useQuery } from "@tanstack/react-query";
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [showDemo, setShowDemo] = useState(false);
-
   const { data: totalCount } = useQuery<{ count: number }>({
     queryKey: ["/api/providers/stats"],
   });
@@ -99,16 +93,6 @@ export default function Landing() {
           >
             Grow With HappiKid
             <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            size="lg"
-            variant="ghost"
-            onClick={() => setShowDemo(true)}
-            className="text-brand-evergreen hover:bg-brand-sage rounded-lg px-6 font-semibold"
-            data-testid="button-hero-demo"
-          >
-            <Play className="mr-2 h-4 w-4 fill-current" />
-            Watch Demo
           </Button>
         </div>
 
@@ -503,39 +487,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── DEMO ────────────────────────────────────────────────── */}
-      <section className="py-20 bg-brand-sage">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4">
-            See HappiKid in action.
-          </h2>
-          <p className="text-lg text-text-muted mb-10 max-w-xl mx-auto">
-            Watch how parents search, compare, and connect with providers — and how providers manage their listings and inquiries.
-          </p>
-
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-brand-evergreen/10 bg-brand-evergreen aspect-video">
-            <iframe
-              src="https://www.loom.com/embed/01da2635d96348ceba6f3a325da95f9f"
-              title="HappiKid Demo"
-              frameBorder="0"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-            />
-          </div>
-
-          <p className="text-sm text-text-muted mt-5">
-            Can't view the video?{" "}
-            <a
-              href="https://www.loom.com/share/01da2635d96348ceba6f3a325da95f9f"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-action-teal hover:underline font-medium"
-            >
-              Watch on Loom →
-            </a>
-          </p>
-        </div>
-      </section>
 
       {/* ── TESTIMONIALS ────────────────────────────────────────── */}
       <section className="py-20 bg-brand-white">
@@ -678,32 +629,6 @@ export default function Landing() {
         </div>
       </footer>
 
-      {/* ── DEMO MODAL ──────────────────────────────────────────── */}
-      {showDemo && (
-        <div
-          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowDemo(false)}
-        >
-          <div
-            className="bg-white rounded-2xl overflow-hidden shadow-2xl w-full max-w-3xl aspect-video relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowDemo(false)}
-              className="absolute top-3 right-3 z-10 bg-white/80 hover:bg-white rounded-full p-1.5 shadow"
-            >
-              <X className="h-4 w-4 text-brand-evergreen" />
-            </button>
-            <iframe
-              src="https://www.loom.com/embed/01da2635d96348ceba6f3a325da95f9f?autoplay=1"
-              title="HappiKid Demo"
-              frameBorder="0"
-              allowFullScreen
-              className="w-full h-full"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
