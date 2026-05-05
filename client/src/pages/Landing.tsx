@@ -1,11 +1,10 @@
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Heart, 
-  Search, 
-  Shield, 
+import {
+  Heart,
+  Search,
+  Shield,
   Facebook,
   Twitter,
   Instagram,
@@ -15,24 +14,22 @@ import {
   TrendingUp,
   BarChart3,
   Target,
-  Zap,
   MessageSquare,
   Star,
-  Clock,
   Users,
   Award,
   MapPin,
   Eye,
-  Lightbulb,
-  Database,
-  Network,
   X,
   Building2,
-  DollarSign,
-  Layers,
+  CheckCheck,
   CalendarDays,
   BrainCircuit,
-  CheckCheck
+  Clock,
+  Layers,
+  Play,
+  ChevronRight,
+  Sparkles
 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
@@ -41,9 +38,10 @@ import { useQuery } from "@tanstack/react-query";
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showDemo, setShowDemo] = useState(false);
 
-  const { data: totalCount } = useQuery<{count: number}>({
-    queryKey: ['/api/providers/stats'],
+  const { data: totalCount } = useQuery<{ count: number }>({
+    queryKey: ["/api/providers/stats"],
   });
 
   const handleSearch = () => {
@@ -55,488 +53,576 @@ export default function Landing() {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+    if (e.key === "Enter") handleSearch();
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-brand-white">
       <Navigation />
 
-      {/* HERO */}
-      <section className="relative w-full bg-gradient-to-br from-brand-sage via-brand-white to-action-sand px-6 pt-20 pb-32 flex flex-col items-center justify-center text-center">
-        <h1 className="font-headline text-5xl md:text-6xl text-brand-evergreen mb-6 max-w-4xl leading-tight">
-          Find Care. Compare. <span className="text-action-clay italic">Book with Confidence.</span>
-        </h1>
-        
-        <p className="font-body text-text-muted text-lg md:text-xl mb-10 max-w-2xl">
-          Just describe what your family needs. HappiKid finds trusted, verified childcare and enrichment programs — and shows you everything side by side.
-        </p>
-
-        <div className="relative w-full max-w-2xl group">
-          <div className="absolute -inset-1 bg-action-teal/20 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
-          <div className="relative flex items-center bg-brand-white rounded-xl shadow-xl border border-brand-evergreen/10 p-2">
-            <div className="pl-4 text-action-clay">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            <input 
-              type="text" 
-              className="w-full bg-transparent border-none text-brand-evergreen placeholder-text-muted/60 text-lg px-4 py-3 focus:ring-0 focus:outline-none"
-              placeholder="Try 'Montessori preschool in Jersey City under $2k/mo'..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleKeyPress}
-              data-testid="input-hero-search"
-            />
-            <button 
-              onClick={handleSearch}
-              className="bg-action-clay hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg whitespace-nowrap"
-              data-testid="button-hero-ask"
-            >
-              Ask HappiKid
-            </button>
-          </div>
+      {/* ── HERO ─────────────────────────────────────────────────── */}
+      <section className="relative w-full bg-gradient-to-b from-brand-sage to-brand-white px-6 pt-20 pb-24 flex flex-col items-center text-center">
+        <div className="flex gap-2 mb-6 flex-wrap justify-center">
+          <span className="inline-flex items-center gap-1.5 bg-action-clay/10 text-action-clay border border-action-clay/20 rounded-full px-3 py-1 text-xs font-semibold">
+            <Heart className="h-3 w-3" /> For Parents
+          </span>
+          <span className="inline-flex items-center gap-1.5 bg-action-teal/10 text-action-teal border border-action-teal/20 rounded-full px-3 py-1 text-xs font-semibold">
+            <Building2 className="h-3 w-3" /> For Providers
+          </span>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-text-muted font-medium">
+        <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl text-brand-evergreen mb-5 max-w-4xl leading-tight">
+          Find the right programs <br className="hidden md:block" />
+          <span className="text-action-clay italic">for your child.</span>
+        </h1>
+
+        <p className="text-lg md:text-xl text-text-muted mb-8 max-w-2xl leading-relaxed">
+          HappiKid brings childcare, camps, after-school, and enrichment into one trusted place — so parents can compare and choose with confidence, and providers can reach the families who need them most.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+          <Button
+            size="lg"
+            onClick={() => setLocation("/search")}
+            className="bg-action-clay hover:bg-action-clay/90 text-white rounded-lg px-8 font-semibold shadow-md"
+            data-testid="button-hero-explore"
+          >
+            Explore Programs
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => setLocation("/providers")}
+            className="border-2 border-action-teal text-action-teal hover:bg-action-teal hover:text-white rounded-lg px-8 font-semibold"
+            data-testid="button-hero-grow"
+          >
+            Grow With HappiKid
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+          <Button
+            size="lg"
+            variant="ghost"
+            onClick={() => setShowDemo(true)}
+            className="text-brand-evergreen hover:bg-brand-sage rounded-lg px-6 font-semibold"
+            data-testid="button-hero-demo"
+          >
+            <Play className="mr-2 h-4 w-4 fill-current" />
+            Watch Demo
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-text-muted font-medium">
           <span className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-action-teal"></div> Verified Safety Records
+            <div className="w-2 h-2 rounded-full bg-action-teal" />
+            {totalCount ? `${totalCount.count.toLocaleString()}+` : "5,500+"} verified programs
           </span>
           <span className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-action-teal"></div> Real-Time Pricing
+            <div className="w-2 h-2 rounded-full bg-action-teal" />
+            85% government-verified
           </span>
           <span className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-action-teal"></div> Free for Parents
+            <div className="w-2 h-2 rounded-full bg-action-teal" />
+            NYC Tri-State Area
           </span>
         </div>
       </section>
 
-      {/* QUICK ACCESS BAR */}
-      <div className="w-full bg-brand-white border-b border-brand-evergreen/10 py-6">
+      {/* ── QUICK CATEGORY BAR ───────────────────────────────────── */}
+      <div className="w-full bg-brand-white border-y border-brand-evergreen/8 py-5">
         <div className="max-w-7xl mx-auto px-4 overflow-x-auto">
           <div className="flex justify-between md:justify-center gap-8 min-w-max">
-            <button onClick={() => setLocation("/search?type=daycare")} className="flex flex-col items-center gap-2 group cursor-pointer" data-testid="quick-access-daycare">
-              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              </div>
-              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Daycare</span>
-            </button>
-            <button onClick={() => setLocation("/search?type=camp")} className="flex flex-col items-center gap-2 group cursor-pointer" data-testid="quick-access-camps">
-              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-              </div>
-              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Camps</span>
-            </button>
-            <button onClick={() => setLocation("/search?type=afterschool")} className="flex flex-col items-center gap-2 group cursor-pointer" data-testid="quick-access-schools">
-              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-              </div>
-              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">After-School</span>
-            </button>
-            <button onClick={() => setLocation("/search?type=sports")} className="flex flex-col items-center gap-2 group cursor-pointer" data-testid="quick-access-sports">
-              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h18v18H3zM8 12h8m-4-4v8"></path></svg>
-              </div>
-              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Sports</span>
-            </button>
-            <button onClick={() => setLocation("/search?type=tutoring")} className="flex flex-col items-center gap-2 group cursor-pointer" data-testid="quick-access-tutors">
-              <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
-              </div>
-              <span className="text-sm font-medium text-brand-evergreen/80 group-hover:text-brand-evergreen">Tutors</span>
-            </button>
+            {[
+              { label: "Daycare", type: "daycare", path: "M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+              { label: "Camps", type: "camp", path: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" },
+              { label: "After-School", type: "afterschool", path: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" },
+              { label: "Sports", type: "sports", path: "M3 3h18v18H3zM8 12h8m-4-4v8" },
+              { label: "Tutoring", type: "tutoring", path: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
+              { label: "Enrichment", type: "enrichment", path: "M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" },
+            ].map((cat) => (
+              <button
+                key={cat.type}
+                onClick={() => setLocation(`/search?type=${cat.type}`)}
+                className="flex flex-col items-center gap-2 group cursor-pointer"
+              >
+                <div className="text-brand-evergreen group-hover:text-action-clay transition-colors">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={cat.path} />
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-text-muted group-hover:text-brand-evergreen transition-colors">{cat.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* ECOSYSTEM GRID */}
-      <section className="w-full bg-brand-white py-24 px-6 border-b border-brand-evergreen/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-block bg-brand-sage text-brand-evergreen px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-6 border border-brand-evergreen/10">
-              Ages 0–13
+      {/* ── WHY PARENTS USE HAPPIKID ────────────────────────────── */}
+      <section className="py-24 bg-brand-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <span className="inline-block bg-action-clay/10 text-action-clay border border-action-clay/20 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest mb-4">
+              For Parents
             </span>
-            <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-6 leading-tight">
-              Everything your child needs, <br className="hidden md:block" /> all in one place.
+            <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4 leading-tight">
+              Stop searching. Start choosing.
             </h2>
-            <p className="font-body text-lg text-text-muted leading-relaxed">
-              From infant care and preschools to STEM enrichment and youth sports — HappiKid covers every stage of your child's growth.
+            <p className="text-lg text-text-muted max-w-2xl mx-auto">
+              Finding the right program for your child shouldn't mean spending hours across ten tabs, a Facebook group, and a spreadsheet you made yourself.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <a href="/search?type=daycare" className="group flex flex-col items-center text-center p-8 rounded-2xl bg-action-sand bg-opacity-60 hover:bg-opacity-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-evergreen/10" data-testid="ecosystem-daycare">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm text-action-clay">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <div className="grid lg:grid-cols-2 gap-8 items-start mb-14">
+            {/* The old way */}
+            <div className="bg-brand-sage/60 rounded-2xl p-8 border border-brand-evergreen/8">
+              <h3 className="font-semibold text-brand-evergreen mb-5 text-lg">The way it works today</h3>
+              <ul className="space-y-4">
+                {[
+                  "You ask in a Facebook parent group and get 40 different opinions",
+                  "You open 12 browser tabs and still can't compare prices or schedules",
+                  "Program websites are outdated — availability is unknown until you call",
+                  "Every inquiry means filling out a different form from scratch",
+                  "You build a spreadsheet to track it all, then do it again next season",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-text-muted/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <X className="h-3 w-3 text-text-muted" />
+                    </div>
+                    <span className="text-text-muted text-sm leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* The HappiKid way */}
+            <div className="bg-brand-white rounded-2xl p-8 border-2 border-action-clay/20 shadow-sm">
+              <h3 className="font-semibold text-brand-evergreen mb-5 text-lg flex items-center gap-2">
+                <span className="text-action-clay">With HappiKid</span>
+              </h3>
+              <ul className="space-y-4">
+                {[
+                  { title: "One trusted place", desc: "Search childcare, camps, after-school, and enrichment all together — no tab switching." },
+                  { title: "Describe what you need", desc: "Type in plain language — age, neighborhood, schedule, budget — and get matched instantly." },
+                  { title: "Compare what matters", desc: "See schedules, pricing, reviews, and safety records side by side." },
+                  { title: "Know what's verified", desc: "Every provider is cross-referenced with official licensing records, so you can trust what you see." },
+                  { title: "Connect directly", desc: "Message providers, ask questions, and start enrollment — without leaving the platform." },
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-action-teal/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCheck className="h-3 w-3 text-action-teal" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-brand-evergreen text-sm">{item.title} — </span>
+                      <span className="text-text-muted text-sm">{item.desc}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-7">
+                <Button onClick={() => setLocation("/search")} className="w-full bg-action-clay hover:bg-action-clay/90 text-white rounded-lg" data-testid="button-parents-explore">
+                  Explore Programs
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
-              <h3 className="font-headline text-lg text-brand-evergreen leading-tight">Daycare & Early Learning</h3>
-            </a>
-            <a href="/search?type=preschool" className="group flex flex-col items-center text-center p-8 rounded-2xl bg-brand-sage bg-opacity-60 hover:bg-opacity-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-evergreen/10" data-testid="ecosystem-preschool">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm text-action-teal">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+          </div>
+
+          {/* Parent benefit cards */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { icon: BrainCircuit, color: "text-action-clay", bg: "bg-action-clay/8", title: "AI-powered search", desc: "Just describe what you need. Our AI handles the rest." },
+              { icon: Shield, color: "text-action-teal", bg: "bg-action-teal/8", title: "Verified safety data", desc: "Every provider checked against government licensing records." },
+              { icon: Layers, color: "text-brand-evergreen", bg: "bg-brand-sage", title: "Side-by-side compare", desc: "Price, schedule, age range, and reviews — in one view." },
+              { icon: MessageSquare, color: "text-action-clay", bg: "bg-action-clay/8", title: "Direct messaging", desc: "Ask questions and start enrollment without the phone tag." },
+            ].map((card, i) => (
+              <div key={i} className={`${card.bg} rounded-xl p-6 border border-brand-evergreen/6`}>
+                <card.icon className={`h-7 w-7 ${card.color} mb-3`} />
+                <h4 className="font-semibold text-brand-evergreen mb-1 text-sm">{card.title}</h4>
+                <p className="text-text-muted text-sm leading-relaxed">{card.desc}</p>
               </div>
-              <h3 className="font-headline text-lg text-brand-evergreen leading-tight">Preschools</h3>
-            </a>
-            <a href="/search?type=afterschool" className="group flex flex-col items-center text-center p-8 rounded-2xl bg-action-sand bg-opacity-60 hover:bg-opacity-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-evergreen/10" data-testid="ecosystem-afterschool">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm text-action-clay">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-              </div>
-              <h3 className="font-headline text-lg text-brand-evergreen leading-tight">After-School Programs</h3>
-            </a>
-            <a href="/search?type=camp" className="group flex flex-col items-center text-center p-8 rounded-2xl bg-brand-sage bg-opacity-60 hover:bg-opacity-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-evergreen/10" data-testid="ecosystem-camps">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm text-action-teal">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
-              </div>
-              <h3 className="font-headline text-lg text-brand-evergreen leading-tight">Summer & Day Camps</h3>
-            </a>
-            <a href="/search?type=sports" className="group flex flex-col items-center text-center p-8 rounded-2xl bg-action-sand bg-opacity-60 hover:bg-opacity-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-evergreen/10" data-testid="ecosystem-sports">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm text-action-clay">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h18v18H3zM8 12h8m-4-4v8" /></svg>
-              </div>
-              <h3 className="font-headline text-lg text-brand-evergreen leading-tight">Youth Sports</h3>
-            </a>
-            <a href="/search?type=tutoring" className="group flex flex-col items-center text-center p-8 rounded-2xl bg-brand-sage bg-opacity-60 hover:bg-opacity-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-evergreen/10" data-testid="ecosystem-tutoring">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm text-action-teal">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-              </div>
-              <h3 className="font-headline text-lg text-brand-evergreen leading-tight">Tutoring</h3>
-            </a>
-            <a href="/search?type=enrichment" className="group flex flex-col items-center text-center p-8 rounded-2xl bg-action-sand bg-opacity-60 hover:bg-opacity-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-evergreen/10" data-testid="ecosystem-enrichment">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm text-action-clay">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-              </div>
-              <h3 className="font-headline text-lg text-brand-evergreen leading-tight">Arts & STEM Enrichment</h3>
-            </a>
-            <a href="/search?type=activity" className="group flex flex-col items-center text-center p-8 rounded-2xl bg-brand-sage bg-opacity-60 hover:bg-opacity-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-evergreen/10" data-testid="ecosystem-activity">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm text-action-teal">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              </div>
-              <h3 className="font-headline text-lg text-brand-evergreen leading-tight">Activity Programs</h3>
-            </a>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* WHY HAPPIKID — For Parents */}
+      {/* ── WHY PROVIDERS USE HAPPIKID ──────────────────────────── */}
       <section className="py-24 bg-brand-sage">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4">
-              Stop searching. Start finding.
+            <span className="inline-block bg-action-teal/15 text-action-teal border border-action-teal/25 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest mb-4">
+              For Providers
+            </span>
+            <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4 leading-tight">
+              Be where families are looking.
             </h2>
             <p className="text-lg text-text-muted max-w-2xl mx-auto">
-              Most parents bounce between Google, Facebook groups, spreadsheets, and phone calls just to find one good program. HappiKid brings it all together.
+              Parents searching for programs like yours are online right now. HappiKid makes sure they can find you — and makes it easy for them to take the next step.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-2 gap-8 items-start mb-14">
+            {/* Current challenges */}
+            <div className="bg-brand-white/70 rounded-2xl p-8 border border-brand-evergreen/8">
+              <h3 className="font-semibold text-brand-evergreen mb-5 text-lg">What providers deal with today</h3>
+              <ul className="space-y-4">
+                {[
+                  "Families find you through word-of-mouth — or not at all",
+                  "Your website doesn't tell the full story of what you offer",
+                  "Enrollment means email threads, PDFs, and manual follow-up",
+                  "You don't know which families are interested until they reach out",
+                  "Staying discoverable online takes time you don't have",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-text-muted/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <X className="h-3 w-3 text-text-muted" />
+                    </div>
+                    <span className="text-text-muted text-sm leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* HappiKid for providers */}
+            <div className="bg-brand-white rounded-2xl p-8 border-2 border-action-teal/25 shadow-sm">
+              <h3 className="font-semibold text-brand-evergreen mb-5 text-lg">
+                <span className="text-action-teal">With HappiKid</span>
+              </h3>
+              <ul className="space-y-4">
+                {[
+                  { title: "A free, searchable profile", desc: "Get discovered by families actively searching for programs like yours — no ad budget required." },
+                  { title: "High-intent inquiries", desc: "Parents arrive already comparing your program, not clicking a cold ad. These leads convert." },
+                  { title: "Centralized messaging", desc: "Manage every family conversation in one place instead of scattered across email and DMs." },
+                  { title: "Enrollment tools", desc: "Receive inquiries, track interest, and guide families from question to enrolled — with less friction." },
+                  { title: "Demand insights", desc: "See what families in your area are searching for and how your profile is performing." },
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-action-teal/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCheck className="h-3 w-3 text-action-teal" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-brand-evergreen text-sm">{item.title} — </span>
+                      <span className="text-text-muted text-sm">{item.desc}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-7">
+                <Button onClick={() => setLocation("/providers")} className="w-full bg-action-teal hover:bg-action-teal/90 text-white rounded-lg" data-testid="button-providers-grow">
+                  Grow With HappiKid
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Provider benefit cards */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { icon: Target, color: "text-action-teal", bg: "bg-action-teal/10", title: "Free listing", desc: "Claimable in minutes. No credit card needed to get started." },
+              { icon: BarChart3, color: "text-brand-evergreen", bg: "bg-brand-white", title: "Demand analytics", desc: "Know what local families are searching for and how you compare." },
+              { icon: Award, color: "text-action-clay", bg: "bg-action-clay/8", title: "Profile optimization", desc: "Guided tips to improve your ranking and attract more inquiries." },
+              { icon: TrendingUp, color: "text-action-teal", bg: "bg-action-teal/10", title: "Growth tools", desc: "Start free. Add performance-based features as your enrollment grows." },
+            ].map((card, i) => (
+              <div key={i} className={`${card.bg} rounded-xl p-6 border border-brand-evergreen/6`}>
+                <card.icon className={`h-7 w-7 ${card.color} mb-3`} />
+                <h4 className="font-semibold text-brand-evergreen mb-1 text-sm">{card.title}</h4>
+                <p className="text-text-muted text-sm leading-relaxed">{card.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ────────────────────────────────────────── */}
+      <section id="how-it-works" className="py-24 bg-brand-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4">
+              How HappiKid works
+            </h2>
+            <p className="text-lg text-text-muted max-w-xl mx-auto">
+              Whether you're a parent looking for programs or a provider looking for families, the process is built around you.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* Parent flow */}
+            <div>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-8 h-8 rounded-full bg-action-clay/15 flex items-center justify-center">
+                  <Heart className="h-4 w-4 text-action-clay" />
+                </div>
+                <h3 className="text-xl font-headline text-brand-evergreen">For parents</h3>
+              </div>
+              <div className="space-y-6">
+                {[
+                  { step: "1", icon: Search, title: "Search naturally", desc: "Type what you need in plain language — age, neighborhood, schedule, budget. No filters to figure out." },
+                  { step: "2", icon: Eye, title: "Compare your options", desc: "Verified programs appear side by side with schedules, prices, safety records, and real reviews." },
+                  { step: "3", icon: Shield, title: "Understand the fit", desc: "See licensing status, program details, and parent feedback. Know exactly what you're considering." },
+                  { step: "4", icon: CheckCircle2, title: "Connect and enroll", desc: "Message providers directly, ask questions, and start enrollment — without starting from scratch each time." },
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="w-9 h-9 rounded-full bg-action-clay text-white font-bold text-sm flex items-center justify-center shrink-0">
+                      {item.step}
+                    </div>
+                    <div className="pt-1">
+                      <h4 className="font-semibold text-brand-evergreen mb-1">{item.title}</h4>
+                      <p className="text-text-muted text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Provider flow */}
+            <div>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-8 h-8 rounded-full bg-action-teal/15 flex items-center justify-center">
+                  <Building2 className="h-4 w-4 text-action-teal" />
+                </div>
+                <h3 className="text-xl font-headline text-brand-evergreen">For providers</h3>
+              </div>
+              <div className="space-y-6">
+                {[
+                  { step: "1", icon: Target, title: "Claim your free profile", desc: "Add your program details — ages, schedule, pricing, photos — in a structured format families can actually compare." },
+                  { step: "2", icon: TrendingUp, title: "Improve your discoverability", desc: "Optimization tools guide you to complete your profile and rank higher in search results." },
+                  { step: "3", icon: Users, title: "Receive better-matched demand", desc: "Families come to you already informed about your program — a warmer, higher-converting inquiry." },
+                  { step: "4", icon: BarChart3, title: "Track and grow", desc: "See how many families viewed, saved, or inquired about your program. Use insights to improve." },
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="w-9 h-9 rounded-full bg-action-teal text-white font-bold text-sm flex items-center justify-center shrink-0">
+                      {item.step}
+                    </div>
+                    <div className="pt-1">
+                      <h4 className="font-semibold text-brand-evergreen mb-1">{item.title}</h4>
+                      <p className="text-text-muted text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── THE MARKET SHIFT ────────────────────────────────────── */}
+      <section className="py-20 bg-brand-sage">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <span className="inline-flex items-center gap-2 bg-brand-white text-brand-evergreen border border-brand-evergreen/15 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest mb-4">
+              <Sparkles className="h-3.5 w-3.5 text-action-clay" /> Why this matters now
+            </span>
+            <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4 leading-tight">
+              How families find programs <br className="hidden md:block" /> is changing.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
             {[
               {
                 icon: BrainCircuit,
-                title: 'Just Ask',
-                desc: 'Type what you need in plain language — "after-school STEM near Hoboken with late pickup for a 7-year-old" — and get matched instantly.',
-                bg: 'bg-action-clay/10',
-                color: 'text-action-clay'
+                color: "text-action-clay",
+                bg: "bg-brand-white",
+                heading: "Parents expect better answers",
+                body: "Families increasingly expect to describe what they need and get a relevant, trustworthy result — not a list of links to dig through.",
+              },
+              {
+                icon: Eye,
+                color: "text-action-teal",
+                bg: "bg-brand-white",
+                heading: "Providers need to be structured to be found",
+                body: "Programs with incomplete or scattered online information are harder to surface — even for families actively looking for them.",
               },
               {
                 icon: Shield,
-                title: 'Trust What You See',
-                desc: 'Every provider is cross-referenced against official government licensing records. Safety and verification data is surfaced right on the listing.',
-                bg: 'bg-action-teal/10',
-                color: 'text-action-teal'
-              },
-              {
-                icon: Layers,
-                title: 'Compare Side by Side',
-                desc: 'See cost, schedule, age range, reviews, and availability all in one view. No more open tabs, no more guesswork.',
-                bg: 'bg-brand-sage',
-                color: 'text-brand-evergreen'
+                color: "text-brand-evergreen",
+                bg: "bg-brand-white",
+                heading: "Trust is the deciding factor",
+                body: "When safety, cost, and schedule are all on the line, families choose the platform — and the programs — they can verify and trust.",
               },
             ].map((item, i) => (
-              <div key={i} className="bg-brand-white rounded-2xl p-8 shadow-sm border border-brand-evergreen/10 hover:shadow-md transition-all">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${item.bg}`}>
-                  <item.icon className={`h-7 w-7 ${item.color}`} />
-                </div>
-                <h3 className="font-headline text-xl text-brand-evergreen mb-3">{item.title}</h3>
-                <p className="text-text-muted leading-relaxed">{item.desc}</p>
+              <div key={i} className={`${item.bg} rounded-2xl p-7 border border-brand-evergreen/8 shadow-sm`}>
+                <item.icon className={`h-8 w-8 ${item.color} mb-4`} />
+                <h4 className="font-semibold text-brand-evergreen mb-2">{item.heading}</h4>
+                <p className="text-text-muted text-sm leading-relaxed">{item.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-brand-evergreen rounded-2xl p-8 text-center text-white">
+            <p className="text-lg md:text-xl font-medium text-white/90 max-w-3xl mx-auto">
+              HappiKid organizes fragmented program information into one trusted place — so parents get better answers faster, and providers get discovered by the families who are the best fit.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATS / TRUST ───────────────────────────────────────── */}
+      <section className="py-20 bg-brand-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4">
+              The numbers behind the problem.
+            </h2>
+            <p className="text-lg text-text-muted max-w-xl mx-auto">
+              Parents are stressed, time-constrained, and turning to new tools to navigate the process.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                stat: "79%",
+                desc: "of parents have used AI tools, compared to 54% of non-parents",
+                note: "Source: Modernizing Learning research, 2024",
+                color: "text-action-clay",
+                bg: "bg-action-clay/6",
+              },
+              {
+                stat: "34%",
+                desc: "of parents use AI specifically for childcare management",
+                note: "Source: Modernizing Learning research, 2024",
+                color: "text-action-teal",
+                bg: "bg-action-teal/8",
+              },
+              {
+                stat: "48%",
+                desc: "of parents say stress is overwhelming on most days",
+                note: "Source: American Psychological Association, Stress in America 2023",
+                color: "text-brand-evergreen",
+                bg: "bg-brand-sage",
+              },
+            ].map((item, i) => (
+              <div key={i} className={`${item.bg} rounded-2xl p-8 border border-brand-evergreen/8 text-center`}>
+                <div className={`text-5xl font-bold mb-3 ${item.color}`}>{item.stat}</div>
+                <p className="text-brand-evergreen font-medium mb-3 text-sm leading-relaxed">{item.desc}</p>
+                <p className="text-text-muted text-xs italic">{item.note}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* PLATFORM TRUST STATS + TESTIMONIALS */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ── DEMO ────────────────────────────────────────────────── */}
+      <section className="py-20 bg-brand-sage">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4">
+            See HappiKid in action.
+          </h2>
+          <p className="text-lg text-text-muted mb-10 max-w-xl mx-auto">
+            Watch how parents search, compare, and connect with providers — and how providers manage their listings and inquiries.
+          </p>
+
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-brand-evergreen/10 bg-brand-evergreen aspect-video">
+            <iframe
+              src="https://www.loom.com/embed/01da2635d96348ceba6f3a325da95f9f"
+              title="HappiKid Demo"
+              frameBorder="0"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+
+          <p className="text-sm text-text-muted mt-5">
+            Can't view the video?{" "}
+            <a
+              href="https://www.loom.com/share/01da2635d96348ceba6f3a325da95f9f"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-action-teal hover:underline font-medium"
+            >
+              Watch on Loom →
+            </a>
+          </p>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ────────────────────────────────────────── */}
+      <section className="py-20 bg-brand-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
-              Trusted by families across NY, NJ & CT
-            </h2>
+            <h2 className="font-headline text-3xl md:text-4xl text-brand-evergreen mb-2">What families are saying.</h2>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-            <div className="space-y-6">
-              {[
-                { number: totalCount ? `${totalCount.count.toLocaleString()}+` : '5,500+', label: 'Verified Programs Listed', icon: Target, bg: 'bg-action-sand', color: 'text-action-clay' },
-                { number: '85%', label: 'Cross-Referenced with Gov\'t Licensing Records', icon: Shield, bg: 'bg-brand-sage', color: 'text-action-teal' },
-                { number: '23', label: 'Counties Covered Across NY, NJ & CT', icon: MapPin, bg: 'bg-action-teal/10', color: 'text-action-teal' },
-              ].map((stat, i) => (
-                <div key={i} className={`flex items-center gap-4 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${stat.bg}`}>
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-white shadow-sm">
-                    <stat.icon className={`h-7 w-7 ${stat.color}`} />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-brand-evergreen">{stat.number}</p>
-                    <p className="font-medium text-brand-evergreen">{stat.label}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-6">
-              {[
-                {
-                  quote: "Finding a daycare used to take weeks of calls and spreadsheets. With HappiKid, I found three great options in an afternoon.",
-                  author: "Sarah M.",
-                  role: "Brooklyn, NY"
-                },
-                {
-                  quote: "The verification gives me real peace of mind. I know every program we consider is properly licensed.",
-                  author: "Michael T.",
-                  role: "Manhattan, NY"
-                },
-                {
-                  quote: "Finally — one place to compare schedules, prices, and reviews without bouncing between ten tabs.",
-                  author: "Jennifer K.",
-                  role: "Hoboken, NJ"
-                }
-              ].map((testimonial, i) => (
-                <Card key={i} className="bg-white border-2 rounded-2xl shadow-md hover:shadow-lg transition-shadow border-brand-evergreen/10">
-                  <CardContent className="p-6">
-                    <div className="flex gap-1 mb-3">
-                      {[...Array(5)].map((_, j) => (
-                        <Star key={j} className="h-4 w-4 fill-current text-amber-500" />
-                      ))}
-                    </div>
-                    <p className="text-base mb-4 leading-relaxed text-brand-evergreen">"{testimonial.quote}"</p>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full ${i === 0 ? 'bg-action-sand' : i === 1 ? 'bg-brand-sage' : 'bg-action-teal/20'}`}></div>
-                      <div>
-                        <p className="font-semibold text-brand-evergreen text-sm">{testimonial.author}</p>
-                        <p className="text-xs text-text-muted">{testimonial.role}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="py-20 bg-brand-sage">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
-              How It Works
-            </h2>
-            <p className="text-lg max-w-2xl mx-auto text-text-muted">
-              Finding the right program shouldn't be complicated. Here's how HappiKid makes it simple.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {[
-              {
-                step: '1',
-                icon: Search,
-                title: 'Search Programs',
-                desc: 'Tell us what you need — age, location, type of care. Our smart search understands your constraints and shows you verified options in seconds.'
-              },
-              {
-                step: '2',
-                icon: Eye,
-                title: 'Compare & Review',
-                desc: 'See schedules, prices, reviews, and safety records all in one place. No more jumping between tabs or building your own spreadsheet.'
-              },
-              {
-                step: '3',
-                icon: CheckCircle2,
-                title: 'Connect & Enroll',
-                desc: 'Message providers directly, ask questions, and start the enrollment process — all without leaving the platform.'
-              }
-            ].map((step, i) => (
-              <div key={i} className="relative bg-brand-white border border-brand-evergreen/10 rounded-2xl p-8 text-center shadow-sm hover:shadow-md transition-all">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-action-clay">
-                  {step.step}
-                </div>
-                <div className="w-16 h-16 mx-auto bg-brand-sage rounded-full flex items-center justify-center mb-6 mt-4 text-brand-evergreen">
-                  <step.icon className="h-8 w-8" />
-                </div>
-                <h3 className="font-headline text-xl text-brand-evergreen mb-3">{step.title}</h3>
-                <p className="font-body text-text-muted">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* AI SEARCH FEATURES */}
-      <section className="py-20 bg-action-sand">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
-              Smarter search. Clearer choices.
-            </h2>
-            <p className="text-lg max-w-3xl mx-auto text-brand-evergreen/90">
-              HappiKid organizes the details that matter — schedules, age ranges, teaching styles, safety info, and more — so you can make confident decisions without the guesswork.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {[
-              {
-                icon: Database,
-                title: 'Comprehensive Provider Info',
-                desc: 'Structured, reliable information on programs, teaching styles, age ranges, pricing, and licensing.',
-                iconBg: 'bg-amber-100',
-                iconColor: 'text-amber-500'
-              },
-              {
-                icon: Lightbulb,
-                title: 'Transparent Recommendations',
-                desc: 'See why a program matches your needs — transparent criteria, simple to understand, easy to compare.',
-                iconBg: 'bg-cyan-100',
-                iconColor: 'text-action-teal'
-              },
-              {
-                icon: Network,
-                title: 'Cross-Category Search',
-                desc: 'Compare daycares, camps, after-school programs, and tutoring together in a single search.',
-                iconBg: 'bg-brand-sage',
-                iconColor: 'text-action-teal'
-              }
-            ].map((feature, i) => (
-              <Card key={i} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-                <CardContent className="p-8 text-center">
-                  <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${feature.iconBg}`}>
-                    <feature.icon className={`h-9 w-9 ${feature.iconColor}`} />
+              { quote: "Finding a daycare used to take weeks of spreadsheets and phone calls. With HappiKid, I found three great options in an afternoon.", author: "Sarah M.", location: "Brooklyn, NY" },
+              { quote: "The verification gives me real peace of mind. I know every program I consider is properly licensed and legitimate.", author: "Michael T.", location: "Manhattan, NY" },
+              { quote: "Finally — one place to compare schedules, prices, and reviews. I didn't realize how much time I was wasting before this.", author: "Jennifer K.", location: "Hoboken, NJ" },
+            ].map((t, i) => (
+              <Card key={i} className="bg-brand-white border border-brand-evergreen/10 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex gap-0.5 mb-4">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="h-4 w-4 fill-current text-amber-400" />
+                    ))}
                   </div>
-                  <h3 className="text-xl font-semibold mb-3 text-brand-evergreen">{feature.title}</h3>
-                  <p className="text-text-muted">{feature.desc}</p>
+                  <p className="text-brand-evergreen text-sm leading-relaxed mb-5">"{t.quote}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full ${i === 0 ? "bg-action-sand" : i === 1 ? "bg-brand-sage" : "bg-action-teal/20"}`} />
+                    <div>
+                      <p className="font-semibold text-brand-evergreen text-sm">{t.author}</p>
+                      <p className="text-xs text-text-muted">{t.location}</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          <Card className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl mx-auto">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-brand-sage">
-                <Search className="h-5 w-5 text-action-teal" />
-              </div>
-              <div>
-                <p className="text-sm font-medium mb-2 opacity-70 text-text-muted">Real search example:</p>
-                <p className="text-lg font-medium text-brand-evergreen">
-                  "Find full-day programs with extended hours near the PATH train that accept 2-year-olds starting in March."
-                </p>
-              </div>
-            </div>
-          </Card>
         </div>
       </section>
 
-      {/* FOR PROVIDERS */}
-      <section className="py-20 bg-brand-white">
+      {/* ── CLOSING CTA ─────────────────────────────────────────── */}
+      <section className="py-24 bg-brand-evergreen">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-action-teal mb-3">For Providers</p>
-              <h2 className="text-4xl font-headline text-brand-evergreen mb-6">
-                Reach more families. Fill more spots.
-              </h2>
-              <p className="text-lg text-text-muted mb-6">
-                HappiKid gives your program a free, SEO-friendly profile that puts you in front of high-intent local families actively searching for programs like yours.
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Parents CTA */}
+            <div className="bg-white/8 border border-white/15 rounded-2xl p-8 text-center">
+              <div className="w-12 h-12 rounded-full bg-action-clay/20 flex items-center justify-center mx-auto mb-5">
+                <Heart className="h-6 w-6 text-action-clay" />
+              </div>
+              <h3 className="font-headline text-2xl text-white mb-3">Find the right programs faster.</h3>
+              <p className="text-white/70 mb-6 text-sm leading-relaxed">
+                Search 5,500+ verified childcare and enrichment programs across NY, NJ &amp; CT. Free for parents, always.
               </p>
-              <ul className="space-y-4 mb-8">
-                {[
-                  'Free listing — claimable in minutes, no credit card needed',
-                  'High-intent parent inquiries, not unqualified ad clicks',
-                  'Centralized messaging dashboard to manage all family conversations',
-                  'Profile optimization tools and enrollment analytics',
-                  'Performance-based — start free, upgrade as you grow',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <CheckCheck className="h-5 w-5 text-action-teal shrink-0 mt-0.5" />
-                    <span className="text-brand-evergreen">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button onClick={() => setLocation("/providers")} className="bg-action-teal hover:bg-action-teal/90 text-white rounded-lg px-8" data-testid="button-providers-cta">
-                List Your Program Free
+              <Button
+                onClick={() => setLocation("/search")}
+                className="bg-action-clay hover:bg-action-clay/90 text-white rounded-lg px-8 font-semibold w-full"
+                data-testid="button-closing-parents"
+              >
+                Explore Programs
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
-              {[
-                { icon: Users, label: 'Parent Inquiries', desc: 'Families come to you already comparing your program', bg: 'bg-brand-sage', color: 'text-brand-evergreen' },
-                { icon: BarChart3, label: 'Demand Analytics', desc: 'See what families in your area are searching for', bg: 'bg-action-teal/10', color: 'text-action-teal' },
-                { icon: MessageSquare, label: 'Messaging Tools', desc: 'Answer questions and nurture leads in one place', bg: 'bg-action-clay/10', color: 'text-action-clay' },
-                { icon: Award, label: 'Profile Boosts', desc: 'Guided tips to improve your ranking and visibility', bg: 'bg-brand-sage', color: 'text-brand-evergreen' },
-              ].map((card, i) => (
-                <div key={i} className={`${card.bg} rounded-2xl p-6 border border-brand-evergreen/5`}>
-                  <card.icon className={`h-7 w-7 mb-3 ${card.color}`} />
-                  <h4 className="font-semibold text-brand-evergreen mb-1">{card.label}</h4>
-                  <p className="text-sm text-text-muted">{card.desc}</p>
-                </div>
-              ))}
+            {/* Providers CTA */}
+            <div className="bg-white/8 border border-white/15 rounded-2xl p-8 text-center">
+              <div className="w-12 h-12 rounded-full bg-action-teal/25 flex items-center justify-center mx-auto mb-5">
+                <Building2 className="h-6 w-6 text-action-teal" />
+              </div>
+              <h3 className="font-headline text-2xl text-white mb-3">Reach more families. Simplify enrollment.</h3>
+              <p className="text-white/70 mb-6 text-sm leading-relaxed">
+                Get a free listing, connect with high-intent parent leads, and manage inquiries — all in one place.
+              </p>
+              <Button
+                onClick={() => setLocation("/providers")}
+                variant="outline"
+                className="border-2 border-action-teal text-action-teal bg-transparent hover:bg-action-teal hover:text-white rounded-lg px-8 font-semibold w-full"
+                data-testid="button-closing-providers"
+              >
+                Grow With HappiKid
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-brand-evergreen py-20 px-6 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl sm:text-5xl font-headline text-white mb-4">
-            Ready to find the right fit for your child?
-          </h2>
-          <p className="text-xl text-white/80 mb-2">
-            HappiKid is free for parents — always.
-          </p>
-          <p className="text-white/60 mb-8 text-sm">Are you a provider? Claim your free listing and reach families in your area.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button 
-              size="lg"
-              onClick={() => setLocation("/search")}
-              className="rounded-lg bg-white text-action-clay font-semibold shadow-xl hover:shadow-2xl transition-all px-8"
-              data-testid="button-cta-find-programs"
-            >
-              Start Searching
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              size="lg"
-              variant="outline"
-              onClick={() => setLocation("/providers")}
-              className="rounded-lg font-semibold border-2 border-white text-white bg-white/10 hover:bg-white/20"
-              data-testid="button-cta-list-program"
-            >
-              List Your Program Free
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="py-16 bg-brand-evergreen text-white">
+      {/* ── FOOTER ──────────────────────────────────────────────── */}
+      <footer className="py-14 bg-brand-evergreen border-t border-white/10 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
             <div>
-              <a href="/" className="flex items-center gap-2 mb-4 group">
+              <a href="/" className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 text-white">
                   <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="20" y="10" width="15" height="80" rx="4" fill="currentColor" />
@@ -545,54 +631,79 @@ export default function Landing() {
                     <circle cx="50" cy="35" r="7" className="text-action-clay fill-current" />
                   </svg>
                 </div>
-                <span className="font-headline text-2xl text-white tracking-wide">HappiKid</span>
+                <span className="font-headline text-2xl tracking-wide">HappiKid</span>
               </a>
-              <p className="text-white/70 text-sm mb-2 italic">Happy Parents. HappiKid.</p>
-              <p className="text-white/60 mb-6 leading-relaxed text-sm">
-                Connecting families with trusted childcare and enrichment programs across NY, NJ &amp; CT.
-              </p>
-              <div className="flex gap-4">
-                <a href="#" className="hover:opacity-70 transition"><Facebook className="h-5 w-5" /></a>
-                <a href="#" className="hover:opacity-70 transition"><Twitter className="h-5 w-5" /></a>
-                <a href="#" className="hover:opacity-70 transition"><Instagram className="h-5 w-5" /></a>
-                <a href="#" className="hover:opacity-70 transition"><Linkedin className="h-5 w-5" /></a>
+              <p className="text-white/60 text-sm italic mb-3">Happy Parents. HappiKid.</p>
+              <p className="text-white/50 text-sm leading-relaxed">Connecting families with trusted childcare and enrichment programs across NY, NJ &amp; CT.</p>
+              <div className="flex gap-4 mt-5">
+                <a href="#" className="hover:opacity-70 transition"><Facebook className="h-4 w-4" /></a>
+                <a href="#" className="hover:opacity-70 transition"><Twitter className="h-4 w-4" /></a>
+                <a href="#" className="hover:opacity-70 transition"><Instagram className="h-4 w-4" /></a>
+                <a href="#" className="hover:opacity-70 transition"><Linkedin className="h-4 w-4" /></a>
               </div>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">For Parents</h4>
-              <ul className="space-y-3 text-white/80">
-                <li><span onClick={() => setLocation("/search")} className="hover:text-white transition cursor-pointer" data-testid="footer-find-programs">Find Programs</span></li>
-                <li><a href="#how-it-works" className="hover:text-white transition" data-testid="footer-how-it-works">How It Works</a></li>
-                <li><span onClick={() => setLocation("/search")} className="hover:text-white transition cursor-pointer">After-School Programs</span></li>
-                <li><span onClick={() => setLocation("/search")} className="hover:text-white transition cursor-pointer" data-testid="footer-resources">Summer Camps</span></li>
+              <h4 className="font-semibold mb-4 text-sm">For Parents</h4>
+              <ul className="space-y-2.5 text-white/70 text-sm">
+                <li><span onClick={() => setLocation("/search")} className="hover:text-white cursor-pointer transition" data-testid="footer-find-programs">Find Programs</span></li>
+                <li><a href="#how-it-works" className="hover:text-white transition">How It Works</a></li>
+                <li><span onClick={() => setLocation("/search?type=afterschool")} className="hover:text-white cursor-pointer transition">After-School</span></li>
+                <li><span onClick={() => setLocation("/search?type=camp")} className="hover:text-white cursor-pointer transition">Summer Camps</span></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">For Providers</h4>
-              <ul className="space-y-3 text-white/80">
-                <li><a href="/providers" className="hover:text-white transition" data-testid="footer-list-program">List Your Program</a></li>
+              <h4 className="font-semibold mb-4 text-sm">For Providers</h4>
+              <ul className="space-y-2.5 text-white/70 text-sm">
+                <li><a href="/providers" className="hover:text-white transition">List Your Program</a></li>
                 <li><a href="/providers" className="hover:text-white transition">Claim Your Profile</a></li>
                 <li><a href="/providers" className="hover:text-white transition">Provider Dashboard</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-3 text-white/80">
-                <li><span onClick={() => setLocation("/about")} className="hover:text-white transition cursor-pointer" data-testid="footer-about">About Us</span></li>
-                <li><span onClick={() => setLocation("/contact")} className="hover:text-white transition cursor-pointer" data-testid="footer-contact">Contact</span></li>
-                <li><span onClick={() => setLocation("/about")} className="hover:text-white transition cursor-pointer">Our Story</span></li>
+              <h4 className="font-semibold mb-4 text-sm">Company</h4>
+              <ul className="space-y-2.5 text-white/70 text-sm">
+                <li><span onClick={() => setLocation("/about")} className="hover:text-white cursor-pointer transition">About Us</span></li>
+                <li><span onClick={() => setLocation("/contact")} className="hover:text-white cursor-pointer transition">Contact</span></li>
+                <li><span onClick={() => setLocation("/about")} className="hover:text-white cursor-pointer transition">Our Story</span></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-white/20 mt-12 pt-8 text-center text-white/50 text-sm">
+          <div className="border-t border-white/15 pt-8 text-center text-white/40 text-xs">
             <p>&copy; 2026 HappiKid. All rights reserved. | <a href="#" className="hover:text-white">Privacy Policy</a> | <a href="#" className="hover:text-white">Terms of Service</a></p>
           </div>
         </div>
       </footer>
+
+      {/* ── DEMO MODAL ──────────────────────────────────────────── */}
+      {showDemo && (
+        <div
+          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowDemo(false)}
+        >
+          <div
+            className="bg-white rounded-2xl overflow-hidden shadow-2xl w-full max-w-3xl aspect-video relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowDemo(false)}
+              className="absolute top-3 right-3 z-10 bg-white/80 hover:bg-white rounded-full p-1.5 shadow"
+            >
+              <X className="h-4 w-4 text-brand-evergreen" />
+            </button>
+            <iframe
+              src="https://www.loom.com/embed/01da2635d96348ceba6f3a325da95f9f?autoplay=1"
+              title="HappiKid Demo"
+              frameBorder="0"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
