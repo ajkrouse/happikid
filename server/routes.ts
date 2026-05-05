@@ -17373,6 +17373,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact form submission
+  app.post('/api/contact', async (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body;
+      if (!name || !email || !message) {
+        return res.status(400).json({ message: "Name, email, and message are required" });
+      }
+      // Log submission — extend with email integration as needed
+      console.log(`[CONTACT FORM] From: ${name} <${email}> | Subject: ${subject} | Message: ${message}`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error processing contact form:", error);
+      res.status(500).json({ message: "Failed to process contact form" });
+    }
+  });
+
   // Auth routes for Replit Auth
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

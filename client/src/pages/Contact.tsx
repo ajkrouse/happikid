@@ -22,14 +22,29 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Failed to send");
+
       toast({
         title: "Message sent!",
-        description: "Thank you for contacting HappiKid. We'll get back to you soon.",
+        description: "Thank you for contacting HappiKid. We'll get back to you within 24 hours.",
       });
       setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch {
+      toast({
+        title: "Something went wrong",
+        description: "Your message couldn't be sent. Please email adam@happikid.com directly.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -230,7 +245,7 @@ export default function Contact() {
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold mb-2 text-action-clay">510+</div>
+              <div className="text-3xl font-bold mb-2 text-action-clay">5,500+</div>
               <div className="text-sm text-text-muted">Verified Providers</div>
             </div>
             <div>

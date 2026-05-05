@@ -37,14 +37,10 @@ function Router() {
       <Route path="/parent/signup" component={ParentSignup} />
       <Route path="/claim-business" component={ClaimBusiness} />
       
-      {/* Protected routes for authenticated users */}
-      {isAuthenticated && (
-        <>
-          <Route path="/provider/dashboard" component={ProviderDashboard} />
-          <Route path="/provider/celebration" component={ProviderCelebration} />
-          <Route path="/admin/claims" component={AdminClaims} />
-        </>
-      )}
+      {/* Dashboard routes — components handle their own auth guards */}
+      <Route path="/provider/dashboard" component={ProviderDashboard} />
+      <Route path="/provider/celebration" component={ProviderCelebration} />
+      <Route path="/admin/claims" component={AdminClaims} />
       
       <Route component={NotFound} />
     </Switch>

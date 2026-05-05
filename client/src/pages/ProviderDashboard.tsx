@@ -12,7 +12,6 @@ import { ProfileOptimizationCard } from "@/components/ProfileOptimizationCard";
 import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { useState } from "react";
 import { 
-  Eye, 
   MessageSquare, 
   Star, 
   TrendingUp, 
@@ -21,8 +20,6 @@ import {
   DollarSign,
   ArrowRight,
   Settings,
-  Bell,
-  Heart,
   Crown,
   Sparkles,
   Shield,
@@ -137,48 +134,14 @@ export default function ProviderDashboard() {
     );
   }
 
-  // Mock analytics data for demonstration
-  const mockAnalytics = {
-    profileViews: 156,
-    totalInquiries: 23,
-    responseRate: 95,
-    averageRating: 4.8,
-    profileCompleteness: 85,
-    recentViews: [
-      { date: "2025-01-09", views: 12 },
-      { date: "2025-01-08", views: 8 },
-      { date: "2025-01-07", views: 15 },
-      { date: "2025-01-06", views: 11 },
-      { date: "2025-01-05", views: 9 },
-    ]
-  };
-
-  const mockInquiries = [
-    {
-      id: 1,
-      parentName: "Sarah Johnson",
-      childAge: "3 years",
-      message: "Looking for part-time care starting next month...",
-      status: "pending",
-      createdAt: "2025-01-09T10:30:00Z"
-    },
-    {
-      id: 2,
-      parentName: "Michael Chen",
-      childAge: "18 months",
-      message: "Interested in your Montessori program...",
-      status: "responded",
-      createdAt: "2025-01-08T14:15:00Z"
-    },
-    {
-      id: 3,
-      parentName: "Emily Rodriguez",
-      childAge: "4 years",
-      message: "Do you have availability for after-school care?",
-      status: "pending",
-      createdAt: "2025-01-08T09:45:00Z"
-    }
-  ];
+  // Derive real metrics from live data
+  const realInquiries: any[] = Array.isArray(inquiries) ? inquiries : [];
+  const pendingCount = realInquiries.filter((i: any) => i.status === 'pending').length;
+  const respondedCount = realInquiries.filter((i: any) => i.status === 'responded').length;
+  const responseRate = realInquiries.length > 0
+    ? Math.round((respondedCount / realInquiries.length) * 100)
+    : 0;
+  const recentInquiries = realInquiries.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -197,13 +160,11 @@ export default function ProviderDashboard() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <Button size="sm">
-                <Bell className="h-4 w-4 mr-2" />
-                Notifications
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/provider/onboarding">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Link>
               </Button>
             </div>
           </div>
@@ -289,26 +250,26 @@ export default function ProviderDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Total Inquiries</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockAnalytics.profileViews}</div>
+              <div className="text-2xl font-bold">{realInquiries.length}</div>
               <p className="text-xs text-muted-foreground">
-                +12% from last week
+                {pendingCount} pending response
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Inquiries</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Pending Inquiries</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockAnalytics.totalInquiries}</div>
+              <div className="text-2xl font-bold">{pendingCount}</div>
               <p className="text-xs text-muted-foreground">
-                +5 this week
+                Awaiting your reply
               </p>
             </CardContent>
           </Card>
@@ -319,9 +280,9 @@ export default function ProviderDashboard() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockAnalytics.responseRate}%</div>
+              <div className="text-2xl font-bold">{responseRate}%</div>
               <p className="text-xs text-muted-foreground">
-                Excellent response time
+                {respondedCount} of {realInquiries.length} replied
               </p>
             </CardContent>
           </Card>
@@ -332,9 +293,11 @@ export default function ProviderDashboard() {
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockAnalytics.averageRating}</div>
+              <div className="text-2xl font-bold">
+                {provider.rating ? Number(provider.rating).toFixed(1) : "—"}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Based on 18 reviews
+                {provider.reviewCount ? `Based on ${provider.reviewCount} reviews` : "No reviews yet"}
               </p>
             </CardContent>
           </Card>
@@ -369,9 +332,9 @@ export default function ProviderDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Overall Progress</span>
-                  <span className="text-sm text-gray-600">{mockAnalytics.profileCompleteness}%</span>
+                  <span className="text-sm text-gray-600">{providerScore?.overallScore ?? "—"}{providerScore ? "%" : ""}</span>
                 </div>
-                <Progress value={mockAnalytics.profileCompleteness} className="h-2" />
+                <Progress value={providerScore?.overallScore ?? 0} className="h-2" />
                 
                 <div className="space-y-3 pt-4">
                   <div className="flex items-center justify-between text-sm">
@@ -404,42 +367,44 @@ export default function ProviderDashboard() {
               <CardHeader>
                 <CardTitle className="text-lg">Recent Inquiries</CardTitle>
                 <CardDescription>
-                  New families interested in your services
+                  Families who have reached out about your program
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {mockInquiries.map((inquiry) => (
-                    <div key={inquiry.id} className="flex items-start justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">{inquiry.parentName}</span>
-                          <span className="text-sm text-gray-500">• Child: {inquiry.childAge}</span>
-                          <Badge 
-                            variant={inquiry.status === 'pending' ? 'destructive' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {inquiry.status}
-                          </Badge>
+                {recentInquiries.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">No inquiries yet.</p>
+                    <p className="text-xs mt-1">Complete your profile to attract more families.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentInquiries.map((inquiry: any) => (
+                      <div key={inquiry.id} className="flex items-start justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="font-medium">{inquiry.parentName || "Anonymous"}</span>
+                            {inquiry.childAge && (
+                              <span className="text-sm text-gray-500">• Child: {inquiry.childAge}</span>
+                            )}
+                            <Badge 
+                              variant={inquiry.status === 'pending' ? 'destructive' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {inquiry.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                            {inquiry.message}
+                          </p>
+                          <span className="text-xs text-gray-400">
+                            {new Date(inquiry.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {inquiry.message}
-                        </p>
-                        <span className="text-xs text-gray-400">
-                          {new Date(inquiry.createdAt).toLocaleDateString()}
-                        </span>
                       </div>
-                      <Button size="sm" variant="outline">
-                        {inquiry.status === 'pending' ? 'Respond' : 'View'}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-                
-                <Button variant="outline" className="w-full mt-4">
-                  View All Inquiries
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -452,17 +417,23 @@ export default function ProviderDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button variant="outline" className="h-20 flex-col">
-                <Calendar className="h-6 w-6 mb-2" />
-                <span>Manage Availability</span>
+              <Button variant="outline" className="h-20 flex-col" asChild>
+                <Link href="/provider/onboarding">
+                  <Calendar className="h-6 w-6 mb-2" />
+                  <span>Edit Schedule & Availability</span>
+                </Link>
               </Button>
-              <Button variant="outline" className="h-20 flex-col">
-                <DollarSign className="h-6 w-6 mb-2" />
-                <span>Update Pricing</span>
+              <Button variant="outline" className="h-20 flex-col" asChild>
+                <Link href="/provider/onboarding">
+                  <DollarSign className="h-6 w-6 mb-2" />
+                  <span>Update Pricing</span>
+                </Link>
               </Button>
-              <Button variant="outline" className="h-20 flex-col">
-                <Users className="h-6 w-6 mb-2" />
-                <span>View Public Profile</span>
+              <Button variant="outline" className="h-20 flex-col" asChild>
+                <Link href="/search">
+                  <Users className="h-6 w-6 mb-2" />
+                  <span>View Public Directory</span>
+                </Link>
               </Button>
             </div>
           </CardContent>

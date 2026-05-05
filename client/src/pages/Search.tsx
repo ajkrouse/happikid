@@ -226,9 +226,10 @@ function FavoritesSection({
   const [newGroupForMove, setNewGroupForMove] = useState("");
   const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
   
+  const { isAuthenticated: favIsAuthenticated } = useAuth();
   const { data: favorites } = useQuery({
     queryKey: ["/api/favorites"],
-    enabled: true,
+    enabled: favIsAuthenticated,
   });
 
   useEffect(() => {

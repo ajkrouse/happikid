@@ -1,0 +1,99 @@
+Do a full bug, error, and quality audit of the entire HappiKid codebase.
+
+Context:
+HappiKid is a two-sided platform for parents and providers. It helps parents discover, compare, and enroll in childcare, after-school, camp, and kids’ enrichment programs, while giving providers a modern growth channel to increase visibility, simplify enrollment, and strengthen their businesses.
+
+Your job:
+Review the entire codebase, run the app, inspect all major user flows, identify bugs, and fix issues where possible. Do not only look for syntax errors. Perform a full production-readiness audit.
+
+Audit goals:
+1. Find runtime errors, broken flows, crashes, and console errors
+2. Identify logic bugs, state bugs, and data-handling issues
+3. Check for broken links, missing routes, dead buttons, non-working forms, empty states, and inconsistent navigation
+4. Review parent-side flows and provider-side flows separately
+5. Check auth, permissions, session handling, redirects, and protected pages if they exist
+6. Validate API calls, database reads/writes, loading states, and error states
+7. Look for edge cases such as null data, empty results, slow responses, duplicate submissions, race conditions, and stale UI
+8. Review accessibility issues including keyboard navigation, missing labels, poor contrast, focus traps, and semantic structure
+9. Review mobile responsiveness and layout breakage
+10. Review performance issues such as unnecessary re-renders, oversized assets, slow pages, and blocking requests
+11. Review security risks such as exposed secrets, insecure auth patterns, unsafe input handling, weak validation, and improper access controls
+12. Check analytics, environment variables, third-party integrations, demo links, and deployment-related issues if present
+
+Expected workflow:
+- First, understand the app structure and summarize the major user flows
+- Then inspect the codebase file by file, prioritizing the highest-risk areas
+- Run the app and test all core flows like a real user
+- Open browser console and network panel and identify all errors and warnings
+- Fix issues directly when the fix is clear and low-risk
+- For larger issues, explain root cause and propose the safest fix
+- If you change code, keep fixes minimal, clean, and production-appropriate
+- Do not introduce mock functionality unless clearly labeled
+- Do not remove features just to hide bugs
+
+Please test these areas specifically:
+- Homepage and navigation
+- Parent discovery/search/browse flows
+- Program detail pages
+- Compare, save, inquiry, booking, or enrollment flows
+- Provider onboarding or provider dashboard flows
+- Forms and validation
+- AI-related features or recommendation features
+- Availability, filtering, location, pricing, and profile data displays
+- Empty states, loading states, and error states
+- Mobile layouts and tablet layouts
+- Authentication and account creation if present
+- Any admin or back-office flows if present
+
+Output format:
+Provide results in this structure:
+
+1. Executive summary
+- Overall codebase health
+- Highest-priority risks
+- Whether the app is safe for demos, beta users, or production
+
+2. Critical issues
+- List each issue
+- Include file names, routes, or components involved
+- Explain exact root cause
+- State whether you fixed it
+- If fixed, summarize the patch
+- If not fixed, provide exact recommended changes
+
+3. Major issues
+- Same format as above
+
+4. Minor issues
+- Same format as above
+
+5. Accessibility issues
+- Keyboard, screen reader, forms, headings, color contrast, focus management
+
+6. Performance issues
+- Rendering, asset size, API calls, loading behavior, unnecessary work
+
+7. Security concerns
+- Secrets, auth, authorization, validation, injection risks, data exposure
+
+8. UX and conversion issues
+- Anything that would confuse parents or providers, reduce trust, or break the user journey
+
+9. Final checklist
+- What was tested
+- What was fixed
+- What still needs manual review
+
+Important instructions:
+- Be skeptical of assumptions in the code
+- Check for hidden errors, not just obvious ones
+- Validate that buttons actually do something useful
+- Validate that forms submit correctly and handle failure gracefully
+- Check both happy paths and failure paths
+- Prioritize anything that would hurt trust with parents or providers
+- Prioritize anything that would block signup, discovery, or enrollment
+- If test coverage is missing, suggest the exact tests to add
+- If logging or monitoring is weak, suggest the minimum instrumentation to add
+
+Success criteria:
+By the end, I want a realistic assessment of whether HappiKid works reliably for both parents and providers, what is broken, what you fixed, and what still needs attention before launch.

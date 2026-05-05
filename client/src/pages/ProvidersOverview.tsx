@@ -61,7 +61,7 @@ export default function ProvidersOverview() {
       </section>
 
       {/* Provider Value Proposition */}
-      <section className="py-20 bg-lime-50">
+      <section className="py-20 bg-brand-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-headline mb-4 text-brand-evergreen">
