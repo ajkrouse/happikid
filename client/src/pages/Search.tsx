@@ -29,7 +29,7 @@ import {
   PaginationPrevious, 
   PaginationEllipsis 
 } from "@/components/ui/pagination";
-import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft, Map, BookOpen, Palette, Dumbbell, TreePine, Laptop, Users as UsersIcon, Sparkles, Heart as HeartIcon, Calendar, ChevronRight, CheckCircle2, ArrowRight } from "lucide-react";
+import { Search, Grid, List, Search as SearchIcon, Bookmark, Heart, Plus, Edit, Trash2, Users, X, MoreVertical, FolderPlus, MoreHorizontal, ArrowLeft, Map, BookOpen, Palette, Dumbbell, TreePine, Laptop, Users as UsersIcon, Sparkles, Heart as HeartIcon, Calendar, ChevronRight, CheckCircle2, ArrowRight, SlidersHorizontal } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
@@ -1166,7 +1166,7 @@ export default function SearchPage() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          <div className="lg:w-1/4">
+          <div className="hidden lg:block lg:w-1/4">
             <SearchFilters
               filters={filters}
               onFiltersChange={setFilters}
@@ -1236,6 +1236,43 @@ export default function SearchPage() {
             )}
 
             <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 border-brand-evergreen/10">
+              {/* Mobile filter button — hidden on desktop where sidebar shows */}
+              <div className="lg:hidden mb-4">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="w-full border-2 border-brand-evergreen/10 text-brand-evergreen">
+                      <SlidersHorizontal className="h-4 w-4 mr-2" />
+                      Filters
+                      {(filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || (filters.features && filters.features.length > 0)) && (
+                        <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-action-teal text-white">Active</span>
+                      )}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
+                    <SheetHeader>
+                      <SheetTitle>Narrow Your Search</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4">
+                      <SearchFilters
+                        filters={filters}
+                        onFiltersChange={setFilters}
+                        onClearFilters={() => setFilters({})}
+                      />
+                      {filters.type === 'afterschool' && categories.length > 0 && (
+                        <div className="mt-6">
+                          <TaxonomyNavigator
+                            categories={categories}
+                            selectedCategory={filters.category}
+                            selectedSubcategory={filters.subcategory}
+                            onCategorySelect={handleCategorySelect}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex-1">
                   <h2 className="text-2xl font-headline font-bold mb-1 text-brand-evergreen">{getResultsText()}</h2>
@@ -1345,7 +1382,7 @@ export default function SearchPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-action-teal" />
-                  <span className="text-brand-evergreen font-medium">Updated for 2025</span>
+                  <span className="text-brand-evergreen font-medium">Updated for 2026</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-action-teal" />

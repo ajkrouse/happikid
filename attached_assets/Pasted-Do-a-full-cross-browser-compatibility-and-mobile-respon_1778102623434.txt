@@ -1,0 +1,161 @@
+Do a full cross-browser compatibility and mobile responsiveness audit of the entire HappiKid codebase.
+
+Context:
+HappiKid is a web platform for parents and providers. Parents use it to discover, compare, and enroll in childcare, after-school, camp, and kids’ enrichment programs. Providers use it to increase visibility, simplify enrollment, and strengthen their businesses.
+
+Objective:
+Review the full HappiKid app for browser-specific issues, responsive design problems, mobile usability issues, and layout or interaction inconsistencies that could hurt trust, usability, or conversion for parents and providers.
+
+Browsers to prioritize:
+Desktop:
+- Chrome
+- Safari
+- Firefox
+- Edge
+
+Mobile:
+- iPhone Safari
+- Android Chrome
+
+Screen sizes to test:
+- 320px wide
+- 375px wide
+- 390px wide
+- 414px wide
+- 768px wide
+- 820px wide
+- 1024px wide
+- 1280px and above
+
+Test orientation:
+- Portrait and landscape on mobile and tablet where relevant
+
+Please audit the following areas:
+1. Layout consistency
+- Broken grids
+- Overflowing containers
+- Cut-off text
+- Misaligned cards
+- Sticky elements overlapping content
+- Modals, dropdowns, tables, and drawers that break at smaller widths
+- Horizontal scrolling issues
+- Header and footer consistency across browsers
+
+2. Typography and rendering
+- Font rendering differences across browsers
+- Line breaks, wrapping, truncation, spacing, and hierarchy issues
+- Text scaling at zoom levels and on mobile devices
+- Verify readability at 200% zoom where possible
+
+3. Navigation and interaction
+- Menus, nav bars, hamburger menus, tabs, accordions, modals, dropdowns, filters, carousels, and sliders
+- Hover-dependent interactions that fail on touch devices
+- Tap target size and spacing
+- Sticky CTAs and floating buttons on mobile
+- Keyboard navigation on desktop browsers
+
+4. Forms and inputs
+- Form field alignment
+- Mobile keyboard behavior
+- Autofill handling
+- Date pickers, dropdowns, checkboxes, radio buttons, and submit buttons
+- Inputs hidden by virtual keyboard on mobile
+- Error states, validation, and form success/failure behavior
+- Safari-specific and Firefox-specific input quirks
+
+5. Parent and provider flows
+- Parent browsing, search, filters, program pages, compare or save flows, inquiry or enrollment flows
+- Provider onboarding, dashboards, listings, profile editing, and any enrollment or lead-management flows
+- Check whether all major flows remain usable and visually correct across browsers and mobile widths
+
+6. Responsiveness and touch behavior
+- Ensure content adapts cleanly at all breakpoints
+- Verify touch interactions work correctly on mobile
+- Confirm buttons and links are easy to tap
+- Check whether any element depends too heavily on hover or fine cursor precision
+- Confirm no critical interaction is blocked on small screens
+
+7. Accessibility related to compatibility
+- Visible focus states
+- Keyboard access
+- Semantic structure
+- Touch targets at least 44x44 where applicable
+- Color contrast issues made worse by browser rendering differences
+- Ensure responsive layout still works at zoom and text scaling
+
+8. CSS and browser support risks
+- Identify CSS properties or layout patterns likely to fail or degrade across browsers
+- Check flexbox, grid, sticky positioning, viewport units, modals, scroll containers, and animations
+- Flag any browser-specific hacks or fragile code
+- Note any unsupported or inconsistently supported features that need fallbacks
+
+9. Performance issues affecting mobile UX
+- Layout shift
+- Slow rendering on smaller devices
+- Oversized images
+- Heavy scripts blocking interactivity
+- Janky scrolling or animation
+- Excessive reflow or resize issues
+
+How to work:
+- Inspect the codebase thoroughly
+- Run the app and review all major screens
+- Test key flows like a real user
+- Compare behavior across browsers and responsive breakpoints
+- Identify exact issues, root causes, and the safest fixes
+- Fix issues directly when the fix is clear and low-risk
+- For larger issues, explain what should change and why
+- Do not make cosmetic changes that alter the product unnecessarily
+- Prioritize anything that affects trust, discoverability, enrollment, sign-up, or provider conversion
+
+Output format:
+1. Overall assessment
+- Is HappiKid broadly usable across major browsers and mobile devices?
+- What are the biggest compatibility or responsiveness risks?
+
+2. Critical issues
+For each issue include:
+- severity
+- affected browsers or devices
+- affected routes, pages, or components
+- user impact
+- root cause
+- whether you fixed it
+- exact fix or recommendation
+
+3. Major issues
+Same format
+
+4. Minor issues
+Same format
+
+5. Browser-specific findings
+- Chrome
+- Safari
+- Firefox
+- Edge
+- iPhone Safari
+- Android Chrome
+
+6. Mobile responsiveness findings
+- Small phones
+- Large phones
+- Tablets
+- Desktop resize behavior
+
+7. Accessibility and interaction findings
+- Focus states
+- keyboard navigation
+- touch targets
+- zoom behavior
+- reduced-motion or motion issues if relevant
+
+8. Final action list
+Group into:
+- Must fix before launch
+- Must fix before parent onboarding
+- Must fix before provider onboarding
+- Can improve later
+
+Success criteria:
+By the end, I want a realistic picture of whether HappiKid feels polished, consistent, and usable across modern browsers and mobile devices, plus a prioritized list of what needs to be fixed.

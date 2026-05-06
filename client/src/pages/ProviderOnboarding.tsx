@@ -1566,7 +1566,7 @@ export default function ProviderOnboarding() {
             <Progress value={completeness} className="mb-4" />
             
             {/* Step Indicators */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between overflow-x-auto gap-1 pb-1">
               {ONBOARDING_STEPS.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = index === currentStep;

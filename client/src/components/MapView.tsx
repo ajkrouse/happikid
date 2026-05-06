@@ -200,7 +200,7 @@ export default function MapView({
         <MapContainer
           center={mapCenter}
           zoom={12}
-          scrollWheelZoom={true}
+          scrollWheelZoom={false}
           className="h-full w-full"
           data-testid="map-container"
         >

@@ -405,11 +405,11 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
           ))}
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             {renderCostDisplay(provider)}
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             {onAddToComparison && (
               <Button
                 variant={isInComparison ? "outline" : "secondary"}

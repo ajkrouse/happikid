@@ -297,7 +297,7 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl">{currentProvider.name}</DialogTitle>
