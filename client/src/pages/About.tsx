@@ -13,7 +13,10 @@ import {
   CheckCheck,
   Database,
   TrendingUp,
-  MapPin
+  MapPin,
+  BrainCircuit,
+  Sparkles,
+  Bot
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -126,6 +129,98 @@ export default function About() {
                   <p className="text-sm text-text-muted">{stat.label}</p>
                 </Card>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI-Powered Search */}
+      <section className="py-16 bg-brand-sage">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="inline-block bg-action-clay/10 text-action-clay border border-action-clay/20 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest mb-4">
+              How the search works
+            </span>
+            <h2 className="text-3xl font-headline mb-4 text-brand-evergreen">Search that understands parents.</h2>
+            <p className="text-lg max-w-2xl mx-auto text-text-muted">
+              Most search tools make you translate what you need into dropdowns and filters. HappiKid works the other way — you describe it naturally, and we figure out the rest.
+            </p>
+          </div>
+
+          {/* Query examples */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+            {[
+              "Affordable Spanish immersion preschool near Hoboken for my 3-year-old",
+              "Daycare in Jersey City for my special needs son, age 2, that can handle meds during the day",
+              "Mandarin immersion daycare in Brooklyn within a 10-minute drive of Park Slope",
+              "After-school STEM program for a 9-year-old in the Bronx, weekdays until 6pm",
+              "Summer camp with swimming in Westchester, $500 or less per week",
+              "Early drop-off daycare in Hoboken that accepts childcare subsidies",
+            ].map((q, i) => (
+              <div key={i} className="bg-brand-white rounded-xl p-4 border border-brand-evergreen/10 shadow-sm flex items-start gap-3">
+                <Search className="h-4 w-4 text-action-clay shrink-0 mt-0.5" />
+                <span className="text-sm text-brand-evergreen leading-relaxed italic">"{q}"</span>
+              </div>
+            ))}
+          </div>
+
+          {/* How it works under the hood */}
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {[
+              {
+                icon: BrainCircuit,
+                color: "text-action-clay",
+                bg: "bg-action-clay/10",
+                title: "Natural language, understood",
+                desc: "Our search interprets what a parent actually means — combining program type, age range, location, schedule, and budget — without requiring them to set a single filter.",
+              },
+              {
+                icon: Shield,
+                color: "text-action-teal",
+                bg: "bg-action-teal/20",
+                title: "Grounded in real data",
+                desc: "Results stay anchored to what's licensed, available, and close by. We deprioritize full waitlists unless you ask for them, and avoid ranking factors that don't help families.",
+              },
+              {
+                icon: Bot,
+                color: "text-brand-evergreen",
+                bg: "bg-brand-sage",
+                title: "Built for the AI-agent future",
+                desc: "As more families use AI assistants for everyday decisions, HappiKid is building the infrastructure to make local childcare programs discoverable — whether a parent is searching directly or through another AI tool.",
+              },
+            ].map((item, i) => (
+              <Card key={i} className="p-8 rounded-2xl border bg-brand-white border-brand-sage">
+                <div className={`p-4 rounded-full inline-block mb-4 ${item.bg}`}>
+                  <item.icon className={`h-8 w-8 ${item.color}`} />
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-brand-evergreen">{item.title}</h3>
+                <p className="text-brand-evergreen text-sm leading-relaxed">{item.desc}</p>
+              </Card>
+            ))}
+          </div>
+
+          {/* For providers — AI visibility angle */}
+          <div className="bg-brand-evergreen rounded-2xl p-8 md:p-10">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="inline-block bg-white/15 text-white rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest mb-4">For Providers</span>
+                <h3 className="text-2xl font-headline text-white mb-4">AI is becoming the front door for families.</h3>
+                <p className="text-white/80 leading-relaxed text-sm">
+                  As more parents turn to AI assistants for discovery, the programs that are structured, verified, and present on platforms like HappiKid will be the ones that get surfaced — and the ones families can actually find and book. HappiKid is the bridge between offline programs and the AI tools families already use.
+                </p>
+              </div>
+              <div className="flex flex-col gap-4">
+                {[
+                  { icon: Sparkles, text: "HappiKid surfaces your program to high-intent, AI-assisted parent searches" },
+                  { icon: Shield, text: "Verified, structured data means your listing is trusted by both parents and AI systems" },
+                  { icon: Users, text: "Be discoverable whether a parent asks HappiKid or another AI tool" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 bg-white/10 rounded-xl p-4">
+                    <item.icon className="h-5 w-5 text-action-clay shrink-0 mt-0.5" />
+                    <p className="text-white/90 text-sm">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

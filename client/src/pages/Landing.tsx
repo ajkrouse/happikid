@@ -229,6 +229,59 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── AI SEARCH ───────────────────────────────────────────── */}
+      <section className="py-24 bg-brand-sage">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <span className="inline-flex items-center gap-2 bg-brand-white text-brand-evergreen border border-brand-evergreen/15 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest mb-4">
+              <BrainCircuit className="h-3.5 w-3.5 text-action-clay" /> AI-Powered Search
+            </span>
+            <h2 className="font-headline text-4xl md:text-5xl text-brand-evergreen mb-4 leading-tight">
+              Just describe what you need.
+            </h2>
+            <p className="text-lg text-text-muted max-w-2xl mx-auto">
+              No filters to wrestle with. Type what matters to your family in plain language — and HappiKid finds the programs that actually fit.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4 mb-10">
+            {[
+              "Affordable Spanish immersion preschool near Hoboken for my 3-year-old",
+              "Daycare in Jersey City for my special needs son, age 2, that can handle meds during the day",
+              "Mandarin immersion daycare in Brooklyn within a 10-minute drive of Park Slope",
+              "After-school STEM program for a 9-year-old in the Bronx, weekdays until 6pm",
+              "Summer camp with swimming in Westchester, $500 or less per week",
+              "Early drop-off daycare in Hoboken that accepts childcare subsidies",
+            ].map((query, i) => (
+              <button
+                key={i}
+                onClick={() => setLocation(`/search?q=${encodeURIComponent(query)}`)}
+                className="group text-left bg-brand-white hover:bg-action-clay/5 border border-brand-evergreen/10 hover:border-action-clay/30 rounded-xl p-4 transition-all shadow-sm"
+              >
+                <div className="flex items-start gap-3">
+                  <Search className="h-4 w-4 text-action-clay shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm text-brand-evergreen leading-relaxed">"{query}"</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: BrainCircuit, color: "text-action-clay", bg: "bg-brand-white", heading: "Natural language", body: "Describe what you need the way you'd say it to a friend — age, neighborhood, schedule, budget, language, special needs." },
+              { icon: Shield, color: "text-action-teal", bg: "bg-brand-white", heading: "Grounded in real data", body: "Results are filtered by what's available, what's licensed, and what actually fits — not a generic list of suggestions." },
+              { icon: Sparkles, color: "text-brand-evergreen", bg: "bg-brand-white", heading: "Ready for the AI future", body: "Whether you're searching HappiKid directly or through an AI assistant, we're building the infrastructure to surface the right programs for your family." },
+            ].map((item, i) => (
+              <div key={i} className={`${item.bg} rounded-2xl p-6 border border-brand-evergreen/8 shadow-sm`}>
+                <item.icon className={`h-7 w-7 ${item.color} mb-3`} />
+                <h4 className="font-semibold text-brand-evergreen mb-2 text-sm">{item.heading}</h4>
+                <p className="text-text-muted text-sm leading-relaxed">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── WHY PROVIDERS USE HAPPIKID ──────────────────────────── */}
       <section className="py-24 bg-brand-sage">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
