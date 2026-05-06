@@ -1,0 +1,22 @@
+Finding childcare has never been easy. Parents juggle budget, availability, location, schedule, language, and special needs, then bounce between tabs trying to make sense of it all. HappiKid is building the AI layer that takes that work off parents’ plates.
+
+With HappiKid’s AI search, families can describe what they need in plain language and instantly see programs that actually fit their lives. Instead of wrestling with filters, a parent can just type:
+
+“Affordable Spanish immersion preschool near San Antonio for my 3‑year‑old”
+
+“Daycare in Jersey City for my special needs son, age 2, that can handle meds during the day”
+
+“Mandarin immersion daycare in Seattle within a 10‑minute drive of Bryant or on the way to Fremont”
+
+Under the hood, HappiKid uses a hybrid search engine that combines structured data like program type, age range, location, schedule, and tuition with unstructured signals such as descriptions, photos, and parent feedback. Neural sparse and dense vector search interpret what a parent really means, while filters and geo-targeting keep results grounded in real availability and constraints like distance and open spots.
+
+The result is search that feels like a conversation but returns results parents can trust, not generic recommendations. It is built for the way parents actually talk and the way childcare really operates.
+
+HappiKid is also preparing for an AI agent future. We expect a world where parents’ personal AI handles the entire childcare workflow, from discovery to booking tours and drop‑in care. We are building the easiest, lowest‑friction path for AI agents to access real‑world providers, so that whether a parent asks HappiKid or another AI, the best local options are still surfaced and bookable.
+
+Because our system is grounded in high‑quality, proprietary childcare data, we can be intentional about how results are ranked. We can prioritize programs with actual openings, deprioritize full waitlists unless a family explicitly wants them, and avoid noisy or unfair ranking factors unless a parent asks for them. That level of control is hard for general‑purpose AI tools that do not understand childcare data the way a focused marketplace does.
+
+For providers, this is not just about “being online.” As AI becomes the front door for parent discovery, a platform like HappiKid becomes the bridge between offline programs and the AI systems families already use. Our aim is simple: help families find and secure great care faster, while helping providers keep their classrooms full with the right matches.
+
+Check out HappiKid to see how AI‑powered search and agent‑friendly infrastructure can make childcare discovery finally feel manageable for modern families.
+
