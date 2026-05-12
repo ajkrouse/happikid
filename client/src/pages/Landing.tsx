@@ -56,59 +56,53 @@ export default function Landing() {
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <section className="relative w-full bg-gradient-to-b from-brand-sage to-brand-white px-6 pt-20 pb-24 flex flex-col items-center text-center">
-        <div className="flex gap-2 mb-6 flex-wrap justify-center">
-          <span className="inline-flex items-center gap-1.5 bg-action-clay/10 text-action-clay border border-action-clay/20 rounded-full px-3 py-1 text-xs font-semibold">
-            <Heart className="h-3 w-3" /> For Parents
-          </span>
-          <span className="inline-flex items-center gap-1.5 bg-action-teal/10 text-action-teal border border-action-teal/20 rounded-full px-3 py-1 text-xs font-semibold">
-            <Building2 className="h-3 w-3" /> For Providers
-          </span>
-        </div>
 
-        <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl text-brand-evergreen mb-5 max-w-4xl leading-tight">
-          Find the right programs <br className="hidden md:block" />
-          <span className="text-action-clay italic">for your child.</span>
+        {/* Eyebrow */}
+        <span className="inline-block bg-brand-white border border-brand-evergreen/20 text-text-muted rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide uppercase mb-7 shadow-sm">
+          For parents and providers in NYC / NJ
+        </span>
+
+        {/* Headline */}
+        <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] text-brand-evergreen mb-6 max-w-3xl leading-[1.1] tracking-tight">
+          Find the right childcare and kids' programs{" "}
+          <span className="text-action-clay italic">without the search chaos.</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-text-muted mb-8 max-w-2xl leading-relaxed">
-          HappiKid brings childcare, camps, after-school, and enrichment into one trusted place — so parents can compare and choose with confidence, and providers can reach the families who need them most.
+        {/* Subheadline */}
+        <p className="text-lg md:text-xl text-text-muted mb-9 max-w-2xl leading-relaxed">
+          HappiKid uses AI to organize scattered daycare, after-school, camp, and enrichment information into one trusted marketplace — so parents can compare real options faster and providers can reach families ready to enroll.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+        {/* CTAs */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
           <Button
             size="lg"
             onClick={() => setLocation("/search")}
-            className="bg-action-clay hover:bg-action-clay/90 text-white rounded-lg px-8 font-semibold shadow-md"
+            className="bg-action-clay hover:bg-action-clay/90 text-white rounded-lg px-9 py-3 font-semibold shadow-md text-base"
             data-testid="button-hero-explore"
           >
-            Explore Programs
+            Find Programs
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           <Button
             size="lg"
             variant="outline"
             onClick={() => setLocation("/providers")}
-            className="border-2 border-action-teal text-action-teal hover:bg-action-teal hover:text-white rounded-lg px-8 font-semibold"
+            className="border-2 border-action-teal text-action-teal hover:bg-action-teal hover:text-white rounded-lg px-9 py-3 font-semibold text-base"
             data-testid="button-hero-grow"
           >
-            Grow With HappiKid
+            List Your Program
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-text-muted font-medium">
-          <span className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-action-teal" />
-            {totalCount ? `${totalCount.count.toLocaleString()}+` : "5,500+"} verified programs
-          </span>
-          <span className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-action-teal" />
-            85% government-verified
-          </span>
-          <span className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-action-teal" />
-            NYC Tri-State Area
-          </span>
+        {/* Proof row */}
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-text-muted font-medium">
+          <span>5,000+ provider profiles</span>
+          <span className="hidden sm:inline text-brand-evergreen/20">·</span>
+          <span>NYC / NJ launch market</span>
+          <span className="hidden sm:inline text-brand-evergreen/20">·</span>
+          <span>Verified data where available</span>
         </div>
       </section>
 
