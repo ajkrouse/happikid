@@ -113,9 +113,9 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
       </div>
 
       {/* Try Natural Language Search Suggestions */}
-      <Card className="p-6 rounded-2xl shadow-sm border-2 bg-sky-50 border-sky-400">
+      <Card className="p-6 rounded-2xl shadow-sm border-2 bg-brand-sage border-action-teal">
         <div className="flex items-center gap-2 mb-3">
-          <MessageCircle className="h-5 w-5 text-sky-500" />
+          <MessageCircle className="h-5 w-5 text-action-teal" />
           <h3 className="text-sm font-semibold text-brand-evergreen">Try Natural Language Search</h3>
         </div>
         
@@ -130,11 +130,11 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
               <button
                 key={index}
                 onClick={() => onSearch(query.text)}
-                className="text-left p-3 bg-white rounded-xl border-2 border-transparent hover:border-sky-400 hover:bg-sky-50 hover:shadow-md transition-all group"
+                className="text-left p-3 bg-white rounded-xl border-2 border-transparent hover:border-action-teal hover:bg-brand-sage hover:shadow-md transition-all group"
                 data-testid={`button-example-query-${index}`}
               >
                 <div className="flex items-start gap-2">
-                  <div className="text-sky-500">
+                  <div className="text-action-teal">
                     <Icon className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="flex-1">
@@ -143,7 +143,7 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
                     </p>
                     <Badge 
                       variant="outline" 
-                      className="text-xs border-0 px-2 py-0.5 bg-sky-100 text-sky-600"
+                      className="text-xs border-0 px-2 py-0.5 bg-action-teal/10 text-action-teal"
                     >
                       {query.category}
                     </Badge>

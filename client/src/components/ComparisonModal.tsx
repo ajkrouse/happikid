@@ -338,13 +338,56 @@ export default function ComparisonModal({
     });
   };
 
-  const handleShareComparison = () => {
+  const handleShareComparison = async () => {
     const shareData = {
       providers: providers.map(p => p.id),
       preferences: preferences
     };
     const shareUrl = `${window.location.origin}/compare?data=${encodeURIComponent(JSON.stringify(shareData))}`;
-    navigator.clipboard.writeText(shareUrl);
+
+    let copied = false;
+
+    // navigator.clipboard requires a Secure Context (HTTPS / localhost).
+    // Fall back to the legacy execCommand approach for plain-HTTP previews.
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        copied = true;
+      } catch {
+        // fall through to execCommand fallback
+      }
+    }
+
+    if (!copied) {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = shareUrl;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        copied = document.execCommand("copy");
+        document.body.removeChild(textarea);
+      } catch {
+        // both methods failed
+      }
+    }
+
+    if (copied) {
+      toast({
+        title: "Link Copied!",
+        description: "Share this link so others can view your comparison.",
+        duration: 3000,
+      });
+    } else {
+      toast({
+        title: "Copy failed",
+        description: "Your browser blocked automatic copy. Please copy the link manually.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
   };
 
   // Saved Groups Functions
