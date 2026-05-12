@@ -16,20 +16,22 @@ export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
 
-  // Simplified nav: About and Contact only (CTAs handle primary actions)
+  const isProvider = (user as any)?.role === 'provider';
+
+  // Authenticated nav is role-aware: providers see their dashboard, parents just see About/Contact
   const navItems = isAuthenticated ? [
-    { href: "/provider/dashboard", label: "Provider Dashboard" },
+    ...(isProvider ? [{ href: "/provider/dashboard", label: "Provider Dashboard" }] : []),
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ] : [
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];
-  
-  // Mobile nav prioritizes Find Programs action first
+
+  // Mobile nav: providers see dashboard, parents see "For Providers" to encourage sign-up
   const mobileNavItems = isAuthenticated ? [
     { href: "/search", label: "Find Programs", isPrimary: true },
-    { href: "/provider/dashboard", label: "Provider Dashboard" },
+    ...(isProvider ? [{ href: "/provider/dashboard", label: "Provider Dashboard" }] : []),
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ] : [
