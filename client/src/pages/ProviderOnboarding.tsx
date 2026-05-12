@@ -800,13 +800,13 @@ export default function ProviderOnboarding() {
               </CardContent>
             </Card>
 
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-brand-sage border-action-teal/30">
               <CardContent className="p-4">
                 <div className="flex items-center mb-2">
-                  <Info className="h-4 w-4 text-blue-600 mr-2" />
-                  <span className="font-medium text-blue-900">Pro Tips</span>
+                  <Info className="h-4 w-4 text-action-teal mr-2" />
+                  <span className="font-medium text-brand-evergreen">Pro Tips</span>
                 </div>
-                <ul className="text-sm text-blue-700 space-y-1">
+                <ul className="text-sm text-text-muted space-y-1">
                   {tips?.map((tip, index) => (
                     <li key={index}>• {tip}</li>
                   ))}
@@ -1021,13 +1021,13 @@ export default function ProviderOnboarding() {
               </CardContent>
             </Card>
 
-            <Card className="bg-green-50 border-green-200">
+            <Card className="bg-brand-sage border-action-teal/30">
               <CardContent className="p-4">
                 <div className="flex items-center mb-2">
-                  <Info className="h-4 w-4 text-green-600 mr-2" />
-                  <span className="font-medium text-green-900">Pro Tips</span>
+                  <Info className="h-4 w-4 text-action-teal mr-2" />
+                  <span className="font-medium text-brand-evergreen">Pro Tips</span>
                 </div>
-                <ul className="text-sm text-green-700 space-y-1">
+                <ul className="text-sm text-text-muted space-y-1">
                   {tips?.map((tip, index) => (
                     <li key={index}>• {tip}</li>
                   ))}
@@ -1310,7 +1310,7 @@ export default function ProviderOnboarding() {
                               }}
                             />
                             {image.isPrimary && (
-                              <Badge className="absolute top-2 left-2 bg-blue-600">
+                              <Badge className="absolute top-2 left-2 bg-action-teal">
                                 Primary
                               </Badge>
                             )}
@@ -1441,12 +1441,12 @@ export default function ProviderOnboarding() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="bg-brand-sage p-4 rounded-lg border border-action-teal/30">
                   <div className="flex items-center mb-2">
-                    <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                    <span className="font-medium text-green-900">Profile Complete!</span>
+                    <CheckCircle className="h-5 w-5 text-action-teal mr-2" />
+                    <span className="font-medium text-brand-evergreen">Profile Complete!</span>
                   </div>
-                  <p className="text-sm text-green-700">
+                  <p className="text-sm text-text-muted">
                     Your provider profile is ready to go live and start connecting with families.
                   </p>
                 </div>
@@ -1566,23 +1566,44 @@ export default function ProviderOnboarding() {
             <Progress value={completeness} className="mb-4" />
             
             {/* Step Indicators */}
-            <div className="flex items-start justify-between overflow-x-auto gap-1 pb-1">
+
+            {/* Mobile: compact "Step N of M — Title" so the tracker fits any phone */}
+            <div className="flex sm:hidden items-center gap-3 py-1">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-action-teal text-white">
+                {currentStep < currentStep ? (
+                  <CheckCircle className="h-5 w-5" />
+                ) : (
+                  (() => { const Icon = ONBOARDING_STEPS[currentStep].icon; return <Icon className="h-5 w-5" />; })()
+                )}
+              </div>
+              <div>
+                <p className="text-xs text-text-muted font-medium">
+                  Step {currentStep + 1} of {ONBOARDING_STEPS.length}
+                </p>
+                <p className="text-sm font-semibold text-brand-evergreen">
+                  {ONBOARDING_STEPS[currentStep].title}
+                </p>
+              </div>
+            </div>
+
+            {/* Desktop: full horizontal tracker */}
+            <div className="hidden sm:flex items-start justify-between gap-1 pb-1">
               {ONBOARDING_STEPS.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = index === currentStep;
                 const isCompleted = index < currentStep;
-                
+
                 return (
                   <TooltipProvider key={step.id}>
                     <Tooltip>
                       <TooltipTrigger>
                         <div className="flex flex-col items-center">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            isCompleted 
-                              ? "bg-green-600 text-white" 
-                              : isActive 
-                                ? "bg-blue-600 text-white" 
-                                : "bg-gray-200 text-gray-600"
+                            isCompleted
+                              ? "bg-action-teal text-white"
+                              : isActive
+                                ? "bg-action-teal text-white"
+                                : "bg-brand-sage text-text-muted"
                           }`}>
                             {isCompleted ? (
                               <CheckCircle className="h-5 w-5" />
