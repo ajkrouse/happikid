@@ -35,7 +35,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { MultiBackend } from "react-dnd-multi-backend";
+import { HTML5toTouch } from "rdndmb-html5-to-touch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -1663,13 +1664,15 @@ export default function SearchPage() {
             </div>
 
             {isAuthenticated ? (
-              <FavoritesSection 
-                setSelectedProvider={setSelectedProvider}
-                setShowProviderModal={setShowProviderModal}
-                setComparisonProviders={setComparisonProviders}
-                setShowSavedGroupsModal={setShowSavedGroupsModal}
-                setShowComparisonModal={setShowComparisonModal}
-              />
+              <DndProvider backend={MultiBackend} options={HTML5toTouch}>
+                <FavoritesSection 
+                  setSelectedProvider={setSelectedProvider}
+                  setShowProviderModal={setShowProviderModal}
+                  setComparisonProviders={setComparisonProviders}
+                  setShowSavedGroupsModal={setShowSavedGroupsModal}
+                  setShowComparisonModal={setShowComparisonModal}
+                />
+              </DndProvider>
             ) : (
               <div className="text-center py-6 bg-gray-50 rounded-lg">
                 <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />

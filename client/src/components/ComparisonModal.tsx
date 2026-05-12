@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +87,12 @@ export default function ComparisonModal({
   const [comparisonName, setComparisonName] = useState('');
   const [savedComparisons, setSavedComparisons] = useState<any[]>([]);
   const [usedExamples, setUsedExamples] = useState<string[]>([]);
-  
+
+  // Save-comparison dialog (replaces window.prompt — blocked on iOS Safari)
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [saveComparisonName, setSaveComparisonName] = useState('');
+  const saveNameInputRef = useRef<HTMLInputElement>(null);
+
   // Saved Providers Groups
   const [savedGroups, setSavedGroups] = useState<Array<{
     id: string;
@@ -299,37 +305,35 @@ export default function ComparisonModal({
       });
       return;
     }
+    // Open in-app dialog instead of window.prompt (blocked on iOS Safari)
+    setSaveComparisonName(`Comparison ${new Date().toLocaleDateString()}`);
+    setShowSaveDialog(true);
+    setTimeout(() => saveNameInputRef.current?.select(), 50);
+  };
 
-    // Prompt for comparison name
-    const name = window.prompt("Enter a name for this comparison:", `Comparison ${new Date().toLocaleDateString()}`);
-    if (!name || !name.trim()) {
-      return; // User cancelled or entered empty name
-    }
+  const handleConfirmSave = () => {
+    const name = saveComparisonName.trim();
+    if (!name) return;
 
-    // Create a new group using the same logic as handleSaveGroup
     const newGroup = {
       id: Date.now().toString(),
-      name: name.trim(),
+      name,
       providers: [...providers],
-      createdAt: new Date()
+      createdAt: new Date(),
     };
-    
-    // Also save to favorite groups localStorage for integration with Search page
+
     const existingGroups = JSON.parse(localStorage.getItem('favoriteGroups') || '{}');
-    const providerIds = providers.map(p => p.id);
-    existingGroups[newGroup.name] = providerIds;
+    existingGroups[name] = providers.map(p => p.id);
     localStorage.setItem('favoriteGroups', JSON.stringify(existingGroups));
-    
-    // Update local state immediately to show the new group
+
     setSavedGroups(prev => [...prev, newGroup]);
-    
-    // Trigger callback to refresh groups in Search component
     onGroupsSaved?.();
-    
-    // Show success toast
+    setShowSaveDialog(false);
+    setSaveComparisonName('');
+
     toast({
       title: "Comparison Saved!",
-      description: `"${newGroup.name}" has been saved to your comparison groups.`,
+      description: `"${name}" has been saved to your comparison groups.`,
       duration: 3000,
     });
   };
@@ -489,6 +493,7 @@ export default function ComparisonModal({
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto" aria-describedby="comparison-description">
         <DialogHeader>
@@ -939,5 +944,44 @@ export default function ComparisonModal({
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Save comparison name — replaces window.prompt (blocked on iOS Safari) */}
+    <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Save Comparison</DialogTitle>
+          <DialogDescription>
+            Give this comparison a name so you can find it later in My Saved Groups.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div>
+            <Label htmlFor="save-comparison-name">Comparison name</Label>
+            <Input
+              id="save-comparison-name"
+              ref={saveNameInputRef}
+              value={saveComparisonName}
+              onChange={(e) => setSaveComparisonName(e.target.value)}
+              placeholder="e.g. Top 3 Daycares"
+              className="mt-1"
+              onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmSave(); }}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmSave}
+              disabled={!saveComparisonName.trim()}
+              className="bg-action-clay hover:bg-action-clay/90 text-white"
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

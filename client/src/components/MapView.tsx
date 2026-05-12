@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Icon, LatLng } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -118,32 +118,40 @@ export default function MapView({
     }
   };
 
-  // Format provider coordinates
-  const getProviderCoordinates = (provider: Provider): [number, number] | null => {
-    // Note: Provider schema doesn't have latitude/longitude fields yet
-    // For now, generate coordinates based on borough + small offset for demonstration
-    
-    // Fallback: generate approximate coordinates based on borough
+  // Deterministic pseudo-random offset based on provider ID — stable across re-renders
+  const seededOffset = (seed: number, scale: number): number => {
+    const x = Math.sin(seed) * 10000;
+    return (x - Math.floor(x) - 0.5) * scale;
+  };
+
+  // Memoize all provider coordinates so markers never jump on re-render
+  const providerCoordinates = useMemo(() => {
     const boroughCoords: Record<string, [number, number]> = {
       'Manhattan': [40.7831, -73.9712],
       'Brooklyn': [40.6782, -73.9442],
       'Queens': [40.7282, -73.7949],
       'Bronx': [40.8448, -73.8648],
       'Staten Island': [40.5795, -74.1502],
-      'NYC': [40.7589, -73.9851]
+      'NYC': [40.7589, -73.9851],
     };
-    
-    const coords = boroughCoords[provider.borough || 'NYC'];
-    if (coords) {
-      // Add small random offset for providers in same borough
-      return [
-        coords[0] + (Math.random() - 0.5) * 0.02,
-        coords[1] + (Math.random() - 0.5) * 0.02
-      ];
-    }
-    
-    return null;
-  };
+
+    const map = new Map<number, [number, number] | null>();
+    providers.forEach((provider) => {
+      const base = boroughCoords[provider.borough || 'NYC'];
+      if (base) {
+        map.set(provider.id, [
+          base[0] + seededOffset(provider.id, 0.02),
+          base[1] + seededOffset(provider.id + 1000, 0.02),
+        ]);
+      } else {
+        map.set(provider.id, null);
+      }
+    });
+    return map;
+  }, [providers]);
+
+  const getProviderCoordinates = (provider: Provider): [number, number] | null =>
+    providerCoordinates.get(provider.id) ?? null;
 
   return (
     <div className="h-full flex flex-col">
