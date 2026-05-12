@@ -201,14 +201,23 @@ export default function ProviderOnboarding() {
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Check if user is authenticated and is a provider
+  // Check if user is authenticated; redirect to login if not
   useEffect(() => {
     if (!isAuthenticated) {
-      // Redirect to login with returnTo parameter to come back here
       window.location.href = "/api/login?returnTo=" + encodeURIComponent("/provider/onboarding");
       return;
     }
-  }, [isAuthenticated, setLocation]);
+    // Promote role to "provider" if the user signed up through the provider flow
+    if (user && user.role !== 'provider') {
+      fetch('/api/user/role', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'provider' }),
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      });
+    }
+  }, [isAuthenticated, user, queryClient, setLocation]);
 
   // Fetch existing provider profile if exists
   const { data: existingProvider } = useQuery({

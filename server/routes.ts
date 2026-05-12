@@ -17401,6 +17401,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user role (e.g. parent → provider when signing up as a provider)
+  app.patch('/api/user/role', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { role } = req.body;
+      if (!['parent', 'provider'].includes(role)) {
+        return res.status(400).json({ message: 'Invalid role. Must be "parent" or "provider".' });
+      }
+      const user = await storage.updateUserRole(userId, role);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
   // User preferences endpoint
   app.post('/api/user/preferences', isAuthenticated, async (req: any, res) => {
     try {

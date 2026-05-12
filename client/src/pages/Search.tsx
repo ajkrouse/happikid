@@ -1616,7 +1616,7 @@ export default function SearchPage() {
           <Button 
             size="lg"
             className="rounded-lg px-8 py-6 bg-white font-semibold shadow-lg hover:shadow-2xl transition-all text-lg text-action-clay hover:bg-white/90"
-            onClick={() => window.location.href = '/auth/login'}
+            onClick={() => window.location.href = '/api/login'}
           >
             Create a free account
             <ArrowRight className="ml-2 h-5 w-5" />
