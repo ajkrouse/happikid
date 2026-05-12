@@ -1131,9 +1131,9 @@ export default function SearchPage() {
       {showProfileBanner && (
         <div className="bg-gradient-to-r from-action-teal/10 to-action-clay/10 border-b border-action-teal/20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-action-teal/20 rounded-full">
+                <div className="p-2 bg-action-teal/20 rounded-full shrink-0">
                   <Sparkles className="h-4 w-4 text-action-teal" />
                 </div>
                 <div>
@@ -1144,7 +1144,7 @@ export default function SearchPage() {
               <Button 
                 onClick={() => setShowFamilyProfileWizard(true)}
                 size="sm"
-                className="bg-action-clay hover:bg-action-clay/90 whitespace-nowrap"
+                className="bg-action-clay hover:bg-action-clay/90 whitespace-nowrap self-start sm:self-auto"
               >
                 Complete Profile <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
@@ -1551,7 +1551,7 @@ export default function SearchPage() {
                 </div>
                 
                 <Pagination>
-                  <PaginationContent>
+                  <PaginationContent className="flex-wrap gap-1">
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -1559,22 +1559,22 @@ export default function SearchPage() {
                       />
                     </PaginationItem>
                     
-                    {Array.from({ length: Math.min(5, Math.ceil(totalCount / itemsPerPage)) }, (_, i) => {
+                    {Array.from({ length: Math.min(3, Math.ceil(totalCount / itemsPerPage)) }, (_, i) => {
                       const totalPages = Math.ceil(totalCount / itemsPerPage);
                       let page;
                       
-                      if (totalPages <= 5) {
+                      if (totalPages <= 3) {
                         page = i + 1;
-                      } else if (currentPage <= 3) {
+                      } else if (currentPage <= 2) {
                         page = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        page = totalPages - 4 + i;
+                      } else if (currentPage >= totalPages - 1) {
+                        page = totalPages - 2 + i;
                       } else {
-                        page = currentPage - 2 + i;
+                        page = currentPage - 1 + i;
                       }
                       
                       return (
-                        <PaginationItem key={page}>
+                        <PaginationItem key={page} className="hidden sm:inline-flex">
                           <PaginationLink
                             onClick={() => setCurrentPage(page)}
                             isActive={currentPage === page}
@@ -1585,6 +1585,13 @@ export default function SearchPage() {
                         </PaginationItem>
                       );
                     })}
+
+                    {/* On mobile: compact page indicator instead of numbered buttons */}
+                    <PaginationItem className="sm:hidden">
+                      <span className="px-3 py-2 text-sm text-text-muted">
+                        {currentPage} / {Math.ceil(totalCount / itemsPerPage)}
+                      </span>
+                    </PaginationItem>
                     
                     <PaginationItem>
                       <PaginationNext 

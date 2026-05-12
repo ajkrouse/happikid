@@ -776,6 +776,10 @@ export default function ComparisonModal({
           </Card>
         )}
 
+        {/* Comparison table — horizontal scroll on mobile so content is never clipped */}
+        <div className="overflow-x-auto -mx-6 px-6">
+        <div className="min-w-[600px]">
+
         {/* Data Sources Header Row - Parallel to Provider Thumbnails */}
         <div className="grid grid-cols-12 gap-4 mb-2">
           <div className="col-span-3">
@@ -911,6 +915,9 @@ export default function ComparisonModal({
             </div>
           ))}
         </div>
+
+        </div>{/* end min-w-[600px] */}
+        </div>{/* end overflow-x-auto */}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-6 pt-4 border-t">
