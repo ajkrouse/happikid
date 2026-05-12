@@ -98,7 +98,7 @@ export function ConversationalSearch({ onSearch, currentQuery, value, onChange }
           type="text"
           value={localValue}
           onChange={handleChange}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           placeholder={placeholderExamples[placeholderIndex]}
           className="w-full h-16 pl-14 pr-6 text-base rounded-full shadow-md transition-all duration-300 border-2 bg-brand-sage border-brand-evergreen/10 text-brand-evergreen placeholder:text-brand-evergreen/50 focus:border-action-clay focus:shadow-lg focus:ring-action-clay/20"
           data-testid="input-natural-language-search"

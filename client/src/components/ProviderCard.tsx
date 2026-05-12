@@ -173,7 +173,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
         {[1, 2, 3, 4, 5].map((i) => (
           <span 
             key={i} 
-            className={`text-xs font-semibold ${i <= dollarSigns ? 'text-primary' : 'text-gray-300'}`}
+            className={`text-xs font-semibold ${i <= dollarSigns ? 'text-action-clay' : 'text-gray-300'}`}
           >
             $
           </span>
@@ -491,7 +491,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="Enter group name..."
                 className="flex-1"
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleCreateNewGroup();
                   }
