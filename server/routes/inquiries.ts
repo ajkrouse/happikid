@@ -3,9 +3,11 @@ import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { insertInquirySchema } from "@shared/schema";
 import { z } from "zod";
+import { createLogger } from "../logger";
+
+const log = createLogger("inquiries");
 
 export function registerInquiryRoutes(app: Express): void {
-  // Get inquiries for a specific provider (provider owner only)
   app.get("/api/inquiries/provider/:providerId", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = parseInt(req.params.providerId);
@@ -13,34 +15,31 @@ export function registerInquiryRoutes(app: Express): void {
       if (!provider || provider.userId !== req.user!.id) return res.status(403).json({ message: "Access denied" });
       res.json(await storage.getInquiriesByProviderId(providerId));
     } catch (error) {
-      console.error("Error fetching inquiries:", error);
+      log.error({ err: error }, "Error fetching inquiries");
       res.status(500).json({ message: "Failed to fetch inquiries" });
     }
   });
 
-  // Get all inquiries submitted by the current user
   app.get("/api/inquiries/user", isAuthenticated, async (req: any, res) => {
     try {
       res.json(await storage.getInquiriesByUserId(req.user!.id));
     } catch (error) {
-      console.error("Error fetching user inquiries:", error);
+      log.error({ err: error }, "Error fetching user inquiries");
       res.status(500).json({ message: "Failed to fetch inquiries" });
     }
   });
 
-  // Get all inquiries for the current user's provider listing
   app.get("/api/inquiries/provider", isAuthenticated, async (req: any, res) => {
     try {
       const providers = await storage.getProvidersByUserId(req.user!.id);
       if (providers.length === 0) return res.json([]);
       res.json(await storage.getInquiriesByProviderId(providers[0].id));
     } catch (error) {
-      console.error("Error fetching provider inquiries:", error);
+      log.error({ err: error }, "Error fetching provider inquiries");
       res.status(500).json({ message: "Failed to fetch inquiries" });
     }
   });
 
-  // Submit a new inquiry (public — also works for anonymous users)
   app.post("/api/inquiries", async (req: any, res) => {
     try {
       const userId = req.user?.id || "anonymous";
@@ -53,13 +52,12 @@ export function registerInquiryRoutes(app: Express): void {
       const inquiryData = insertInquirySchema.parse({ ...req.body, userId });
       res.status(201).json(await storage.createInquiry(inquiryData));
     } catch (error) {
-      console.error("Error creating inquiry:", error);
+      log.error({ err: error }, "Error creating inquiry");
       if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid inquiry data", errors: error.errors });
       res.status(500).json({ message: "Failed to create inquiry" });
     }
   });
 
-  // Update inquiry status
   app.patch("/api/inquiries/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const { status } = req.body;
@@ -68,7 +66,7 @@ export function registerInquiryRoutes(app: Express): void {
       }
       res.json(await storage.updateInquiryStatus(parseInt(req.params.id), status));
     } catch (error) {
-      console.error("Error updating inquiry status:", error);
+      log.error({ err: error }, "Error updating inquiry status");
       res.status(500).json({ message: "Failed to update inquiry status" });
     }
   });

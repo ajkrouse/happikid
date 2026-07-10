@@ -4,6 +4,7 @@ import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { apiLimiter, authLimiter } from "./middleware/rateLimiter";
+import { logger } from "./logger";
 
 const app = express();
 
@@ -85,7 +86,7 @@ app.use((req, res, next) => {
 
     // Log the error for observability without crashing the process
     if (status >= 500) {
-      console.error("[unhandled error]", err);
+      logger.error({ err, status }, "Unhandled server error");
     }
   });
 

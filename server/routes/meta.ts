@@ -1,6 +1,9 @@
 import type { Express } from "express";
 import { intelligentSearch } from "../intelligentSearch";
 import { z } from "zod";
+import { createLogger } from "../logger";
+
+const log = createLogger("meta");
 
 const contactSchema = z.object({
   name: z.string().min(1).max(100),
@@ -10,7 +13,6 @@ const contactSchema = z.object({
 });
 
 export function registerMetaRoutes(app: Express): void {
-  // Intelligent search parser introspection (dev/debug)
   app.get("/api/search/test", async (req, res) => {
     const { q } = req.query;
     if (!q || typeof q !== "string") {
@@ -25,12 +27,11 @@ export function registerMetaRoutes(app: Express): void {
         synonyms: intelligentSearch.expandSynonyms(q),
       });
     } catch (error) {
-      console.error("Error testing search:", error);
+      log.error({ err: error }, "Error testing search");
       res.status(500).json({ error: "Failed to parse search query" });
     }
   });
 
-  // Feature registry
   app.get("/api/meta/features", async (_req, res) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -40,12 +41,11 @@ export function registerMetaRoutes(app: Express): void {
       const featuresPath = path.join(__dirname, "..", "meta", "feature_registry.json");
       res.json(JSON.parse(fs.readFileSync(featuresPath, "utf8")));
     } catch (error) {
-      console.error("Error loading feature registry:", error);
+      log.error({ err: error }, "Error loading feature registry");
       res.status(500).json({ message: "Failed to load features" });
     }
   });
 
-  // Contact form
   app.post("/api/contact", async (req, res) => {
     try {
       const parsed = contactSchema.safeParse(req.body);
@@ -53,10 +53,10 @@ export function registerMetaRoutes(app: Express): void {
         return res.status(400).json({ message: "Invalid contact form data", errors: parsed.error.errors });
       }
       const { name, email, subject, message } = parsed.data;
-      console.log(`[CONTACT FORM] From: ${name} <${email}> | Subject: ${subject} | Message: ${message}`);
+      log.info({ name, email, subject }, "Contact form submission");
       res.json({ success: true });
     } catch (error) {
-      console.error("Error processing contact form:", error);
+      log.error({ err: error }, "Error processing contact form");
       res.status(500).json({ message: "Failed to process contact form" });
     }
   });

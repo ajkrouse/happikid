@@ -8,6 +8,9 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { createLogger } from "./logger";
+
+const log = createLogger("auth");
 
 // Extend session type for returnTo
 declare module "express-session" {
@@ -39,9 +42,8 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
-  // Generate a secure session secret for development if missing
-  const sessionSecret = process.env.SESSION_SECRET || 'dev-secret-' + crypto.randomBytes(32).toString('hex');
-  
+  const sessionSecret = process.env.SESSION_SECRET || "dev-secret-" + crypto.randomBytes(32).toString("hex");
+
   return session({
     secret: sessionSecret,
     store: sessionStore,
@@ -49,7 +51,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       maxAge: sessionTtl,
     },
   });
@@ -60,45 +62,38 @@ function updateUserSession(
   tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
 ) {
   try {
-    // Check if claims method exists before calling it
-    if (typeof tokens.claims === 'function') {
+    if (typeof tokens.claims === "function") {
       user.claims = tokens.claims();
     } else {
-      // Fallback to direct claims property if method doesn't exist
       user.claims = (tokens as any).claims || {};
     }
     user.access_token = tokens.access_token;
     user.refresh_token = tokens.refresh_token;
     user.expires_at = user.claims?.exp;
   } catch (error) {
-    console.error("Error updating user session:", error);
-    // Set minimal claims to avoid breaking auth flow
+    log.error({ err: error }, "Error updating user session");
     user.claims = {};
     user.access_token = tokens.access_token;
     user.refresh_token = tokens.refresh_token;
-    user.expires_at = Date.now() / 1000 + 3600; // 1 hour from now
+    user.expires_at = Date.now() / 1000 + 3600;
   }
 }
 
-async function upsertUser(
-  claims: any,
-) {
+async function upsertUser(claims: any) {
   try {
-    // Validate that we have the required subject (user ID)
-  if (!claims["sub"]) {
-    throw new Error("Missing required user ID (sub) in claims");
-  }
-  
-  await storage.upsertUser({
-    id: claims["sub"],
-    email: claims["email"] || null,
-    firstName: claims["first_name"] || null,
-    lastName: claims["last_name"] || null,
-    profileImageUrl: claims["profile_image_url"] || null,
-    role: "parent", // Default role for new users
-  });
+    if (!claims["sub"]) {
+      throw new Error("Missing required user ID (sub) in claims");
+    }
+    await storage.upsertUser({
+      id: claims["sub"],
+      email: claims["email"] || null,
+      firstName: claims["first_name"] || null,
+      lastName: claims["last_name"] || null,
+      profileImageUrl: claims["profile_image_url"] || null,
+      role: "parent",
+    });
   } catch (error) {
-    console.error("Error upserting user:", error);
+    log.error({ err: error }, "Error upserting user");
     throw error;
   }
 }
@@ -118,54 +113,47 @@ export async function setupAuth(app: Express) {
     try {
       const user = {};
       updateUserSession(user, tokens);
-      
-      // Get claims safely
+
       let claims = {};
       try {
-        if (typeof tokens.claims === 'function') {
+        if (typeof tokens.claims === "function") {
           claims = tokens.claims();
         } else {
           claims = (tokens as any).claims || {};
         }
-        
-        console.log("Claims extracted:", claims);
-        console.log("Token object keys:", Object.keys(tokens));
-        
-        // If claims are empty, try to extract from the token directly
+
+        log.debug({ claimKeys: Object.keys(claims) }, "Claims extracted");
+
         if (!claims || Object.keys(claims).length === 0) {
-          console.log("Claims are empty, trying to extract from token...");
-          // This is a fallback - we'll need to handle this more gracefully in production
+          log.warn("Claims are empty, using fallback");
           claims = {
-            sub: "replit_user_" + Date.now(), // Generate a temporary ID
+            sub: "replit_user_" + Date.now(),
             email: "user@replit.com",
             first_name: "Replit",
-            last_name: "User"
+            last_name: "User",
           };
-          console.log("Using fallback claims:", claims);
         }
       } catch (error) {
-        console.error("Error getting claims:", error);
+        log.error({ err: error }, "Error getting claims");
         return verified(new Error("Failed to get user claims from authentication token"));
       }
-      
-      // Validate and upsert user
+
       await upsertUser(claims);
       verified(null, user);
     } catch (error) {
-      console.error("Authentication verification error:", error);
+      log.error({ err: error }, "Authentication verification error");
       verified(error);
     }
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  for (const domain of process.env.REPLIT_DOMAINS!.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
         config,
         scope: "openid email profile offline_access",
         callbackURL: `https://${domain}/api/callback`,
-        passReqToCallback: false, // Keep this false for simpler verification
+        passReqToCallback: false,
       },
       verify,
     );
@@ -177,27 +165,16 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/login", (req, res, next) => {
     const returnTo = req.query.returnTo as string;
-    console.log("Login with returnTo:", returnTo);
-    
-    // Determine the correct domain for authentication
     const domains = process.env.REPLIT_DOMAINS!.split(",");
-    const currentDomain = req.hostname === '127.0.0.1' || req.hostname === 'localhost' ? domains[0] : req.hostname;
+    const currentDomain = req.hostname === "127.0.0.1" || req.hostname === "localhost" ? domains[0] : req.hostname;
     const strategyName = `replitauth:${currentDomain}`;
-    
-    console.log("Using strategy:", strategyName);
-    
-    // Store returnTo in session before auth
+
+    log.debug({ returnTo, strategyName }, "Login initiated");
+
     if (returnTo) {
       req.session.returnTo = returnTo;
-      console.log("Storing returnTo in session:", returnTo);
-      
-      // Force session save
       req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-        }
-        console.log("Session saved before auth");
-        
+        if (err) log.error({ err }, "Session save error");
         passport.authenticate(strategyName, {
           prompt: "login consent",
           scope: ["openid", "email", "profile", "offline_access"],
@@ -205,54 +182,48 @@ export async function setupAuth(app: Express) {
       });
     } else {
       passport.authenticate(strategyName, {
-        prompt: "login consent", 
+        prompt: "login consent",
         scope: ["openid", "email", "profile", "offline_access"],
       })(req, res, next);
     }
   });
 
   app.get("/api/callback", (req, res, next) => {
-    // Determine the correct domain for authentication
     const domains = process.env.REPLIT_DOMAINS!.split(",");
-    const currentDomain = req.hostname === '127.0.0.1' || req.hostname === 'localhost' ? domains[0] : req.hostname;
+    const currentDomain = req.hostname === "127.0.0.1" || req.hostname === "localhost" ? domains[0] : req.hostname;
     const strategyName = `replitauth:${currentDomain}`;
-    
+
     passport.authenticate(strategyName, (err: any, user: any) => {
       if (err) {
-        console.error("Authentication error:", err);
+        log.error({ err }, "Authentication error");
         return next(err);
       }
       if (!user) {
-        console.log("No user returned from authentication");
+        log.warn("No user returned from authentication");
         return res.redirect("/api/login");
       }
-      
+
       req.logIn(user, (err) => {
         if (err) {
-          console.error("Login error:", err);
+          log.error({ err }, "Login error");
           return next(err);
         }
-        
-        // Check for returnTo in session
+
         const returnTo = req.session.returnTo;
-        console.log("Callback returnTo from session:", returnTo);
-        console.log("Session ID:", req.sessionID);
-        
-        // Clear the returnTo from session
+        log.debug({ returnTo, sessionId: req.sessionID }, "Callback session state");
+
         if (returnTo) {
           delete req.session.returnTo;
           req.session.save((err) => {
-            if (err) console.error("Error saving session after clearing returnTo:", err);
+            if (err) log.error({ err }, "Error saving session after clearing returnTo");
           });
         }
-        
-        if (returnTo && returnTo.startsWith('/')) {
-          console.log("Redirecting to:", returnTo);
+
+        if (returnTo && returnTo.startsWith("/")) {
+          log.debug({ returnTo }, "Redirecting after login");
           return res.redirect(returnTo);
         }
-        
-        // Default redirect to home
-        console.log("No valid returnTo, redirecting to /");
+
         res.redirect("/");
       });
     })(req, res, next);

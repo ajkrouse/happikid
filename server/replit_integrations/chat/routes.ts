@@ -4,6 +4,9 @@ import { isAuthenticated } from "../../replitAuth";
 import { aiLimiter } from "../../middleware/rateLimiter";
 import { chatStorage } from "./storage";
 import { z } from "zod";
+import { createLogger } from "../../logger";
+
+const log = createLogger("chat-routes");
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -19,95 +22,77 @@ const sendMessageSchema = z.object({
 });
 
 export function registerChatRoutes(app: Express): void {
-  // All conversation endpoints require authentication and AI rate limiting
   app.use("/api/conversations", isAuthenticated, aiLimiter);
 
-  // Get all conversations
   app.get("/api/conversations", async (req: any, res: Response) => {
     try {
-      const conversations = await chatStorage.getAllConversations();
-      res.json(conversations);
+      res.json(await chatStorage.getAllConversations());
     } catch (error) {
-      console.error("Error fetching conversations:", error);
+      log.error({ err: error }, "Error fetching conversations");
       res.status(500).json({ error: "Failed to fetch conversations" });
     }
   });
 
-  // Get single conversation with messages
   app.get("/api/conversations/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ error: "Invalid conversation ID" });
-
       const conversation = await chatStorage.getConversation(id);
-      if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
-      }
+      if (!conversation) return res.status(404).json({ error: "Conversation not found" });
       const messages = await chatStorage.getMessagesByConversation(id);
       res.json({ ...conversation, messages });
     } catch (error) {
-      console.error("Error fetching conversation:", error);
+      log.error({ err: error }, "Error fetching conversation");
       res.status(500).json({ error: "Failed to fetch conversation" });
     }
   });
 
-  // Create new conversation
   app.post("/api/conversations", async (req: Request, res: Response) => {
     try {
       const parsed = createConversationSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
       }
-      const conversation = await chatStorage.createConversation(parsed.data.title || "New Chat");
-      res.status(201).json(conversation);
+      res.status(201).json(await chatStorage.createConversation(parsed.data.title || "New Chat"));
     } catch (error) {
-      console.error("Error creating conversation:", error);
+      log.error({ err: error }, "Error creating conversation");
       res.status(500).json({ error: "Failed to create conversation" });
     }
   });
 
-  // Delete conversation
   app.delete("/api/conversations/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ error: "Invalid conversation ID" });
-
       await chatStorage.deleteConversation(id);
       res.status(204).send();
     } catch (error) {
-      console.error("Error deleting conversation:", error);
+      log.error({ err: error }, "Error deleting conversation");
       res.status(500).json({ error: "Failed to delete conversation" });
     }
   });
 
-  // Send message and get AI response (streaming)
   app.post("/api/conversations/:id/messages", async (req: Request, res: Response) => {
     try {
       const conversationId = parseInt(req.params.id);
       if (isNaN(conversationId)) return res.status(400).json({ error: "Invalid conversation ID" });
-
       const parsed = sendMessageSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
       }
       const { content } = parsed.data;
 
-      // Save user message
       await chatStorage.createMessage(conversationId, "user", content);
-
-      // Get conversation history for context
       const messages = await chatStorage.getMessagesByConversation(conversationId);
       const chatMessages = messages.map((m) => ({
         role: m.role as "user" | "assistant",
         content: m.content,
       }));
 
-      // Set up SSE
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
-      // Stream response from OpenAI
       const stream = await openai.chat.completions.create({
         model: "gpt-5.1",
         messages: chatMessages,
@@ -116,7 +101,6 @@ export function registerChatRoutes(app: Express): void {
       });
 
       let fullResponse = "";
-
       for await (const chunk of stream) {
         const delta = chunk.choices[0]?.delta?.content || "";
         if (delta) {
@@ -125,13 +109,11 @@ export function registerChatRoutes(app: Express): void {
         }
       }
 
-      // Save assistant message
       await chatStorage.createMessage(conversationId, "assistant", fullResponse);
-
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
       res.end();
     } catch (error) {
-      console.error("Error sending message:", error);
+      log.error({ err: error }, "Error sending message");
       if (res.headersSent) {
         res.write(`data: ${JSON.stringify({ error: "Failed to send message" })}\n\n`);
         res.end();

@@ -2,6 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./replitAuth";
 import { addSampleData } from "./db/seed";
+import { createLogger } from "./logger";
+
+const log = createLogger("routes");
 
 import { registerProviderRoutes } from "./routes/providers";
 import { registerReviewRoutes } from "./routes/reviews";
@@ -21,7 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Seed sample data in development if the database is empty
   if (process.env.NODE_ENV === "development") {
     addSampleData().catch((err) => {
-      console.warn("Failed to add sample data (non-critical):", err.message);
+      log.warn({ err }, "Failed to add sample data (non-critical)");
     });
   }
 

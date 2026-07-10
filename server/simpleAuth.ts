@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import crypto from "crypto";
+import { createLogger } from "./logger";
+
+const log = createLogger("simple-auth");
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -71,7 +74,7 @@ export const requireAuth = async (req: AuthenticatedRequest, res: Response, next
     req.user = user;
     next();
   } catch (error) {
-    console.error("Auth error:", error);
+    log.error({ err: error }, "Auth error");
     res.status(401).json({ message: "Unauthorized" });
   }
 };
@@ -92,7 +95,7 @@ export const optionalAuth = async (req: AuthenticatedRequest, res: Response, nex
     
     next();
   } catch (error) {
-    console.error("Optional auth error:", error);
+    log.warn({ err: error }, "Optional auth error");
     next(); // Continue without auth
   }
 };

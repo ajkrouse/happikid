@@ -5,6 +5,9 @@ import { intelligentSearch } from "../intelligentSearch";
 import { generateSearchSummary } from "../services/aiSummaries";
 import { insertProviderSchema, insertProviderUpdateSchema, insertProviderPhotoSchema } from "@shared/schema";
 import { z } from "zod";
+import { createLogger } from "../logger";
+
+const log = createLogger("providers");
 
 export function registerProviderRoutes(app: Express): void {
   // Featured providers — diverse selection across types
@@ -21,7 +24,7 @@ export function registerProviderRoutes(app: Express): void {
       const shuffled = allProviders.sort(() => 0.5 - Math.random());
       res.json(shuffled.slice(0, parseInt(limit as string)));
     } catch (error) {
-      console.error("Error fetching featured providers:", error);
+      log.error({ err: error }, "Error fetching featured providers");
       res.status(500).json({ message: "Failed to fetch featured providers" });
     }
   });
@@ -29,10 +32,9 @@ export function registerProviderRoutes(app: Express): void {
   // Provider stats
   app.get("/api/providers/stats", async (_req, res) => {
     try {
-      const stats = await storage.getProviderStats();
-      res.json(stats);
+      res.json(await storage.getProviderStats());
     } catch (error) {
-      console.error("Error fetching provider stats:", error);
+      log.error({ err: error }, "Error fetching provider stats");
       res.status(500).json({ message: "Failed to fetch provider stats" });
     }
   });
@@ -89,19 +91,19 @@ export function registerProviderRoutes(app: Express): void {
           search: parsed.filters.search,
           acceptsSubsidies: filters.acceptsSubsidies || parsed.filters.acceptsSubsidies,
         };
-        console.log("Intelligent search parsed:", {
+        log.debug({
           originalQuery: parsed.originalQuery,
           matchedTerms: parsed.matchedTerms,
           confidence: parsed.confidence,
           appliedFilters: filters,
-        });
+        }, "Intelligent search parsed");
       }
 
-      console.log("Provider filters received:", {
+      log.debug({
         type: filters.type, borough: filters.borough, city: filters.city,
         ageRangeMin: filters.ageRangeMin, ageRangeMax: filters.ageRangeMax,
         features: filters.features, search: filters.search, originalAgeRange: ageRange,
-      });
+      }, "Provider filters received");
 
       const result = await storage.getProviders(filters);
 
@@ -123,7 +125,7 @@ export function registerProviderRoutes(app: Express): void {
               { matchedTerms: parsed.matchedTerms, confidence: parsed.confidence }
             );
           } catch (aiError) {
-            console.error("Error generating AI summary:", aiError);
+            log.error({ err: aiError }, "Error generating AI summary");
           }
         }
         if (Array.isArray(result)) {
@@ -135,7 +137,7 @@ export function registerProviderRoutes(app: Express): void {
         res.json(result);
       }
     } catch (error) {
-      console.error("Error fetching providers:", error);
+      log.error({ err: error }, "Error fetching providers");
       res.status(500).json({ message: "Failed to fetch providers" });
     }
   });
@@ -147,7 +149,7 @@ export function registerProviderRoutes(app: Express): void {
       if (providers.length === 0) return res.status(404).json({ message: "No provider profile found" });
       res.json(providers[0]);
     } catch (error) {
-      console.error("Error fetching user provider:", error);
+      log.error({ err: error }, "Error fetching user provider");
       res.status(500).json({ message: "Failed to fetch provider" });
     }
   });
@@ -161,7 +163,7 @@ export function registerProviderRoutes(app: Express): void {
       if (!provider) return res.status(404).json({ message: "Provider not found" });
       res.json(provider);
     } catch (error) {
-      console.error("Error fetching provider:", error);
+      log.error({ err: error }, "Error fetching provider");
       res.status(500).json({ message: "Failed to fetch provider" });
     }
   });
@@ -231,7 +233,7 @@ export function registerProviderRoutes(app: Express): void {
         res.status(201).json(provider);
       }
     } catch (error) {
-      console.error("Error creating/updating provider:", error);
+      log.error({ err: error }, "Error creating/updating provider");
       if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
       res.status(500).json({ message: "Failed to create/update provider" });
     }
@@ -244,10 +246,9 @@ export function registerProviderRoutes(app: Express): void {
       const userId = req.user!.id;
       const existing = await storage.getProvider(id);
       if (!existing || existing.userId !== userId) return res.status(403).json({ message: "Access denied" });
-      const provider = await storage.updateProvider(id, insertProviderSchema.partial().parse(req.body));
-      res.json(provider);
+      res.json(await storage.updateProvider(id, insertProviderSchema.partial().parse(req.body)));
     } catch (error) {
-      console.error("Error updating provider:", error);
+      log.error({ err: error }, "Error updating provider");
       res.status(500).json({ message: "Failed to update provider" });
     }
   });
@@ -259,10 +260,9 @@ export function registerProviderRoutes(app: Express): void {
       const userId = req.user!.id;
       const existing = await storage.getProvider(id);
       if (!existing || existing.userId !== userId) return res.status(403).json({ message: "Access denied" });
-      const provider = await storage.updateProvider(id, insertProviderSchema.partial().parse(req.body));
-      res.json(provider);
+      res.json(await storage.updateProvider(id, insertProviderSchema.partial().parse(req.body)));
     } catch (error) {
-      console.error("Error updating provider:", error);
+      log.error({ err: error }, "Error updating provider");
       if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
       res.status(500).json({ message: "Failed to update provider" });
     }
@@ -274,7 +274,7 @@ export function registerProviderRoutes(app: Express): void {
       if (req.params.userId !== req.user!.id) return res.status(403).json({ message: "Access denied" });
       res.json(await storage.getProvidersByUserId(req.params.userId));
     } catch (error) {
-      console.error("Error fetching user providers:", error);
+      log.error({ err: error }, "Error fetching user providers");
       res.status(500).json({ message: "Failed to fetch providers" });
     }
   });
@@ -289,7 +289,7 @@ export function registerProviderRoutes(app: Express): void {
       });
       res.json({ message: "License confirmation request submitted successfully", provider: updated, isConfirmed: true });
     } catch (error) {
-      console.error("Error confirming license:", error);
+      log.error({ err: error }, "Error confirming license");
       res.status(500).json({ message: "Failed to confirm license" });
     }
   });
@@ -299,7 +299,7 @@ export function registerProviderRoutes(app: Express): void {
     try {
       res.json(await storage.getProviderImages(parseInt(req.params.id)));
     } catch (error) {
-      console.error("Error fetching provider images:", error);
+      log.error({ err: error }, "Error fetching provider images");
       res.status(500).json({ message: "Failed to fetch images" });
     }
   });
@@ -313,7 +313,7 @@ export function registerProviderRoutes(app: Express): void {
       if (!imageUrl) return res.status(400).json({ message: "Image URL is required" });
       res.status(201).json(await storage.addProviderImage({ providerId, imageUrl, caption: caption || null, isPrimary: Boolean(isPrimary) }));
     } catch (error) {
-      console.error("Error adding provider image:", error);
+      log.error({ err: error }, "Error adding provider image");
       res.status(500).json({ message: "Failed to add image" });
     }
   });
@@ -353,7 +353,7 @@ export function registerProviderRoutes(app: Express): void {
       else await storage.createProviderScore?.({ providerId, ...scorePayload });
       res.json(score);
     } catch (error) {
-      console.error("Error calculating provider score:", error);
+      log.error({ err: error }, "Error calculating provider score");
       res.status(500).json({ message: "Failed to calculate score" });
     }
   });
@@ -383,7 +383,7 @@ export function registerProviderRoutes(app: Express): void {
       else await storage.createProviderScore?.({ providerId, ...scorePayload });
       res.json({ message: "Score recalculated successfully", score });
     } catch (error) {
-      console.error("Error recalculating provider score:", error);
+      log.error({ err: error }, "Error recalculating provider score");
       res.status(500).json({ message: "Failed to recalculate score" });
     }
   });
@@ -397,7 +397,7 @@ export function registerProviderRoutes(app: Express): void {
       res.status(201).json(await storage.createProviderUpdate(updateData));
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid update data", errors: error.errors });
-      console.error("Error creating provider update:", error);
+      log.error({ err: error }, "Error creating provider update");
       res.status(500).json({ message: "Failed to create update" });
     }
   });
@@ -406,7 +406,7 @@ export function registerProviderRoutes(app: Express): void {
     try {
       res.json(await storage.getProviderUpdates(parseInt(req.params.id)));
     } catch (error) {
-      console.error("Error fetching provider updates:", error);
+      log.error({ err: error }, "Error fetching provider updates");
       res.status(500).json({ message: "Failed to fetch updates" });
     }
   });
@@ -423,12 +423,12 @@ export function registerProviderRoutes(app: Express): void {
         const svc = new ObjectStorageService();
         await svc.trySetObjectEntityAclPolicy(req.body.imageUrl, { owner: userId, visibility: "public" });
       } catch (e) {
-        console.error("Error setting photo ACL:", e);
+        log.error({ err: e }, "Error setting photo ACL");
       }
       res.status(201).json(await storage.createProviderPhoto(photoData));
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid photo data", errors: error.errors });
-      console.error("Error creating provider photo:", error);
+      log.error({ err: error }, "Error creating provider photo");
       res.status(500).json({ message: "Failed to add photo" });
     }
   });
@@ -438,7 +438,7 @@ export function registerProviderRoutes(app: Express): void {
       const photos = await storage.getProviderPhotos(parseInt(req.params.id));
       res.json(photos.filter((p) => p.status === "approved"));
     } catch (error) {
-      console.error("Error fetching provider photos:", error);
+      log.error({ err: error }, "Error fetching provider photos");
       res.status(500).json({ message: "Failed to fetch photos" });
     }
   });

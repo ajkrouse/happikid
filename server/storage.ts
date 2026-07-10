@@ -1,3 +1,7 @@
+import { createLogger } from "./logger";
+
+const log = createLogger("storage");
+
 import {
   users,
   providers,
@@ -276,7 +280,7 @@ export class DatabaseStorage implements IStorage {
             }
           }
         } catch (error) {
-          console.error("Error fetching taxonomy for filtering:", error);
+          log.error({ err: error }, "Error fetching taxonomy for filtering");
           // Continue without taxonomy filtering
         }
       }
@@ -357,7 +361,7 @@ export class DatabaseStorage implements IStorage {
 
       return await query;
     } catch (error) {
-      console.error("Error in getProviders:", error);
+      log.error({ err: error }, "Error in getProviders");
       // Fallback to simple query without complex filters
       const fallbackResults = await db.select().from(providers).where(eq(providers.isActive, true)).limit(20);
       return filters?.returnTotal ? { providers: fallbackResults, total: fallbackResults.length } : fallbackResults;

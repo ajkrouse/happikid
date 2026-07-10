@@ -3,6 +3,9 @@ import { isAuthenticated } from "../../replitAuth";
 import { aiLimiter } from "../../middleware/rateLimiter";
 import { openai } from "./client";
 import { z } from "zod";
+import { createLogger } from "../../logger";
+
+const log = createLogger("image-routes");
 
 const generateImageSchema = z.object({
   prompt: z.string().min(1).max(1000),
@@ -10,7 +13,6 @@ const generateImageSchema = z.object({
 });
 
 export function registerImageRoutes(app: Express): void {
-  // Requires authentication and strict AI rate limiting
   app.post("/api/generate-image", isAuthenticated, aiLimiter, async (req: Request, res: Response) => {
     try {
       const parsed = generateImageSchema.safeParse(req.body);
@@ -27,12 +29,9 @@ export function registerImageRoutes(app: Express): void {
       });
 
       const imageData = response.data?.[0];
-      res.json({
-        url: imageData?.url,
-        b64_json: imageData?.b64_json,
-      });
+      res.json({ url: imageData?.url, b64_json: imageData?.b64_json });
     } catch (error) {
-      console.error("Error generating image:", error);
+      log.error({ err: error }, "Error generating image");
       res.status(500).json({ error: "Failed to generate image" });
     }
   });

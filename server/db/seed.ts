@@ -16293,9 +16293,12 @@ async function addSampleData() {
       }
     }
 
-    console.log(`Sample data added successfully: ${allProviders.length} NYC area commuter counties providers (filtered from ${commuterCountiesProviders.length} total providers) - Phase 32-37 expansion: ${additionalNationalChainsProviders.length} national chains + ${premiumPrivateSchoolsProviders.length} private schools + ${additionalFranchiseNetworksProviders.length} franchise networks + ${specializedEducationalCentersProviders.length} specialized centers + ${additionalCampsYouthPrograms.length} camps + ${additionalInfantToddlerCenters.length} infant centers`);
+    import("../logger").then(({ createLogger }) => createLogger("seed").info({
+      total: allProviders.length,
+      filtered: commuterCountiesProviders.length,
+    }, "Sample data added successfully"));
   } catch (error) {
-    console.error("Error adding sample data:", error);
+    import("../logger").then(({ createLogger }) => createLogger("seed").error({ err: error }, "Error adding sample data"));
   }
 }
 

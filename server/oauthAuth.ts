@@ -137,7 +137,7 @@ export async function setupOAuthAuth(app: Express) {
       });
 
     } catch (error) {
-      console.error('Apple Sign In verification failed:', error);
+      import("./logger").then(({ createLogger }) => createLogger("oauth").error({ err: error }, "Apple Sign In verification failed"));
       res.status(401).json({ error: 'Invalid Apple ID token' });
     }
   });
