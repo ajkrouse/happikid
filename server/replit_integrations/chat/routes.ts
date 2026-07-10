@@ -1,15 +1,29 @@
 import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
+import { isAuthenticated } from "../../replitAuth";
+import { aiLimiter } from "../../middleware/rateLimiter";
 import { chatStorage } from "./storage";
+import { z } from "zod";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
+const createConversationSchema = z.object({
+  title: z.string().max(200).optional(),
+});
+
+const sendMessageSchema = z.object({
+  content: z.string().min(1).max(4000),
+});
+
 export function registerChatRoutes(app: Express): void {
+  // All conversation endpoints require authentication and AI rate limiting
+  app.use("/api/conversations", isAuthenticated, aiLimiter);
+
   // Get all conversations
-  app.get("/api/conversations", async (req: Request, res: Response) => {
+  app.get("/api/conversations", async (req: any, res: Response) => {
     try {
       const conversations = await chatStorage.getAllConversations();
       res.json(conversations);
@@ -23,6 +37,8 @@ export function registerChatRoutes(app: Express): void {
   app.get("/api/conversations/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ error: "Invalid conversation ID" });
+
       const conversation = await chatStorage.getConversation(id);
       if (!conversation) {
         return res.status(404).json({ error: "Conversation not found" });
@@ -38,8 +54,11 @@ export function registerChatRoutes(app: Express): void {
   // Create new conversation
   app.post("/api/conversations", async (req: Request, res: Response) => {
     try {
-      const { title } = req.body;
-      const conversation = await chatStorage.createConversation(title || "New Chat");
+      const parsed = createConversationSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
+      }
+      const conversation = await chatStorage.createConversation(parsed.data.title || "New Chat");
       res.status(201).json(conversation);
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -51,6 +70,8 @@ export function registerChatRoutes(app: Express): void {
   app.delete("/api/conversations/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ error: "Invalid conversation ID" });
+
       await chatStorage.deleteConversation(id);
       res.status(204).send();
     } catch (error) {
@@ -63,7 +84,13 @@ export function registerChatRoutes(app: Express): void {
   app.post("/api/conversations/:id/messages", async (req: Request, res: Response) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const { content } = req.body;
+      if (isNaN(conversationId)) return res.status(400).json({ error: "Invalid conversation ID" });
+
+      const parsed = sendMessageSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
+      }
+      const { content } = parsed.data;
 
       // Save user message
       await chatStorage.createMessage(conversationId, "user", content);
@@ -91,10 +118,10 @@ export function registerChatRoutes(app: Express): void {
       let fullResponse = "";
 
       for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || "";
-        if (content) {
-          fullResponse += content;
-          res.write(`data: ${JSON.stringify({ content })}\n\n`);
+        const delta = chunk.choices[0]?.delta?.content || "";
+        if (delta) {
+          fullResponse += delta;
+          res.write(`data: ${JSON.stringify({ content: delta })}\n\n`);
         }
       }
 
@@ -105,7 +132,6 @@ export function registerChatRoutes(app: Express): void {
       res.end();
     } catch (error) {
       console.error("Error sending message:", error);
-      // Check if headers already sent (SSE streaming started)
       if (res.headersSent) {
         res.write(`data: ${JSON.stringify({ error: "Failed to send message" })}\n\n`);
         res.end();
@@ -115,4 +141,3 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 }
-

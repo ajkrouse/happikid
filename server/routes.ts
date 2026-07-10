@@ -17375,11 +17375,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Contact form submission
   app.post('/api/contact', async (req, res) => {
+    const contactSchema = z.object({
+      name: z.string().min(1).max(100),
+      email: z.string().email(),
+      subject: z.string().max(200).optional(),
+      message: z.string().min(1).max(2000),
+    });
+
     try {
-      const { name, email, subject, message } = req.body;
-      if (!name || !email || !message) {
-        return res.status(400).json({ message: "Name, email, and message are required" });
+      const parsed = contactSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid contact form data", errors: parsed.error.errors });
       }
+      const { name, email, subject, message } = parsed.data;
       // Log submission — extend with email integration as needed
       console.log(`[CONTACT FORM] From: ${name} <${email}> | Subject: ${subject} | Message: ${message}`);
       res.json({ success: true });

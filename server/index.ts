@@ -1,11 +1,46 @@
 import express, { type Request, Response, NextFunction } from "express";
+import helmet from "helmet";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { apiLimiter, authLimiter } from "./middleware/rateLimiter";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
+// ── Security headers ────────────────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: false, // Disabled to avoid breaking Vite HMR and inline styles in dev
+  crossOriginEmbedderPolicy: false, // Disabled to allow Leaflet map tiles and external resources
+}));
+
+// ── CORS ────────────────────────────────────────────────────────────────────
+const allowedOrigins = (process.env.REPLIT_DOMAINS || "")
+  .split(",")
+  .map((d) => `https://${d.trim()}`)
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow same-origin requests (no origin header) and whitelisted domains
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === "development") {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}));
+
+// ── Body parsing ─────────────────────────────────────────────────────────────
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: false, limit: "1mb" }));
+
+// ── General API rate limiting ─────────────────────────────────────────────────
+app.use("/api/", apiLimiter);
+app.use("/api/login", authLimiter);
+app.use("/api/callback", authLimiter);
+
+// ── Request logging ───────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -24,11 +59,9 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
@@ -39,26 +72,29 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // ── Global error handler ──────────────────────────────────────────────────
+  // NOTE: Must be registered AFTER routes. The `throw err` that was here
+  // previously would crash the process after the response was already sent.
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    if (!res.headersSent) {
+      res.status(status).json({ message });
+    }
+
+    // Log the error for observability without crashing the process
+    if (status >= 500) {
+      console.error("[unhandled error]", err);
+    }
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
   const port = 5000;
   server.listen({
     port,

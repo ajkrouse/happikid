@@ -1,20 +1,29 @@
 import type { Express, Request, Response } from "express";
+import { isAuthenticated } from "../../replitAuth";
+import { aiLimiter } from "../../middleware/rateLimiter";
 import { openai } from "./client";
+import { z } from "zod";
+
+const generateImageSchema = z.object({
+  prompt: z.string().min(1).max(1000),
+  size: z.enum(["1024x1024", "512x512", "256x256"]).optional().default("1024x1024"),
+});
 
 export function registerImageRoutes(app: Express): void {
-  app.post("/api/generate-image", async (req: Request, res: Response) => {
+  // Requires authentication and strict AI rate limiting
+  app.post("/api/generate-image", isAuthenticated, aiLimiter, async (req: Request, res: Response) => {
     try {
-      const { prompt, size = "1024x1024" } = req.body;
-
-      if (!prompt) {
-        return res.status(400).json({ error: "Prompt is required" });
+      const parsed = generateImageSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
       }
+      const { prompt, size } = parsed.data;
 
       const response = await openai.images.generate({
         model: "gpt-image-1",
         prompt,
         n: 1,
-        size: size as "1024x1024" | "512x512" | "256x256",
+        size,
       });
 
       const imageData = response.data?.[0];
@@ -28,4 +37,3 @@ export function registerImageRoutes(app: Express): void {
     }
   });
 }
-
