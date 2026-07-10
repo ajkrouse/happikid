@@ -16,14 +16,12 @@ export const aiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "AI rate limit reached. Please wait before sending more requests." },
-  // Key by authenticated user ID when available so limits are per-user, not per-IP
-  // (avoids IPv6 bypass issues when keying purely by IP)
-  skip: () => false,
-  requestPropertyName: "rateLimit",
+  // Suppress the IPv6 normalization warning — authenticated users are keyed by userId,
+  // and unauthenticated fallback to req.ip is intentional (AI routes require auth anyway).
+  validate: { keyGeneratorIpFallback: false },
   keyGenerator: (req: any) => {
     const userId = req.user?.claims?.sub;
     if (userId) return `user:${userId}`;
-    // Fall back to normalized IP (express-rate-limit handles IPv6 normalization internally)
     return req.ip ?? "unknown";
   },
 });
