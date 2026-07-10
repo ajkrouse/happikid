@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
 import { 
   MapPin, 
   Star, 
@@ -104,23 +105,20 @@ export default function ComparisonModal({
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
 
-  // Load saved groups when modal opens
+  const { groups: favoriteGroups, saveGroups } = useFavoriteGroups();
+
+  // Sync savedGroups UI state from hook whenever modal opens
   useEffect(() => {
     if (isOpen && isAuthenticated) {
-      // Load saved groups from localStorage
-      const savedFavoriteGroups = localStorage.getItem('favoriteGroups');
-      if (savedFavoriteGroups) {
-        const groupsObj = JSON.parse(savedFavoriteGroups);
-        const groupsArray = Object.entries(groupsObj).map(([name, providerIds]) => ({
-          id: name, // Use name as ID for now
-          name,
-          providers: [], // We'll need to fetch provider details if needed
-          createdAt: new Date() // Default creation date
-        }));
-        setSavedGroups(groupsArray);
-      }
+      const groupsArray = Object.entries(favoriteGroups).map(([name]) => ({
+        id: name,
+        name,
+        providers: [] as Provider[],
+        createdAt: new Date(),
+      }));
+      setSavedGroups(groupsArray);
     }
-  }, [isOpen, isAuthenticated]);
+  }, [isOpen, isAuthenticated, favoriteGroups]);
 
   const getTypeLabel = (type: string) => {
     const labels = {
@@ -322,9 +320,8 @@ export default function ComparisonModal({
       createdAt: new Date(),
     };
 
-    const existingGroups = JSON.parse(localStorage.getItem('favoriteGroups') || '{}');
-    existingGroups[name] = providers.map(p => p.id);
-    localStorage.setItem('favoriteGroups', JSON.stringify(existingGroups));
+    const updatedGroups = { ...favoriteGroups, [name]: providers.map(p => p.id) };
+    saveGroups(updatedGroups);
 
     setSavedGroups(prev => [...prev, newGroup]);
     onGroupsSaved?.();
@@ -427,11 +424,8 @@ export default function ComparisonModal({
       createdAt: new Date()
     };
     
-    // Also save to favorite groups localStorage for integration with Search page
-    const existingGroups = JSON.parse(localStorage.getItem('favoriteGroups') || '{}');
-    const providerIds = providers.map(p => p.id);
-    existingGroups[newGroup.name] = providerIds;
-    localStorage.setItem('favoriteGroups', JSON.stringify(existingGroups));
+    const updatedGroups = { ...favoriteGroups, [newGroup.name]: providers.map(p => p.id) };
+    saveGroups(updatedGroups);
     
     // Update local state immediately to show the new group
     setSavedGroups(prev => [...prev, newGroup]);

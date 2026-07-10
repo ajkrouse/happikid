@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
 
 interface ProviderCardProps {
   provider: ProviderWithScore;
@@ -32,28 +33,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
-  const [groups, setGroups] = useState<{[key: string]: number[]}>({});
-
-  useEffect(() => {
-    const loadGroups = () => {
-      const savedGroups = localStorage.getItem('favoriteGroups');
-      if (savedGroups) {
-        setGroups(JSON.parse(savedGroups));
-      }
-    };
-
-    loadGroups();
-
-    const handleGroupsUpdated = () => {
-      loadGroups();
-    };
-
-    window.addEventListener('groupsUpdated', handleGroupsUpdated);
-
-    return () => {
-      window.removeEventListener('groupsUpdated', handleGroupsUpdated);
-    };
-  }, []);
+  const { groups, saveGroups } = useFavoriteGroups();
 
   const { data: favoriteData } = useQuery({
     queryKey: [`/api/favorites/${provider.id}/check`],
@@ -120,12 +100,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       });
     },
   });
-
-  const saveGroups = (newGroups: {[key: string]: number[]}) => {
-    setGroups(newGroups);
-    localStorage.setItem('favoriteGroups', JSON.stringify(newGroups));
-    window.dispatchEvent(new CustomEvent('groupsUpdated', { detail: newGroups }));
-  };
 
   const getCostLevel = (provider: Provider, costRange: {min: number, max: number}) => {
     const midpoint = (costRange.min + costRange.max) / 2;
