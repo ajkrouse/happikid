@@ -163,7 +163,7 @@ export default function SearchPage() {
     setUrlParsed(true);
   }, []);
 
-  const { data: providerResponse, isLoading, refetch } = useQuery({
+  const { data: providerResponse, isLoading, refetch } = useQuery<any>({
     queryKey: [
       "/api/providers",
       {
@@ -181,15 +181,16 @@ export default function SearchPage() {
       },
     ],
     enabled: urlParsed,
-    onSuccess: (data) => {
-      if (data && typeof data === "object" && "total" in data) {
-        setTotalProviders(data.total);
-      }
-    },
   });
 
-  const providers = Array.isArray(providerResponse) ? providerResponse : providerResponse?.providers || [];
-  const totalCount = Array.isArray(providerResponse) ? providers.length : providerResponse?.total || providers.length;
+  useEffect(() => {
+    if (providerResponse && typeof providerResponse === "object" && "total" in (providerResponse as any)) {
+      setTotalProviders((providerResponse as any).total);
+    }
+  }, [providerResponse]);
+
+  const providers = Array.isArray(providerResponse) ? providerResponse : (providerResponse as any)?.providers || [];
+  const totalCount = Array.isArray(providerResponse) ? providers.length : (providerResponse as any)?.total || providers.length;
 
   const { data: favorites = [] } = useQuery({
     queryKey: ["/api/favorites"],
@@ -556,7 +557,7 @@ export default function SearchPage() {
                 </div>
               ) : (
                 <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "space-y-6"}>
-                  {providers.map((provider: Provider) => (
+                  {providers.map((provider: any) => (
                     <ProviderCard
                       key={provider.id}
                       provider={provider}

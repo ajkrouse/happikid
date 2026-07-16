@@ -33,6 +33,8 @@ import {
   providerUpdates,
   providerPhotos,
   reviewVotes,
+  claims,
+  auditLogs,
   type ProviderUpdate,
   type InsertProviderUpdate,
   type ProviderPhoto,
@@ -44,6 +46,10 @@ import {
   type ProviderWithScore,
   type FamilyProfile,
   type InsertFamilyProfile,
+  type Claim,
+  type InsertClaim,
+  type AuditLog,
+  type InsertAuditLog,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "drizzle-orm";
@@ -204,7 +210,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserRole(id: string, role: string): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ role, updatedAt: new Date() })
+      .set({ role: role as "provider" | "parent" | "admin", updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
     return user;
@@ -364,7 +370,7 @@ export class DatabaseStorage implements IStorage {
       log.error({ err: error }, "Error in getProviders");
       // Fallback to simple query without complex filters
       const fallbackResults = await db.select().from(providers).where(eq(providers.isActive, true)).limit(20);
-      return filters?.returnTotal ? { providers: fallbackResults, total: fallbackResults.length } : fallbackResults;
+      return (filters?.returnTotal ? { providers: fallbackResults, total: fallbackResults.length } : fallbackResults) as any;
     }
   }
 
@@ -384,14 +390,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProvider(provider: InsertProvider): Promise<Provider> {
-    const [newProvider] = await db.insert(providers).values(provider).returning();
+    const [newProvider] = await db.insert(providers).values(provider as any).returning();
     return newProvider;
   }
 
   async updateProvider(id: number, provider: Partial<InsertProvider>): Promise<Provider> {
     const [updatedProvider] = await db
       .update(providers)
-      .set({ ...provider, updatedAt: new Date() })
+      .set({ ...(provider as any), updatedAt: new Date() })
       .where(eq(providers.id, id))
       .returning();
     return updatedProvider;
@@ -440,7 +446,7 @@ export class DatabaseStorage implements IStorage {
       .from(favorites)
       .innerJoin(providers, eq(favorites.providerId, providers.id))
       .where(eq(favorites.userId, userId))
-      .orderBy(desc(favorites.createdAt));
+      .orderBy(desc(favorites.createdAt)) as unknown as (Favorite & { provider: Provider })[];
   }
 
   async addFavorite(userId: string, providerId: number): Promise<Favorite> {
@@ -728,7 +734,7 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(claims);
     
     if (filters?.status) {
-      query = query.where(eq(claims.status, filters.status as any));
+      (query as any) = query.where(eq(claims.status, filters.status as any));
     }
     
     return await query.orderBy(desc(claims.createdAt));
@@ -816,7 +822,6 @@ export class DatabaseStorage implements IStorage {
     conditions.push(
       sql`(
         ${providers.name} ILIKE ${`%${query}%`} OR 
-        ${providers.businessName} ILIKE ${`%${query}%`} OR
         ${providers.address} ILIKE ${`%${query}%`}
       )`
     );

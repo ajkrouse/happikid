@@ -280,7 +280,7 @@ export default function AdminClaims() {
                           </span>
                         </div>
                         <div>
-                          <span>Submitted: {new Date(claim.createdAt).toLocaleDateString()}</span>
+                          <span>Submitted: {claim.createdAt ? new Date(claim.createdAt).toLocaleDateString() : '—'}</span>
                         </div>
                       </div>
 

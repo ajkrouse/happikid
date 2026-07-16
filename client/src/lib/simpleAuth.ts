@@ -19,7 +19,7 @@ export class SimpleAuth {
 
   private async checkSession() {
     try {
-      const user = await apiRequest("GET", "/api/auth/user");
+      const user = await (await apiRequest("GET", "/api/auth/user")).json() as User;
       this.setUser(user);
     } catch (error) {
       // Not signed in, that's fine
@@ -40,7 +40,7 @@ export class SimpleAuth {
         lastName: lastName || ''
       };
 
-      const response = await apiRequest("POST", "/api/auth/signin", userData);
+      const response = await (await apiRequest("POST", "/api/auth/signin", userData)).json() as { user: User };
       this.setUser(response.user);
       return response.user;
     } catch (error) {

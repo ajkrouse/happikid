@@ -19,7 +19,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       const profileImageUrl = profile.photos?.[0]?.value;
 
       if (!email) {
-        return done(new Error('No email provided by Google'), null);
+        return done(new Error('No email provided by Google'), false);
       }
 
       // Check if user exists
@@ -38,7 +38,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
       return done(null, user);
     } catch (error) {
-      return done(error, null);
+      return done(error, false);
     }
   }));
 }
@@ -62,7 +62,7 @@ export interface AuthenticatedRequest extends Express.Request {
 }
 
 // Authentication middleware
-export const requireOAuthAuth: RequestHandler = (req: AuthenticatedRequest, res, next) => {
+export const requireOAuthAuth = (req: AuthenticatedRequest, res: any, next: any) => {
   if (req.isAuthenticated && req.isAuthenticated()) {
     return next();
   }
@@ -105,7 +105,7 @@ export async function setupOAuthAuth(app: Express) {
         { audience: process.env.APPLE_CLIENT_ID }
       );
 
-      let userData = { 
+      let userData: { appleId: string; email: string; firstName?: string; lastName?: string } = { 
         appleId: userAppleId, 
         email: email || `${userAppleId}@privaterelay.appleid.com` // Apple private relay
       };
@@ -143,7 +143,7 @@ export async function setupOAuthAuth(app: Express) {
   });
 
   // Get current user endpoint
-  app.get('/api/auth/user', (req: AuthenticatedRequest, res) => {
+  app.get('/api/auth/user', (req: any, res: any) => {
     if (req.isAuthenticated && req.isAuthenticated()) {
       res.json(req.user);
     } else {

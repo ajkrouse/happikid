@@ -12,8 +12,8 @@ async function main() {
     throw new Error("DATABASE_URL is required");
   }
 
-  const sql = neon(process.env.DATABASE_URL);
-  const db = drizzle(sql);
+  const sql = neon(process.env.DATABASE_URL!);
+  const db = drizzle(sql as any);
 
   console.log("Running database migrations from:", migrationsFolder);
   await migrate(db, { migrationsFolder });

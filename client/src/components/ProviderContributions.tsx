@@ -103,10 +103,10 @@ export function ProviderContributions({ providerId, provider }: ProviderContribu
   };
 
   const handleGetUploadParameters = async () => {
-    const response = await apiRequest('/api/objects/upload', 'POST');
+    const data = await (await apiRequest('/api/objects/upload', 'POST')).json() as { uploadURL: string };
     return {
       method: 'PUT' as const,
-      url: response.uploadURL,
+      url: data.uploadURL,
     };
   };
 

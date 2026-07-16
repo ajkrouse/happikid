@@ -113,7 +113,7 @@ export function FavoritesSection({
   const { isAuthenticated: favIsAuthenticated } = useAuth();
   const { groups, saveGroups } = useFavoriteGroups();
 
-  const { data: favorites } = useQuery({
+  const { data: favorites } = useQuery<any[]>({
     queryKey: ["/api/favorites"],
     enabled: favIsAuthenticated,
   });

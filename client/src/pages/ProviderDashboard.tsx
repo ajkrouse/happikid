@@ -37,25 +37,25 @@ export default function ProviderDashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Fetch provider profile
-  const { data: provider } = useQuery({
+  const { data: provider } = useQuery<any>({
     queryKey: ["/api/providers/mine"],
     enabled: isAuthenticated
   });
 
   // Fetch provider analytics
-  const { data: analytics } = useQuery({
+  const { data: analytics } = useQuery<any>({
     queryKey: ["/api/providers/analytics"],
     enabled: isAuthenticated && !!provider
   });
 
   // Fetch inquiries
-  const { data: inquiries } = useQuery({
+  const { data: inquiries } = useQuery<any[]>({
     queryKey: ["/api/inquiries/provider"],
     enabled: isAuthenticated && !!provider
   });
 
   // Fetch provider optimization score
-  const { data: providerScore, isLoading: isLoadingScore } = useQuery({
+  const { data: providerScore, isLoading: isLoadingScore } = useQuery<any>({
     queryKey: [`/api/providers/${provider?.id}/score`],
     enabled: isAuthenticated && !!provider?.id
   });

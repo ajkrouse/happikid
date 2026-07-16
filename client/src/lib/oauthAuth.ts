@@ -18,7 +18,7 @@ export class OAuthAuth {
 
   private async checkSession() {
     try {
-      const user = await apiRequest("GET", "/api/auth/user");
+      const user = await (await apiRequest("GET", "/api/auth/user")).json() as User;
       this.setUser(user);
     } catch (error) {
       this.setUser(null);
@@ -44,10 +44,10 @@ export class OAuthAuth {
         const response = await (window as any).AppleID.auth.signIn();
         
         // Send the token to our backend for verification
-        const result = await apiRequest("POST", "/api/auth/apple/verify", {
+        const result = await (await apiRequest("POST", "/api/auth/apple/verify", {
           id_token: response.authorization.id_token,
           user: response.user
-        });
+        })).json() as { user: User };
         
         this.setUser(result.user);
         return result.user;
@@ -69,7 +69,7 @@ export class OAuthAuth {
         lastName: lastName || ''
       };
 
-      const response = await apiRequest("POST", "/api/auth/signin", userData);
+      const response = await (await apiRequest("POST", "/api/auth/signin", userData)).json() as { user: User };
       this.setUser(response.user);
       return response.user;
     } catch (error) {

@@ -20,7 +20,7 @@ const sessions = new Map<string, { userId: string; expiresAt: number }>();
 // Clean up expired sessions every hour
 setInterval(() => {
   const now = Date.now();
-  for (const [sessionId, session] of sessions.entries()) {
+  for (const [sessionId, session] of Array.from(sessions.entries())) {
     if (session.expiresAt < now) {
       sessions.delete(sessionId);
     }
@@ -71,7 +71,7 @@ export const requireAuth = async (req: AuthenticatedRequest, res: Response, next
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    req.user = user;
+    req.user = user as any;
     next();
   } catch (error) {
     log.error({ err: error }, "Auth error");
@@ -88,7 +88,7 @@ export const optionalAuth = async (req: AuthenticatedRequest, res: Response, nex
       if (session) {
         const user = await storage.getUser(session.userId);
         if (user) {
-          req.user = user;
+          req.user = user as any;
         }
       }
     }

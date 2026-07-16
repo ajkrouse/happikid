@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import type { Provider } from "@shared/schema";
 import { 
   CheckCircle, 
   AlertCircle, 
@@ -119,18 +120,19 @@ export default function ProviderOnboarding() {
   }, [isAuthenticated, setLocation]);
 
   // Load existing provider data if available
-  const { data: existingProvider, isLoading } = useQuery({
+  const { data: existingProvider, isLoading } = useQuery<Provider | null>({
     queryKey: ["/api/providers/mine"],
     enabled: isAuthenticated,
   });
 
   useEffect(() => {
     if (existingProvider) {
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         name: existingProvider.name || "",
         description: existingProvider.description || "",
         address: existingProvider.address || "",
-        borough: existingProvider.borough || "",
+        borough: (existingProvider as any).borough || "",
         city: existingProvider.city || "New York",
         state: existingProvider.state || "NY",
         zipCode: existingProvider.zipCode || "",
@@ -141,19 +143,19 @@ export default function ProviderOnboarding() {
         ageRangeMin: existingProvider.ageRangeMin?.toString() || "",
         ageRangeMax: existingProvider.ageRangeMax?.toString() || "",
         capacity: existingProvider.capacity?.toString() || "",
-        monthlyPrice: existingProvider.monthlyPrice || "",
-        hoursOpen: existingProvider.hoursOpen || "",
-        hoursClose: existingProvider.hoursClose || "",
-        features: existingProvider.features || [],
+        monthlyPrice: (existingProvider as any).monthlyPrice || "",
+        hoursOpen: (existingProvider as any).hoursOpen || "",
+        hoursClose: (existingProvider as any).hoursClose || "",
+        features: (existingProvider as any).features || [],
         licenseNumber: existingProvider.licenseNumber || "",
-        accreditationDetails: existingProvider.accreditationDetails || "",
-        programHighlights: existingProvider.programHighlights || [],
-        uniqueSellingPoints: existingProvider.uniqueSellingPoints || [],
-        faqs: existingProvider.faqs || []
-      });
+        accreditationDetails: (existingProvider as any).accreditationDetails || "",
+        programHighlights: (existingProvider as any).programHighlights || [],
+        uniqueSellingPoints: (existingProvider as any).uniqueSellingPoints || [],
+        faqs: (existingProvider as any).faqs || [],
+      }));
       
       // Set current step based on onboarding progress
-      const stepIndex = ONBOARDING_STEPS.findIndex(step => step.id === existingProvider.onboardingStep);
+      const stepIndex = ONBOARDING_STEPS.findIndex(step => step.id === (existingProvider as any).onboardingStep);
       setCurrentStep(stepIndex >= 0 ? stepIndex : 0);
     }
   }, [existingProvider]);

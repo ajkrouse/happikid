@@ -33,6 +33,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
 import Navigation from "@/components/Navigation";
+import type { Provider } from "@shared/schema";
 import { StepServiceDetails } from "@/components/StepServiceDetails";
 import { StepBasicInfo } from "@/components/onboarding/StepBasicInfo";
 import { StepSchedulePricing } from "@/components/onboarding/StepSchedulePricing";
@@ -225,7 +226,7 @@ export default function ProviderOnboarding() {
   }, [isAuthenticated, user, queryClient, setLocation]);
 
   // Fetch existing provider profile if exists
-  const { data: existingProvider } = useQuery({
+  const { data: existingProvider } = useQuery<Provider | null>({
     queryKey: ["/api/providers/mine"],
     enabled: isAuthenticated
   });
@@ -233,11 +234,12 @@ export default function ProviderOnboarding() {
   // Update form with existing data
   useEffect(() => {
     if (existingProvider) {
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         name: existingProvider.name || "",
         description: existingProvider.description || "",
         address: existingProvider.address || "",
-        borough: existingProvider.borough || "",
+        borough: (existingProvider as any).borough || "",
         city: existingProvider.city || "New York",
         state: existingProvider.state || "NY",
         zipCode: existingProvider.zipCode || "",
@@ -248,32 +250,24 @@ export default function ProviderOnboarding() {
         ageRangeMin: existingProvider.ageRangeMin?.toString() || "",
         ageRangeMax: existingProvider.ageRangeMax?.toString() || "",
         capacity: existingProvider.capacity?.toString() || "",
-        monthlyPrice: existingProvider.monthlyPrice || "",
-        monthlyPriceMin: existingProvider.monthlyPriceMin || "",
-        monthlyPriceMax: existingProvider.monthlyPriceMax || "",
-        hoursOpen: existingProvider.hoursOpen || "",
-        hoursClose: existingProvider.hoursClose || "",
-        schedule: existingProvider.schedule || {
-          monday: { open: "", close: "", isOpen: true },
-          tuesday: { open: "", close: "", isOpen: true },
-          wednesday: { open: "", close: "", isOpen: true },
-          thursday: { open: "", close: "", isOpen: true },
-          friday: { open: "", close: "", isOpen: true },
-          saturday: { open: "", close: "", isOpen: false },
-          sunday: { open: "", close: "", isOpen: false }
-        },
-        features: existingProvider.features || [],
+        monthlyPrice: (existingProvider as any).monthlyPrice || "",
+        monthlyPriceMin: (existingProvider as any).monthlyPriceMin || "",
+        monthlyPriceMax: (existingProvider as any).monthlyPriceMax || "",
+        hoursOpen: (existingProvider as any).hoursOpen || "",
+        hoursClose: (existingProvider as any).hoursClose || "",
+        schedule: (existingProvider as any).schedule || prev.schedule,
+        features: (existingProvider as any).features || [],
         customFeatures: [],
         licenseNumber: existingProvider.licenseNumber || "",
-        accreditationDetails: existingProvider.accreditationDetails || "",
-        programHighlights: existingProvider.programHighlights || [],
-        uniqueSellingPoints: existingProvider.uniqueSellingPoints || [],
-        faqs: existingProvider.faqs || [],
-        showExactPrice: existingProvider.showExactPrice || false
-      });
+        accreditationDetails: (existingProvider as any).accreditationDetails || "",
+        programHighlights: (existingProvider as any).programHighlights || [],
+        uniqueSellingPoints: (existingProvider as any).uniqueSellingPoints || [],
+        faqs: (existingProvider as any).faqs || [],
+        showExactPrice: (existingProvider as any).showExactPrice || false,
+      }));
       
       // Set current step based on onboarding progress
-      const stepIndex = ONBOARDING_STEPS.findIndex(step => step.id === existingProvider.onboardingStep);
+      const stepIndex = ONBOARDING_STEPS.findIndex(step => step.id === (existingProvider as any).onboardingStep);
       if (stepIndex >= 0) {
         setCurrentStep(stepIndex);
       }

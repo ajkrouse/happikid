@@ -116,8 +116,8 @@ export async function setupAuth(app: Express) {
 
       let claims = {};
       try {
-        if (typeof tokens.claims === "function") {
-          claims = tokens.claims();
+        if (typeof (tokens as any).claims === "function") {
+          claims = (tokens as any).claims();
         } else {
           claims = (tokens as any).claims || {};
         }

@@ -141,10 +141,10 @@ export function StepServiceDetails({
                           id={`care-${careType}`}
                           checked={(typeData.care_types || []).includes(careType)}
                           onCheckedChange={(checked) => {
-                            const currentTypes = typeData.care_types || [];
+                            const currentTypes: string[] = typeData.care_types || [];
                             const newTypes = checked 
                               ? [...currentTypes, careType]
-                              : currentTypes.filter(t => t !== careType);
+                              : currentTypes.filter((t: string) => t !== careType);
                             updateDetails('daycare', 'care_types', newTypes);
                           }}
                           data-testid={`checkbox-care-${careType}`}
@@ -250,8 +250,8 @@ export function StepServiceDetails({
                     const startTimes = {} as Record<string, string>;
                     const endTimes = {} as Record<string, string>;
                     Object.entries(timeData).forEach(([day, times]) => {
-                      startTimes[day] = times.start_time;
-                      endTimes[day] = times.end_time;
+                      startTimes[day] = times.start_time ?? '';
+                      endTimes[day] = times.end_time ?? '';
                     });
                     updateDetails('afterschool', 'start_time_by_day', startTimes);
                     updateDetails('afterschool', 'end_time_by_day', endTimes);
