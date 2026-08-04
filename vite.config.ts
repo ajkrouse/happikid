@@ -27,6 +27,31 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core — always needed
+          "vendor-react": ["react", "react-dom"],
+          // Routing & data fetching
+          "vendor-query": ["@tanstack/react-query", "wouter"],
+          // Map library (leaflet + react-leaflet are large)
+          "vendor-map": ["leaflet", "react-leaflet"],
+          // Radix UI / shadcn component primitives
+          "vendor-ui": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-select",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-tooltip",
+            "@radix-ui/react-label",
+            "@radix-ui/react-checkbox",
+            "@radix-ui/react-progress",
+            "@radix-ui/react-toast",
+            "@radix-ui/react-accordion",
+            "@radix-ui/react-slot",
+          ],
+        },
+      },
+    },
   },
   server: {
     fs: {
