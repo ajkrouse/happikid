@@ -426,6 +426,32 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   actor: one(users, { fields: [auditLogs.actorUserId], references: [users.id] }),
 }));
 
+// ---------- insertProviderSchema helpers ----------
+// Strict nullable/optional integer: absent → null; present → must be a non-negative integer.
+const _strictOptInt = z.preprocess(
+  (v) => (v === "" ? null : v),
+  z.union([z.null(), z.number().int().nonnegative().finite(), z.string().regex(/^\d+$/, "Must be a non-negative integer").transform(Number)])
+).nullable().optional();
+
+// Strict required integer with a fallback when the field is absent.
+// If the value is supplied it must be a valid non-negative integer — "abc" is rejected.
+const _strictReqInt = (fallback: number) =>
+  z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? fallback : v),
+    z.union([z.number().int().nonnegative().finite(), z.string().regex(/^\d+$/, "Must be a non-negative integer").transform(Number)])
+  );
+
+// Strict nullable/optional decimal: absent/null/empty → null; present → must be a non-negative number.
+// Returns a string because drizzle-zod maps decimal columns to strings.
+const _strictOptDecStr = z.preprocess(
+  (v) => (v === "" ? null : v),
+  z.union([
+    z.null(),
+    z.number().nonnegative().finite().transform((n) => n.toString()),
+    z.string().regex(/^\d+(\.\d+)?$/, "Must be a non-negative number"),
+  ])
+).nullable().optional();
+
 // Insert schemas
 export const insertProviderSchema = createInsertSchema(providers).omit({
   id: true,
@@ -439,39 +465,90 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
     if (val === "" || val === null || val === undefined) return undefined;
     return val;
   }),
-  // Handle optional numeric fields properly
-  monthlyPrice: z.union([z.string(), z.number(), z.null()]).optional().transform(val => {
-    if (val === "" || val === null || val === undefined) return null;
-    if (typeof val === "string") {
-      const parsed = parseFloat(val);
-      return isNaN(parsed) ? null : parsed.toString();
-    }
-    return val?.toString() || null;
-  }),
-  capacity: z.union([z.string(), z.number(), z.null()]).optional().transform(val => {
-    if (val === "" || val === null || val === undefined) return null;
-    if (typeof val === "string") {
-      const parsed = parseInt(val);
-      return isNaN(parsed) ? null : parsed;
-    }
-    return val;
-  }),
-  ageRangeMin: z.union([z.string(), z.number()]).transform(val => {
-    if (val === "" || val === null || val === undefined) return 0;
-    if (typeof val === "string") {
-      const parsed = parseInt(val);
-      return isNaN(parsed) ? 0 : parsed;
-    }
-    return val;
-  }),
-  ageRangeMax: z.union([z.string(), z.number()]).transform(val => {
-    if (val === "" || val === null || val === undefined) return 18;
-    if (typeof val === "string") {
-      const parsed = parseInt(val);
-      return isNaN(parsed) ? 18 : parsed;
-    }
-    return val;
-  }),
+  // Required age fields: absent → sensible default; present but invalid → 400
+  ageRangeMin: _strictReqInt(0),
+  ageRangeMax: _strictReqInt(120),
+  // Optional integer fields: must be non-negative integers when present
+  capacity: _strictOptInt,
+  minAgeMonths: _strictOptInt,
+  maxAgeMonths: _strictOptInt,
+  totalCapacity: _strictOptInt,
+  ageMinMonths: _strictOptInt,
+  ageMaxMonths: _strictOptInt,
+  profileCompleteness: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.union([z.null(), z.number().int().min(0).max(100).finite(), z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(0).max(100))])
+  ).nullable().optional(),
+  dohInspectionYear: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.union([z.null(), z.number().int().positive().finite(), z.string().regex(/^\d{4}$/, "Must be a 4-digit year").transform(Number)])
+  ).nullable().optional(),
+  // Analytics counters: optional integers (clients should not normally write these)
+  profileViews: _strictOptInt,
+  profileClicks: _strictOptInt,
+  inquiryCount: _strictOptInt,
+  comparisonAdds: _strictOptInt,
+  favoriteAdds: _strictOptInt,
+  // Decimal price fields: must be non-negative numbers when present; stored as strings
+  monthlyPrice: _strictOptDecStr,
+  monthlyPriceMin: _strictOptDecStr,
+  monthlyPriceMax: _strictOptDecStr,
+});
+
+/**
+ * Schema for client-supplied provider create/update payloads.
+ * Server-controlled fields (ownership, claims, analytics counters, admin flags) are
+ * omitted so clients cannot overwrite them even if they are included in the request body.
+ * userId is enforced server-side from the authenticated session, never from the body.
+ */
+export const providerClientUpdateSchema = insertProviderSchema.omit({
+  // Ownership / identity — always set by the server from the authenticated session
+  userId: true,
+  ownerUserId: true,
+  // Claim fields — managed through the dedicated claim workflow
+  claimStatus: true,
+  verificationMethod: true,
+  verificationPayload: true,
+  claimedAt: true,
+  // Analytics counters — server-incremented, never client-writable
+  profileViews: true,
+  profileClicks: true,
+  inquiryCount: true,
+  comparisonAdds: true,
+  favoriteAdds: true,
+  // Admin-only / system flags
+  isVerified: true,
+  isVerifiedByGov: true,
+  isPremium: true,
+  premiumExpiresAt: true,
+  isActive: true,
+  // Visibility — controlled by the license/confirm-license workflow
+  isProfileVisible: true,
+  isProfilePublic: true,
+  // License — managed through the confirm-license endpoint
+  licenseStatus: true,
+  licenseConfirmedAt: true,
+  // Derived/aggregated fields — set by server workflows, not direct client writes
+  profileCompleteness: true,
+  onboardingStep: true,
+  // Import / data-provenance fields — set by the data pipeline, not clients
+  source: true,
+  sourceUrl: true,
+  sourceAsOfDate: true,
+  county: true,
+  agesServedRaw: true,
+  slug: true,
+  geocodeStatus: true,
+  lat: true,
+  lng: true,
+  // Government inspection / camp report fields — import-only
+  campId: true,
+  dohInspectionYear: true,
+  dohReportUrl: true,
+  campOwner: true,
+  campDirector: true,
+  healthDirector: true,
+  evaluation: true,
 });
 
 export const insertReviewSchema = createInsertSchema(reviews).omit({
@@ -480,10 +557,22 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   updatedAt: true,
 });
 
+/** Client-safe schema for review creation — strips isVerified so clients cannot self-mark reviews as verified. */
+export const reviewClientCreateSchema = insertReviewSchema.omit({ isVerified: true });
+
 export const insertInquirySchema = createInsertSchema(inquiries).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+/**
+ * Client-safe schema for inquiry creation.
+ * Strips userId (set from auth), status (always starts as "pending"), and timestamps.
+ */
+export const inquiryClientCreateSchema = insertInquirySchema.omit({
+  userId: true,
+  status: true,
 });
 
 export const insertProviderImageSchema = createInsertSchema(providerImages).omit({
@@ -717,6 +806,18 @@ export const insertFamilyProfileSchema = createInsertSchema(familyProfiles).omit
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+/**
+ * Client-safe schema for family profile create/update requests.
+ * Strips server-controlled fields so clients cannot forge profile progress or ownership.
+ * userId is enforced server-side from the authenticated session.
+ */
+export const familyProfileClientUpdateSchema = insertFamilyProfileSchema.omit({
+  userId: true,
+  // Profile completion progress — updated by the wizard workflow, not arbitrary client POSTs
+  isComplete: true,
+  completedSteps: true,
 });
 
 export type FamilyProfile = typeof familyProfiles.$inferSelect;

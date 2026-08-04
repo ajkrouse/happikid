@@ -1,2 +1,3 @@
 - [Large-file rewrite strategy](large-file-rewrite.md) — when removing 500+ lines from a file via edit(), write the whole file or use bash sed to delete the orphaned block; staged edits leave dangling JSX.
 - [useFavoriteGroups hook](favorites-hook.md) — centralizes favoriteGroups localStorage logic; all 3 consumers (Search, ProviderCard, ComparisonModal) must use it instead of direct localStorage calls.
+- [API validation patterns](api-validation-patterns.md) — strict schemas, client-safe omit schemas, strictPathInt helper, claim UUID IDs

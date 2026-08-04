@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
-import { insertReviewSchema, insertReviewVoteSchema } from "@shared/schema";
+import { reviewClientCreateSchema, insertReviewVoteSchema } from "@shared/schema";
+import { strictPathInt } from "../lib/pathParams";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -10,7 +11,9 @@ const log = createLogger("reviews");
 export function registerReviewRoutes(app: Express): void {
   app.get("/api/providers/:id/reviews", async (req, res) => {
     try {
-      res.json(await storage.getReviewsByProviderId(parseInt(req.params.id)));
+      const id = strictPathInt(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid provider ID" });
+      res.json(await storage.getReviewsByProviderId(id));
     } catch (error) {
       log.error({ err: error }, "Error fetching reviews");
       res.status(500).json({ message: "Failed to fetch reviews" });
@@ -19,8 +22,10 @@ export function registerReviewRoutes(app: Express): void {
 
   app.post("/api/providers/:id/reviews", isAuthenticated, async (req: any, res) => {
     try {
-      const reviewData = insertReviewSchema.parse({
-        ...req.body, providerId: parseInt(req.params.id), userId: req.user!.id,
+      const providerId = strictPathInt(req.params.id);
+      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      const reviewData = reviewClientCreateSchema.parse({
+        ...req.body, providerId, userId: req.user?.claims?.sub,
       });
       res.status(201).json(await storage.createReview(reviewData));
     } catch (error) {
@@ -32,8 +37,10 @@ export function registerReviewRoutes(app: Express): void {
 
   app.post("/api/reviews/:id/vote", isAuthenticated, async (req: any, res) => {
     try {
+      const reviewId = strictPathInt(req.params.id);
+      if (!reviewId) return res.status(400).json({ message: "Invalid review ID" });
       const voteData = insertReviewVoteSchema.parse({
-        ...req.body, userId: req.user!.id, reviewId: parseInt(req.params.id),
+        ...req.body, userId: req.user?.claims?.sub, reviewId,
       });
       res.status(201).json(await storage.createReviewVote(voteData));
     } catch (error) {
@@ -45,7 +52,9 @@ export function registerReviewRoutes(app: Express): void {
 
   app.get("/api/reviews/:id/votes", async (req, res) => {
     try {
-      const votes = await storage.getReviewVotes(parseInt(req.params.id));
+      const reviewId = strictPathInt(req.params.id);
+      if (!reviewId) return res.status(400).json({ message: "Invalid review ID" });
+      const votes = await storage.getReviewVotes(reviewId);
       const helpful = votes.filter((v) => v.voteType === "helpful").length;
       const notHelpful = votes.filter((v) => v.voteType === "not_helpful").length;
       res.json({ helpful, notHelpful, total: votes.length });
@@ -57,7 +66,9 @@ export function registerReviewRoutes(app: Express): void {
 
   app.get("/api/reviews/:id/user-vote", isAuthenticated, async (req: any, res) => {
     try {
-      res.json((await storage.getUserReviewVote(req.user!.id, parseInt(req.params.id))) || null);
+      const reviewId = strictPathInt(req.params.id);
+      if (!reviewId) return res.status(400).json({ message: "Invalid review ID" });
+      res.json((await storage.getUserReviewVote(req.user?.claims?.sub, reviewId)) || null);
     } catch (error) {
       log.error({ err: error }, "Error fetching user vote");
       res.status(500).json({ message: "Failed to fetch user vote" });

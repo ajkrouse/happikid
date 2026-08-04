@@ -22,13 +22,17 @@ export function registerAuthRoutes(app: Express): void {
     }
   });
 
+  const updateRoleSchema = z.object({
+    role: z.enum(["parent", "provider"], { errorMap: () => ({ message: 'Invalid role. Must be "parent" or "provider".' }) }),
+  });
+
   app.patch("/api/user/role", isAuthenticated, async (req: any, res) => {
     try {
-      const { role } = req.body;
-      if (!["parent", "provider"].includes(role)) {
-        return res.status(400).json({ message: 'Invalid role. Must be "parent" or "provider".' });
+      const parsed = updateRoleSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0].message });
       }
-      res.json(await storage.updateUserRole(req.user.claims.sub, role));
+      res.json(await storage.updateUserRole(req.user.claims.sub, parsed.data.role));
     } catch (error) {
       log.error({ err: error }, "Error updating user role");
       res.status(500).json({ message: "Failed to update user role" });

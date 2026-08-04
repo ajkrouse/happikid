@@ -94,6 +94,7 @@ export interface IStorage {
   isFavorite(userId: string, providerId: number): Promise<boolean>;
   
   // Inquiry operations
+  getInquiry(id: number): Promise<Inquiry | undefined>;
   getInquiriesByProviderId(providerId: number): Promise<Inquiry[]>;
   getInquiriesByUserId(userId: string): Promise<Inquiry[]>;
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
@@ -472,6 +473,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Inquiry operations
+  async getInquiry(id: number): Promise<Inquiry | undefined> {
+    const [inquiry] = await db.select().from(inquiries).where(eq(inquiries.id, id));
+    return inquiry;
+  }
+
   async getInquiriesByProviderId(providerId: number): Promise<Inquiry[]> {
     return await db
       .select()
