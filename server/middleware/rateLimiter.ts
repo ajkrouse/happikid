@@ -26,6 +26,15 @@ export const aiLimiter = rateLimit({
   },
 });
 
+/** Inquiry limiter — 10 submissions per hour per IP to prevent spam */
+export const inquiryLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many inquiries submitted. Please wait before sending more." },
+});
+
 /** Auth route limiter — 20 attempts per 15 minutes per IP to deter brute force */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

@@ -12,10 +12,11 @@ import { createLogger } from "./logger";
 
 const log = createLogger("auth");
 
-// Extend session type for returnTo
+// Extend session type
 declare module "express-session" {
   interface SessionData {
     returnTo?: string;
+    tokens?: { access_token: string | undefined; refresh_token: string | undefined; expires_at: number };
   }
 }
 
@@ -59,7 +60,8 @@ export function getSession() {
 
 function updateUserSession(
   user: any,
-  tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
+  tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
+  req?: any
 ) {
   try {
     if (typeof tokens.claims === "function") {
@@ -67,15 +69,24 @@ function updateUserSession(
     } else {
       user.claims = (tokens as any).claims || {};
     }
-    user.access_token = tokens.access_token;
-    user.refresh_token = tokens.refresh_token;
-    user.expires_at = user.claims?.exp;
+    // Store tokens on the session, NOT on the user object, to prevent
+    // accidental token leakage through req.user serialization or logging.
+    const tokenPayload = {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_at: user.claims?.exp ?? Math.floor(Date.now() / 1000) + 3600,
+    };
+    if (req?.session) {
+      req.session.tokens = tokenPayload;
+    } else {
+      // Fallback: attach to user only during initial verify before session exists
+      user._tokens = tokenPayload;
+    }
+    user.expires_at = tokenPayload.expires_at;
   } catch (error) {
     log.error({ err: error }, "Error updating user session");
     user.claims = {};
-    user.access_token = tokens.access_token;
-    user.refresh_token = tokens.refresh_token;
-    user.expires_at = Date.now() / 1000 + 3600;
+    user.expires_at = Math.floor(Date.now() / 1000) + 3600;
   }
 }
 
@@ -203,28 +214,42 @@ export async function setupAuth(app: Express) {
         return res.redirect("/api/login");
       }
 
-      req.logIn(user, (err) => {
-        if (err) {
-          log.error({ err }, "Login error");
-          return next(err);
+      // Capture returnTo before regenerating the session (regenerate clears session data)
+      const returnTo = req.session.returnTo;
+
+      // Regenerate session ID before attaching identity to prevent session fixation attacks
+      req.session.regenerate((regenErr) => {
+        if (regenErr) {
+          log.error({ err: regenErr }, "Session regeneration error");
+          return next(regenErr);
         }
 
-        const returnTo = req.session.returnTo;
-        log.debug({ returnTo, sessionId: req.sessionID }, "Callback session state");
+        req.logIn(user, (loginErr) => {
+          if (loginErr) {
+            log.error({ err: loginErr }, "Login error");
+            return next(loginErr);
+          }
 
-        if (returnTo) {
-          delete req.session.returnTo;
-          req.session.save((err) => {
-            if (err) log.error({ err }, "Error saving session after clearing returnTo");
+          // Move tokens from user object onto the session so they are never
+          // serialized into req.user or exposed through logging/serialization.
+          if ((user as any)._tokens) {
+            req.session.tokens = (user as any)._tokens;
+            delete (user as any)._tokens;
+          }
+
+          log.debug({ returnTo, sessionId: req.sessionID }, "Callback session state");
+
+          req.session.save((saveErr) => {
+            if (saveErr) log.error({ err: saveErr }, "Error saving session after login");
           });
-        }
 
-        if (returnTo && returnTo.startsWith("/")) {
-          log.debug({ returnTo }, "Redirecting after login");
-          return res.redirect(returnTo);
-        }
+          if (returnTo && returnTo.startsWith("/")) {
+            log.debug({ returnTo }, "Redirecting after login");
+            return res.redirect(returnTo);
+          }
 
-        res.redirect("/");
+          res.redirect("/");
+        });
       });
     })(req, res, next);
   });
@@ -244,16 +269,25 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  // Tokens live on the session (not req.user) to prevent accidental exposure
+  const sessionTokens = (req.session as any).tokens as {
+    access_token?: string;
+    refresh_token?: string;
+    expires_at?: number;
+  } | undefined;
+
+  const expiresAt = sessionTokens?.expires_at ?? user?.expires_at;
+
+  if (!req.isAuthenticated() || !expiresAt) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
+  if (now <= expiresAt) {
     return next();
   }
 
-  const refreshToken = user.refresh_token;
+  const refreshToken = sessionTokens?.refresh_token;
   if (!refreshToken) {
     res.status(401).json({ message: "Unauthorized" });
     return;
@@ -262,7 +296,8 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   try {
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
+    // Refresh tokens back onto the session (not user object)
+    updateUserSession(user, tokenResponse, req);
     return next();
   } catch (error) {
     res.status(401).json({ message: "Unauthorized" });

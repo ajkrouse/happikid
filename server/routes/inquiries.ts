@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
+import { inquiryLimiter } from "../middleware/rateLimiter";
 import { insertInquirySchema } from "@shared/schema";
 import { z } from "zod";
 import { createLogger } from "../logger";
@@ -40,7 +41,7 @@ export function registerInquiryRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/inquiries", async (req: any, res) => {
+  app.post("/api/inquiries", inquiryLimiter, async (req: any, res) => {
     try {
       const userId = req.user?.id || "anonymous";
       const { parentName, parentEmail, providerId, message } = req.body;
