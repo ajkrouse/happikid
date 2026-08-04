@@ -4,7 +4,6 @@ import SearchFilters from "@/components/SearchFilters";
 import ProviderModal from "@/components/ProviderModal";
 import ContactInquiryModal from "@/components/ContactInquiryModal";
 import ComparisonModal from "@/components/ComparisonModal";
-import MapView from "@/components/MapView";
 import { SearchInsights } from "@/components/SearchInsights";
 import { ConversationalSearch } from "@/components/ConversationalSearch";
 import { AIInsights, AIInsightsSkeleton } from "@/components/AIInsights";
@@ -27,7 +26,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Search as SearchIcon, Grid, List, Bookmark, Users, X, Map, BookOpen, CheckCircle2, ArrowRight, SlidersHorizontal, Sparkles } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
+
+const MapView = lazy(() => import("@/components/MapView"));
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
@@ -548,12 +549,21 @@ export default function SearchPage() {
             {!isLoading && providers.length > 0 && (
               viewMode === "map" ? (
                 <div className="h-[600px]">
-                  <MapView
-                    providers={providers}
-                    onProviderSelect={handleMapProviderSelect}
-                    onLocationSearch={handleLocationSearch}
-                    userLocation={userLocation}
-                  />
+                  <Suspense fallback={
+                    <div className="h-full flex items-center justify-center rounded-lg bg-gray-100">
+                      <div className="text-center text-gray-500">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-action-teal mx-auto mb-3"></div>
+                        <p className="text-sm">Loading map…</p>
+                      </div>
+                    </div>
+                  }>
+                    <MapView
+                      providers={providers}
+                      onProviderSelect={handleMapProviderSelect}
+                      onLocationSearch={handleLocationSearch}
+                      userLocation={userLocation}
+                    />
+                  </Suspense>
                 </div>
               ) : (
                 <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "space-y-6"}>
