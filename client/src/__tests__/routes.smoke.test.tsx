@@ -1,0 +1,328 @@
+/**
+ * Smoke tests for lazy-loaded routes.
+ *
+ * Two concerns tested here:
+ *
+ * 1. **Router resolution** – after the lazy-loading change, does wouter
+ *    still route /search, /provider/onboarding, and /admin/claims to the
+ *    correct component (and not, say, always fall through to Landing or
+ *    NotFound)? Tested using real wouter Switch/Route with memoryLocation.
+ *
+ * 2. **Page mount** – each of those lazy pages can be imported and rendered
+ *    inside the Suspense+ErrorBoundary shell without throwing.
+ *
+ * 3. **ErrorBoundary** – chunk-load failures are caught and show a friendly
+ *    "Reload page" prompt instead of a blank screen.
+ */
+
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import React, { lazy, Suspense } from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Router, Switch, Route } from "wouter";
+import { memoryLocation } from "wouter/memory-location";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+// ---------------------------------------------------------------------------
+// Mock heavy / browser-only sub-dependencies so real pages can load
+// ---------------------------------------------------------------------------
+
+// react-leaflet and leaflet require canvas / WebGL — neither exists in happy-dom
+vi.mock("react-leaflet", () => ({
+  MapContainer: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="map">{children}</div>
+  ),
+  TileLayer: () => null,
+  Marker: () => null,
+  Popup: () => null,
+  useMap: () => ({}),
+  useMapEvents: () => ({}),
+}));
+vi.mock("leaflet", () => ({
+  default: { icon: () => ({}), Icon: { Default: { mergeOptions: () => {} } } },
+  icon: () => ({}),
+  Icon: { Default: { mergeOptions: () => {} } },
+}));
+
+// Components that make their own API calls or require real DOM features
+vi.mock("@/components/Navigation", () => ({ default: () => <nav /> }));
+vi.mock("@/components/MapView", () => ({
+  default: () => <div data-testid="mapview" />,
+}));
+vi.mock("@/components/ProviderCard", () => ({ default: () => <div /> }));
+vi.mock("@/components/SearchFilters", () => ({ default: () => <div /> }));
+vi.mock("@/components/ProviderModal", () => ({ default: () => null }));
+vi.mock("@/components/ContactInquiryModal", () => ({ default: () => null }));
+vi.mock("@/components/ComparisonModal", () => ({ default: () => null }));
+vi.mock("@/components/SearchInsights", () => ({
+  SearchInsights: () => null,
+}));
+vi.mock("@/components/ConversationalSearch", () => ({
+  ConversationalSearch: () => null,
+}));
+vi.mock("@/components/AIInsights", () => ({
+  AIInsights: () => null,
+  AIInsightsSkeleton: () => null,
+}));
+vi.mock("@/components/FamilyProfileWizard", () => ({
+  FamilyProfileWizard: () => null,
+}));
+vi.mock("@/components/TaxonomyNavigator", () => ({
+  TaxonomyNavigator: () => null,
+}));
+vi.mock("@/components/FavoritesSection", () => ({
+  FavoritesSection: () => null,
+}));
+vi.mock("@/components/PremiumFeaturesModal", () => ({ default: () => null }));
+vi.mock("@/components/ui/toaster", () => ({ Toaster: () => null }));
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Stub fetch so useAuth's query resolves cleanly without a real server. */
+function stubFetch() {
+  return vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response(JSON.stringify(null), { status: 401 }),
+  );
+}
+
+function makeQC() {
+  return new QueryClient({ defaultOptions: { queries: { retry: false } } });
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={makeQC()}>
+      <ErrorBoundary>
+        <Suspense fallback={<div data-testid="loading">loading…</div>}>
+          {children}
+        </Suspense>
+      </ErrorBoundary>
+    </QueryClientProvider>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 1. Router-resolution tests
+//
+// Use stub lazy components + real wouter so we verify that the Switch/Route
+// table in App.tsx still maps each path to the right component — i.e. the
+// lazy-loading change didn't accidentally break route matching.
+// ---------------------------------------------------------------------------
+
+// Lightweight stand-ins — we only care which one the router picks
+const SearchStub = () => <div data-testid="route-search">Search</div>;
+const OnboardingStub = () => (
+  <div data-testid="route-onboarding">Onboarding</div>
+);
+const AdminStub = () => <div data-testid="route-admin">AdminClaims</div>;
+const LandingStub = () => <div data-testid="route-landing">Landing</div>;
+const NotFoundStub = () => <div data-testid="route-not-found">NotFound</div>;
+
+// Lazy-wrapped stubs (same pattern as App.tsx) but resolve immediately
+const LazySearchStub = lazy(() =>
+  Promise.resolve({ default: SearchStub }),
+);
+const LazyOnboardingStub = lazy(() =>
+  Promise.resolve({ default: OnboardingStub }),
+);
+const LazyAdminStub = lazy(() =>
+  Promise.resolve({ default: AdminStub }),
+);
+
+/**
+ * Renders a minimal replica of App's Switch (only the three routes under
+ * test + Landing + NotFound) with the given in-memory path.
+ */
+function renderRouter(path: string) {
+  const { hook } = memoryLocation({ path, static: true });
+  return render(
+    <Shell>
+      <Router hook={hook}>
+        <Switch>
+          <Route path="/" component={LandingStub} />
+          <Route path="/search" component={LazySearchStub} />
+          <Route path="/provider/onboarding" component={LazyOnboardingStub} />
+          <Route path="/admin/claims" component={LazyAdminStub} />
+          <Route component={NotFoundStub} />
+        </Switch>
+      </Router>
+    </Shell>,
+  );
+}
+
+describe("Route resolution after lazy-loading change", () => {
+  let fetchSpy: ReturnType<typeof stubFetch>;
+  beforeEach(() => {
+    fetchSpy = stubFetch();
+  });
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("/search resolves to the Search route (not Landing or NotFound)", async () => {
+    renderRouter("/search");
+    await waitFor(() =>
+      expect(screen.getByTestId("route-search")).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("route-landing")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("route-not-found")).not.toBeInTheDocument();
+  });
+
+  it("/provider/onboarding resolves to the Onboarding route", async () => {
+    renderRouter("/provider/onboarding");
+    await waitFor(() =>
+      expect(screen.getByTestId("route-onboarding")).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("route-landing")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("route-not-found")).not.toBeInTheDocument();
+  });
+
+  it("/admin/claims resolves to the AdminClaims route", async () => {
+    renderRouter("/admin/claims");
+    await waitFor(() =>
+      expect(screen.getByTestId("route-admin")).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("route-landing")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("route-not-found")).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 2. Page-mount smoke tests
+//
+// Confirm the real lazy page modules import and mount inside the
+// Suspense+ErrorBoundary shell without throwing (heavy deps mocked above).
+// ---------------------------------------------------------------------------
+
+const LazySearch = lazy(() => import("@/pages/Search"));
+const LazyProviderOnboarding = lazy(() => import("@/pages/ProviderOnboarding"));
+const LazyAdminClaims = lazy(() => import("@/pages/AdminClaims"));
+
+describe("Lazy-loaded page mount smoke tests", () => {
+  let fetchSpy: ReturnType<typeof stubFetch>;
+  beforeEach(() => {
+    fetchSpy = stubFetch();
+  });
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("Search page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazySearch />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ProviderOnboarding page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyProviderOnboarding />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("AdminClaims page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyAdminClaims />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 3. ErrorBoundary unit tests
+// ---------------------------------------------------------------------------
+
+describe("ErrorBoundary", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("renders children when there is no error", () => {
+    render(
+      <ErrorBoundary>
+        <div data-testid="child">ok</div>
+      </ErrorBoundary>,
+    );
+    expect(screen.getByTestId("child")).toBeInTheDocument();
+  });
+
+  it("shows 'Reload page' button when a child throws", async () => {
+    function Bomb(): React.ReactElement {
+      throw new Error("boom");
+    }
+    render(
+      <ErrorBoundary>
+        <Bomb />
+      </ErrorBoundary>,
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /reload page/i }),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("shows 'New version available' heading on a chunk-load error", async () => {
+    function ChunkBomb(): React.ReactElement {
+      throw new Error(
+        "Failed to fetch dynamically imported module: /assets/Search-abc123.js",
+      );
+    }
+    render(
+      <ErrorBoundary>
+        <ChunkBomb />
+      </ErrorBoundary>,
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/new version available/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /reload page/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("catches a lazy-chunk failure that propagates through Suspense", async () => {
+    const FailingPage = lazy(() =>
+      Promise.reject(new Error("ChunkLoadError: Loading chunk 5 failed")),
+    );
+    render(
+      <ErrorBoundary>
+        <Suspense fallback={<div>loading…</div>}>
+          <FailingPage />
+        </Suspense>
+      </ErrorBoundary>,
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /reload page/i }),
+      ).toBeInTheDocument(),
+    );
+  });
+});

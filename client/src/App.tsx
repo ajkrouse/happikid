@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Eagerly loaded — small, always visible on first paint
 import Landing from "@/pages/Landing";
@@ -37,28 +38,30 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Switch>
-        {/* Public routes available to all users */}
-        <Route path="/" component={Landing} />
-        <Route path="/search" component={Search} />
-        <Route path="/after-school-programs" component={AfterSchoolPrograms} />
-        <Route path="/about" component={About} />
-        <Route path="/contact" component={Contact} />
-        <Route path="/providers" component={ProvidersOverview} />
-        <Route path="/provider/onboarding" component={ProviderOnboarding} />
-        <Route path="/provider/signup" component={ProviderSignup} />
-        <Route path="/parent/signup" component={ParentSignup} />
-        <Route path="/claim-business" component={ClaimBusiness} />
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
+        <Switch>
+          {/* Public routes available to all users */}
+          <Route path="/" component={Landing} />
+          <Route path="/search" component={Search} />
+          <Route path="/after-school-programs" component={AfterSchoolPrograms} />
+          <Route path="/about" component={About} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/providers" component={ProvidersOverview} />
+          <Route path="/provider/onboarding" component={ProviderOnboarding} />
+          <Route path="/provider/signup" component={ProviderSignup} />
+          <Route path="/parent/signup" component={ParentSignup} />
+          <Route path="/claim-business" component={ClaimBusiness} />
 
-        {/* Dashboard routes — components handle their own auth guards */}
-        <Route path="/provider/dashboard" component={ProviderDashboard} />
-        <Route path="/provider/celebration" component={ProviderCelebration} />
-        <Route path="/admin/claims" component={AdminClaims} />
+          {/* Dashboard routes — components handle their own auth guards */}
+          <Route path="/provider/dashboard" component={ProviderDashboard} />
+          <Route path="/provider/celebration" component={ProviderCelebration} />
+          <Route path="/admin/claims" component={AdminClaims} />
 
-        <Route component={NotFound} />
-      </Switch>
-    </Suspense>
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
