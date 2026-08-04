@@ -142,6 +142,61 @@ export function registerProviderRoutes(app: Express): void {
     }
   });
 
+  // Provider analytics for the authenticated provider owner
+  app.get("/api/providers/analytics", isAuthenticated, async (req: any, res) => {
+    try {
+      const userProviders = await storage.getProvidersByUserId(req.user!.id);
+      if (userProviders.length === 0) return res.status(404).json({ message: "No provider profile found" });
+      const provider = userProviders[0];
+
+      const [reviews, inquiries] = await Promise.all([
+        storage.getReviewsByProviderId(provider.id),
+        storage.getProviderInquiries?.(provider.id) ?? Promise.resolve([]),
+      ]);
+
+      // Rating distribution (1-5 stars)
+      const ratingDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      for (const r of reviews) {
+        if (r.rating >= 1 && r.rating <= 5) ratingDistribution[r.rating]++;
+      }
+
+      // Inquiry stats
+      const respondedInquiries = inquiries.filter((i) => i.status === "responded" || i.status === "closed");
+      const responseRate = inquiries.length > 0
+        ? Math.round((respondedInquiries.length / inquiries.length) * 100)
+        : null;
+
+      // Recent reviews (last 5)
+      const recentReviews = reviews.slice(0, 5).map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        title: r.title,
+        content: r.content,
+        createdAt: r.createdAt,
+      }));
+
+      res.json({
+        // Listing performance (from providers table analytics fields)
+        profileViews: provider.profileViews ?? 0,
+        profileClicks: provider.profileClicks ?? 0,
+        comparisonAdds: provider.comparisonAdds ?? 0,
+        favoriteAdds: provider.favoriteAdds ?? 0,
+        // Review summary
+        reviewCount: reviews.length,
+        averageRating: reviews.length > 0 ? Number(provider.rating) : null,
+        ratingDistribution,
+        recentReviews,
+        // Inquiry summary
+        inquiryCount: inquiries.length,
+        pendingInquiries: inquiries.filter((i) => i.status === "pending").length,
+        responseRate,
+      });
+    } catch (error) {
+      log.error({ err: error }, "Error fetching provider analytics");
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
   // My provider (authenticated user's own listing)
   app.get("/api/providers/mine", isAuthenticated, async (req: any, res) => {
     try {

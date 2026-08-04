@@ -11,11 +11,11 @@ import PremiumFeaturesModal from "@/components/PremiumFeaturesModal";
 import { ProfileOptimizationCard } from "@/components/ProfileOptimizationCard";
 import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { useState } from "react";
-import { 
-  MessageSquare, 
-  Star, 
-  TrendingUp, 
-  Users, 
+import {
+  MessageSquare,
+  Star,
+  TrendingUp,
+  Users,
   Calendar,
   DollarSign,
   ArrowRight,
@@ -25,7 +25,11 @@ import {
   Shield,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  Eye,
+  MousePointerClick,
+  Heart,
+  GitCompareArrows,
 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -39,25 +43,25 @@ export default function ProviderDashboard() {
   // Fetch provider profile
   const { data: provider } = useQuery<any>({
     queryKey: ["/api/providers/mine"],
-    enabled: isAuthenticated
+    enabled: isAuthenticated,
   });
 
-  // Fetch provider analytics
+  // Fetch provider analytics (views, review summary, inquiry stats)
   const { data: analytics } = useQuery<any>({
     queryKey: ["/api/providers/analytics"],
-    enabled: isAuthenticated && !!provider
+    enabled: isAuthenticated && !!provider,
   });
 
-  // Fetch inquiries
+  // Fetch inquiries (for recent list)
   const { data: inquiries } = useQuery<any[]>({
     queryKey: ["/api/inquiries/provider"],
-    enabled: isAuthenticated && !!provider
+    enabled: isAuthenticated && !!provider,
   });
 
   // Fetch provider optimization score
   const { data: providerScore, isLoading: isLoadingScore } = useQuery<any>({
     queryKey: [`/api/providers/${provider?.id}/score`],
-    enabled: isAuthenticated && !!provider?.id
+    enabled: isAuthenticated && !!provider?.id,
   });
 
   // License confirmation mutation
@@ -78,7 +82,7 @@ export default function ProviderDashboard() {
         description: error.message || "Failed to confirm license. Please try again.",
         variant: "destructive",
       });
-    }
+    },
   });
 
   if (isLoading) {
@@ -107,7 +111,6 @@ export default function ProviderDashboard() {
     );
   }
 
-  // If no provider profile exists, redirect to onboarding
   if (!provider) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -134,30 +137,35 @@ export default function ProviderDashboard() {
     );
   }
 
-  // Derive real metrics from live data
+  // Derive inquiry metrics from analytics (preferred) or from inquiries list fallback
   const realInquiries: any[] = Array.isArray(inquiries) ? inquiries : [];
-  const pendingCount = realInquiries.filter((i: any) => i.status === 'pending').length;
-  const respondedCount = realInquiries.filter((i: any) => i.status === 'responded').length;
-  const responseRate = realInquiries.length > 0
-    ? Math.round((respondedCount / realInquiries.length) * 100)
-    : 0;
+  const pendingCount = analytics?.pendingInquiries ?? realInquiries.filter((i: any) => i.status === "pending").length;
+  const respondedCount = analytics != null
+    ? (analytics.inquiryCount - analytics.pendingInquiries)
+    : realInquiries.filter((i: any) => i.status === "responded").length;
+  const totalInquiryCount = analytics?.inquiryCount ?? realInquiries.length;
+  const responseRate = analytics?.responseRate ??
+    (realInquiries.length > 0
+      ? Math.round((respondedCount / realInquiries.length) * 100)
+      : 0);
   const recentInquiries = realInquiries.slice(0, 5);
+
+  // Rating distribution helpers
+  const ratingDist: Record<number, number> = analytics?.ratingDistribution ?? {};
+  const reviewCount = analytics?.reviewCount ?? (provider.reviewCount || 0);
+  const maxDistCount = Math.max(...Object.values(ratingDist as Record<string, number>).map(Number), 1);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
+
       <div className="max-w-7xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-brand-evergreen mb-2">
-                Provider Dashboard
-              </h1>
-              <p className="text-gray-600">
-                Welcome back, {provider.name}
-              </p>
+              <h1 className="text-3xl font-bold text-brand-evergreen mb-2">Provider Dashboard</h1>
+              <p className="text-gray-600">Welcome back, {provider.name}</p>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" size="sm" asChild>
@@ -171,7 +179,7 @@ export default function ProviderDashboard() {
         </div>
 
         {/* License Status Banner */}
-        {provider.licenseStatus === 'pending' && (
+        {provider.licenseStatus === "pending" && (
           <Card className="mb-8 bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -184,7 +192,7 @@ export default function ProviderDashboard() {
                     <p className="text-red-700">Your profile is hidden from families until your license is confirmed</p>
                   </div>
                 </div>
-                <Button 
+                <Button
                   className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold"
                   onClick={() => confirmLicenseMutation.mutate()}
                   disabled={confirmLicenseMutation.isPending}
@@ -194,14 +202,14 @@ export default function ProviderDashboard() {
                   ) : (
                     <Shield className="h-4 w-4 mr-2" />
                   )}
-                  {confirmLicenseMutation.isPending ? 'Confirming...' : 'Confirm License'}
+                  {confirmLicenseMutation.isPending ? "Confirming..." : "Confirm License"}
                 </Button>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {provider.licenseStatus === 'confirmed' && (
+        {provider.licenseStatus === "confirmed" && (
           <Alert className="mb-8 bg-green-50 border-green-200">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
@@ -223,7 +231,7 @@ export default function ProviderDashboard() {
                   <p className="text-yellow-700">Get 3x more visibility and advanced analytics</p>
                 </div>
               </div>
-              <Button 
+              <Button
                 className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold"
                 onClick={() => setShowUpgradeModal(true)}
               >
@@ -254,23 +262,8 @@ export default function ProviderDashboard() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{realInquiries.length}</div>
-              <p className="text-xs text-muted-foreground">
-                {pendingCount} pending response
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Inquiries</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{pendingCount}</div>
-              <p className="text-xs text-muted-foreground">
-                Awaiting your reply
-              </p>
+              <div className="text-2xl font-bold">{totalInquiryCount}</div>
+              <p className="text-xs text-muted-foreground">{pendingCount} pending response</p>
             </CardContent>
           </Card>
 
@@ -280,9 +273,28 @@ export default function ProviderDashboard() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{responseRate}%</div>
+              <div className="text-2xl font-bold">
+                {responseRate != null ? `${responseRate}%` : "—"}
+              </div>
               <p className="text-xs text-muted-foreground">
-                {respondedCount} of {realInquiries.length} replied
+                {totalInquiryCount > 0
+                  ? `${respondedCount} of ${totalInquiryCount} replied`
+                  : "No inquiries yet"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics?.profileViews ?? "—"}</div>
+              <p className="text-xs text-muted-foreground">
+                {analytics?.profileClicks != null
+                  ? `${analytics.profileClicks} click-throughs`
+                  : "Total all-time views"}
               </p>
             </CardContent>
           </Card>
@@ -303,6 +315,46 @@ export default function ProviderDashboard() {
           </Card>
         </div>
 
+        {/* Listing Performance */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-lg">Listing Performance</CardTitle>
+            <CardDescription>How families are interacting with your profile</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="flex flex-col items-center p-4 bg-blue-50 rounded-lg">
+                <Eye className="h-6 w-6 text-blue-500 mb-2" />
+                <div className="text-2xl font-bold text-blue-700">
+                  {analytics?.profileViews ?? 0}
+                </div>
+                <div className="text-xs text-blue-600 text-center mt-1">Profile Views</div>
+              </div>
+              <div className="flex flex-col items-center p-4 bg-purple-50 rounded-lg">
+                <MousePointerClick className="h-6 w-6 text-purple-500 mb-2" />
+                <div className="text-2xl font-bold text-purple-700">
+                  {analytics?.profileClicks ?? 0}
+                </div>
+                <div className="text-xs text-purple-600 text-center mt-1">Click-throughs</div>
+              </div>
+              <div className="flex flex-col items-center p-4 bg-red-50 rounded-lg">
+                <Heart className="h-6 w-6 text-red-500 mb-2" />
+                <div className="text-2xl font-bold text-red-700">
+                  {analytics?.favoriteAdds ?? 0}
+                </div>
+                <div className="text-xs text-red-600 text-center mt-1">Saved as Favorite</div>
+              </div>
+              <div className="flex flex-col items-center p-4 bg-green-50 rounded-lg">
+                <GitCompareArrows className="h-6 w-6 text-green-500 mb-2" />
+                <div className="text-2xl font-bold text-green-700">
+                  {analytics?.comparisonAdds ?? 0}
+                </div>
+                <div className="text-xs text-green-600 text-center mt-1">Added to Comparison</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Profile Optimization Score */}
         {isLoadingScore ? (
           <Card className="mb-8">
@@ -319,23 +371,23 @@ export default function ProviderDashboard() {
           </div>
         ) : null}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Profile Completeness */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Profile Completeness</CardTitle>
-                <CardDescription>
-                  Complete your profile to increase visibility
-                </CardDescription>
+                <CardDescription>Complete your profile to increase visibility</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Overall Progress</span>
-                  <span className="text-sm text-gray-600">{providerScore?.overallScore ?? "—"}{providerScore ? "%" : ""}</span>
+                  <span className="text-sm text-gray-600">
+                    {providerScore?.overallScore ?? "—"}{providerScore ? "%" : ""}
+                  </span>
                 </div>
                 <Progress value={providerScore?.overallScore ?? 0} className="h-2" />
-                
+
                 <div className="space-y-3 pt-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Basic Information</span>
@@ -361,48 +413,97 @@ export default function ProviderDashboard() {
             </Card>
           </div>
 
-          {/* Recent Inquiries */}
+          {/* Review Summary */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Recent Inquiries</CardTitle>
+                <CardTitle className="text-lg">Review Summary</CardTitle>
                 <CardDescription>
-                  Families who have reached out about your program
+                  {reviewCount > 0
+                    ? `${reviewCount} review${reviewCount !== 1 ? "s" : ""} from families`
+                    : "No reviews yet — encourage parents to share their experience"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {recentInquiries.length === 0 ? (
+                {reviewCount === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm">No inquiries yet.</p>
-                    <p className="text-xs mt-1">Complete your profile to attract more families.</p>
+                    <Star className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">No reviews yet.</p>
+                    <p className="text-xs mt-1">Complete your profile to attract families and get your first review.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {recentInquiries.map((inquiry: any) => (
-                      <div key={inquiry.id} className="flex items-start justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <span className="font-medium">{inquiry.parentName || "Anonymous"}</span>
-                            {inquiry.childAge && (
-                              <span className="text-sm text-gray-500">• Child: {inquiry.childAge}</span>
-                            )}
-                            <Badge 
-                              variant={inquiry.status === 'pending' ? 'destructive' : 'secondary'}
-                              className="text-xs"
-                            >
-                              {inquiry.status}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                            {inquiry.message}
-                          </p>
-                          <span className="text-xs text-gray-400">
-                            {new Date(inquiry.createdAt).toLocaleDateString()}
-                          </span>
+                    {/* Average rating hero */}
+                    <div className="flex items-center gap-6 pb-4 border-b">
+                      <div className="text-center">
+                        <div className="text-5xl font-bold text-brand-evergreen">
+                          {Number(provider.rating).toFixed(1)}
                         </div>
+                        <div className="flex justify-center mt-1">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              className={`h-4 w-4 ${
+                                s <= Math.round(Number(provider.rating))
+                                  ? "text-yellow-400 fill-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">{reviewCount} reviews</div>
                       </div>
-                    ))}
+                      {/* Rating bars */}
+                      <div className="flex-1 space-y-1.5">
+                        {[5, 4, 3, 2, 1].map((star) => {
+                          const count = ratingDist[star] ?? 0;
+                          const pct = reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0;
+                          return (
+                            <div key={star} className="flex items-center gap-2 text-xs">
+                              <span className="w-4 text-right text-gray-500">{star}</span>
+                              <Star className="h-3 w-3 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                              <div className="flex-1 bg-gray-100 rounded-full h-2">
+                                <div
+                                  className="bg-yellow-400 h-2 rounded-full transition-all"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="w-8 text-gray-500">{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Recent reviews */}
+                    {analytics?.recentReviews && analytics.recentReviews.length > 0 && (
+                      <div className="space-y-3 pt-1">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Recent Reviews</p>
+                        {analytics.recentReviews.map((review: any) => (
+                          <div key={review.id} className="p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-1 mb-1">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star
+                                  key={s}
+                                  className={`h-3 w-3 ${
+                                    s <= review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-xs text-gray-400 ml-2">
+                                {new Date(review.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            {review.title && (
+                              <p className="text-sm font-medium text-gray-800">{review.title}</p>
+                            )}
+                            {review.content && (
+                              <p className="text-sm text-gray-600 line-clamp-2">{review.content}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -410,8 +511,50 @@ export default function ProviderDashboard() {
           </div>
         </div>
 
+        {/* Recent Inquiries */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-lg">Recent Inquiries</CardTitle>
+            <CardDescription>Families who have reached out about your program</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentInquiries.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">No inquiries yet.</p>
+                <p className="text-xs mt-1">Complete your profile to attract more families.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentInquiries.map((inquiry: any) => (
+                  <div key={inquiry.id} className="flex items-start justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-medium">{inquiry.parentName || "Anonymous"}</span>
+                        {inquiry.childAge && (
+                          <span className="text-sm text-gray-500">• Child: {inquiry.childAge}</span>
+                        )}
+                        <Badge
+                          variant={inquiry.status === "pending" ? "destructive" : "secondary"}
+                          className="text-xs"
+                        >
+                          {inquiry.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{inquiry.message}</p>
+                      <span className="text-xs text-gray-400">
+                        {new Date(inquiry.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Quick Actions */}
-        <Card className="mt-8">
+        <Card>
           <CardHeader>
             <CardTitle className="text-lg">Quick Actions</CardTitle>
           </CardHeader>
@@ -439,13 +582,12 @@ export default function ProviderDashboard() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Premium Features Modal */}
-      <PremiumFeaturesModal 
+      <PremiumFeaturesModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         onUpgrade={() => {
-          // Handle upgrade logic here
           setShowUpgradeModal(false);
           toast({
             title: "Upgrade Coming Soon!",
