@@ -187,6 +187,8 @@ export const inquiries = pgTable("inquiries", {
   message: text("message"),
   inquiryType: varchar("inquiry_type", { enum: ["info", "tour", "enrollment"] }).default("info"),
   status: varchar("status", { enum: ["pending", "responded", "closed"] }).default("pending"),
+  providerReply: text("provider_reply"),
+  repliedAt: timestamp("replied_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -822,3 +824,15 @@ export const familyProfileClientUpdateSchema = insertFamilyProfileSchema.omit({
 
 export type FamilyProfile = typeof familyProfiles.$inferSelect;
 export type InsertFamilyProfile = z.infer<typeof insertFamilyProfileSchema>;
+
+// Daily profile view tracking — one row per provider per day
+export const providerProfileViews = pgTable("provider_profile_views", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  viewedDate: date("viewed_date").notNull(),
+  count: integer("count").notNull().default(1),
+}, (t) => ({
+  dateProviderIdx: index("ppv_provider_date_idx").on(t.providerId, t.viewedDate),
+}));
+
+export type ProviderProfileView = typeof providerProfileViews.$inferSelect;

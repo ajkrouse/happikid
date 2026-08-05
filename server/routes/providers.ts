@@ -223,17 +223,67 @@ export function registerProviderRoutes(app: Express): void {
     }
   });
 
-  // Single provider by ID
+  // Single provider by ID — also records a daily profile view
   app.get("/api/providers/:id", async (req, res) => {
     try {
       const id = strictPathInt(req.params.id);
       if (!id) return res.status(400).json({ message: "Invalid provider ID" });
       const provider = await storage.getProviderWithDetails(id);
       if (!provider) return res.status(404).json({ message: "Provider not found" });
+      // Fire-and-forget: track the view without blocking the response
+      storage.trackProfileView(id).catch(() => {});
       res.json(provider);
     } catch (error) {
       log.error({ err: error }, "Error fetching provider");
       res.status(500).json({ message: "Failed to fetch provider" });
+    }
+  });
+
+  // Profile view trend — last 30 days of daily view counts for the authenticated provider
+  app.get("/api/providers/analytics/views", isAuthenticated, async (req: any, res) => {
+    try {
+      const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      if (userProviders.length === 0) return res.status(404).json({ message: "No provider profile found" });
+      const trend = await storage.getProfileViewTrend(userProviders[0].id, 30);
+      res.json(trend);
+    } catch (error) {
+      log.error({ err: error }, "Error fetching view trend");
+      res.status(500).json({ message: "Failed to fetch view trend" });
+    }
+  });
+
+  // Score comparison — how this provider's optimization score ranks among similar listings
+  app.get("/api/providers/analytics/score-comparison", isAuthenticated, async (req: any, res) => {
+    try {
+      const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      if (userProviders.length === 0) return res.status(404).json({ message: "No provider profile found" });
+      const provider = userProviders[0];
+
+      const myScore = await storage.getProviderScore?.(provider.id);
+      const myOverall = myScore?.overallScore ?? null;
+
+      // Fetch scores for providers in same city + type for a meaningful comparison pool
+      const similarScores = await storage.getSimilarProviderScores(provider.id, provider.city, provider.type);
+
+      if (similarScores.length === 0 || myOverall === null) {
+        return res.json({ myScore: myOverall, percentile: null, poolSize: 0, averageScore: null });
+      }
+
+      const allScores = similarScores.map((s) => s.overallScore ?? 0);
+      const averageScore = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+      const below = allScores.filter((s) => s < myOverall).length;
+      const percentile = Math.round((below / allScores.length) * 100);
+
+      res.json({
+        myScore: myOverall,
+        percentile,
+        poolSize: allScores.length,
+        averageScore,
+        topScore: Math.max(...allScores),
+      });
+    } catch (error) {
+      log.error({ err: error }, "Error fetching score comparison");
+      res.status(500).json({ message: "Failed to fetch score comparison" });
     }
   });
 

@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import PremiumFeaturesModal from "@/components/PremiumFeaturesModal";
 import { ProfileOptimizationCard } from "@/components/ProfileOptimizationCard";
 import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { useState } from "react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
   MessageSquare,
   Star,
@@ -30,6 +32,7 @@ import {
   MousePointerClick,
   Heart,
   GitCompareArrows,
+  Send,
 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -39,6 +42,8 @@ export default function ProviderDashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
 
   // Fetch provider profile
   const { data: provider } = useQuery<any>({
@@ -62,6 +67,41 @@ export default function ProviderDashboard() {
   const { data: providerScore, isLoading: isLoadingScore } = useQuery<any>({
     queryKey: [`/api/providers/${provider?.id}/score`],
     enabled: isAuthenticated && !!provider?.id,
+  });
+
+  // Fetch 30-day profile view trend
+  const { data: viewTrend } = useQuery<{ date: string; views: number }[]>({
+    queryKey: ["/api/providers/analytics/views"],
+    enabled: isAuthenticated && !!provider,
+  });
+
+  // Fetch score comparison against similar providers
+  const { data: scoreComparison } = useQuery<{
+    myScore: number | null;
+    percentile: number | null;
+    poolSize: number;
+    averageScore: number | null;
+    topScore?: number;
+  }>({
+    queryKey: ["/api/providers/analytics/score-comparison"],
+    enabled: isAuthenticated && !!provider,
+  });
+
+  // Reply to inquiry mutation
+  const replyMutation = useMutation({
+    mutationFn: async ({ id, reply }: { id: number; reply: string }) => {
+      const res = await apiRequest("POST", `/api/inquiries/${id}/reply`, { reply });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Reply sent!", description: "Your message has been sent to the family." });
+      queryClient.invalidateQueries({ queryKey: ["/api/inquiries/provider"] });
+      setReplyingTo(null);
+      setReplyText("");
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to send reply", description: error.message, variant: "destructive" });
+    },
   });
 
   // License confirmation mutation
@@ -321,7 +361,7 @@ export default function ProviderDashboard() {
             <CardTitle className="text-lg">Listing Performance</CardTitle>
             <CardDescription>How families are interacting with your profile</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="flex flex-col items-center p-4 bg-blue-50 rounded-lg">
                 <Eye className="h-6 w-6 text-blue-500 mb-2" />
@@ -352,8 +392,111 @@ export default function ProviderDashboard() {
                 <div className="text-xs text-green-600 text-center mt-1">Added to Comparison</div>
               </div>
             </div>
+
+            {/* 30-day view trend chart */}
+            {viewTrend && viewTrend.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-3">Profile views — last 30 days</p>
+                <ResponsiveContainer width="100%" height={120}>
+                  <AreaChart data={viewTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="viewGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 10, fill: "#9ca3af" }}
+                      tickFormatter={(d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis tick={{ fontSize: 10, fill: "#9ca3af" }} allowDecimals={false} />
+                    <Tooltip
+                      formatter={(v: number) => [v, "views"]}
+                      labelFormatter={(d) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric" })}
+                    />
+                    <Area type="monotone" dataKey="views" stroke="#3b82f6" fill="url(#viewGradient)" strokeWidth={2} dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Score Comparison */}
+        {scoreComparison && scoreComparison.poolSize > 0 && scoreComparison.myScore !== null && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-lg">How You Compare</CardTitle>
+              <CardDescription>
+                Your profile score vs. {scoreComparison.poolSize} similar listings in your area
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                {/* Percentile ring */}
+                <div className="flex flex-col items-center shrink-0">
+                  <div className="relative h-24 w-24">
+                    <svg viewBox="0 0 36 36" className="h-24 w-24 -rotate-90">
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                      <circle
+                        cx="18" cy="18" r="15.9" fill="none"
+                        stroke="#22c55e" strokeWidth="3"
+                        strokeDasharray={`${scoreComparison.percentile ?? 0} 100`}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center rotate-0">
+                      <span className="text-xl font-bold text-brand-evergreen">
+                        {scoreComparison.percentile}%
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 text-center">Percentile</p>
+                </div>
+
+                {/* Score bars */}
+                <div className="flex-1 w-full space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium text-gray-700">Your score</span>
+                      <span className="font-bold text-brand-evergreen">{scoreComparison.myScore}</span>
+                    </div>
+                    <Progress value={scoreComparison.myScore} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-500">Area average</span>
+                      <span className="text-gray-600">{scoreComparison.averageScore}</span>
+                    </div>
+                    <Progress value={scoreComparison.averageScore ?? 0} className="h-2 opacity-50" />
+                  </div>
+                  {scoreComparison.topScore && (
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-500">Top score</span>
+                        <span className="text-gray-600">{scoreComparison.topScore}</span>
+                      </div>
+                      <Progress value={scoreComparison.topScore} className="h-2 opacity-30" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {scoreComparison.percentile !== null && scoreComparison.percentile < 50 && (
+                <p className="mt-4 text-sm text-amber-700 bg-amber-50 rounded-md px-3 py-2">
+                  You're in the bottom half — completing your profile and gathering more reviews can push your score higher.
+                </p>
+              )}
+              {scoreComparison.percentile !== null && scoreComparison.percentile >= 75 && (
+                <p className="mt-4 text-sm text-green-700 bg-green-50 rounded-md px-3 py-2">
+                  You're outperforming {scoreComparison.percentile}% of similar listings in your area. Keep it up!
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Profile Optimization Score */}
         {isLoadingScore ? (
@@ -527,25 +670,74 @@ export default function ProviderDashboard() {
             ) : (
               <div className="space-y-4">
                 {recentInquiries.map((inquiry: any) => (
-                  <div key={inquiry.id} className="flex items-start justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="font-medium">{inquiry.parentName || "Anonymous"}</span>
-                        {inquiry.childAge && (
-                          <span className="text-sm text-gray-500">• Child: {inquiry.childAge}</span>
-                        )}
-                        <Badge
-                          variant={inquiry.status === "pending" ? "destructive" : "secondary"}
-                          className="text-xs"
-                        >
-                          {inquiry.status}
-                        </Badge>
+                  <div key={inquiry.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="font-medium">{inquiry.parentName || "Anonymous"}</span>
+                          {inquiry.childAge && (
+                            <span className="text-sm text-gray-500">• Child: {inquiry.childAge}</span>
+                          )}
+                          <Badge
+                            variant={inquiry.status === "pending" ? "destructive" : "secondary"}
+                            className="text-xs"
+                          >
+                            {inquiry.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1 line-clamp-2">{inquiry.message}</p>
+                        <span className="text-xs text-gray-400">
+                          {new Date(inquiry.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{inquiry.message}</p>
-                      <span className="text-xs text-gray-400">
-                        {new Date(inquiry.createdAt).toLocaleDateString()}
-                      </span>
+                      {inquiry.status === "pending" && replyingTo !== inquiry.id && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setReplyingTo(inquiry.id); setReplyText(""); }}
+                        >
+                          <Send className="h-3 w-3 mr-1" />
+                          Reply
+                        </Button>
+                      )}
                     </div>
+
+                    {/* Existing reply */}
+                    {inquiry.providerReply && (
+                      <div className="bg-blue-50 border border-blue-100 rounded-md p-3 text-sm text-blue-800">
+                        <p className="text-xs font-medium text-blue-500 mb-1">Your reply</p>
+                        {inquiry.providerReply}
+                      </div>
+                    )}
+
+                    {/* Reply composer */}
+                    {replyingTo === inquiry.id && (
+                      <div className="space-y-2">
+                        <Textarea
+                          placeholder="Write your reply to this family..."
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          rows={3}
+                          className="text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            disabled={!replyText.trim() || replyMutation.isPending}
+                            onClick={() => replyMutation.mutate({ id: inquiry.id, reply: replyText })}
+                          >
+                            {replyMutation.isPending ? "Sending…" : "Send Reply"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setReplyingTo(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 // Eagerly loaded — small, always visible on first paint
 import Landing from "@/pages/Landing";
@@ -69,6 +70,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <OfflineBanner />
         <Toaster />
         <Router />
       </TooltipProvider>

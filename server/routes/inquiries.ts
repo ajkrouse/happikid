@@ -62,6 +62,28 @@ export function registerInquiryRoutes(app: Express): void {
     status: z.enum(["pending", "responded", "closed"]),
   });
 
+  app.post("/api/inquiries/:id/reply", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid inquiry ID" });
+      const replySchema = z.object({ reply: z.string().min(1).max(2000) });
+      const parsed = replySchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Reply text is required", errors: parsed.error.errors });
+
+      // Confirm the inquiry belongs to one of this provider's listings
+      const inquiry = await storage.getInquiry(id);
+      if (!inquiry) return res.status(404).json({ message: "Inquiry not found" });
+      const ownedProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      const owns = ownedProviders.some((p) => p.id === inquiry.providerId);
+      if (!owns) return res.status(403).json({ message: "Not authorized to reply to this inquiry" });
+
+      res.json(await storage.replyToInquiry(id, parsed.data.reply));
+    } catch (error) {
+      log.error({ err: error }, "Error replying to inquiry");
+      res.status(500).json({ message: "Failed to send reply" });
+    }
+  });
+
   app.patch("/api/inquiries/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const inquiryId = strictPathInt(req.params.id);

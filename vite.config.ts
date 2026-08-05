@@ -27,6 +27,9 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    // Warn when any individual chunk exceeds 500 kB (gzipped target: ~150 kB).
+    // This acts as a CI-visible signal before bundle bloat ships to users.
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks: {

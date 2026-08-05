@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { Link } from "wouter";
 
 interface Props {
   children: ReactNode;
@@ -22,13 +23,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: unknown): State {
     const message = error instanceof Error ? error.message : String(error);
-    // Detect dynamic import / chunk failures
+    // Detect dynamic import / chunk failures (network drop mid-navigation or deploy hash mismatch)
     const isChunkError =
       message.includes("Failed to fetch dynamically imported module") ||
       message.includes("Importing a module script failed") ||
       message.includes("ChunkLoadError") ||
       message.includes("Loading chunk") ||
-      message.includes("Loading CSS chunk");
+      message.includes("Loading CSS chunk") ||
+      message.includes("Failed to fetch") ||
+      message.includes("NetworkError");
 
     return { hasError: true, isChunkError };
   }
@@ -75,12 +78,20 @@ export class ErrorBoundary extends Component<Props, State> {
                 ? "A newer version of this page is available. Reload to get the latest."
                 : "An unexpected error occurred. Reloading the page usually fixes it."}
             </p>
-            <button
-              onClick={this.handleReload}
-              className="inline-flex items-center px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-            >
-              Reload page
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={this.handleReload}
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              >
+                Reload page
+              </button>
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              >
+                Go home
+              </Link>
+            </div>
           </div>
         </div>
       );

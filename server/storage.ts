@@ -35,6 +35,7 @@ import {
   reviewVotes,
   claims,
   auditLogs,
+  providerProfileViews,
   type ProviderUpdate,
   type InsertProviderUpdate,
   type ProviderPhoto,
@@ -50,6 +51,7 @@ import {
   type InsertClaim,
   type AuditLog,
   type InsertAuditLog,
+  type ProviderProfileView,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "drizzle-orm";
@@ -508,6 +510,52 @@ export class DatabaseStorage implements IStorage {
     return updatedInquiry;
   }
 
+  async replyToInquiry(id: number, reply: string): Promise<Inquiry> {
+    const [updatedInquiry] = await db
+      .update(inquiries)
+      .set({
+        providerReply: reply,
+        repliedAt: new Date(),
+        status: "responded",
+        updatedAt: new Date(),
+      })
+      .where(eq(inquiries.id, id))
+      .returning();
+    return updatedInquiry;
+  }
+
+  // Profile view tracking — increment daily bucket for a provider
+  async trackProfileView(providerId: number): Promise<void> {
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    await db
+      .insert(providerProfileViews)
+      .values({ providerId, viewedDate: today, count: 1 })
+      .onConflictDoUpdate({
+        target: [providerProfileViews.providerId, providerProfileViews.viewedDate],
+        set: { count: sql`${providerProfileViews.count} + 1` },
+      });
+    // Also bump the scalar counter on the providers table
+    await db
+      .update(providers)
+      .set({ profileViews: sql`COALESCE(${providers.profileViews}, 0) + 1` })
+      .where(eq(providers.id, providerId));
+  }
+
+  // Return the last `days` days of daily view counts for a provider
+  async getProfileViewTrend(providerId: number, days = 30): Promise<{ date: string; views: number }[]> {
+    const rows = await db
+      .select({ viewedDate: providerProfileViews.viewedDate, count: providerProfileViews.count })
+      .from(providerProfileViews)
+      .where(
+        and(
+          eq(providerProfileViews.providerId, providerId),
+          sql`${providerProfileViews.viewedDate} >= CURRENT_DATE - INTERVAL '${sql.raw(String(days))} days'`
+        )
+      )
+      .orderBy(providerProfileViews.viewedDate);
+    return rows.map((r) => ({ date: r.viewedDate, views: r.count }));
+  }
+
   // Provider images
   async getProviderImages(providerId: number): Promise<ProviderImage[]> {
     return await db
@@ -684,6 +732,28 @@ export class DatabaseStorage implements IStorage {
       .from(reviewVotes)
       .where(and(eq(reviewVotes.userId, userId), eq(reviewVotes.reviewId, reviewId)));
     return vote;
+  }
+
+  // Fetch overallScore for providers in the same city+type pool (excludes the requesting provider)
+  async getSimilarProviderScores(
+    excludeProviderId: number,
+    city: string | null,
+    type: string | null
+  ): Promise<{ overallScore: number | null }[]> {
+    const { providerScores } = await import("@shared/schema");
+    let query = db
+      .select({ overallScore: providerScores.overallScore })
+      .from(providerScores)
+      .innerJoin(providers, eq(providerScores.providerId, providers.id))
+      .where(
+        and(
+          sql`${providerScores.providerId} != ${excludeProviderId}`,
+          city ? eq(providers.city, city) : sql`TRUE`,
+          type ? eq(providers.type, type as any) : sql`TRUE`,
+        )
+      )
+      .$dynamic();
+    return await query;
   }
 
   // Provider statistics methods
