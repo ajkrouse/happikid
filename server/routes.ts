@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./replitAuth";
+import { setupGoogleAuth } from "./googleAuth";
 import { addSampleData } from "./db/seed";
 import { createLogger } from "./logger";
 
@@ -20,6 +21,7 @@ import { registerMetaRoutes } from "./routes/meta";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware must be set up before any routes that use isAuthenticated
   await setupAuth(app);
+  setupGoogleAuth(app);
 
   // Seed sample data in development if the database is empty
   if (process.env.NODE_ENV === "development") {

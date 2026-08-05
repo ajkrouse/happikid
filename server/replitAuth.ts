@@ -269,6 +269,17 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
+  if (!req.isAuthenticated() || !user?.claims?.sub) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // Google-authenticated sessions carry a long-lived expiry set at login — skip token refresh
+  if (user.provider === "google") {
+    const now = Math.floor(Date.now() / 1000);
+    if (user.expires_at && now <= user.expires_at) return next();
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
   // Tokens live on the session (not req.user) to prevent accidental exposure
   const sessionTokens = (req.session as any).tokens as {
     access_token?: string;
@@ -278,7 +289,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const expiresAt = sessionTokens?.expires_at ?? user?.expires_at;
 
-  if (!req.isAuthenticated() || !expiresAt) {
+  if (!expiresAt) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 

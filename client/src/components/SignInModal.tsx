@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Shield, LogIn } from "lucide-react";
-import { SiGoogle, SiApple, SiGithub } from "react-icons/si";
+import { SiGoogle } from "react-icons/si";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -10,11 +10,17 @@ interface SignInModalProps {
 }
 
 export function SignInModal({ isOpen, onClose, returnTo }: SignInModalProps) {
-  const handleSignIn = () => {
-    // Redirect to Replit Auth - it handles Google, Apple, GitHub, and email login
-    const loginUrl = returnTo 
+  const handleGoogleSignIn = () => {
+    const loginUrl = returnTo
+      ? `/api/auth/google?returnTo=${encodeURIComponent(returnTo)}`
+      : "/api/auth/google";
+    window.location.href = loginUrl;
+  };
+
+  const handleReplitSignIn = () => {
+    const loginUrl = returnTo
       ? `/api/login?returnTo=${encodeURIComponent(returnTo)}`
-      : '/api/login';
+      : "/api/login";
     window.location.href = loginUrl;
   };
 
@@ -29,10 +35,10 @@ export function SignInModal({ isOpen, onClose, returnTo }: SignInModalProps) {
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          {/* Social login preview - these are handled by Replit Auth */}
           <div className="space-y-3">
+            {/* Google — direct OAuth flow */}
             <Button
-              onClick={handleSignIn}
+              onClick={handleGoogleSignIn}
               variant="outline"
               className="w-full flex items-center gap-3 h-12 text-base"
               type="button"
@@ -40,28 +46,6 @@ export function SignInModal({ isOpen, onClose, returnTo }: SignInModalProps) {
             >
               <SiGoogle className="w-5 h-5 text-[#4285F4]" />
               Continue with Google
-            </Button>
-
-            <Button
-              onClick={handleSignIn}
-              variant="outline"
-              className="w-full flex items-center gap-3 h-12 text-base bg-black text-white hover:bg-gray-800 border-black"
-              type="button"
-              data-testid="button-signin-apple"
-            >
-              <SiApple className="w-5 h-5" />
-              Continue with Apple
-            </Button>
-
-            <Button
-              onClick={handleSignIn}
-              variant="outline"
-              className="w-full flex items-center gap-3 h-12 text-base"
-              type="button"
-              data-testid="button-signin-github"
-            >
-              <SiGithub className="w-5 h-5" />
-              Continue with GitHub
             </Button>
           </div>
 
@@ -77,13 +61,13 @@ export function SignInModal({ isOpen, onClose, returnTo }: SignInModalProps) {
           </div>
 
           <Button
-            onClick={handleSignIn}
+            onClick={handleReplitSignIn}
             className="w-full h-12 text-base bg-action-clay hover:bg-action-clay/90"
             type="button"
-            data-testid="button-signin-email"
+            data-testid="button-signin-replit"
           >
             <LogIn className="w-4 h-4 mr-2" />
-            Sign in with Email
+            Sign in with Replit
           </Button>
 
           {/* Trust indicators */}

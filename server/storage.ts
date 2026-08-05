@@ -62,6 +62,9 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserRole(id: string, role: string): Promise<User>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
+  linkGoogleId(userId: string, googleId: string): Promise<User>;
+  upsertGoogleUser(data: { id: string; googleId: string; email: string | null; firstName: string | null; lastName: string | null; profileImageUrl: string | null }): Promise<User>;
   
   // Provider operations
   getProviders(filters?: {
@@ -203,6 +206,47 @@ export class DatabaseStorage implements IStorage {
           firstName: userData.firstName,
           lastName: userData.lastName,
           profileImageUrl: userData.profileImageUrl,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // Google-specific user operations
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
+    return user;
+  }
+
+  async linkGoogleId(userId: string, googleId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ googleId, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async upsertGoogleUser(data: {
+    id: string;
+    googleId: string;
+    email: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    profileImageUrl: string | null;
+  }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({ ...data, role: "parent" })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          googleId: data.googleId,
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          profileImageUrl: data.profileImageUrl,
           updatedAt: new Date(),
         },
       })
