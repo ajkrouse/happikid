@@ -78,7 +78,14 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
+  // Return a proper 404 JSON for any unmatched /api/* route so that
+  // the SPA catch-all below never serves index.html for API paths.
+  // This also stops scanners from getting 200 responses on probes like /api/.env.
+  app.use("/api/*", (_req, res) => {
+    res.status(404).json({ ok: false, message: "Not found" });
+  });
+
+  // fall through to index.html if the file doesn't exist (SPA routing)
   app.use("*", (_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
