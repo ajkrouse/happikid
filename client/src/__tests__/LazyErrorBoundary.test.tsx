@@ -12,8 +12,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import React, { lazy, useState } from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import React, { act, lazy, useState } from "react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LazyErrorBoundary, retryableLazy } from "@/components/LazyErrorBoundary";
 
@@ -231,4 +231,125 @@ describe("retryableLazy", () => {
     );
     expect(factory).toHaveBeenCalledTimes(2);
   });
+});
+
+// ---------------------------------------------------------------------------
+// Stall-detection timeout tests
+// ---------------------------------------------------------------------------
+
+describe("LazyErrorBoundary – stall-detection timeout", () => {
+  let errorSpy: ReturnType<typeof suppressConsoleError>;
+
+  beforeEach(() => {
+    errorSpy = suppressConsoleError();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    errorSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it("shows the error fallback after the timeout when Suspense hangs indefinitely", async () => {
+    // A promise that never settles — simulates a stalled dynamic import.
+    const StalledChunk = lazy(() => new Promise<never>(() => {}));
+
+    render(
+      <LazyErrorBoundary
+        fallback={<div data-testid="suspense-spinner" />}
+        timeoutMs={8_000}
+      >
+        <StalledChunk />
+      </LazyErrorBoundary>,
+    );
+
+    // The Suspense fallback (spinner) should be visible before the timeout.
+    expect(screen.getByTestId("suspense-spinner")).toBeInTheDocument();
+    expect(screen.queryByText(/couldn't load this section/i)).not.toBeInTheDocument();
+
+    // Advance past the 8 s timeout.
+    await act(async () => {
+      vi.advanceTimersByTime(8_001);
+    });
+
+    // Error fallback must appear and the spinner must be gone.
+    expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tap to retry/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("suspense-spinner")).not.toBeInTheDocument();
+  });
+
+  it("resets the stall timer when the user clicks 'Tap to retry'", async () => {
+    const StalledChunk = lazy(() => new Promise<never>(() => {}));
+
+    render(
+      <LazyErrorBoundary
+        fallback={<div data-testid="suspense-spinner" />}
+        timeoutMs={8_000}
+      >
+        <StalledChunk />
+      </LazyErrorBoundary>,
+    );
+
+    // Trigger the first timeout.
+    await act(async () => {
+      vi.advanceTimersByTime(8_001);
+    });
+
+    expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument();
+
+    // Click retry using fireEvent (avoids userEvent/fake-timer conflicts).
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /tap to retry/i }));
+    });
+
+    // Immediately after retry the error UI should be gone.
+    expect(screen.queryByText(/couldn't load this section/i)).not.toBeInTheDocument();
+
+    // Advance only halfway through the new timeout — still no error.
+    await act(async () => {
+      vi.advanceTimersByTime(4_000);
+    });
+    expect(screen.queryByText(/couldn't load this section/i)).not.toBeInTheDocument();
+
+    // Advance past the full timeout again — error should reappear.
+    await act(async () => {
+      vi.advanceTimersByTime(4_001);
+    });
+    expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tap to retry/i })).toBeInTheDocument();
+  }, 15_000);
+
+  it("does not fire the timeout when content loads before the deadline", async () => {
+    // A chunk that resolves quickly (synchronously resolved promise).
+    const FastContent = () => <div data-testid="fast-content">Loaded</div>;
+    const FastChunk = lazy(() => Promise.resolve({ default: FastContent }));
+
+    render(
+      <LazyErrorBoundary
+        fallback={<div data-testid="suspense-spinner" />}
+        timeoutMs={8_000}
+      >
+        <FastChunk />
+      </LazyErrorBoundary>,
+    );
+
+    // Flush the resolved lazy promise through React's update queue.
+    // Multiple rounds ensure Suspense → LoadSignal → cancelStallTimer all run.
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Content should be visible and the stall timer should have been cancelled.
+    expect(screen.getByTestId("fast-content")).toBeInTheDocument();
+
+    // Advance past the timeout threshold — no error should fire.
+    await act(async () => {
+      vi.advanceTimersByTime(8_001);
+    });
+
+    expect(screen.queryByText(/couldn't load this section/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId("fast-content")).toBeInTheDocument();
+  }, 15_000);
 });

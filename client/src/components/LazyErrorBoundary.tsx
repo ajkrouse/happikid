@@ -8,6 +8,7 @@ import {
   ReactNode,
   Suspense,
   useContext,
+  useEffect,
 } from "react";
 import { RefreshCw } from "lucide-react";
 
@@ -19,9 +20,30 @@ import { RefreshCw } from "lucide-react";
  */
 const RetryKeyContext = createContext(0);
 
+/**
+ * Called by <LoadSignal> (rendered inside the Suspense) when children mount
+ * successfully, so the boundary can cancel its stall-detection timeout.
+ */
+const ClearTimeoutContext = createContext<(() => void) | null>(null);
+
+/**
+ * Rendered as the first child inside the Suspense.  When it mounts it means
+ * the lazy content resolved, so we can cancel the stall-detection timeout.
+ */
+function LoadSignal() {
+  const cancelStallTimeout = useContext(ClearTimeoutContext);
+  useEffect(() => {
+    cancelStallTimeout?.();
+  }, [cancelStallTimeout]);
+  return null;
+}
+
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  /** Milliseconds to wait before treating a stalled Suspense as an error.
+   *  Defaults to 8 000 ms (8 s).  Pass 0 to disable the timeout. */
+  timeoutMs?: number;
 }
 
 interface State {
@@ -42,11 +64,64 @@ interface State {
  * request for the chunk rather than reusing the previously-failed lazy type's
  * cached rejection.  If the chunk is still unavailable, getDerivedStateFromError
  * catches the new failure and the fallback UI reappears — no infinite spinner.
+ *
+ * Additionally, a stall-detection timer is started on mount and on every retry.
+ * If the Suspense has not resolved within `timeoutMs` the boundary transitions
+ * to the error state, giving the user the same "Tap to retry" escape hatch for
+ * slow / hung network requests.
  */
-class LazyErrorBoundaryInner extends Component<Props, State> {
-  constructor(props: Props) {
+class LazyErrorBoundaryInner extends Component<
+  Props & { timeoutMs: number },
+  State
+> {
+  private stallTimerId: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(props: Props & { timeoutMs: number }) {
     super(props);
     this.state = { hasError: false, retryKey: 0 };
+  }
+
+  // -------------------------------------------------------------------------
+  // Stall-detection helpers
+  // -------------------------------------------------------------------------
+
+  private startStallTimer() {
+    this.cancelStallTimer();
+    const ms = this.props.timeoutMs;
+    if (ms <= 0) return;
+    this.stallTimerId = setTimeout(() => {
+      // Only transition if we are not already showing the error UI.
+      if (!this.state.hasError) {
+        this.setState({ hasError: true });
+      }
+    }, ms);
+  }
+
+  /** Called by <LoadSignal> when children mount (i.e. load succeeded). */
+  private cancelStallTimer = () => {
+    if (this.stallTimerId !== null) {
+      clearTimeout(this.stallTimerId);
+      this.stallTimerId = null;
+    }
+  };
+
+  // -------------------------------------------------------------------------
+  // Lifecycle
+  // -------------------------------------------------------------------------
+
+  componentDidMount() {
+    this.startStallTimer();
+  }
+
+  componentDidUpdate(_prevProps: Props, prevState: State) {
+    // Restart the timer whenever the user clicks "Tap to retry".
+    if (prevState.retryKey !== this.state.retryKey) {
+      this.startStallTimer();
+    }
+  }
+
+  componentWillUnmount() {
+    this.cancelStallTimer();
   }
 
   static getDerivedStateFromError(): Partial<State> {
@@ -78,7 +153,9 @@ class LazyErrorBoundaryInner extends Component<Props, State> {
 
     return (
       <RetryKeyContext.Provider value={this.state.retryKey}>
-        {this.props.children}
+        <ClearTimeoutContext.Provider value={this.cancelStallTimer}>
+          {this.props.children}
+        </ClearTimeoutContext.Provider>
       </RetryKeyContext.Provider>
     );
   }
@@ -87,11 +164,26 @@ class LazyErrorBoundaryInner extends Component<Props, State> {
 /**
  * Convenience wrapper: <LazyErrorBoundary fallback={...}> replaces a plain
  * <Suspense fallback={...}> and adds an error boundary around it automatically.
+ *
+ * A stall-detection timer starts when the boundary mounts.  If the inner
+ * Suspense has not resolved within `timeoutMs` (default 8 000 ms) the boundary
+ * transitions to the "Couldn't load this section" error UI so the user always
+ * has a "Tap to retry" escape hatch instead of being stuck on an infinite
+ * spinner.  The timer resets on every retry and is cancelled as soon as the
+ * lazy children mount successfully.
  */
-export function LazyErrorBoundary({ children, fallback = null }: Props) {
+export function LazyErrorBoundary({
+  children,
+  fallback = null,
+  timeoutMs = 8_000,
+}: Props) {
   return (
-    <LazyErrorBoundaryInner>
-      <Suspense fallback={fallback}>{children}</Suspense>
+    <LazyErrorBoundaryInner timeoutMs={timeoutMs}>
+      <Suspense fallback={fallback}>
+        {/* LoadSignal cancels the stall timer the moment content is ready. */}
+        <LoadSignal />
+        {children}
+      </Suspense>
     </LazyErrorBoundaryInner>
   );
 }
