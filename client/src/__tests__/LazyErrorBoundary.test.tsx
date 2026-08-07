@@ -1,5 +1,5 @@
 /**
- * Unit tests for LazyErrorBoundary.
+ * Unit tests for LazyErrorBoundary and retryableLazy.
  *
  * Verifies that the section-level error boundary:
  *  1. Shows the "Couldn't load this section" / "Tap to retry" fallback when a
@@ -7,13 +7,15 @@
  *  2. Re-renders children after the user clicks "Tap to retry" (state is reset).
  *  3. Passes through a lazy chunk rejection that propagates through its inner
  *     Suspense, the same way a real failed dynamic import would behave.
+ *  4. Re-invokes the retryableLazy import() factory after retry so the browser
+ *     fetches a fresh chunk instead of replaying the cached rejection.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { lazy, useState } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { LazyErrorBoundary } from "@/components/LazyErrorBoundary";
+import { LazyErrorBoundary, retryableLazy } from "@/components/LazyErrorBoundary";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -143,5 +145,90 @@ describe("LazyErrorBoundary", () => {
     expect(
       screen.getByRole("button", { name: /tap to retry/i }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("retryableLazy", () => {
+  let errorSpy: ReturnType<typeof suppressConsoleError>;
+
+  beforeEach(() => {
+    errorSpy = suppressConsoleError();
+  });
+
+  afterEach(() => {
+    errorSpy.mockRestore();
+  });
+
+  it("re-invokes the import() factory on retry so a fresh chunk fetch is issued", async () => {
+    const user = userEvent.setup();
+    let callCount = 0;
+
+    // Factory rejects on the first call and resolves on subsequent calls,
+    // simulating a temporarily unavailable chunk that becomes available.
+    const LoadedContent = () => <div data-testid="chunk-content">Chunk loaded</div>;
+    const factory = vi.fn(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.reject(new Error("Failed to fetch dynamically imported module"));
+      }
+      return Promise.resolve({ default: LoadedContent });
+    });
+
+    const RetryableChunk = retryableLazy(factory);
+
+    render(
+      <LazyErrorBoundary fallback={<div data-testid="suspense-spinner" />}>
+        <RetryableChunk />
+      </LazyErrorBoundary>,
+    );
+
+    // First attempt: factory is called once and the error boundary shows fallback UI
+    await waitFor(() =>
+      expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument(),
+    );
+    expect(factory).toHaveBeenCalledTimes(1);
+
+    // Click retry — the boundary should create a fresh lazy type and re-invoke factory
+    await user.click(screen.getByRole("button", { name: /tap to retry/i }));
+
+    // Factory must be called a second time (fresh network request for the chunk)
+    await waitFor(() =>
+      expect(screen.getByTestId("chunk-content")).toBeInTheDocument(),
+    );
+    expect(factory).toHaveBeenCalledTimes(2);
+
+    // Error UI should be gone after successful load
+    expect(screen.queryByText(/couldn't load this section/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the fallback UI again if the chunk is still unavailable after retry", async () => {
+    const user = userEvent.setup();
+
+    // Factory always rejects — chunk is genuinely unavailable
+    const factory = vi.fn(() =>
+      Promise.reject(new Error("Failed to fetch dynamically imported module")),
+    );
+
+    const RetryableChunk = retryableLazy(factory);
+
+    render(
+      <LazyErrorBoundary fallback={<div data-testid="suspense-spinner" />}>
+        <RetryableChunk />
+      </LazyErrorBoundary>,
+    );
+
+    // First failure
+    await waitFor(() =>
+      expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument(),
+    );
+
+    // Click retry — chunk still unavailable
+    await user.click(screen.getByRole("button", { name: /tap to retry/i }));
+
+    // Fallback UI must reappear (no infinite spinner)
+    await waitFor(() =>
+      expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument(),
+    );
+    expect(factory).toHaveBeenCalledTimes(2);
   });
 });

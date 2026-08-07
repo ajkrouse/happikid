@@ -43,18 +43,18 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Search as SearchIcon, Grid, List, Bookmark, Users, X, Map, BookOpen, CheckCircle2, ArrowRight, SlidersHorizontal, Sparkles } from "lucide-react";
-import { useState, useEffect, useRef, lazy } from "react";
-import { LazyErrorBoundary } from "@/components/LazyErrorBoundary";
+import { useState, useEffect, useRef } from "react";
+import { LazyErrorBoundary, retryableLazy } from "@/components/LazyErrorBoundary";
 
-const MapView = lazy(() => import("@/components/MapView"));
-const AIInsights = lazy(() =>
+const MapView = retryableLazy(() => import("@/components/MapView"));
+const AIInsights = retryableLazy(() =>
   import("@/components/AIInsights").then((m) => ({ default: m.AIInsights }))
 );
-const ComparisonModal = lazy(() => import("@/components/ComparisonModal"));
-const FamilyProfileWizard = lazy(() =>
+const ComparisonModal = retryableLazy(() => import("@/components/ComparisonModal"));
+const FamilyProfileWizard = retryableLazy(() =>
   import("@/components/FamilyProfileWizard").then((m) => ({ default: m.FamilyProfileWizard }))
 );
-const FavoritesSectionWithDnd = lazy(() => import("@/components/FavoritesSectionWithDnd"));
+const FavoritesSectionWithDnd = retryableLazy(() => import("@/components/FavoritesSectionWithDnd"));
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
