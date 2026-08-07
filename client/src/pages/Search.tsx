@@ -3,13 +3,30 @@ import ProviderCard from "@/components/ProviderCard";
 import SearchFilters from "@/components/SearchFilters";
 import ProviderModal from "@/components/ProviderModal";
 import ContactInquiryModal from "@/components/ContactInquiryModal";
-import ComparisonModal from "@/components/ComparisonModal";
 import { SearchInsights } from "@/components/SearchInsights";
 import { ConversationalSearch } from "@/components/ConversationalSearch";
-import { AIInsights, AIInsightsSkeleton } from "@/components/AIInsights";
-import { FamilyProfileWizard } from "@/components/FamilyProfileWizard";
+// AIInsightsSkeleton is inlined below to avoid a static import of the AIInsights
+// module, which would pull the lazy chunk into the initial bundle.
+function AIInsightsSkeleton() {
+  return (
+    <Card className="mb-6 border-2 border-action-teal/20 bg-gradient-to-r from-brand-sage to-white overflow-hidden">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-full bg-action-teal/10">
+            <Sparkles className="h-5 w-5 text-action-teal animate-pulse" />
+          </div>
+          <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 import { TaxonomyNavigator } from "@/components/TaxonomyNavigator";
-import { FavoritesSection } from "@/components/FavoritesSection";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
 import type { FamilyProfile } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -29,12 +46,17 @@ import { Search as SearchIcon, Grid, List, Bookmark, Users, X, Map, BookOpen, Ch
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
 
 const MapView = lazy(() => import("@/components/MapView"));
+const AIInsights = lazy(() =>
+  import("@/components/AIInsights").then((m) => ({ default: m.AIInsights }))
+);
+const ComparisonModal = lazy(() => import("@/components/ComparisonModal"));
+const FamilyProfileWizard = lazy(() =>
+  import("@/components/FamilyProfileWizard").then((m) => ({ default: m.FamilyProfileWizard }))
+);
+const FavoritesSectionWithDnd = lazy(() => import("@/components/FavoritesSectionWithDnd"));
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
-import { DndProvider } from "react-dnd";
-import { MultiBackend } from "react-dnd-multi-backend";
-import { HTML5toTouch } from "rdndmb-html5-to-touch";
 import { useToast } from "@/hooks/use-toast";
 import type { TaxonomyResponse, Category } from "../../../types/taxonomy";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -321,12 +343,14 @@ export default function SearchPage() {
             {debouncedSearchQuery && isLoading && <AIInsightsSkeleton />}
 
             {debouncedSearchQuery && !isLoading && providerResponse?.aiInsights && (
-              <AIInsights
-                summary={providerResponse.aiInsights.summary}
-                highlights={providerResponse.aiInsights.highlights || []}
-                followUpSuggestions={providerResponse.aiInsights.followUpSuggestions || []}
-                onFollowUp={(query) => { setSearchQuery(query); refetch(); }}
-              />
+              <Suspense fallback={<AIInsightsSkeleton />}>
+                <AIInsights
+                  summary={providerResponse.aiInsights.summary}
+                  highlights={providerResponse.aiInsights.highlights || []}
+                  followUpSuggestions={providerResponse.aiInsights.followUpSuggestions || []}
+                  onFollowUp={(query) => { setSearchQuery(query); refetch(); }}
+                />
+              </Suspense>
             )}
 
             <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 border-brand-evergreen/10">
@@ -717,14 +741,18 @@ export default function SearchPage() {
         onClose={() => { setShowProviderModal(false); setSelectedProvider(null); }}
       />
 
-      <ComparisonModal
-        providers={comparisonProviders}
-        isOpen={showComparisonModal}
-        onClose={() => setShowComparisonModal(false)}
-        onSelectProvider={handleSelectProvider}
-        onRemoveProvider={handleRemoveFromComparison}
-        onGroupsSaved={handleGroupsSaved}
-      />
+      {showComparisonModal && (
+        <Suspense fallback={null}>
+          <ComparisonModal
+            providers={comparisonProviders}
+            isOpen={showComparisonModal}
+            onClose={() => setShowComparisonModal(false)}
+            onSelectProvider={handleSelectProvider}
+            onRemoveProvider={handleRemoveFromComparison}
+            onGroupsSaved={handleGroupsSaved}
+          />
+        </Suspense>
+      )}
 
       <Dialog open={showSavedGroupsModal} onOpenChange={setShowSavedGroupsModal}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
@@ -744,15 +772,19 @@ export default function SearchPage() {
             </div>
 
             {isAuthenticated ? (
-              <DndProvider backend={MultiBackend} options={HTML5toTouch}>
-                <FavoritesSection
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-action-teal"></div>
+                </div>
+              }>
+                <FavoritesSectionWithDnd
                   setSelectedProvider={setSelectedProvider}
                   setShowProviderModal={setShowProviderModal}
                   setComparisonProviders={setComparisonProviders}
                   setShowSavedGroupsModal={setShowSavedGroupsModal}
                   setShowComparisonModal={setShowComparisonModal}
                 />
-              </DndProvider>
+              </Suspense>
             ) : (
               <div className="text-center py-6 bg-gray-50 rounded-lg">
                 <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
@@ -784,14 +816,18 @@ export default function SearchPage() {
         </DialogContent>
       </Dialog>
 
-      <FamilyProfileWizard
-        isOpen={showFamilyProfileWizard}
-        onClose={() => setShowFamilyProfileWizard(false)}
-        onComplete={() => {
-          queryClient.invalidateQueries({ queryKey: ["/api/family-profile"] });
-          toast({ title: "Profile complete!", description: "We'll now show you personalized matches." });
-        }}
-      />
+      {showFamilyProfileWizard && (
+        <Suspense fallback={null}>
+          <FamilyProfileWizard
+            isOpen={showFamilyProfileWizard}
+            onClose={() => setShowFamilyProfileWizard(false)}
+            onComplete={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/family-profile"] });
+              toast({ title: "Profile complete!", description: "We'll now show you personalized matches." });
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

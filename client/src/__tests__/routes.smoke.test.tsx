@@ -73,6 +73,9 @@ vi.mock("@/components/TaxonomyNavigator", () => ({
 vi.mock("@/components/FavoritesSection", () => ({
   FavoritesSection: () => null,
 }));
+vi.mock("@/components/FavoritesSectionWithDnd", () => ({
+  default: () => null,
+}));
 vi.mock("@/components/PremiumFeaturesModal", () => ({ default: () => null }));
 vi.mock("@/components/ui/toaster", () => ({ Toaster: () => null }));
 

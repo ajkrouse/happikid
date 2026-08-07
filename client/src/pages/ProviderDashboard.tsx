@@ -413,7 +413,7 @@ export default function ProviderDashboard() {
                     />
                     <YAxis tick={{ fontSize: 10, fill: "#9ca3af" }} allowDecimals={false} />
                     <Tooltip
-                      formatter={(v: number) => [v, "views"]}
+                      formatter={(v) => [typeof v === "number" ? v : 0, "views"]}
                       labelFormatter={(d) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric" })}
                     />
                     <Area type="monotone" dataKey="views" stroke="#3b82f6" fill="url(#viewGradient)" strokeWidth={2} dot={false} />
