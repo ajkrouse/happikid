@@ -43,7 +43,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Search as SearchIcon, Grid, List, Bookmark, Users, X, Map, BookOpen, CheckCircle2, ArrowRight, SlidersHorizontal, Sparkles } from "lucide-react";
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy } from "react";
+import { LazyErrorBoundary } from "@/components/LazyErrorBoundary";
 
 const MapView = lazy(() => import("@/components/MapView"));
 const AIInsights = lazy(() =>
@@ -343,14 +344,14 @@ export default function SearchPage() {
             {debouncedSearchQuery && isLoading && <AIInsightsSkeleton />}
 
             {debouncedSearchQuery && !isLoading && providerResponse?.aiInsights && (
-              <Suspense fallback={<AIInsightsSkeleton />}>
+              <LazyErrorBoundary fallback={<AIInsightsSkeleton />}>
                 <AIInsights
                   summary={providerResponse.aiInsights.summary}
                   highlights={providerResponse.aiInsights.highlights || []}
                   followUpSuggestions={providerResponse.aiInsights.followUpSuggestions || []}
                   onFollowUp={(query) => { setSearchQuery(query); refetch(); }}
                 />
-              </Suspense>
+              </LazyErrorBoundary>
             )}
 
             <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 border-brand-evergreen/10">
@@ -573,7 +574,7 @@ export default function SearchPage() {
             {!isLoading && providers.length > 0 && (
               viewMode === "map" ? (
                 <div className="h-[600px]">
-                  <Suspense fallback={
+                  <LazyErrorBoundary fallback={
                     <div className="h-full flex items-center justify-center rounded-lg bg-gray-100">
                       <div className="text-center text-gray-500">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-action-teal mx-auto mb-3"></div>
@@ -587,7 +588,7 @@ export default function SearchPage() {
                       onLocationSearch={handleLocationSearch}
                       userLocation={userLocation}
                     />
-                  </Suspense>
+                  </LazyErrorBoundary>
                 </div>
               ) : (
                 <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "space-y-6"}>
@@ -742,7 +743,7 @@ export default function SearchPage() {
       />
 
       {showComparisonModal && (
-        <Suspense fallback={null}>
+        <LazyErrorBoundary>
           <ComparisonModal
             providers={comparisonProviders}
             isOpen={showComparisonModal}
@@ -751,7 +752,7 @@ export default function SearchPage() {
             onRemoveProvider={handleRemoveFromComparison}
             onGroupsSaved={handleGroupsSaved}
           />
-        </Suspense>
+        </LazyErrorBoundary>
       )}
 
       <Dialog open={showSavedGroupsModal} onOpenChange={setShowSavedGroupsModal}>
@@ -772,7 +773,7 @@ export default function SearchPage() {
             </div>
 
             {isAuthenticated ? (
-              <Suspense fallback={
+              <LazyErrorBoundary fallback={
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-action-teal"></div>
                 </div>
@@ -784,7 +785,7 @@ export default function SearchPage() {
                   setShowSavedGroupsModal={setShowSavedGroupsModal}
                   setShowComparisonModal={setShowComparisonModal}
                 />
-              </Suspense>
+              </LazyErrorBoundary>
             ) : (
               <div className="text-center py-6 bg-gray-50 rounded-lg">
                 <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
@@ -817,7 +818,7 @@ export default function SearchPage() {
       </Dialog>
 
       {showFamilyProfileWizard && (
-        <Suspense fallback={null}>
+        <LazyErrorBoundary>
           <FamilyProfileWizard
             isOpen={showFamilyProfileWizard}
             onClose={() => setShowFamilyProfileWizard(false)}
@@ -826,7 +827,7 @@ export default function SearchPage() {
               toast({ title: "Profile complete!", description: "We'll now show you personalized matches." });
             }}
           />
-        </Suspense>
+        </LazyErrorBoundary>
       )}
     </div>
   );
