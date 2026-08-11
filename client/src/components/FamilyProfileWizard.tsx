@@ -15,7 +15,7 @@ import {
   X, Plus, Sparkles
 } from "lucide-react";
 import type { FamilyProfile } from "@shared/schema";
-import { AREAS } from "@/lib/areas";
+import { AREAS, formatAreaLabel } from "@/lib/areas";
 
 interface FamilyProfileWizardProps {
   isOpen: boolean;
@@ -270,7 +270,7 @@ export function FamilyProfileWizard({ isOpen, onClose, onComplete }: FamilyProfi
                       onClick={() => setPreferredBorough(area)}
                       className={preferredBorough === area ? "bg-action-teal hover:bg-action-teal/90" : ""}
                     >
-                      {area}
+                      {formatAreaLabel(area)}
                     </Button>
                   ))}
                 </div>
