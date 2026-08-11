@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Info, Building2, Plus } from "lucide-react";
 import type { OnboardingFormData, LocationEntry } from "@/types/onboarding";
+import { AREAS } from "@/lib/areas";
 
 interface StepBasicInfoProps {
   formData: OnboardingFormData;
@@ -127,11 +128,9 @@ export function StepBasicInfo({ formData, locations, onFormDataChange, onLocatio
                     >
                       <SelectTrigger><SelectValue placeholder="Select if in NYC area" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Manhattan">Manhattan</SelectItem>
-                        <SelectItem value="Brooklyn">Brooklyn</SelectItem>
-                        <SelectItem value="Queens">Queens</SelectItem>
-                        <SelectItem value="Bronx">Bronx</SelectItem>
-                        <SelectItem value="Staten Island">Staten Island</SelectItem>
+                        {AREAS.map((area) => (
+                          <SelectItem key={area} value={area}>{area}</SelectItem>
+                        ))}
                         <SelectItem value="Long Island">Long Island</SelectItem>
                         <SelectItem value="Westchester">Westchester County</SelectItem>
                         <SelectItem value="Northern NJ">Northern New Jersey</SelectItem>

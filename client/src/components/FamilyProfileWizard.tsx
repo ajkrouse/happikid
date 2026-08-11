@@ -15,6 +15,7 @@ import {
   X, Plus, Sparkles
 } from "lucide-react";
 import type { FamilyProfile } from "@shared/schema";
+import { AREAS } from "@/lib/areas";
 
 interface FamilyProfileWizardProps {
   isOpen: boolean;
@@ -30,7 +31,6 @@ const STEPS = [
   { id: "preferences", title: "Preferences", icon: Heart, description: "Any must-haves or nice-to-haves?" },
 ];
 
-const BOROUGHS = ["Brooklyn", "Manhattan", "Queens", "Bronx", "Staten Island"];
 
 const SCHEDULE_TYPES = [
   { value: "full_time", label: "Full-Time", description: "5 days/week, full day" },
@@ -261,16 +261,16 @@ export function FamilyProfileWizard({ isOpen, onClose, onComplete }: FamilyProfi
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Preferred Borough</Label>
+                <Label>Preferred Area</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {BOROUGHS.map((borough) => (
+                  {AREAS.map((area) => (
                     <Button
-                      key={borough}
-                      variant={preferredBorough === borough ? "default" : "outline"}
-                      onClick={() => setPreferredBorough(borough)}
-                      className={preferredBorough === borough ? "bg-action-teal hover:bg-action-teal/90" : ""}
+                      key={area}
+                      variant={preferredBorough === area ? "default" : "outline"}
+                      onClick={() => setPreferredBorough(area)}
+                      className={preferredBorough === area ? "bg-action-teal hover:bg-action-teal/90" : ""}
                     >
-                      {borough}
+                      {area}
                     </Button>
                   ))}
                 </div>
