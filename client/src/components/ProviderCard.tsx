@@ -127,6 +127,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     else if (provider.borough === 'Queens') multiplier = 0.9;
     else if (provider.borough === 'Bronx') multiplier = 0.8;
     else if (provider.borough === 'Staten Island') multiplier = 0.85;
+    else if (provider.city === 'Hoboken') multiplier = 1.05;
+    else if (provider.city === 'Jersey City') multiplier = 0.95;
     
     const min = Math.round(baseRange.min * multiplier);
     const max = Math.round(baseRange.max * multiplier);
@@ -233,7 +235,10 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     return labels[type as keyof typeof labels] || type;
   };
 
-  const getBoroughColor = (borough: string) => {
+  const getBoroughColor = (borough: string, city?: string | null) => {
+    if (city === 'Hoboken' || city === 'Jersey City') {
+      return "bg-teal-50 text-teal-700";
+    }
     const colors = {
       Manhattan: "bg-blue-50 text-blue-700",
       Brooklyn: "bg-green-50 text-green-700",
@@ -332,6 +337,12 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
         ) : null}
 
         <div className="flex flex-wrap gap-2 mb-4">
+          <Badge
+            variant="secondary"
+            className={`rounded-full font-medium ${getBoroughColor(provider.borough, provider.city)}`}
+          >
+            {provider.city === 'Hoboken' || provider.city === 'Jersey City' ? provider.city : provider.borough}
+          </Badge>
           <Badge 
             variant="secondary"
             className="cursor-pointer rounded-full font-medium bg-brand-sage text-action-teal"
