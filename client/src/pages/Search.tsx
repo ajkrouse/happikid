@@ -42,7 +42,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search as SearchIcon, Grid, List, Bookmark, Users, X, Map, BookOpen, CheckCircle2, ArrowRight, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Search as SearchIcon, Grid, List, Bookmark, Users, X, Map, BookOpen, CheckCircle2, ArrowRight, SlidersHorizontal, Sparkles, MapPin } from "lucide-react";
+import { formatAreaLabel } from "@/lib/areas";
 import { useState, useEffect, useRef } from "react";
 import { LazyErrorBoundary, retryableLazy } from "@/components/LazyErrorBoundary";
 
@@ -129,6 +130,7 @@ export default function SearchPage() {
   });
 
   const showProfileBanner = isAuthenticated && user?.role === "parent" && !isFamilyProfileLoading && familyProfile === null;
+  const showAreaSummary = isAuthenticated && user?.role === "parent" && !isFamilyProfileLoading && familyProfile !== null && !!familyProfile?.preferredBorough;
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -306,6 +308,21 @@ export default function SearchPage() {
                 Complete Profile <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showAreaSummary && (
+        <div className="bg-action-teal/5 border-b border-action-teal/15">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <button
+              onClick={() => setShowFamilyProfileWizard(true)}
+              className="flex items-center gap-2 text-sm text-action-teal hover:text-action-teal/80 transition-colors"
+            >
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span>Searching near <span className="font-medium">{formatAreaLabel(familyProfile!.preferredBorough!)}</span></span>
+              <span className="text-text-muted text-xs ml-1">· Edit</span>
+            </button>
           </div>
         </div>
       )}
