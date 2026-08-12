@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
+import { getCostRange } from "@/lib/providerPricing";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
 import { 
@@ -138,12 +139,8 @@ export default function ComparisonModal({
   };
 
   const formatPrice = (provider: Provider) => {
-    // Use price range from database if available
-    const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
-    if (hasDbPriceRange) {
-      return `$${Number(provider.monthlyPriceMin).toLocaleString()} - $${Number(provider.monthlyPriceMax).toLocaleString()}`;
-    }
-    return "Contact for pricing";
+    const { min, max } = getCostRange(provider);
+    return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
   };
 
   // Function to convert 24-hour time to 12-hour AM/PM format

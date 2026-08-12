@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
+import { getCostRange, getCostLevel, getBoroughColor } from "@/lib/providerPricing";
 
 interface ProviderCardProps {
   provider: ProviderWithScore;
@@ -101,48 +102,9 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     },
   });
 
-  const getCostLevel = (provider: Provider, costRange: {min: number, max: number}) => {
-    const midpoint = (costRange.min + costRange.max) / 2;
-    
-    if (midpoint <= 1500) return 1;
-    else if (midpoint <= 2200) return 2;
-    else if (midpoint <= 2900) return 3;
-    else if (midpoint <= 3600) return 4;
-    else return 5;
-  };
-
-  const getCostRange = (provider: Provider) => {
-    const typeRanges = {
-      daycare: { min: 1800, max: 3500 },
-      afterschool: { min: 800, max: 1500 },
-      camp: { min: 1200, max: 2000 },
-      school: { min: 2500, max: 4500 }
-    };
-    
-    const baseRange = typeRanges[provider.type as keyof typeof typeRanges] || typeRanges.daycare;
-    
-    let multiplier = 1.0;
-    if (provider.borough === 'Manhattan') multiplier = 1.2;
-    else if (provider.borough === 'Brooklyn') multiplier = 1.0;
-    else if (provider.borough === 'Queens') multiplier = 0.9;
-    else if (provider.borough === 'Bronx') multiplier = 0.8;
-    else if (provider.borough === 'Staten Island') multiplier = 0.85;
-    else if (provider.city === 'Hoboken') multiplier = 1.05;
-    else if (provider.city === 'Jersey City') multiplier = 0.95;
-    
-    const min = Math.round(baseRange.min * multiplier);
-    const max = Math.round(baseRange.max * multiplier);
-    
-    return { min, max };
-  };
-
   const renderCostDisplay = (provider: Provider) => {
-    const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
-    const costRange = hasDbPriceRange ? 
-      { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) } :
-      getCostRange(provider);
-    
-    const dollarSigns = getCostLevel(provider, costRange);
+    const costRange = getCostRange(provider);
+    const dollarSigns = getCostLevel(costRange);
     
     const dollarMeter = (
       <div className="flex items-center gap-0.5 mb-0.5">
@@ -235,19 +197,6 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     return labels[type as keyof typeof labels] || type;
   };
 
-  const getBoroughColor = (borough: string, city?: string | null) => {
-    if (city === 'Hoboken' || city === 'Jersey City') {
-      return "bg-teal-50 text-teal-700";
-    }
-    const colors = {
-      Manhattan: "bg-blue-50 text-blue-700",
-      Brooklyn: "bg-green-50 text-green-700",
-      Queens: "bg-purple-50 text-purple-700",
-      Bronx: "bg-orange-50 text-orange-700",
-      "Staten Island": "bg-red-50 text-red-700",
-    };
-    return colors[borough as keyof typeof colors] || "bg-gray-50 text-gray-700";
-  };
 
   return (
     <>

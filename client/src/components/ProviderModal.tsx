@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/select";
 import { ProviderContributions } from "./ProviderContributions";
 import { ReviewVoting } from "./ReviewVoting";
+import { getCostRange, getCostLevel, getBoroughColor } from "@/lib/providerPricing";
 
 interface ProviderModalProps {
   provider: Provider | null;
@@ -71,89 +72,15 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     return `${hour12}:${minutes} ${ampm}`;
   };
 
-  // Function to get relative cost level based on actual price range
-  const getCostLevel = (provider: any, costRange: {min: number, max: number}) => {
-    // Safety check for costRange
-    if (!costRange || typeof costRange.min !== 'number' || typeof costRange.max !== 'number') {
-      return 3; // Default to middle tier
-    }
-    
-    // Calculate dollar meter based on midpoint of price range
-    const midpoint = (costRange.min + costRange.max) / 2;
-    
-    // Thresholds based on typical NYC childcare pricing
-    if (midpoint <= 1500) return 1;      // $
-    else if (midpoint <= 2200) return 2; // $$
-    else if (midpoint <= 2900) return 3; // $$$
-    else if (midpoint <= 3600) return 4; // $$$$
-    else return 5;                       // $$$$$
-  };
-
-  // Function to get cost range based on provider characteristics
-  const getCostRange = (provider: any) => {
-    // Generate realistic cost ranges based on provider type and characteristics
-    const typeRanges = {
-      daycare: { min: 1800, max: 3500 },
-      afterschool: { min: 800, max: 1500 },
-      camp: { min: 1200, max: 2000 },
-      school: { min: 2500, max: 4500 }
-    };
-    
-    const baseRange = typeRanges[provider.type as keyof typeof typeRanges] || typeRanges.daycare;
-    
-    // Apply area multipliers (must match ProviderCard logic)
-    let multiplier = 1.0;
-    if (provider.borough === 'Manhattan') multiplier = 1.2;
-    else if (provider.borough === 'Brooklyn') multiplier = 1.0;
-    else if (provider.borough === 'Queens') multiplier = 0.9;
-    else if (provider.borough === 'Bronx') multiplier = 0.8;
-    else if (provider.borough === 'Staten Island') multiplier = 0.85;
-    else if (provider.city === 'Hoboken') multiplier = 1.05;
-    else if (provider.city === 'Jersey City') multiplier = 0.95;
-
-    return {
-      min: Math.round(baseRange.min * multiplier),
-      max: Math.round(baseRange.max * multiplier),
-    };
-  };
-
-  const getBoroughColor = (borough: string, city?: string | null) => {
-    if (city === 'Hoboken' || city === 'Jersey City') {
-      return "bg-teal-50 text-teal-700";
-    }
-    const colors: Record<string, string> = {
-      Manhattan: "bg-blue-50 text-blue-700",
-      Brooklyn: "bg-green-50 text-green-700",
-      Queens: "bg-purple-50 text-purple-700",
-      Bronx: "bg-orange-50 text-orange-700",
-      "Staten Island": "bg-red-50 text-red-700",
-    };
-    return colors[borough] || "bg-gray-50 text-gray-700";
-  };
-
   // Function to render cost display
   const renderCostDisplay = (provider: any) => {
     // Safety check for provider
     if (!provider) {
       return <div className="text-center text-gray-500">Price information unavailable</div>;
     }
-    
-    // Use actual price range from database if available
-    const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
-    let costRange;
-    
-    if (hasDbPriceRange) {
-      costRange = { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) };
-    } else {
-      costRange = getCostRange(provider);
-    }
-    
-    // Ensure costRange is properly defined with fallback
-    if (!costRange || typeof costRange.min !== 'number' || typeof costRange.max !== 'number') {
-      costRange = { min: 2000, max: 3000 }; // Default fallback
-    }
-    
-    const dollarSigns = getCostLevel(provider, costRange);
+
+    const costRange = getCostRange(provider);
+    const dollarSigns = getCostLevel(costRange);
     
     // Always show the $$ meter first
     const dollarMeter = (
