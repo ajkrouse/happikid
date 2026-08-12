@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/select";
 import { ProviderContributions } from "./ProviderContributions";
 import { ReviewVoting } from "./ReviewVoting";
-import { getCostRange, getCostLevel, getBoroughColor } from "@/lib/providerPricing";
+import { getCostRange, getCostLevel, getBoroughColor, hasPricingData } from "@/lib/providerPricing";
 
 interface ProviderModalProps {
   provider: Provider | null;
@@ -81,6 +81,8 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
 
     const costRange = getCostRange(provider);
     const dollarSigns = getCostLevel(costRange);
+    const verified = hasPricingData(provider);
+    const showAmounts = provider.showExactPrice !== false;
     
     // Always show the $$ meter first
     const dollarMeter = (
@@ -96,12 +98,18 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
       </div>
     );
     
-    // Always show the full price range, never single price
     return (
       <div className="text-center">
         {dollarMeter}
-        <div className="text-lg font-semibold text-brand-evergreen">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}</div>
-        <div className="text-gray-600">per month</div>
+        {showAmounts && (
+          <>
+            <div className="text-lg font-semibold text-brand-evergreen">${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}</div>
+            <div className="text-gray-600">per month</div>
+          </>
+        )}
+        <div className={`text-xs mt-1 font-medium ${verified ? 'text-green-600' : 'text-gray-400'}`}>
+          {verified ? '✓ Verified pricing' : 'Estimated range'}
+        </div>
       </div>
     );
   };

@@ -29,18 +29,45 @@ const BOROUGH_COLORS: Record<string, string> = {
 };
 
 /**
- * Returns the estimated monthly cost range for a provider based on type and location.
- * If the provider has explicit DB price fields, use those instead.
+ * Returns true when the provider has explicitly entered verified pricing data.
+ * Accepts either:
+ *  - An explicit price range (monthlyPriceMin + monthlyPriceMax both set), or
+ *  - A fixed monthly price (monthlyPrice > 0).
+ * When false, cost display is an estimate derived from type × borough multipliers.
  */
-export function getCostRange(provider: Pick<Provider, "type" | "borough" | "city" | "monthlyPriceMin" | "monthlyPriceMax">): { min: number; max: number } {
-  const hasDbPriceRange = provider.monthlyPriceMin && provider.monthlyPriceMax;
-  if (hasDbPriceRange) {
+export function hasPricingData(
+  provider: Pick<Provider, "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax">
+): boolean {
+  if (provider.monthlyPriceMin && provider.monthlyPriceMax) return true;
+  if (provider.monthlyPrice && Number(provider.monthlyPrice) > 0) return true;
+  return false;
+}
+
+/**
+ * Returns the monthly cost range for a provider.
+ * Priority:
+ *  1. Explicit range (monthlyPriceMin + monthlyPriceMax)
+ *  2. Fixed price (monthlyPrice > 0) — treated as a point estimate (min === max)
+ *  3. Type × location estimate fallback
+ */
+export function getCostRange(
+  provider: Pick<Provider, "type" | "borough" | "city" | "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax">
+): { min: number; max: number } {
+  // Explicit range wins
+  if (provider.monthlyPriceMin && provider.monthlyPriceMax) {
     return {
       min: Number(provider.monthlyPriceMin),
       max: Number(provider.monthlyPriceMax),
     };
   }
 
+  // Fixed price — use as both bounds
+  const fixedPrice = Number(provider.monthlyPrice);
+  if (fixedPrice > 0) {
+    return { min: fixedPrice, max: fixedPrice };
+  }
+
+  // Fallback: type × location estimate
   const baseRange = TYPE_RANGES[provider.type] ?? TYPE_RANGES.daycare;
 
   let multiplier = 1.0;
@@ -61,7 +88,11 @@ export function getCostRange(provider: Pick<Provider, "type" | "borough" | "city
  * Thresholds are calibrated for NYC childcare pricing.
  */
 export function getCostLevel(costRange: { min: number; max: number }): number {
-  if (!costRange || typeof costRange.min !== "number" || typeof costRange.max !== "number") {
+  if (
+    !costRange ||
+    !Number.isFinite(costRange.min) ||
+    !Number.isFinite(costRange.max)
+  ) {
     return 3;
   }
   const midpoint = (costRange.min + costRange.max) / 2;
@@ -80,4 +111,17 @@ export function getBoroughColor(borough: string, city?: string | null): string {
     return "bg-teal-50 text-teal-700";
   }
   return BOROUGH_COLORS[borough] ?? "bg-gray-50 text-gray-700";
+}
+
+/**
+ * Formats a cost range for display, respecting the provider's showExactPrice flag.
+ * When showExactPrice is false, returns null (caller should hide dollar amounts and
+ * show only the $$ meter).
+ */
+export function formatCostRange(
+  provider: Pick<Provider, "type" | "borough" | "city" | "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax" | "showExactPrice">
+): { range: { min: number; max: number }; showAmounts: boolean } {
+  const range = getCostRange(provider);
+  const showAmounts = provider.showExactPrice !== false;
+  return { range, showAmounts };
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
-import { getCostRange } from "@/lib/providerPricing";
+import { getCostRange, hasPricingData } from "@/lib/providerPricing";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
 import { 
@@ -62,6 +62,7 @@ type ComparisonAttribute = {
   label: string;
   icon: any;
   getValue: (provider: Provider) => string | number | null;
+  renderValue?: (provider: Provider) => React.ReactNode;
   getScore: (provider: Provider, preferences: UserPreferences) => number;
   isHighlighted: (provider: Provider, preferences: UserPreferences) => boolean;
   dataSource: 'provider' | 'public' | 'reviews';
@@ -178,6 +179,18 @@ export default function ComparisonModal({
       label: 'Monthly Price',
       icon: DollarSign,
       getValue: (p) => formatPrice(p),
+      renderValue: (p) => {
+        const verified = hasPricingData(p);
+        const showAmounts = p.showExactPrice !== false;
+        return (
+          <div>
+            {showAmounts && <div>{formatPrice(p)}</div>}
+            <div className={`text-xs mt-0.5 font-medium ${verified ? 'text-green-600' : 'text-gray-400'}`}>
+              {verified ? '✓ Verified' : 'Est. range'}
+            </div>
+          </div>
+        );
+      },
       getScore: (p, prefs) => {
         const priceMin = Number(p.monthlyPriceMin) || Number(p.monthlyPrice) || 0;
         const priceMax = Number(p.monthlyPriceMax) || Number(p.monthlyPrice) || 0;
@@ -916,7 +929,7 @@ export default function ComparisonModal({
                       ? 'font-semibold text-blue-900 bg-blue-100 px-2 py-1 rounded' 
                       : 'text-gray-700'
                   }`}>
-                    {attr.getValue(provider)}
+                    {attr.renderValue ? attr.renderValue(provider) : attr.getValue(provider)}
                   </div>
                 </div>
               ))}

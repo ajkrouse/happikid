@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
-import { getCostRange, getCostLevel, getBoroughColor } from "@/lib/providerPricing";
+import { getCostRange, getCostLevel, getBoroughColor, hasPricingData } from "@/lib/providerPricing";
 
 interface ProviderCardProps {
   provider: ProviderWithScore;
@@ -105,6 +105,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   const renderCostDisplay = (provider: Provider) => {
     const costRange = getCostRange(provider);
     const dollarSigns = getCostLevel(costRange);
+    const verified = hasPricingData(provider);
+    const showAmounts = provider.showExactPrice !== false;
     
     const dollarMeter = (
       <div className="flex items-center gap-0.5 mb-0.5">
@@ -122,8 +124,13 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     return (
       <div className="text-left">
         {dollarMeter}
-        <div className="text-xs text-gray-600 leading-tight">
-          ${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}/mo
+        {showAmounts && (
+          <div className="text-xs text-gray-600 leading-tight">
+            ${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}/mo
+          </div>
+        )}
+        <div className={`text-xs mt-0.5 font-medium ${verified ? 'text-green-600' : 'text-gray-400'}`}>
+          {verified ? '✓ Verified pricing' : 'Est. range'}
         </div>
       </div>
     );
