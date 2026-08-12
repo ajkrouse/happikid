@@ -101,14 +101,34 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     
     const baseRange = typeRanges[provider.type as keyof typeof typeRanges] || typeRanges.daycare;
     
-    // Use the actual monthly price if available, otherwise use base range
-    if (provider.monthlyPrice) {
-      const price = Number(provider.monthlyPrice);
-      // Create a range around the single price point
-      return { min: Math.round(price * 0.9), max: Math.round(price * 1.1) };
+    // Apply area multipliers (must match ProviderCard logic)
+    let multiplier = 1.0;
+    if (provider.borough === 'Manhattan') multiplier = 1.2;
+    else if (provider.borough === 'Brooklyn') multiplier = 1.0;
+    else if (provider.borough === 'Queens') multiplier = 0.9;
+    else if (provider.borough === 'Bronx') multiplier = 0.8;
+    else if (provider.borough === 'Staten Island') multiplier = 0.85;
+    else if (provider.city === 'Hoboken') multiplier = 1.05;
+    else if (provider.city === 'Jersey City') multiplier = 0.95;
+
+    return {
+      min: Math.round(baseRange.min * multiplier),
+      max: Math.round(baseRange.max * multiplier),
+    };
+  };
+
+  const getBoroughColor = (borough: string, city?: string | null) => {
+    if (city === 'Hoboken' || city === 'Jersey City') {
+      return "bg-teal-50 text-teal-700";
     }
-    
-    return baseRange;
+    const colors: Record<string, string> = {
+      Manhattan: "bg-blue-50 text-blue-700",
+      Brooklyn: "bg-green-50 text-green-700",
+      Queens: "bg-purple-50 text-purple-700",
+      Bronx: "bg-orange-50 text-orange-700",
+      "Staten Island": "bg-red-50 text-red-700",
+    };
+    return colors[borough] || "bg-gray-50 text-gray-700";
   };
 
   // Function to render cost display
@@ -300,7 +320,23 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
       <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl">{currentProvider.name}</DialogTitle>
+            <div>
+              <DialogTitle className="text-2xl">{currentProvider.name}</DialogTitle>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge
+                  variant="secondary"
+                  className={`rounded-full font-medium text-xs ${getBoroughColor(currentProvider.borough, currentProvider.city)}`}
+                >
+                  {currentProvider.city === 'Hoboken' || currentProvider.city === 'Jersey City'
+                    ? currentProvider.city
+                    : currentProvider.borough}
+                </Badge>
+                <span className="text-sm text-gray-500 flex items-center">
+                  <MapPin className="h-3.5 w-3.5 mr-1" />
+                  {currentProvider.address}
+                </span>
+              </div>
+            </div>
             <div className="mr-4">
               <Button
                 variant="ghost"
