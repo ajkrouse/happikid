@@ -94,6 +94,7 @@ export const providers = pgTable("providers", {
   licenseNumber: varchar("license_number"),
   licenseStatus: varchar("license_status", { enum: ["pending", "confirmed", "rejected"] }).default("pending"),
   licenseConfirmedAt: timestamp("license_confirmed_at"),
+  licenseSubmittedAt: timestamp("license_submitted_at"),
   accreditationDetails: text("accreditation_details"),
   programHighlights: text("program_highlights").array(),
   uniqueSellingPoints: text("unique_selling_points").array(),

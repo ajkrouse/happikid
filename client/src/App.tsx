@@ -25,6 +25,7 @@ const ParentSignup = lazy(() => import("@/pages/ParentSignup"));
 const ProviderSignup = lazy(() => import("@/pages/ProviderSignup"));
 const ClaimBusiness = lazy(() => import("@/pages/ClaimBusiness"));
 const AdminClaims = lazy(() => import("@/pages/AdminClaims"));
+const AdminVerifications = lazy(() => import("@/pages/AdminVerifications"));
 const AfterSchoolPrograms = lazy(() => import("@/pages/AfterSchoolPrograms"));
 const Messages = lazy(() => import("@/pages/Messages"));
 
@@ -62,6 +63,7 @@ function Router() {
           <Route path="/provider/dashboard" component={ProviderDashboard} />
           <Route path="/provider/celebration" component={ProviderCelebration} />
           <Route path="/admin/claims" component={AdminClaims} />
+          <Route path="/admin/verifications" component={AdminVerifications} />
 
           <Route component={NotFound} />
         </Switch>

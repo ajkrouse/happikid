@@ -447,18 +447,27 @@ export function registerProviderRoutes(app: Express): void {
     }
   });
 
-  // Confirm license
+  // Submit license for admin review
   app.post("/api/providers/confirm-license", isAuthenticated, async (req: any, res) => {
     try {
-      const providers = await storage.getProvidersByUserId(req.user?.claims?.sub);
-      if (!providers?.length) return res.status(404).json({ message: "Provider not found" });
-      const updated = await storage.updateProvider(providers[0].id, {
-        licenseStatus: "confirmed", licenseConfirmedAt: new Date(), isProfileVisible: true,
+      const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      if (!userProviders?.length) return res.status(404).json({ message: "Provider not found" });
+      const existing = userProviders[0];
+
+      // If already confirmed, no-op so existing confirmed providers are unaffected
+      if (existing.licenseStatus === "confirmed") {
+        return res.json({ message: "License already confirmed", provider: existing, isPending: false });
+      }
+
+      const updated = await storage.updateProvider(existing.id, {
+        licenseStatus: "pending",
+        licenseSubmittedAt: new Date(),
+        isProfileVisible: false,
       });
-      res.json({ message: "License confirmation request submitted successfully", provider: updated, isConfirmed: true });
+      res.json({ message: "License submitted for review. An admin will verify your submission shortly.", provider: updated, isPending: true });
     } catch (error) {
-      log.error({ err: error }, "Error confirming license");
-      res.status(500).json({ message: "Failed to confirm license" });
+      log.error({ err: error }, "Error submitting license for review");
+      res.status(500).json({ message: "Failed to submit license for review" });
     }
   });
 

@@ -132,3 +132,67 @@ export async function sendNewMessageNotification(opts: {
     text,
   });
 }
+
+/**
+ * Notify a provider that their license submission was rejected, with the reason
+ * and a link to their dashboard so they can correct and resubmit.
+ */
+export async function sendLicenseRejectionEmail(opts: {
+  recipientEmail: string;
+  recipientName: string;
+  providerName: string;
+  reason: string;
+}): Promise<void> {
+  const baseUrl = getCanonicalBaseUrl();
+  const dashboardUrl = `${baseUrl}/provider/dashboard`;
+
+  const safeName = escapeHtml(opts.recipientName);
+  const safeProvider = escapeHtml(opts.providerName);
+  const safeReason = escapeHtml(opts.reason);
+
+  const subject = `Action required: License verification for ${opts.providerName}`;
+  const text = [
+    `Hi ${opts.recipientName},`,
+    ``,
+    `We reviewed the license submission for ${opts.providerName} and were unable to verify it at this time.`,
+    ``,
+    `Reason: ${opts.reason}`,
+    ``,
+    `Please update your license information and resubmit for review:`,
+    dashboardUrl,
+    ``,
+    `If you believe this is an error, please contact us at support@happikid.com.`,
+    ``,
+    `— The HappiKid Team`,
+  ].join("\n");
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
+      <h2 style="color:#1a3a2a;margin-bottom:8px">License Verification — Action Required</h2>
+      <p style="color:#555;margin-bottom:16px">Hi ${safeName},</p>
+      <p style="color:#555;margin-bottom:16px">
+        We reviewed the license submission for <strong>${safeProvider}</strong> and were unable to verify it at this time.
+      </p>
+      <div style="background:#fff4f2;border-left:4px solid #c0502a;padding:12px 16px;border-radius:4px;margin-bottom:24px">
+        <p style="color:#7a2a10;margin:0;font-weight:600;margin-bottom:4px">Reason</p>
+        <p style="color:#333;margin:0">${safeReason}</p>
+      </div>
+      <p style="color:#555;margin-bottom:16px">
+        Please update your license information on your dashboard and resubmit for review.
+      </p>
+      <a href="${dashboardUrl}" style="display:inline-block;background:#c0502a;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600">
+        Go to Dashboard
+      </a>
+      <p style="color:#999;font-size:12px;margin-top:32px">
+        If you believe this is an error, please contact us at support@happikid.com.
+      </p>
+    </div>
+  `;
+
+  await sendEmail({
+    to: opts.recipientEmail,
+    subject,
+    html,
+    text,
+  });
+}

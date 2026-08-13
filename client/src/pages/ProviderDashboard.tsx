@@ -124,15 +124,15 @@ export default function ProviderDashboard() {
     },
     onSuccess: () => {
       toast({
-        title: "License Confirmed!",
-        description: "Your provider profile is now live and visible to families.",
+        title: "Submitted for review",
+        description: "Your license has been sent to our team. We'll notify you once it's verified — typically within 1–2 business days.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/providers/mine"] });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to confirm license. Please try again.",
+        description: error.message || "Failed to submit license. Please try again.",
         variant: "destructive",
       });
     },
@@ -232,17 +232,18 @@ export default function ProviderDashboard() {
         </div>
 
         {/* License Status Banner */}
-        {provider.licenseStatus === "pending" && (
+        {/* State 1: Not yet submitted — prompt provider to submit */}
+        {provider.licenseStatus === "pending" && !provider.licenseSubmittedAt && (
           <Card className="mb-8 bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-gradient-to-r from-red-400 to-orange-500 rounded-lg">
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-red-900">License Confirmation Required</h3>
-                    <p className="text-red-700">Your profile is hidden from families until your license is confirmed</p>
+                    <p className="text-red-700">Submit your license for review to make your profile visible to families</p>
                   </div>
                 </div>
                 <Button
@@ -255,18 +256,69 @@ export default function ProviderDashboard() {
                   ) : (
                     <Shield className="h-4 w-4 mr-2" />
                   )}
-                  {confirmLicenseMutation.isPending ? "Confirming..." : "Confirm License"}
+                  {confirmLicenseMutation.isPending ? "Submitting..." : "Submit for Review"}
                 </Button>
               </div>
             </CardContent>
           </Card>
         )}
 
+        {/* State 2: Submitted — awaiting admin review */}
+        {provider.licenseStatus === "pending" && provider.licenseSubmittedAt && (
+          <Alert className="mb-8 bg-blue-50 border-blue-200">
+            <Clock className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>Verification pending.</strong> Your license was submitted on{" "}
+              {new Date(provider.licenseSubmittedAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}{" "}
+              and is under review. We'll notify you once it's approved — typically within 1–2 business days.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* State 3: Rejected — prompt provider to correct and resubmit */}
+        {provider.licenseStatus === "rejected" && (
+          <Card className="mb-8 bg-gradient-to-r from-red-50 to-rose-50 border-red-300">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-red-600 rounded-lg">
+                    <AlertTriangle className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-red-900">License Verification Failed</h3>
+                    <p className="text-red-700">
+                      We couldn't verify your license. Please check the email we sent you, update your license
+                      information in your profile, then resubmit.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+                  onClick={() => confirmLicenseMutation.mutate()}
+                  disabled={confirmLicenseMutation.isPending}
+                >
+                  {confirmLicenseMutation.isPending ? (
+                    <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Shield className="h-4 w-4 mr-2" />
+                  )}
+                  {confirmLicenseMutation.isPending ? "Submitting..." : "Resubmit for Review"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* State 4: Confirmed — profile is live */}
         {provider.licenseStatus === "confirmed" && (
           <Alert className="mb-8 bg-green-50 border-green-200">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              <strong>License Confirmed!</strong> Your profile is now live and visible to families searching for childcare.
+              <strong>License Verified!</strong> Your profile is live and visible to families searching for childcare.
             </AlertDescription>
           </Alert>
         )}

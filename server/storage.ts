@@ -198,6 +198,9 @@ export interface IStorage {
   createThreadMessage(threadId: number, senderUserId: string, body: string): Promise<ThreadMessage>;
   getThreadMessages(threadId: number): Promise<ThreadMessage[]>;
   markThreadMessagesRead(threadId: number, userId: string): Promise<void>;
+
+  // Admin license verification queue
+  getPendingLicenseVerifications(): Promise<(Provider & { ownerEmail: string | null; ownerFirstName: string | null; ownerLastName: string | null })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1370,6 +1373,28 @@ export class DatabaseStorage implements IStorage {
           sql`${threadMessages.readAt} IS NULL`
         )
       );
+  }
+
+  // Admin license verification queue — returns submitted-but-unreviewed providers
+  // (pending with a submission date, or previously rejected so admin can re-examine)
+  async getPendingLicenseVerifications(): Promise<(Provider & { ownerEmail: string | null; ownerFirstName: string | null; ownerLastName: string | null })[]> {
+    const rows = await db
+      .select({
+        ...getTableColumns(providers),
+        ownerEmail: users.email,
+        ownerFirstName: users.firstName,
+        ownerLastName: users.lastName,
+      })
+      .from(providers)
+      .leftJoin(users, eq(providers.userId, users.id))
+      .where(
+        and(
+          eq(providers.licenseStatus, "pending"),
+          sql`${providers.licenseSubmittedAt} IS NOT NULL`
+        )
+      )
+      .orderBy(asc(providers.licenseSubmittedAt));
+    return rows as any;
   }
 }
 
