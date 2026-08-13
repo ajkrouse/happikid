@@ -352,7 +352,16 @@ export function registerProviderRoutes(app: Express): void {
       } else {
         // Create path: parse through providerClientUpdateSchema to strip server-controlled fields,
         // then let insertProviderSchema validate & normalise everything, with userId enforced from auth.
-        const safeData = providerClientUpdateSchema.partial().parse(providerData);
+        // Pre-filter inverted closure entries (to < from) before schema validation so they are
+        // silently stripped rather than causing a 400 rejection.
+        const bodyForCreate: any = { ...providerData };
+        if (Array.isArray(bodyForCreate.closedDates)) {
+          bodyForCreate.closedDates = bodyForCreate.closedDates.filter(
+            (e: any) => typeof e?.from === "string" && typeof e?.to === "string" && e.from <= e.to
+          );
+          if (bodyForCreate.closedDates.length === 0) bodyForCreate.closedDates = null;
+        }
+        const safeData = providerClientUpdateSchema.partial().parse(bodyForCreate);
         const base: any = {
           ...safeData, userId,
           type: safeData.type || "daycare",
