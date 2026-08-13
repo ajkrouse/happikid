@@ -217,7 +217,15 @@ export function registerProviderRoutes(app: Express): void {
     try {
       const providers = await storage.getProvidersByUserId(req.user?.claims?.sub);
       if (providers.length === 0) return res.status(404).json({ message: "No provider profile found" });
-      res.json(providers[0]);
+      const provider = providers[0];
+      // Strip expired closure entries so the edit form never surfaces stale history
+      const todayIso = new Date().toISOString().slice(0, 10);
+      if (Array.isArray(provider.closedDates)) {
+        (provider as any).closedDates = (provider.closedDates as any[]).filter(
+          (e: any) => typeof e?.to === "string" && e.to >= todayIso
+        );
+      }
+      res.json(provider);
     } catch (error) {
       log.error({ err: error }, "Error fetching user provider");
       res.status(500).json({ message: "Failed to fetch provider" });
@@ -383,7 +391,14 @@ export function registerProviderRoutes(app: Express): void {
       const userId = req.user?.claims?.sub;
       const existing = await storage.getProvider(id);
       if (!existing || existing.userId !== userId) return res.status(403).json({ message: "Access denied" });
-      res.json(await storage.updateProvider(id, { ...providerClientUpdateSchema.partial().parse(req.body), userId }));
+      const parsed = providerClientUpdateSchema.partial().parse(req.body);
+      // Lazy cleanup: drop any closure entries whose end date has already passed
+      if (Array.isArray(parsed.closedDates)) {
+        const todayIso = new Date().toISOString().slice(0, 10);
+        parsed.closedDates = parsed.closedDates.filter((e) => e.to >= todayIso);
+        if (parsed.closedDates.length === 0) parsed.closedDates = null;
+      }
+      res.json(await storage.updateProvider(id, { ...parsed, userId }));
     } catch (error) {
       log.error({ err: error }, "Error updating provider");
       if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
