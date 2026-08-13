@@ -494,7 +494,9 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                       {(() => {
                         const rawDates = (currentProvider as any).closedDates as ClosedDateEntry[] | null | undefined;
                         const today = new Date().toISOString().slice(0, 10);
-                        const upcoming = (rawDates ?? []).filter((e) => e.to >= today);
+                        const upcoming = (rawDates ?? [])
+                          .filter((e) => e.to >= today)
+                          .sort((a, b) => a.from.localeCompare(b.from));
                         if (upcoming.length === 0) return null;
                         return (
                           <div className="space-y-2">

@@ -95,6 +95,11 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
   // appears immediately after save without waiting for React Query to
   // deliver a fresh provider prop.
   const [savedClosureNote, setSavedClosureNote] = useState(provider.closureNote ?? "");
+  // Mirrors the last successfully saved closedDates so the read-only list
+  // reflects the save immediately, before React Query delivers the fresh prop.
+  const [savedClosedDates, setSavedClosedDates] = useState<ClosedDateEntry[]>(
+    () => (provider.closedDates ?? [])
+  );
   const [closedDates, setClosedDates] = useState<ClosedDateEntry[]>(
     () => (provider.closedDates ?? [])
   );
@@ -113,9 +118,11 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
     onSuccess: () => {
       toast({ title: "Schedule updated!", description: "Your availability is now live on your profile." });
       queryClient.invalidateQueries({ queryKey: ["/api/providers/mine"] });
-      // Reflect the saved note immediately in the read-only banner so families
-      // see it right away, before React Query delivers the refreshed prop.
+      // Reflect the saved note and closed-dates immediately in the read-only
+      // view so families see it right away, before React Query delivers the
+      // refreshed prop.
       setSavedClosureNote(closureNote.trim());
+      setSavedClosedDates([...closedDates]);
       setEditing(false);
     },
     onError: (error: any) => {
@@ -190,7 +197,9 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
   // Read-only summary
   const openDays = DAYS.filter((d) => schedule[d].isOpen);
   const today = todayIso();
-  const upcomingClosures = (provider.closedDates ?? []).filter((e) => e.to >= today);
+  const upcomingClosures = savedClosedDates
+    .filter((e) => e.to >= today)
+    .sort((a, b) => a.from.localeCompare(b.from));
 
   return (
     <Card>
