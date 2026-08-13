@@ -137,6 +137,84 @@ export async function sendNewMessageNotification(opts: {
  * Notify a provider that their license submission was rejected, with the reason
  * and a link to their dashboard so they can correct and resubmit.
  */
+/**
+ * Notify a provider that a parent has submitted a tour request.
+ */
+export async function sendTourRequestNotification(opts: {
+  recipientEmail: string;
+  recipientName: string;
+  parentName: string;
+  parentEmail: string;
+  providerName: string;
+  preferredDates: string[];
+  preferredTime: string;
+  note: string | null;
+}): Promise<void> {
+  const baseUrl = getCanonicalBaseUrl();
+  const dashboardUrl = `${baseUrl}/provider/dashboard`;
+
+  const safeRecipient = escapeHtml(opts.recipientName);
+  const safeParent = escapeHtml(opts.parentName);
+  const safeParentEmail = escapeHtml(opts.parentEmail);
+  const safeProvider = escapeHtml(opts.providerName);
+  const safeTime = escapeHtml(
+    opts.preferredTime === "morning" ? "Morning (before noon)"
+    : opts.preferredTime === "afternoon" ? "Afternoon (noon–5 pm)"
+    : "Flexible"
+  );
+  const safeDates = opts.preferredDates.map(escapeHtml).join(", ");
+  const safeNote = opts.note ? escapeHtml(opts.note) : null;
+
+  const subject = `New tour request from ${opts.parentName} — ${opts.providerName}`;
+
+  const text = [
+    `Hi ${opts.recipientName},`,
+    ``,
+    `${opts.parentName} (${opts.parentEmail}) has requested a tour of ${opts.providerName}.`,
+    ``,
+    `Preferred dates: ${opts.preferredDates.join(", ")}`,
+    `Preferred time: ${safeTime.replace(/<[^>]+>/g, "")}`,
+    opts.note ? `Note: ${opts.note}` : null,
+    ``,
+    `Visit your dashboard to view and respond to this request:`,
+    dashboardUrl,
+    ``,
+    `— The HappiKid Team`,
+  ].filter((l) => l !== null).join("\n");
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
+      <h2 style="color:#1a3a2a;margin-bottom:8px">New Tour Request</h2>
+      <p style="color:#555;margin-bottom:16px">Hi ${safeRecipient},</p>
+      <p style="color:#555;margin-bottom:16px">
+        <strong>${safeParent}</strong> (<a href="mailto:${safeParentEmail}" style="color:#2563eb">${safeParentEmail}</a>)
+        has requested a tour of <strong>${safeProvider}</strong>.
+      </p>
+      <div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:12px 16px;border-radius:4px;margin-bottom:16px">
+        <p style="margin:0 0 6px;font-weight:600;color:#166534">Preferred Dates</p>
+        <p style="margin:0;color:#333">${safeDates}</p>
+      </div>
+      <div style="background:#eff6ff;border-left:4px solid #2563eb;padding:12px 16px;border-radius:4px;margin-bottom:${safeNote ? "16px" : "24px"}">
+        <p style="margin:0 0 6px;font-weight:600;color:#1e40af">Preferred Time</p>
+        <p style="margin:0;color:#333">${safeTime}</p>
+      </div>
+      ${safeNote ? `
+      <div style="background:#fafafa;border:1px solid #e5e7eb;padding:12px 16px;border-radius:4px;margin-bottom:24px">
+        <p style="margin:0 0 6px;font-weight:600;color:#374151">Note from parent</p>
+        <p style="margin:0;color:#555">${safeNote}</p>
+      </div>` : ""}
+      <a href="${dashboardUrl}" style="display:inline-block;background:#1a3a2a;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600">
+        View Tour Requests
+      </a>
+      <p style="color:#999;font-size:12px;margin-top:32px">
+        You can update the tour request status (Scheduled or Cancelled) from your provider dashboard.
+      </p>
+    </div>
+  `;
+
+  await sendEmail({ to: opts.recipientEmail, subject, html, text });
+}
+
 export async function sendLicenseRejectionEmail(opts: {
   recipientEmail: string;
   recipientName: string;

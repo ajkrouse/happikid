@@ -940,3 +940,44 @@ export const providerProfileViews = pgTable("provider_profile_views", {
 }));
 
 export type ProviderProfileView = typeof providerProfileViews.$inferSelect;
+
+// Tour requests — structured visit scheduling from parents to providers
+export const tourRequestStatusEnum = pgEnum('tour_request_status', ['pending', 'scheduled', 'cancelled']);
+
+export const tourRequests = pgTable("tour_requests", {
+  id: serial("id").primaryKey(),
+  parentUserId: varchar("parent_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  // Up to 3 preferred dates as ISO strings: ["2026-09-10", "2026-09-12", "2026-09-15"]
+  preferredDates: jsonb("preferred_dates").notNull().$type<string[]>(),
+  preferredTime: varchar("preferred_time", { enum: ["morning", "afternoon", "flexible"] }).notNull(),
+  note: text("note"),
+  status: tourRequestStatusEnum("status").default("pending").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  parentIdx: index("tour_requests_parent_idx").on(t.parentUserId),
+  providerIdx: index("tour_requests_provider_idx").on(t.providerId),
+}));
+
+export const tourRequestsRelations = relations(tourRequests, ({ one }) => ({
+  parent: one(users, { fields: [tourRequests.parentUserId], references: [users.id] }),
+  provider: one(providers, { fields: [tourRequests.providerId], references: [providers.id] }),
+}));
+
+export const insertTourRequestSchema = createInsertSchema(tourRequests).omit({
+  id: true,
+  createdAt: true,
+});
+
+/** Client-safe schema — parentUserId and status are enforced server-side. */
+export const tourRequestClientCreateSchema = insertTourRequestSchema.omit({
+  parentUserId: true,
+  status: true,
+}).extend({
+  preferredDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")).min(1).max(3),
+  preferredTime: z.enum(["morning", "afternoon", "flexible"]),
+  note: z.string().max(1000).optional().nullable(),
+});
+
+export type TourRequest = typeof tourRequests.$inferSelect;
+export type InsertTourRequest = z.infer<typeof insertTourRequestSchema>;

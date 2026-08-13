@@ -39,6 +39,7 @@ import {
   Circle,
   CheckCircle2,
   UserX,
+  CalendarCheck,
 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -51,6 +52,7 @@ export default function ProviderDashboard() {
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
   const [pricingCardKey, setPricingCardKey] = useState(0);
+  const [updatingTourId, setUpdatingTourId] = useState<number | null>(null);
 
   // Fetch provider profile
   const { data: provider } = useQuery<any>({
@@ -77,6 +79,12 @@ export default function ProviderDashboard() {
     refetchInterval: 30000,
   });
 
+  // Fetch tour requests for this provider
+  const { data: tourRequests = [] } = useQuery<any[]>({
+    queryKey: ["/api/tour-requests"],
+    enabled: isAuthenticated && !!provider,
+  });
+
   // Fetch provider optimization score
   const { data: providerScore, isLoading: isLoadingScore } = useQuery<any>({
     queryKey: [`/api/providers/${provider?.id}/score`],
@@ -99,6 +107,22 @@ export default function ProviderDashboard() {
   }>({
     queryKey: ["/api/providers/analytics/score-comparison"],
     enabled: isAuthenticated && !!provider,
+  });
+
+  // Update tour request status mutation
+  const updateTourStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/tour-requests/${id}`, { status });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Status updated", description: "Tour request status has been updated." });
+      queryClient.invalidateQueries({ queryKey: ["/api/tour-requests"] });
+      setUpdatingTourId(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to update", description: error.message, variant: "destructive" });
+    },
   });
 
   // Reply to inquiry mutation
@@ -799,6 +823,101 @@ export default function ProviderDashboard() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tour Requests */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CalendarCheck className="h-5 w-5 text-green-600" />
+              Tour Requests
+              {tourRequests.filter((r: any) => r.status === "pending").length > 0 && (
+                <Badge className="bg-green-600 text-white text-xs">
+                  {tourRequests.filter((r: any) => r.status === "pending").length} pending
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>Parents who have requested to visit your program</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {tourRequests.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <CalendarCheck className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">No tour requests yet.</p>
+                <p className="text-xs mt-1">When families request a tour, they'll appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {tourRequests.map((req: any) => {
+                  const parentName = [req.parentFirstName, req.parentLastName].filter(Boolean).join(" ") || req.parentEmail || "Parent";
+                  const statusColor =
+                    req.status === "scheduled" ? "bg-green-100 text-green-700"
+                    : req.status === "cancelled" ? "bg-gray-100 text-gray-500"
+                    : "bg-amber-100 text-amber-700";
+                  const timeLabel =
+                    req.preferredTime === "morning" ? "Morning"
+                    : req.preferredTime === "afternoon" ? "Afternoon"
+                    : "Flexible";
+                  return (
+                    <div key={req.id} className="p-4 border rounded-lg space-y-2">
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="font-medium">{parentName}</span>
+                            {req.parentEmail && (
+                              <span className="text-xs text-gray-400">{req.parentEmail}</span>
+                            )}
+                            <Badge className={`text-xs ${statusColor}`}>
+                              {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Dates:</span>{" "}
+                            {Array.isArray(req.preferredDates) ? req.preferredDates.join(", ") : req.preferredDates}
+                            <span className="ml-3 text-gray-500">· {timeLabel}</span>
+                          </p>
+                          {req.note && (
+                            <p className="text-sm text-gray-500 mt-1 italic">"{req.note}"</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(req.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        {req.status === "pending" && (
+                          <div className="flex gap-2 shrink-0">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              disabled={updateTourStatusMutation.isPending && updatingTourId === req.id}
+                              onClick={() => {
+                                setUpdatingTourId(req.id);
+                                updateTourStatusMutation.mutate({ id: req.id, status: "scheduled" });
+                              }}
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                              Schedule
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={updateTourStatusMutation.isPending && updatingTourId === req.id}
+                              onClick={() => {
+                                setUpdatingTourId(req.id);
+                                updateTourStatusMutation.mutate({ id: req.id, status: "cancelled" });
+                              }}
+                            >
+                              <UserX className="h-3.5 w-3.5 mr-1" />
+                              Cancel
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>

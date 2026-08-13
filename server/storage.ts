@@ -15,6 +15,7 @@ import {
   familyProfiles,
   threads,
   threadMessages,
+  tourRequests,
   type User,
   type UpsertUser,
   type Provider,
@@ -56,6 +57,8 @@ import {
   type ProviderProfileView,
   type Thread,
   type ThreadMessage,
+  type TourRequest,
+  type InsertTourRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "drizzle-orm";
@@ -202,6 +205,13 @@ export interface IStorage {
 
   // Admin license verification queue
   getPendingLicenseVerifications(): Promise<(Provider & { ownerEmail: string | null; ownerFirstName: string | null; ownerLastName: string | null })[]>;
+
+  // Tour request operations
+  createTourRequest(tourRequest: InsertTourRequest): Promise<TourRequest>;
+  getTourRequest(id: number): Promise<TourRequest | undefined>;
+  getTourRequestsByParentId(parentUserId: string): Promise<(TourRequest & { providerName: string; providerAddress: string })[]>;
+  getTourRequestsByProviderId(providerId: number): Promise<(TourRequest & { parentFirstName: string | null; parentLastName: string | null; parentEmail: string | null })[]>;
+  updateTourRequestStatus(id: number, status: "pending" | "scheduled" | "cancelled"): Promise<TourRequest>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1380,6 +1390,55 @@ export class DatabaseStorage implements IStorage {
           sql`${threadMessages.readAt} IS NULL`
         )
       );
+  }
+
+  // Tour request operations
+  async createTourRequest(tourRequest: InsertTourRequest): Promise<TourRequest> {
+    const [row] = await db.insert(tourRequests).values(tourRequest as any).returning();
+    return row;
+  }
+
+  async getTourRequest(id: number): Promise<TourRequest | undefined> {
+    const [row] = await db.select().from(tourRequests).where(eq(tourRequests.id, id));
+    return row;
+  }
+
+  async getTourRequestsByParentId(parentUserId: string): Promise<(TourRequest & { providerName: string; providerAddress: string })[]> {
+    const rows = await db
+      .select({
+        ...getTableColumns(tourRequests),
+        providerName: providers.name,
+        providerAddress: providers.address,
+      })
+      .from(tourRequests)
+      .innerJoin(providers, eq(tourRequests.providerId, providers.id))
+      .where(eq(tourRequests.parentUserId, parentUserId))
+      .orderBy(desc(tourRequests.createdAt));
+    return rows as any;
+  }
+
+  async getTourRequestsByProviderId(providerId: number): Promise<(TourRequest & { parentFirstName: string | null; parentLastName: string | null; parentEmail: string | null })[]> {
+    const rows = await db
+      .select({
+        ...getTableColumns(tourRequests),
+        parentFirstName: users.firstName,
+        parentLastName: users.lastName,
+        parentEmail: users.email,
+      })
+      .from(tourRequests)
+      .innerJoin(users, eq(tourRequests.parentUserId, users.id))
+      .where(eq(tourRequests.providerId, providerId))
+      .orderBy(desc(tourRequests.createdAt));
+    return rows as any;
+  }
+
+  async updateTourRequestStatus(id: number, status: "pending" | "scheduled" | "cancelled"): Promise<TourRequest> {
+    const [row] = await db
+      .update(tourRequests)
+      .set({ status })
+      .where(eq(tourRequests.id, id))
+      .returning();
+    return row;
   }
 
   // Admin license verification queue — returns submitted-but-unreviewed providers

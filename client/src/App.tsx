@@ -28,6 +28,7 @@ const AdminClaims = lazy(() => import("@/pages/AdminClaims"));
 const AdminVerifications = lazy(() => import("@/pages/AdminVerifications"));
 const AfterSchoolPrograms = lazy(() => import("@/pages/AfterSchoolPrograms"));
 const Messages = lazy(() => import("@/pages/Messages"));
+const ParentDashboard = lazy(() => import("@/pages/ParentDashboard"));
 
 function PageLoader() {
   return (
@@ -58,6 +59,9 @@ function Router() {
 
           {/* Messaging inbox */}
           <Route path="/messages" component={Messages} />
+
+          {/* Parent dashboard */}
+          <Route path="/parent/dashboard" component={ParentDashboard} />
 
           {/* Dashboard routes — components handle their own auth guards */}
           <Route path="/provider/dashboard" component={ProviderDashboard} />

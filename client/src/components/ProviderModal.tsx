@@ -22,6 +22,7 @@ import {
   UserCheck,
   TreePine,
   CalendarX,
+  CalendarCheck,
 } from "lucide-react";
 import { Provider, Review, ProviderImage } from "@shared/schema";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -55,6 +56,12 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showInquiryForm, setShowInquiryForm] = useState(false);
+  const [showTourForm, setShowTourForm] = useState(false);
+  const [tourData, setTourData] = useState({
+    preferredDates: ["", "", ""],
+    preferredTime: "flexible" as "morning" | "afternoon" | "flexible",
+    note: "",
+  });
   const [inquiryData, setInquiryData] = useState({
     parentName: "",
     parentEmail: "",
@@ -152,6 +159,48 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
       });
     },
   });
+
+  // Submit tour request mutation
+  const submitTourRequestMutation = useMutation({
+    mutationFn: async () => {
+      if (!provider) return;
+      const dates = tourData.preferredDates.filter((d) => d.trim() !== "");
+      await apiRequest("POST", `/api/providers/${provider.id}/tour-requests`, {
+        preferredDates: dates,
+        preferredTime: tourData.preferredTime,
+        note: tourData.note.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Tour request sent!",
+        description: "The provider will review your preferred dates and follow up shortly.",
+      });
+      setShowTourForm(false);
+      setTourData({ preferredDates: ["", "", ""], preferredTime: "flexible", note: "" });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to send tour request. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleTourSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const validDates = tourData.preferredDates.filter((d) => d.trim() !== "");
+    if (validDates.length === 0) {
+      toast({
+        title: "At least one date required",
+        description: "Please enter at least one preferred tour date.",
+        variant: "destructive",
+      });
+      return;
+    }
+    submitTourRequestMutation.mutate();
+  };
 
   const { signIn } = useAuth();
 
@@ -547,8 +596,37 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                       <Button 
                         className="w-full" 
                         onClick={() => {
+                          if (!isAuthenticated) {
+                            toast({
+                              title: "Sign In Required",
+                              description: "Please sign in to request a tour.",
+                              action: (
+                                <Button size="sm" onClick={() => signIn()} className="ml-2">Sign In</Button>
+                              ),
+                              duration: 5000,
+                            });
+                            return;
+                          }
+                          setShowTourForm(true);
+                          setTimeout(() => {
+                            const dialogContent = document.querySelector('[role="dialog"] [data-radix-scroll-area-viewport]') ||
+                                                 document.querySelector('[role="dialog"]');
+                            if (dialogContent) {
+                              dialogContent.scrollTo({ top: dialogContent.scrollHeight, behavior: 'smooth' });
+                            }
+                          }, 100);
+                        }}
+                        data-testid="button-request-tour"
+                      >
+                        <CalendarCheck className="h-4 w-4 mr-2" />
+                        {showTourForm ? "Scroll Down to See Form" : "Request a Tour"}
+                      </Button>
+
+                      <Button 
+                        variant="outline"
+                        className="w-full" 
+                        onClick={() => {
                           setShowInquiryForm(true);
-                          // Scroll to bottom after a short delay to let the form render
                           setTimeout(() => {
                             const dialogContent = document.querySelector('[role="dialog"] [data-radix-scroll-area-viewport]') || 
                                                  document.querySelector('[role="dialog"]');
@@ -609,6 +687,99 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                 </Card>
               </div>
             </div>
+
+            {/* Tour Request Form */}
+            {showTourForm && (
+              <Card className="mt-6 border-2 border-green-200 bg-green-50/50">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
+                      <CalendarCheck className="h-5 w-5" />
+                      Request a Tour — {currentProvider?.name}
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowTourForm(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      ✕ Close
+                    </Button>
+                  </div>
+                  <form onSubmit={handleTourSubmit} className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Preferred Dates <span className="text-gray-400 font-normal">(enter up to 3)</span>
+                      </Label>
+                      <div className="space-y-2">
+                        {tourData.preferredDates.map((date, i) => (
+                          <Input
+                            key={i}
+                            type="date"
+                            value={date}
+                            onChange={(e) => {
+                              const newDates = [...tourData.preferredDates];
+                              newDates[i] = e.target.value;
+                              setTourData({ ...tourData, preferredDates: newDates });
+                            }}
+                            placeholder={`Option ${i + 1}`}
+                            min={new Date().toISOString().slice(0, 10)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="tourTime" className="text-sm font-medium text-gray-700 mb-1 block">
+                        Preferred Time of Day
+                      </Label>
+                      <Select
+                        value={tourData.preferredTime}
+                        onValueChange={(value: "morning" | "afternoon" | "flexible") =>
+                          setTourData({ ...tourData, preferredTime: value })
+                        }
+                      >
+                        <SelectTrigger id="tourTime">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="morning">Morning (before noon)</SelectItem>
+                          <SelectItem value="afternoon">Afternoon (noon–5 pm)</SelectItem>
+                          <SelectItem value="flexible">Flexible — any time works</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="tourNote" className="text-sm font-medium text-gray-700 mb-1 block">
+                        Note <span className="text-gray-400 font-normal">(optional)</span>
+                      </Label>
+                      <Textarea
+                        id="tourNote"
+                        value={tourData.note}
+                        onChange={(e) => setTourData({ ...tourData, note: e.target.value })}
+                        rows={3}
+                        placeholder="Any questions or details you'd like the provider to know before the tour..."
+                        maxLength={1000}
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <Button type="button" variant="outline" onClick={() => setShowTourForm(false)}>
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={submitTourRequestMutation.isPending}
+                        className="bg-green-700 hover:bg-green-800 text-white"
+                      >
+                        {submitTourRequestMutation.isPending ? "Sending…" : "Send Tour Request"}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Inquiry Form Modal */}
             {showInquiryForm && (

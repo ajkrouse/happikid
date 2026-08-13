@@ -19,6 +19,7 @@ import { registerTaxonomyRoutes } from "./routes/taxonomy";
 import { registerMetaRoutes } from "./routes/meta";
 import { registerThreadRoutes } from "./routes/threads";
 import { registerAdminRoutes } from "./routes/admin";
+import { registerTourRequestRoutes } from "./routes/tourRequests";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware must be set up before any routes that use isAuthenticated
@@ -45,6 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMetaRoutes(app);
   registerThreadRoutes(app);
   registerAdminRoutes(app);
+  registerTourRequestRoutes(app);
 
   return createServer(app);
 }
