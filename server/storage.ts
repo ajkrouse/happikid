@@ -180,6 +180,9 @@ export interface IStorage {
   createProviderScore(score: InsertProviderScore): Promise<ProviderScore>;
   updateProviderScore(providerId: number, score: Partial<InsertProviderScore>): Promise<ProviderScore>;
   getProviderInquiries(providerId: number): Promise<Inquiry[]>;
+
+  // Bulk closure cleanup
+  pruneExpiredClosures(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1064,6 +1067,35 @@ export class DatabaseStorage implements IStorage {
 
   async getProviderInquiries(providerId: number): Promise<Inquiry[]> {
     return await db.select().from(inquiries).where(eq(inquiries.providerId, providerId)).orderBy(desc(inquiries.createdAt));
+  }
+
+  // Bulk cleanup: remove expired closure entries across all providers without waiting for them to re-save.
+  // Uses a single UPDATE with a JSONB sub-select so it runs in one round-trip.
+  async pruneExpiredClosures(): Promise<number> {
+    const todayIso = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+    // Only touch rows that actually have at least one expired entry to avoid unnecessary writes.
+    const result = await db.execute(sql`
+      UPDATE providers
+      SET
+        closed_dates = (
+          SELECT COALESCE(jsonb_agg(elem ORDER BY elem->>'from'), '[]'::jsonb)
+          FROM jsonb_array_elements(closed_dates) AS elem
+          WHERE (elem->>'to') >= ${todayIso}
+        ),
+        updated_at = NOW()
+      WHERE
+        closed_dates IS NOT NULL
+        AND jsonb_array_length(closed_dates) > 0
+        AND EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(closed_dates) AS elem
+          WHERE (elem->>'to') < ${todayIso}
+        )
+    `);
+
+    // drizzle's execute() returns { rowCount, rows }
+    return (result as any).rowCount ?? 0;
   }
 
   // Family Profile operations

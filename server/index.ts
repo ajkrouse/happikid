@@ -5,6 +5,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { apiLimiter, authLimiter } from "./middleware/rateLimiter";
 import { logger } from "./logger";
+import { storage } from "./storage";
 
 const app = express();
 
@@ -70,8 +71,35 @@ app.use((req, res, next) => {
   next();
 });
 
+// Run expired-closure pruning once immediately, then repeat every 24 hours.
+// This catches providers who haven't re-saved their schedule in months.
+async function scheduleClosurePruning(): Promise<void> {
+  const runPrune = async () => {
+    try {
+      const pruned = await storage.pruneExpiredClosures();
+      if (pruned > 0) {
+        logger.info({ pruned }, "Pruned expired closures from providers");
+      }
+    } catch (err) {
+      logger.error({ err }, "Failed to prune expired closures");
+    }
+  };
+
+  // Run immediately on startup so stale data is cleared before the first request
+  await runPrune();
+
+  // Then run once per day (24 h)
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  setInterval(runPrune, TWENTY_FOUR_HOURS);
+}
+
 (async () => {
   const server = await registerRoutes(app);
+
+  // Start the closure-pruning background job
+  scheduleClosurePruning().catch((err) =>
+    logger.error({ err }, "Closure pruning scheduler failed to start")
+  );
 
   // ── Global error handler ──────────────────────────────────────────────────
   // NOTE: Must be registered AFTER routes. The `throw err` that was here
