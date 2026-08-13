@@ -11,6 +11,7 @@ import Navigation from "@/components/Navigation";
 import PremiumFeaturesModal from "@/components/PremiumFeaturesModal";
 import { ProfileOptimizationCard } from "@/components/ProfileOptimizationCard";
 import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
+import { PricingEditCard } from "@/components/PricingEditCard";
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -44,6 +45,7 @@ export default function ProviderDashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [pricingCardKey, setPricingCardKey] = useState(0);
 
   // Fetch provider profile
   const { data: provider } = useQuery<any>({
@@ -515,8 +517,8 @@ export default function ProviderDashboard() {
         ) : null}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Profile Completeness */}
-          <div className="lg:col-span-1">
+          {/* Profile Completeness + Pricing */}
+          <div className="lg:col-span-1 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Profile Completeness</CardTitle>
@@ -554,6 +556,11 @@ export default function ProviderDashboard() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Inline Pricing Editor */}
+            <div id="pricing-edit-card">
+              <PricingEditCard key={pricingCardKey} provider={provider} />
+            </div>
           </div>
 
           {/* Review Summary */}
@@ -758,11 +765,19 @@ export default function ProviderDashboard() {
                   <span>Edit Schedule & Availability</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="h-20 flex-col" asChild>
-                <Link href="/provider/onboarding">
-                  <DollarSign className="h-6 w-6 mb-2" />
-                  <span>Update Pricing</span>
-                </Link>
+              <Button
+                variant="outline"
+                className="h-20 flex-col"
+                onClick={() => {
+                  // Re-mount the pricing card (resets to saved values) and scroll to it
+                  setPricingCardKey((k) => k + 1);
+                  document
+                    .getElementById("pricing-edit-card")
+                    ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }}
+              >
+                <DollarSign className="h-6 w-6 mb-2" />
+                <span>Update Pricing</span>
               </Button>
               <Button variant="outline" className="h-20 flex-col" asChild>
                 <Link href="/search">
