@@ -448,14 +448,40 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                             : `${Math.floor(currentProvider.ageRangeMin / 12)} yr`} - {Math.floor(currentProvider.ageRangeMax / 12)} yr
                         </span>
                       </div>
-                      {currentProvider.hoursOpen && currentProvider.hoursClose && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Hours</span>
-                          <span className="font-medium">
-                            {formatTime(currentProvider.hoursOpen)} - {formatTime(currentProvider.hoursClose)}
-                          </span>
-                        </div>
-                      )}
+                      {/* Prefer the detailed weekly schedule; fall back to legacy open/close times */}
+                      {(() => {
+                        const DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as const;
+                        const sched = currentProvider.schedule as Record<string, { isOpen?: boolean; open?: string; close?: string }> | null | undefined;
+                        const openDays = sched ? DAYS.filter((d) => sched[d]?.isOpen) : [];
+                        if (openDays.length > 0) {
+                          return (
+                            <div>
+                              <span className="text-gray-600 block mb-1">Hours</span>
+                              <div className="space-y-0.5">
+                                {openDays.map((day) => (
+                                  <div key={day} className="flex justify-between text-sm">
+                                    <span className="capitalize text-gray-500">{day}</span>
+                                    <span className="font-medium">
+                                      {formatTime(sched![day].open || "")} – {formatTime(sched![day].close || "")}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        if (currentProvider.hoursOpen && currentProvider.hoursClose) {
+                          return (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Hours</span>
+                              <span className="font-medium">
+                                {formatTime(currentProvider.hoursOpen)} - {formatTime(currentProvider.hoursClose)}
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                       {currentProvider.capacity && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">Capacity</span>

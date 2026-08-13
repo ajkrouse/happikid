@@ -12,6 +12,7 @@ import PremiumFeaturesModal from "@/components/PremiumFeaturesModal";
 import { ProfileOptimizationCard } from "@/components/ProfileOptimizationCard";
 import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { PricingEditCard } from "@/components/PricingEditCard";
+import { ScheduleEditCard } from "@/components/ScheduleEditCard";
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -561,6 +562,9 @@ export default function ProviderDashboard() {
             <div id="pricing-edit-card">
               <PricingEditCard key={pricingCardKey} provider={provider} />
             </div>
+
+            {/* Inline Schedule Editor */}
+            <ScheduleEditCard provider={provider} />
           </div>
 
           {/* Review Summary */}

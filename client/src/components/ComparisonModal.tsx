@@ -233,7 +233,24 @@ export default function ComparisonModal({
       key: 'hours',
       label: 'Hours',
       icon: Clock,
-      getValue: (p) => p.hoursOpen && p.hoursClose ? `${formatTime(p.hoursOpen)} - ${formatTime(p.hoursClose)}` : 'Contact for hours',
+      getValue: (p) => {
+        const DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as const;
+        const sched = (p as any).schedule as Record<string, { isOpen?: boolean; open?: string; close?: string }> | null | undefined;
+        const openDays = sched ? DAYS.filter((d) => sched[d]?.isOpen) : [];
+        if (openDays.length > 0) {
+          // Summarise as weekdays vs weekends
+          const weekdays = openDays.filter(d => !["saturday","sunday"].includes(d));
+          const weekend = openDays.filter(d => ["saturday","sunday"].includes(d));
+          const parts: string[] = [];
+          if (weekdays.length > 0) {
+            const first = weekdays[0];
+            parts.push(`${formatTime(sched![first].open || "")}–${formatTime(sched![first].close || "")}`);
+          }
+          if (weekend.length > 0) parts.push("+ weekends");
+          return parts.join(" ") || "See schedule";
+        }
+        return p.hoursOpen && p.hoursClose ? `${formatTime(p.hoursOpen)} - ${formatTime(p.hoursClose)}` : 'Contact for hours';
+      },
       getScore: (p, prefs) => prefs.priorities.toLowerCase().includes('hours') || prefs.priorities.toLowerCase().includes('schedule') ? 1 : 0,
       isHighlighted: (p, prefs) => prefs.priorities.toLowerCase().includes('hours') || prefs.priorities.toLowerCase().includes('late'),
       dataSource: 'provider'
