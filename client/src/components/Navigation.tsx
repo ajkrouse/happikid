@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import RoleSelectionModal from "@/components/RoleSelectionModal";
 import {
   Sheet,
@@ -17,6 +18,15 @@ export default function Navigation() {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   const isProvider = (user as any)?.role === 'provider';
+
+  const { data: threads = [] } = useQuery<{ unreadCount: number }[]>({
+    queryKey: ["/api/threads"],
+    enabled: isAuthenticated,
+    refetchInterval: 60000,
+    select: (data) => data,
+  });
+
+  const totalUnread = threads.reduce((sum, t) => sum + (t.unreadCount ?? 0), 0);
 
   // Authenticated nav is role-aware: providers see their dashboard, parents just see About/Contact
   const navItems = isAuthenticated ? [
@@ -48,10 +58,15 @@ export default function Navigation() {
       <div className="flex items-center space-x-8">
         {navItems.map((item) => (
           <Link key={item.href} href={item.href}>
-            <span className={`text-sm font-medium transition cursor-pointer text-brand-evergreen ${
+            <span className={`relative inline-flex items-center gap-1.5 text-sm font-medium transition cursor-pointer text-brand-evergreen ${
               location === item.href ? "font-semibold" : "hover:text-action-clay"
             }`}>
               {item.label}
+              {item.href === "/messages" && totalUnread > 0 && (
+                <span className="inline-flex items-center justify-center h-4.5 min-w-[1.125rem] px-1 rounded-full bg-action-clay text-white text-[10px] font-bold leading-none">
+                  {totalUnread > 99 ? "99+" : totalUnread}
+                </span>
+              )}
             </span>
           </Link>
         ))}
@@ -136,7 +151,7 @@ export default function Navigation() {
                   {mobileNavItems.map((item) => (
                     <Link key={item.href} href={item.href}>
                       <span 
-                        className={`text-lg font-medium transition-opacity cursor-pointer ${
+                        className={`inline-flex items-center gap-2 text-lg font-medium transition-opacity cursor-pointer ${
                           item.isPrimary 
                             ? "text-action-clay font-semibold" 
                             : location === item.href 
@@ -146,6 +161,11 @@ export default function Navigation() {
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.label}
+                        {item.href === "/messages" && totalUnread > 0 && (
+                          <span className="inline-flex items-center justify-center h-5 min-w-[1.25rem] px-1 rounded-full bg-action-clay text-white text-xs font-bold leading-none">
+                            {totalUnread > 99 ? "99+" : totalUnread}
+                          </span>
+                        )}
                       </span>
                     </Link>
                   ))}
