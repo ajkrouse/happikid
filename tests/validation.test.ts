@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
-import { insertInquirySchema, insertReviewSchema, insertReviewVoteSchema } from "@shared/schema";
+import { insertInquirySchema, insertReviewSchema, insertReviewVoteSchema, providerClientUpdateSchema } from "@shared/schema";
 
 // ─── Inline contact schema (mirrors routes/meta.ts exactly) ──────────────────
 const contactSchema = z.object({
@@ -193,5 +193,58 @@ describe("Validation — sendMessageSchema (chat routes)", () => {
   it("rejects a numeric content value", () => {
     const result = sendMessageSchema.safeParse({ content: 42 });
     expect(result.success).toBe(false);
+  });
+});
+
+// ─── providerClientUpdateSchema — schedule field ─────────────────────────────
+describe("Validation — providerClientUpdateSchema schedule field", () => {
+  const schema = providerClientUpdateSchema.partial();
+
+  const validSchedule = {
+    monday:    { isOpen: true,  open: "07:00", close: "18:00" },
+    tuesday:   { isOpen: true,  open: "07:00", close: "18:00" },
+    wednesday: { isOpen: true,  open: "07:00", close: "18:00" },
+    thursday:  { isOpen: true,  open: "07:00", close: "18:00" },
+    friday:    { isOpen: true,  open: "07:00", close: "17:00" },
+    saturday:  { isOpen: false, open: "09:00", close: "13:00" },
+    sunday:    { isOpen: false, open: "09:00", close: "13:00" },
+  };
+
+  it("accepts a valid schedule payload and preserves every field", () => {
+    const result = schema.safeParse({ schedule: validSchedule });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.schedule).toEqual(validSchedule);
+    }
+  });
+
+  it("accepts a schedule where every day is set to isOpen: false", () => {
+    const allClosed = Object.fromEntries(
+      Object.keys(validSchedule).map((day) => [
+        day,
+        { isOpen: false, open: "07:00", close: "18:00" },
+      ])
+    );
+    const result = schema.safeParse({ schedule: allClosed });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      for (const day of Object.keys(allClosed)) {
+        expect((result.data.schedule as Record<string, { isOpen: boolean }>)[day].isOpen).toBe(false);
+      }
+    }
+  });
+
+  it("rejects a schedule entry that contains an unexpected field", () => {
+    const withExtra = {
+      ...validSchedule,
+      monday: { isOpen: true, open: "07:00", close: "18:00", notes: "surprise" },
+    };
+    const result = schema.safeParse({ schedule: withExtra });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      // The error path should point into the schedule field
+      const paths = result.error.issues.map((i) => i.path.join("."));
+      expect(paths.some((p) => p.startsWith("schedule"))).toBe(true);
+    }
   });
 });

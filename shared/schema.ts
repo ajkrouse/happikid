@@ -502,6 +502,11 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
   monthlyPrice: _strictOptDecStr,
   monthlyPriceMin: _strictOptDecStr,
   monthlyPriceMax: _strictOptDecStr,
+  // Schedule: each day entry must have exactly { isOpen, open, close } — strict rejects unknown fields
+  schedule: z.record(
+    z.string(),
+    z.object({ isOpen: z.boolean(), open: z.string(), close: z.string() }).strict()
+  ).optional().nullable(),
   // Structured closure date ranges
   closedDates: z.array(
     z.object({
