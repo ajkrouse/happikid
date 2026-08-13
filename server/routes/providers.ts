@@ -382,7 +382,14 @@ export function registerProviderRoutes(app: Express): void {
       const userId = req.user?.claims?.sub;
       const existing = await storage.getProvider(id);
       if (!existing || existing.userId !== userId) return res.status(403).json({ message: "Access denied" });
-      res.json(await storage.updateProvider(id, { ...providerClientUpdateSchema.partial().parse(req.body), userId }));
+      const parsed = providerClientUpdateSchema.partial().parse(req.body);
+      // Lazy cleanup: drop any closure entries whose end date has already passed
+      if (Array.isArray(parsed.closedDates)) {
+        const todayIso = new Date().toISOString().slice(0, 10);
+        parsed.closedDates = parsed.closedDates.filter((e) => e.to >= todayIso);
+        if (parsed.closedDates.length === 0) parsed.closedDates = null;
+      }
+      res.json(await storage.updateProvider(id, { ...parsed, userId }));
     } catch (error) {
       log.error({ err: error }, "Error updating provider");
       if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
