@@ -36,6 +36,13 @@
       "when": 1755129600000,
       "tag": "0004_closed_dates",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786649070379,
+      "tag": "0005_messaging_threads",
+      "breakpoints": true
     }
   ]
 }

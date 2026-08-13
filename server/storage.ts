@@ -13,6 +13,8 @@ import {
   providerPrograms,
   providerAmenities,
   familyProfiles,
+  threads,
+  threadMessages,
   type User,
   type UpsertUser,
   type Provider,
@@ -52,6 +54,8 @@ import {
   type AuditLog,
   type InsertAuditLog,
   type ProviderProfileView,
+  type Thread,
+  type ThreadMessage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "drizzle-orm";
@@ -183,6 +187,17 @@ export interface IStorage {
 
   // Bulk closure cleanup
   pruneExpiredClosures(): Promise<number>;
+
+  // Thread (in-platform messaging) operations
+  getOrCreateThread(parentUserId: string, providerId: number): Promise<Thread>;
+  getThread(id: number): Promise<Thread | undefined>;
+  getThreadsForUser(userId: string): Promise<any[]>;
+  getThreadsByProviderId(providerId: number, ownerUserId?: string): Promise<any[]>;
+  getProvidersByCanonicalOwner(userId: string): Promise<Provider[]>;
+  updateThreadStatus(id: number, status: "open" | "enrolled" | "not_a_fit"): Promise<Thread>;
+  createThreadMessage(threadId: number, senderUserId: string, body: string): Promise<ThreadMessage>;
+  getThreadMessages(threadId: number): Promise<ThreadMessage[]>;
+  markThreadMessagesRead(threadId: number, userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1124,6 +1139,237 @@ export class DatabaseStorage implements IStorage {
       return await this.updateFamilyProfile(profile.userId, profile);
     }
     return await this.createFamilyProfile(profile);
+  }
+
+  // ─── Thread (in-platform messaging) operations ──────────────────────────────
+
+  async getOrCreateThread(parentUserId: string, providerId: number): Promise<Thread> {
+    // Try to find existing thread first
+    const [existing] = await db
+      .select()
+      .from(threads)
+      .where(and(eq(threads.parentUserId, parentUserId), eq(threads.providerId, providerId)));
+    if (existing) return existing;
+    // Create new thread
+    const [thread] = await db
+      .insert(threads)
+      .values({ parentUserId, providerId, status: "open" })
+      .returning();
+    return thread;
+  }
+
+  async getThread(id: number): Promise<Thread | undefined> {
+    const [thread] = await db.select().from(threads).where(eq(threads.id, id));
+    return thread;
+  }
+
+  /**
+   * Get all threads for a user (as parent or provider owner), enriched with:
+   * - provider name + id
+   * - latest message body + createdAt
+   * - unread count (messages not sent by the caller and not yet read)
+   */
+  async getThreadsForUser(userId: string): Promise<any[]> {
+    // Get threads where user is the parent
+    const parentThreads = await db
+      .select()
+      .from(threads)
+      .where(eq(threads.parentUserId, userId))
+      .orderBy(desc(threads.updatedAt));
+
+    // Get threads where user is the canonical provider owner.
+    // Rule: if ownerUserId is set (claimed listing), only the claimant has access.
+    //        if ownerUserId is NULL (unclaimed/direct-created), userId is the owner.
+    // This prevents stale listing creators from reading threads of claimed listings.
+    const ownedProviders = await db
+      .select({ id: providers.id })
+      .from(providers)
+      .where(
+        or(
+          eq(providers.ownerUserId, userId),
+          and(sql`${providers.ownerUserId} IS NULL`, eq(providers.userId, userId))
+        )
+      );
+    const ownedProviderIds = ownedProviders.map((p) => p.id);
+
+    const providerThreads =
+      ownedProviderIds.length > 0
+        ? await db
+            .select()
+            .from(threads)
+            .where(inArray(threads.providerId, ownedProviderIds))
+            .orderBy(desc(threads.updatedAt))
+        : [];
+
+    // Merge and deduplicate
+    const allThreadIds = new Set<number>();
+    const combined: Thread[] = [];
+    for (const t of [...parentThreads, ...providerThreads]) {
+      if (!allThreadIds.has(t.id)) {
+        allThreadIds.add(t.id);
+        combined.push(t);
+      }
+    }
+
+    // Enrich each thread
+    const enriched = await Promise.all(
+      combined.map(async (thread) => {
+        const msgs = await db
+          .select()
+          .from(threadMessages)
+          .where(eq(threadMessages.threadId, thread.id))
+          .orderBy(desc(threadMessages.createdAt));
+
+        const provider = await db
+          .select({ id: providers.id, name: providers.name })
+          .from(providers)
+          .where(eq(providers.id, thread.providerId));
+
+        const parentUser = await db
+          .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, email: users.email })
+          .from(users)
+          .where(eq(users.id, thread.parentUserId));
+
+        const latest = msgs[0] ?? null;
+        const unreadCount = msgs.filter(
+          (m) => m.senderUserId !== userId && !m.readAt
+        ).length;
+
+        return {
+          ...thread,
+          provider: provider[0] ?? null,
+          parentUser: parentUser[0] ?? null,
+          latestMessage: latest
+            ? { body: latest.body, createdAt: latest.createdAt, senderUserId: latest.senderUserId }
+            : null,
+          unreadCount,
+          messageCount: msgs.length,
+        };
+      })
+    );
+
+    return enriched.sort(
+      (a, b) =>
+        (b.latestMessage?.createdAt?.getTime() ?? 0) -
+        (a.latestMessage?.createdAt?.getTime() ?? 0)
+    );
+  }
+
+  /**
+   * ownerUserId is the canonical messaging-owner (ownerUserId ?? userId) computed
+   * by the caller. When supplied, unread counts are calculated relative to that user.
+   */
+  async getThreadsByProviderId(providerId: number, ownerUserId?: string): Promise<any[]> {
+    const providerThreads = await db
+      .select()
+      .from(threads)
+      .where(eq(threads.providerId, providerId))
+      .orderBy(desc(threads.updatedAt));
+
+    // Fetch provider info for enrichment
+    const [providerRow] = await db
+      .select({ userId: providers.userId, ownerUserId: providers.ownerUserId, name: providers.name })
+      .from(providers)
+      .where(eq(providers.id, providerId));
+
+    // Use supplied ownerUserId, or derive canonical one from DB row
+    const canonicalOwner = ownerUserId ?? providerRow?.ownerUserId ?? providerRow?.userId ?? null;
+
+    const enriched = await Promise.all(
+      providerThreads.map(async (thread) => {
+        const msgs = await db
+          .select()
+          .from(threadMessages)
+          .where(eq(threadMessages.threadId, thread.id))
+          .orderBy(desc(threadMessages.createdAt));
+
+        const parentUser = await db
+          .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, email: users.email })
+          .from(users)
+          .where(eq(users.id, thread.parentUserId));
+
+        const latest = msgs[0] ?? null;
+        const unreadCount = canonicalOwner
+          ? msgs.filter((m) => m.senderUserId !== canonicalOwner && !m.readAt).length
+          : 0;
+
+        return {
+          ...thread,
+          providerName: providerRow?.name ?? null,
+          parentUser: parentUser[0] ?? null,
+          latestMessage: latest
+            ? { body: latest.body, createdAt: latest.createdAt, senderUserId: latest.senderUserId }
+            : null,
+          unreadCount,
+          messageCount: msgs.length,
+        };
+      })
+    );
+
+    return enriched.sort(
+      (a, b) =>
+        (b.latestMessage?.createdAt?.getTime() ?? 0) -
+        (a.latestMessage?.createdAt?.getTime() ?? 0)
+    );
+  }
+
+  /**
+   * Find providers where the caller is the canonical owner.
+   * Ownership rule: if ownerUserId is set (claimed listing), only the claimant is the owner.
+   *                 if ownerUserId is NULL (unclaimed/direct-created), userId is the owner.
+   * This prevents stale listing creators from managing claimed listings.
+   */
+  async getProvidersByCanonicalOwner(userId: string): Promise<Provider[]> {
+    return db
+      .select()
+      .from(providers)
+      .where(
+        or(
+          eq(providers.ownerUserId, userId),
+          and(sql`${providers.ownerUserId} IS NULL`, eq(providers.userId, userId))
+        )
+      );
+  }
+
+  async updateThreadStatus(id: number, status: "open" | "enrolled" | "not_a_fit"): Promise<Thread> {
+    const [updated] = await db
+      .update(threads)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(threads.id, id))
+      .returning();
+    return updated;
+  }
+
+  async createThreadMessage(threadId: number, senderUserId: string, body: string): Promise<ThreadMessage> {
+    const [msg] = await db
+      .insert(threadMessages)
+      .values({ threadId, senderUserId, body })
+      .returning();
+    // Bump thread updatedAt so inbox re-sorts correctly
+    await db.update(threads).set({ updatedAt: new Date() }).where(eq(threads.id, threadId));
+    return msg;
+  }
+
+  async getThreadMessages(threadId: number): Promise<ThreadMessage[]> {
+    return db
+      .select()
+      .from(threadMessages)
+      .where(eq(threadMessages.threadId, threadId))
+      .orderBy(asc(threadMessages.createdAt));
+  }
+
+  async markThreadMessagesRead(threadId: number, userId: string): Promise<void> {
+    // Mark all messages in thread that were NOT sent by userId and not yet read
+    await db
+      .update(threadMessages)
+      .set({ readAt: new Date() })
+      .where(
+        and(
+          eq(threadMessages.threadId, threadId),
+          sql`${threadMessages.senderUserId} != ${userId}`,
+          sql`${threadMessages.readAt} IS NULL`
+        )
+      );
   }
 }
 

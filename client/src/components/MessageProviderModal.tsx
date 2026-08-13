@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { MessageSquare, Calendar, DollarSign, Clock, Send, LogIn } from "lucide-react";
 import type { Provider } from "@shared/schema";
+import { useLocation } from "wouter";
 
 interface MessageProviderModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ const MESSAGE_TEMPLATES = [
 export function MessageProviderModal({ isOpen, onClose, provider }: MessageProviderModalProps) {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [messageType, setMessageType] = useState("tour_request");
   const [message, setMessage] = useState(MESSAGE_TEMPLATES[0].template);
   const [parentName, setParentName] = useState("");
@@ -58,21 +60,26 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
   const sendMessageMutation = useMutation({
     mutationFn: async (data: {
       providerId: number;
-      message: string;
-      parentName: string;
-      parentEmail: string;
-      messageType?: string;
-      childAge?: string;
-      parentPhone?: string;
+      body: string;
     }) => {
-      return apiRequest('POST', '/api/inquiries', data);
+      const res = await apiRequest('POST', '/api/threads', data);
+      return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (result: any) => {
       toast({
         title: "Message sent!",
         description: `Your message has been sent to ${provider.name}. They'll respond soon.`,
+        action: (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => { window.location.href = `/messages?thread=${result?.thread?.id}`; }}
+          >
+            View
+          </Button>
+        ),
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/inquiries'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/threads'] });
       onClose();
       resetForm();
     },
@@ -105,9 +112,6 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const finalName = parentName.trim() || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '');
-    const finalEmail = contactEmail.trim() || user?.email || '';
-    
     if (!message.trim()) {
       toast({
         title: "Message required",
@@ -117,32 +121,9 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
       return;
     }
 
-    if (!finalName) {
-      toast({
-        title: "Name required",
-        description: "Please provide your name so the provider can respond.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!finalEmail) {
-      toast({
-        title: "Email required",
-        description: "Please provide your email so the provider can respond.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     sendMessageMutation.mutate({
       providerId: provider.id,
-      message: message.trim(),
-      parentName: finalName,
-      parentEmail: finalEmail,
-      messageType,
-      childAge: childAge || undefined,
-      parentPhone: contactPhone || undefined,
+      body: message.trim(),
     });
   };
 
@@ -237,59 +218,6 @@ export function MessageProviderModal({ isOpen, onClose, provider }: MessageProvi
               className="resize-none"
               data-testid="input-message"
             />
-          </div>
-
-          {/* Contact info - show fields if user data is missing */}
-          <div className="space-y-4 bg-brand-sage/30 p-4 rounded-lg">
-            <p className="text-sm font-medium text-brand-evergreen">Your Contact Info</p>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="parentName" className="text-sm">Your Name *</Label>
-                <Input
-                  id="parentName"
-                  value={parentName || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '')}
-                  onChange={(e) => setParentName(e.target.value)}
-                  placeholder="Your full name"
-                  data-testid="input-parent-name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contactEmail" className="text-sm">Email *</Label>
-                <Input
-                  id="contactEmail"
-                  type="email"
-                  value={contactEmail || user?.email || ''}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  data-testid="input-email"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="childAge" className="text-sm">Child's Age (optional)</Label>
-                <Input
-                  id="childAge"
-                  value={childAge}
-                  onChange={(e) => setChildAge(e.target.value)}
-                  placeholder="e.g., 3 years"
-                  data-testid="input-child-age"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contactPhone" className="text-sm">Phone (optional)</Label>
-                <Input
-                  id="contactPhone"
-                  type="tel"
-                  value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  placeholder="(555) 123-4567"
-                  data-testid="input-phone"
-                />
-              </div>
-            </div>
           </div>
 
           <div className="flex gap-3 pt-2">

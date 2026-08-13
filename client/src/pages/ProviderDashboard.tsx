@@ -35,6 +35,9 @@ import {
   Heart,
   GitCompareArrows,
   Send,
+  Circle,
+  CheckCircle2,
+  UserX,
 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -64,6 +67,13 @@ export default function ProviderDashboard() {
   const { data: inquiries } = useQuery<any[]>({
     queryKey: ["/api/inquiries/provider"],
     enabled: isAuthenticated && !!provider,
+  });
+
+  // Fetch messaging threads for provider
+  const { data: threads = [] } = useQuery<any[]>({
+    queryKey: ["/api/threads/provider/list"],
+    enabled: isAuthenticated && !!provider,
+    refetchInterval: 30000,
   });
 
   // Fetch provider optimization score
@@ -664,6 +674,79 @@ export default function ProviderDashboard() {
             </Card>
           </div>
         </div>
+
+        {/* Messages / Inbox */}
+        <Card className="mb-8">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                Messages
+                {threads.filter((t: any) => t.unreadCount > 0).length > 0 && (
+                  <Badge className="bg-action-clay text-white text-xs">
+                    {threads.reduce((s: number, t: any) => s + (t.unreadCount ?? 0), 0)} unread
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>Conversations with families</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/messages">View all</Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {threads.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">No messages yet.</p>
+                <p className="text-xs mt-1">Families will message you once your profile is live.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {threads.slice(0, 5).map((thread: any) => (
+                  <Link href={`/messages?thread=${thread.id}`} key={thread.id}>
+                    <div className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 ${thread.unreadCount > 0 ? "border-action-teal bg-action-teal/5" : "border-gray-200"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm text-brand-evergreen">
+                              {thread.parentUser
+                                ? `${thread.parentUser.firstName ?? ""} ${thread.parentUser.lastName ?? ""}`.trim() || thread.parentUser.email || "Parent"
+                                : "Parent"}
+                            </span>
+                            {thread.unreadCount > 0 && (
+                              <span className="bg-action-clay text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold flex-shrink-0">
+                                {thread.unreadCount}
+                              </span>
+                            )}
+                            <Badge
+                              className={`text-xs flex-shrink-0 ${
+                                thread.status === "enrolled"
+                                  ? "bg-green-100 text-green-700"
+                                  : thread.status === "not_a_fit"
+                                  ? "bg-gray-100 text-gray-500"
+                                  : "bg-blue-100 text-blue-700"
+                              }`}
+                            >
+                              {thread.status === "not_a_fit" ? "Not a Fit" : thread.status === "enrolled" ? "Enrolled" : "Open"}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-500 truncate">
+                            {thread.latestMessage?.body ?? "No messages yet"}
+                          </p>
+                        </div>
+                        <span className="text-xs text-gray-400 flex-shrink-0">
+                          {thread.latestMessage
+                            ? new Date(thread.latestMessage.createdAt).toLocaleDateString()
+                            : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Recent Inquiries */}
         <Card className="mb-8">

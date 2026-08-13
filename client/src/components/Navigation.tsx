@@ -21,6 +21,7 @@ export default function Navigation() {
   // Authenticated nav is role-aware: providers see their dashboard, parents just see About/Contact
   const navItems = isAuthenticated ? [
     ...(isProvider ? [{ href: "/provider/dashboard", label: "Provider Dashboard" }] : []),
+    { href: "/messages", label: "Messages" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ] : [
@@ -32,6 +33,7 @@ export default function Navigation() {
   const mobileNavItems = isAuthenticated ? [
     { href: "/search", label: "Find Programs", isPrimary: true },
     ...(isProvider ? [{ href: "/provider/dashboard", label: "Provider Dashboard" }] : []),
+    { href: "/messages", label: "Messages" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ] : [

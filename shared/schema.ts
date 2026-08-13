@@ -14,6 +14,7 @@ import {
   uuid,
   date,
   doublePrecision,
+  unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
@@ -869,6 +870,60 @@ export const familyProfileClientUpdateSchema = insertFamilyProfileSchema.omit({
 
 export type FamilyProfile = typeof familyProfiles.$inferSelect;
 export type InsertFamilyProfile = z.infer<typeof insertFamilyProfileSchema>;
+
+// In-platform parent–provider messaging
+export const threadStatusEnum = pgEnum('thread_status', ['open', 'enrolled', 'not_a_fit']);
+
+export const threads = pgTable("threads", {
+  id: serial("id").primaryKey(),
+  parentUserId: varchar("parent_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  status: threadStatusEnum("status").default('open').notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (t) => ({
+  parentProviderUniq: unique("thread_parent_provider_uniq").on(t.parentUserId, t.providerId),
+  providerIdx: index("thread_provider_idx").on(t.providerId),
+}));
+
+export const threadMessages = pgTable("thread_messages", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").notNull().references(() => threads.id, { onDelete: "cascade" }),
+  senderUserId: varchar("sender_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+}, (t) => ({
+  threadIdx: index("thread_messages_thread_idx").on(t.threadId),
+}));
+
+export const threadsRelations = relations(threads, ({ one, many }) => ({
+  parent: one(users, { fields: [threads.parentUserId], references: [users.id] }),
+  provider: one(providers, { fields: [threads.providerId], references: [providers.id] }),
+  messages: many(threadMessages),
+}));
+
+export const threadMessagesRelations = relations(threadMessages, ({ one }) => ({
+  thread: one(threads, { fields: [threadMessages.threadId], references: [threads.id] }),
+  sender: one(users, { fields: [threadMessages.senderUserId], references: [users.id] }),
+}));
+
+export const insertThreadSchema = createInsertSchema(threads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertThreadMessageSchema = createInsertSchema(threadMessages).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+});
+
+export type Thread = typeof threads.$inferSelect;
+export type InsertThread = z.infer<typeof insertThreadSchema>;
+export type ThreadMessage = typeof threadMessages.$inferSelect;
+export type InsertThreadMessage = z.infer<typeof insertThreadMessageSchema>;
 
 // Daily profile view tracking — one row per provider per day
 export const providerProfileViews = pgTable("provider_profile_views", {

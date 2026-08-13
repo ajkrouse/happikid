@@ -26,6 +26,7 @@ const ProviderSignup = lazy(() => import("@/pages/ProviderSignup"));
 const ClaimBusiness = lazy(() => import("@/pages/ClaimBusiness"));
 const AdminClaims = lazy(() => import("@/pages/AdminClaims"));
 const AfterSchoolPrograms = lazy(() => import("@/pages/AfterSchoolPrograms"));
+const Messages = lazy(() => import("@/pages/Messages"));
 
 function PageLoader() {
   return (
@@ -53,6 +54,9 @@ function Router() {
           <Route path="/provider/signup" component={ProviderSignup} />
           <Route path="/parent/signup" component={ParentSignup} />
           <Route path="/claim-business" component={ClaimBusiness} />
+
+          {/* Messaging inbox */}
+          <Route path="/messages" component={Messages} />
 
           {/* Dashboard routes — components handle their own auth guards */}
           <Route path="/provider/dashboard" component={ProviderDashboard} />
