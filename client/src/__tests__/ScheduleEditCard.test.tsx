@@ -441,8 +441,8 @@ describe("ScheduleEditCard — closure note round-trip", () => {
   it("shows the amber banner after saving a new closure note", async () => {
     render(<ScheduleEditCard provider={makeProvider()} />);
 
-    // No banner initially
-    expect(screen.queryByRole("img", { hidden: true })).not.toBeInTheDocument();
+    // No closure note text visible initially
+    expect(screen.queryByText("Closed July 4th")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /edit/i }));
 
@@ -454,22 +454,17 @@ describe("ScheduleEditCard — closure note round-trip", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /save schedule/i }));
 
+    // After onSuccess the component exits edit mode and mirrors the saved note
+    // into local state — the amber banner should be visible immediately,
+    // without waiting for the parent to re-render with a refreshed prop.
     await waitFor(() =>
-      // After onSuccess the edit panel closes; local schedule state now has the note
       expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
     );
 
-    // The read-only amber banner should now be visible.
-    // The component reads from `provider.closureNote` (prop) for the banner, so
-    // what we can assert is that the component returned to read-only mode and
-    // the save reached the API — the banner will appear once the parent re-renders
-    // with the updated provider prop (cache invalidation path). We confirm the
-    // save was transmitted correctly.
-    await waitFor(() => expect(mockApiRequest).toHaveBeenCalledWith(
-      "PATCH",
-      "/api/providers/42",
-      expect.objectContaining({ closureNote: "Closed July 4th" })
-    ));
+    // Amber banner must contain the newly saved note text.
+    const bannerText = screen.getByText("Closed July 4th");
+    expect(bannerText).toBeInTheDocument();
+    expect(bannerText.closest("div")).toHaveClass("bg-amber-50");
   });
 
   it("amber banner is visible immediately when provider already has a closure note", () => {

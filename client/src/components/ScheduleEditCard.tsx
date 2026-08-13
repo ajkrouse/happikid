@@ -91,6 +91,10 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
     buildInitialSchedule(provider.schedule)
   );
   const [closureNote, setClosureNote] = useState(provider.closureNote ?? "");
+  // Mirrors the last successfully saved closure note so the amber banner
+  // appears immediately after save without waiting for React Query to
+  // deliver a fresh provider prop.
+  const [savedClosureNote, setSavedClosureNote] = useState(provider.closureNote ?? "");
   const [closedDates, setClosedDates] = useState<ClosedDateEntry[]>(
     () => (provider.closedDates ?? [])
   );
@@ -109,6 +113,9 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
     onSuccess: () => {
       toast({ title: "Schedule updated!", description: "Your availability is now live on your profile." });
       queryClient.invalidateQueries({ queryKey: ["/api/providers/mine"] });
+      // Reflect the saved note immediately in the read-only banner so families
+      // see it right away, before React Query delivers the refreshed prop.
+      setSavedClosureNote(closureNote.trim());
       setEditing(false);
     },
     onError: (error: any) => {
@@ -173,7 +180,7 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
 
   function handleCancel() {
     setSchedule(buildInitialSchedule(provider.schedule));
-    setClosureNote(provider.closureNote ?? "");
+    setClosureNote(savedClosureNote);
     setClosedDates(provider.closedDates ?? []);
     setNewEntry({ from: "", to: "", reason: "" });
     setShowAddForm(false);
@@ -226,10 +233,10 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
                 ))}
               </ul>
             )}
-            {provider.closureNote && (
+            {savedClosureNote && (
               <div className="mt-3 flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
-                <span>{provider.closureNote}</span>
+                <span>{savedClosureNote}</span>
               </div>
             )}
             {/* Upcoming structured closures in read-only mode */}
