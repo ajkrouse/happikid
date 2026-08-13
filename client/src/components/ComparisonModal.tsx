@@ -166,6 +166,32 @@ export default function ComparisonModal({
       dataSource: 'provider'
     },
     {
+      key: 'enrollment',
+      label: 'Enrollment',
+      icon: CheckCircle,
+      getValue: (p) => {
+        const status = p.enrollmentStatus || 'accepting';
+        return status === 'accepting' ? 'Open' : status === 'waitlist' ? 'Waitlist' : 'Full';
+      },
+      renderValue: (p) => {
+        const status = (p.enrollmentStatus as string) || 'accepting';
+        const config: Record<string, { label: string; className: string }> = {
+          accepting: { label: 'Open',     className: 'bg-green-100  text-green-800  border border-green-200'  },
+          waitlist:  { label: 'Waitlist', className: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
+          full:      { label: 'Full',     className: 'bg-red-100    text-red-800    border border-red-200'    },
+        };
+        const { label, className } = config[status] ?? config.accepting;
+        return <Badge className={`text-xs font-medium ${className}`}>{label}</Badge>;
+      },
+      getScore: (p, _prefs) => {
+        if (p.enrollmentStatus === 'accepting') return 1;
+        if (p.enrollmentStatus === 'waitlist') return 0.5;
+        return 0;
+      },
+      isHighlighted: (p, _prefs) => p.enrollmentStatus === 'accepting',
+      dataSource: 'provider' as const,
+    },
+    {
       key: 'location',
       label: 'Location',
       icon: MapPin,
