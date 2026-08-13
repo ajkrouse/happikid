@@ -18,6 +18,7 @@ export default function Navigation() {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   const isProvider = (user as any)?.role === 'provider';
+  const isAdmin = (user as any)?.role === 'admin';
 
   const { data: threads = [] } = useQuery<{ unreadCount: number }[]>({
     queryKey: ["/api/threads"],
@@ -28,8 +29,17 @@ export default function Navigation() {
 
   const totalUnread = threads.reduce((sum, t) => sum + (t.unreadCount ?? 0), 0);
 
+  const { data: pendingVerifications = [] } = useQuery<unknown[]>({
+    queryKey: ["/api/admin/verifications"],
+    enabled: isAdmin,
+    refetchInterval: 60000,
+  });
+
+  const pendingVerificationCount = pendingVerifications.length;
+
   // Authenticated nav is role-aware: providers see their dashboard, parents just see About/Contact
   const navItems = isAuthenticated ? [
+    ...(isAdmin ? [{ href: "/admin/verifications", label: "Verifications" }] : []),
     ...(isProvider ? [{ href: "/provider/dashboard", label: "Provider Dashboard" }] : []),
     { href: "/messages", label: "Messages" },
     { href: "/about", label: "About" },
@@ -42,6 +52,7 @@ export default function Navigation() {
   // Mobile nav: providers see dashboard, parents see "For Providers" to encourage sign-up
   const mobileNavItems = isAuthenticated ? [
     { href: "/search", label: "Find Programs", isPrimary: true },
+    ...(isAdmin ? [{ href: "/admin/verifications", label: "Verifications" }] : []),
     ...(isProvider ? [{ href: "/provider/dashboard", label: "Provider Dashboard" }] : []),
     { href: "/messages", label: "Messages" },
     { href: "/about", label: "About" },
@@ -65,6 +76,11 @@ export default function Navigation() {
               {item.href === "/messages" && totalUnread > 0 && (
                 <span className="inline-flex items-center justify-center h-4.5 min-w-[1.125rem] px-1 rounded-full bg-action-clay text-white text-[10px] font-bold leading-none">
                   {totalUnread > 99 ? "99+" : totalUnread}
+                </span>
+              )}
+              {item.href === "/admin/verifications" && pendingVerificationCount > 0 && (
+                <span className="inline-flex items-center justify-center h-4.5 min-w-[1.125rem] px-1 rounded-full bg-action-clay text-white text-[10px] font-bold leading-none">
+                  {pendingVerificationCount > 99 ? "99+" : pendingVerificationCount}
                 </span>
               )}
             </span>
@@ -164,6 +180,11 @@ export default function Navigation() {
                         {item.href === "/messages" && totalUnread > 0 && (
                           <span className="inline-flex items-center justify-center h-5 min-w-[1.25rem] px-1 rounded-full bg-action-clay text-white text-xs font-bold leading-none">
                             {totalUnread > 99 ? "99+" : totalUnread}
+                          </span>
+                        )}
+                        {item.href === "/admin/verifications" && pendingVerificationCount > 0 && (
+                          <span className="inline-flex items-center justify-center h-5 min-w-[1.25rem] px-1 rounded-full bg-action-clay text-white text-xs font-bold leading-none">
+                            {pendingVerificationCount > 99 ? "99+" : pendingVerificationCount}
                           </span>
                         )}
                       </span>
