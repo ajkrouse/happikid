@@ -320,10 +320,27 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
                 placeholder="e.g. Closed Dec 24–Jan 1 for winter break. Closed on all NYC public school holidays."
                 className="min-h-[72px] text-sm resize-none"
                 maxLength={500}
+                aria-describedby="closure-note-counter closure-note-hint"
               />
-              <p className="text-xs text-gray-400">
-                Shown to families on your profile so they know about holiday closures or exceptions.
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p id="closure-note-hint" className="text-xs text-gray-400">
+                  Shown to families on your profile so they know about holiday closures or exceptions.
+                </p>
+                <p
+                  id="closure-note-counter"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  className={`text-xs tabular-nums shrink-0 ${
+                    closureNote.length >= 500
+                      ? "text-red-600 font-semibold"
+                      : closureNote.length >= 450
+                      ? "text-amber-500 font-medium"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {closureNote.length} / 500
+                </p>
+              </div>
             </div>
 
             {/* Structured closed date ranges */}
