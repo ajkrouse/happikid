@@ -239,6 +239,13 @@ export function registerProviderRoutes(app: Express): void {
       if (!id) return res.status(400).json({ message: "Invalid provider ID" });
       const provider = await storage.getProviderWithDetails(id);
       if (!provider) return res.status(404).json({ message: "Provider not found" });
+      // Strip expired closure entries so families never see stale history
+      const todayIso = new Date().toISOString().slice(0, 10);
+      if (Array.isArray((provider as any).closedDates)) {
+        (provider as any).closedDates = ((provider as any).closedDates as any[]).filter(
+          (e: any) => typeof e?.to === "string" && e.to >= todayIso
+        );
+      }
       // Fire-and-forget: track the view without blocking the response
       storage.trackProfileView(id).catch(() => {});
       res.json(provider);
