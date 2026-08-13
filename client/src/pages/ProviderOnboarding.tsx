@@ -169,7 +169,8 @@ export default function ProviderOnboarding() {
     accreditationDetails: "",
     programHighlights: [] as string[],
     uniqueSellingPoints: [] as string[],
-    faqs: [] as { question: string; answer: string }[]
+    faqs: [] as { question: string; answer: string }[],
+    enrollmentStatus: "accepting" as string,
   });
 
   // State for followup data (feature-specific fields)
@@ -264,6 +265,7 @@ export default function ProviderOnboarding() {
         uniqueSellingPoints: (existingProvider as any).uniqueSellingPoints || [],
         faqs: (existingProvider as any).faqs || [],
         showExactPrice: (existingProvider as any).showExactPrice || false,
+        enrollmentStatus: (existingProvider as any).enrollmentStatus || "accepting",
       }));
       
       // Set current step based on onboarding progress

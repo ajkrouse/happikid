@@ -268,6 +268,24 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                     ? currentProvider.city
                     : currentProvider.borough}
                 </Badge>
+                {(currentProvider as any).enrollmentStatus === "accepting" && (
+                  <Badge className="rounded-full text-xs font-medium bg-green-100 text-green-700 border-green-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1 inline-block" />
+                    Open
+                  </Badge>
+                )}
+                {(currentProvider as any).enrollmentStatus === "waitlist" && (
+                  <Badge className="rounded-full text-xs font-medium bg-amber-100 text-amber-700 border-amber-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1 inline-block" />
+                    Waitlist
+                  </Badge>
+                )}
+                {(currentProvider as any).enrollmentStatus === "full" && (
+                  <Badge className="rounded-full text-xs font-medium bg-red-100 text-red-700 border-red-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 inline-block" />
+                    Full
+                  </Badge>
+                )}
                 <span className="text-sm text-gray-500 flex items-center">
                   <MapPin className="h-3.5 w-3.5 mr-1" />
                   {currentProvider.address}

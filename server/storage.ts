@@ -86,6 +86,7 @@ export interface IStorage {
     returnTotal?: boolean;
     acceptsSubsidies?: boolean;
     verifiedPricing?: boolean;
+    enrollmentStatus?: string;
   }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number; verifiedPricingCount: number }>;
   getProvider(id: number): Promise<Provider | undefined>;
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
@@ -302,6 +303,7 @@ export class DatabaseStorage implements IStorage {
     returnTotal?: boolean;
     acceptsSubsidies?: boolean;
     verifiedPricing?: boolean;
+    enrollmentStatus?: string;
   }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number; verifiedPricingCount: number }> {
     try {
       let conditions: any[] = [eq(providers.isActive, true)];
@@ -381,6 +383,11 @@ export class DatabaseStorage implements IStorage {
       // Filter by subsidy acceptance
       if (filters?.acceptsSubsidies) {
         conditions.push(eq(providers.acceptsSubsidies, true));
+      }
+
+      // Filter by enrollment status
+      if (filters?.enrollmentStatus) {
+        conditions.push(eq(providers.enrollmentStatus, filters.enrollmentStatus as any));
       }
 
       // Verified pricing SQL expression — matches the hasPricingData() rule in client/src/lib/providerPricing.ts:

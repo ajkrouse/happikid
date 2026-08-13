@@ -15,6 +15,7 @@ interface SearchFiltersProps {
     features?: string[];
     acceptsSubsidies?: boolean;
     verifiedPricing?: boolean;
+    enrollmentStatus?: string;
   };
   onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
@@ -173,7 +174,11 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
     onFiltersChange({ ...filters, verifiedPricing: checked || undefined });
   };
 
-  const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || (filters.features && filters.features.length > 0);
+  const handleEnrollmentStatusChange = (value: string) => {
+    onFiltersChange({ ...filters, enrollmentStatus: value === "all" ? undefined : value });
+  };
+
+  const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || filters.enrollmentStatus || (filters.features && filters.features.length > 0);
 
   return (
     <Card className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl shadow-lg border-2 border-brand-evergreen/10 bg-white">
@@ -294,6 +299,40 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
                 </Label>
               </div>
             ))}
+          </RadioGroup>
+        </div>
+
+        {/* Enrollment Status */}
+        <div>
+          <Label className="text-sm font-medium mb-3 block text-brand-evergreen">
+            Enrollment Status
+          </Label>
+          <RadioGroup value={filters.enrollmentStatus || "all"} onValueChange={handleEnrollmentStatusChange}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="all" id="enrollment-all" />
+              <Label htmlFor="enrollment-all" className="text-sm text-muted-foreground">Any Status</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="accepting" id="enrollment-accepting" />
+              <Label htmlFor="enrollment-accepting" className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
+                Accepting Enrollments
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="waitlist" id="enrollment-waitlist" />
+              <Label htmlFor="enrollment-waitlist" className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
+                Waitlist Only
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="full" id="enrollment-full" />
+              <Label htmlFor="enrollment-full" className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
+                Full
+              </Label>
+            </div>
           </RadioGroup>
         </div>
 

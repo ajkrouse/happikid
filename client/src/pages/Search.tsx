@@ -100,6 +100,7 @@ export default function SearchPage() {
     subcategory?: string;
     acceptsSubsidies?: boolean;
     verifiedPricing?: boolean;
+    enrollmentStatus?: string;
   }>({});
   const [sortBy, setSortBy] = useState("best-match");
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
@@ -203,6 +204,7 @@ export default function SearchPage() {
         priceRange: filters.priceRange,
         acceptsSubsidies: filters.acceptsSubsidies ? "true" : undefined,
         verifiedPricing: filters.verifiedPricing ? "true" : undefined,
+        enrollmentStatus: filters.enrollmentStatus || undefined,
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
         aiSummary: debouncedSearchQuery ? "true" : undefined,
@@ -381,7 +383,7 @@ export default function SearchPage() {
                     <Button variant="outline" className="w-full border-2 border-brand-evergreen/10 text-brand-evergreen">
                       <SlidersHorizontal className="h-4 w-4 mr-2" />
                       Filters
-                      {(filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || (filters.features && filters.features.length > 0)) && (
+                      {(filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || filters.enrollmentStatus || (filters.features && filters.features.length > 0)) && (
                         <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-action-teal text-white">Active</span>
                       )}
                     </Button>

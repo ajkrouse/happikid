@@ -142,6 +142,9 @@ export const providers = pgTable("providers", {
   healthDirector: text("health_director"),
   evaluation: text("evaluation"),
 
+  // Enrollment status — set by provider, shown as a badge on cards and profile
+  enrollmentStatus: varchar("enrollment_status", { enum: ["accepting", "waitlist", "full"] }).default("accepting"),
+
   // Closure / exception note — free-text field for holiday closures or temporary exceptions
   closureNote: text("closure_note"),
 

@@ -23,6 +23,7 @@ interface FormData {
   featuresCustom: string[];
   details: Record<string, any>;
   description: string;
+  enrollmentStatus?: string;
 }
 
 interface StepServiceDetailsProps {
@@ -915,6 +916,36 @@ export function StepServiceDetails({
             placeholder="Add unique features not listed above..."
             maxItems={5}
           />
+
+          {/* Enrollment Status */}
+          <div>
+            <Label className="text-base font-medium">Enrollment Status</Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Let families know if you have open spots right now.
+            </p>
+            <div className="flex gap-2">
+              {([
+                { value: "accepting", label: "Accepting", activeClass: "bg-green-600 text-white border-green-600", inactiveClass: "text-green-700 border-green-200 hover:bg-green-50" },
+                { value: "waitlist", label: "Waitlist", activeClass: "bg-amber-500 text-white border-amber-500", inactiveClass: "text-amber-700 border-amber-200 hover:bg-amber-50" },
+                { value: "full", label: "Full", activeClass: "bg-red-600 text-white border-red-600", inactiveClass: "text-red-700 border-red-200 hover:bg-red-50" },
+              ] as const).map((opt) => {
+                const isActive = (formData.enrollmentStatus ?? "accepting") === opt.value;
+                return (
+                  <Button
+                    key={opt.value}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFormDataChange({ enrollmentStatus: opt.value })}
+                    className={`flex-1 border font-medium transition-colors ${isActive ? opt.activeClass : opt.inactiveClass}`}
+                    data-testid={`enrollment-status-${opt.value}`}
+                  >
+                    {opt.label}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
         </CardContent>
       </Card>
 

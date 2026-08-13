@@ -13,6 +13,7 @@ import { ProfileOptimizationCard } from "@/components/ProfileOptimizationCard";
 import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { PricingEditCard } from "@/components/PricingEditCard";
 import { ScheduleEditCard } from "@/components/ScheduleEditCard";
+import { EnrollmentToggleCard } from "@/components/EnrollmentToggleCard";
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -619,6 +620,9 @@ export default function ProviderDashboard() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Enrollment Status Quick-Edit */}
+            <EnrollmentToggleCard provider={provider} />
 
             {/* Inline Pricing Editor */}
             <div id="pricing-edit-card">
