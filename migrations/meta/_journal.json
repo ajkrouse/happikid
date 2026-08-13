@@ -22,6 +22,13 @@
       "when": 1785959790857,
       "tag": "0002_icy_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786642000473,
+      "tag": "0003_closure_note",
+      "breakpoints": true
     }
   ]
 }

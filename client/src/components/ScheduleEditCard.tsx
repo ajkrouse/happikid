@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Clock, Pencil, X, Save } from "lucide-react";
+import { Clock, Pencil, X, Save, AlertCircle } from "lucide-react";
 
 const DAYS = [
   "monday",
@@ -33,6 +34,7 @@ interface ScheduleEditCardProps {
   provider: {
     id: number;
     schedule?: Record<string, { isOpen?: boolean; open?: string; close?: string }> | null;
+    closureNote?: string | null;
   };
 }
 
@@ -68,6 +70,7 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
   const [schedule, setSchedule] = useState<ScheduleMap>(() =>
     buildInitialSchedule(provider.schedule)
   );
+  const [closureNote, setClosureNote] = useState(provider.closureNote ?? "");
 
   const patchMutation = useMutation({
     mutationFn: async (payload: Record<string, unknown>) => {
@@ -118,11 +121,12 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
         }
       }
     }
-    patchMutation.mutate({ schedule });
+    patchMutation.mutate({ schedule, closureNote: closureNote.trim() || null });
   }
 
   function handleCancel() {
     setSchedule(buildInitialSchedule(provider.schedule));
+    setClosureNote(provider.closureNote ?? "");
     setEditing(false);
   }
 
@@ -155,20 +159,28 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
       <CardContent className="space-y-3">
         {!editing ? (
           /* Read-only display */
-          openDays.length === 0 ? (
-            <p className="text-sm text-gray-500">No hours set — click Edit to add your schedule.</p>
-          ) : (
-            <ul className="space-y-1.5 text-sm">
-              {DAYS.filter((d) => schedule[d].isOpen).map((day) => (
-                <li key={day} className="flex justify-between">
-                  <span className="capitalize text-gray-700 font-medium">{day}</span>
-                  <span className="text-gray-600">
-                    {formatTime(schedule[day].open)} – {formatTime(schedule[day].close)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )
+          <>
+            {openDays.length === 0 ? (
+              <p className="text-sm text-gray-500">No hours set — click Edit to add your schedule.</p>
+            ) : (
+              <ul className="space-y-1.5 text-sm">
+                {DAYS.filter((d) => schedule[d].isOpen).map((day) => (
+                  <li key={day} className="flex justify-between">
+                    <span className="capitalize text-gray-700 font-medium">{day}</span>
+                    <span className="text-gray-600">
+                      {formatTime(schedule[day].open)} – {formatTime(schedule[day].close)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {provider.closureNote && (
+              <div className="mt-3 flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
+                <span>{provider.closureNote}</span>
+              </div>
+            )}
+          </>
         ) : (
           /* Edit form */
           <div className="space-y-3">
@@ -206,6 +218,24 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
                 )}
               </div>
             ))}
+
+            {/* Closure / holiday note */}
+            <div className="pt-1 space-y-1.5">
+              <Label htmlFor="closure-note" className="text-sm font-medium">
+                Closure note <span className="text-gray-400 font-normal">(optional)</span>
+              </Label>
+              <Textarea
+                id="closure-note"
+                value={closureNote}
+                onChange={(e) => setClosureNote(e.target.value)}
+                placeholder="e.g. Closed Dec 24–Jan 1 for winter break. Closed on all NYC public school holidays."
+                className="min-h-[72px] text-sm resize-none"
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-400">
+                Shown to families on your profile so they know about holiday closures or exceptions.
+              </p>
+            </div>
 
             {/* Action buttons */}
             <div className="flex gap-2 pt-2">

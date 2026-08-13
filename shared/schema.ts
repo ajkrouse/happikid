@@ -139,7 +139,10 @@ export const providers = pgTable("providers", {
   campDirector: text("camp_director"),
   healthDirector: text("health_director"),
   evaluation: text("evaluation"),
-  
+
+  // Closure / exception note — free-text field for holiday closures or temporary exceptions
+  closureNote: text("closure_note"),
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

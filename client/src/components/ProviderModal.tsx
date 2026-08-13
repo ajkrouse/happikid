@@ -482,6 +482,12 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                         }
                         return null;
                       })()}
+                      {currentProvider.closureNote && (
+                        <div className="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+                          <span className="shrink-0">⚠️</span>
+                          <span>{currentProvider.closureNote}</span>
+                        </div>
+                      )}
                       {currentProvider.capacity && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">Capacity</span>
