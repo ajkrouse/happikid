@@ -29,6 +29,13 @@
       "when": 1786642000473,
       "tag": "0003_closure_note",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1755129600000,
+      "tag": "0004_closed_dates",
+      "breakpoints": true
     }
   ]
 }

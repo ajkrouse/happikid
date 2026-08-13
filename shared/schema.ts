@@ -143,6 +143,9 @@ export const providers = pgTable("providers", {
   // Closure / exception note — free-text field for holiday closures or temporary exceptions
   closureNote: text("closure_note"),
 
+  // Structured closed-date ranges — array of { from, to, reason } objects (ISO date strings)
+  closedDates: jsonb("closed_dates").default(sql`'[]'::jsonb`),
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -499,6 +502,35 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
   monthlyPrice: _strictOptDecStr,
   monthlyPriceMin: _strictOptDecStr,
   monthlyPriceMax: _strictOptDecStr,
+  // Structured closure date ranges
+  closedDates: z.array(
+    z.object({
+      from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
+      to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
+      reason: z.string().max(200).optional(),
+    }).superRefine((entry, ctx) => {
+      // Strict calendar validation: parse components and verify they round-trip exactly.
+      // JavaScript's Date normalises impossible values (e.g. Feb 30 → Mar 2) so we must
+      // compare the constructed date back against the original components.
+      function strictParseIso(iso: string): Date | null {
+        const [y, m, d] = iso.split("-").map(Number);
+        const dt = new Date(y, m - 1, d); // local, no timezone shift
+        if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+        return dt;
+      }
+      const fromDate = strictParseIso(entry.from);
+      const toDate = strictParseIso(entry.to);
+      if (fromDate === null) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Invalid calendar date: ${entry.from}`, path: ["from"] });
+      }
+      if (toDate === null) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Invalid calendar date: ${entry.to}`, path: ["to"] });
+      }
+      if (fromDate !== null && toDate !== null && entry.to < entry.from) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "End date must be on or after start date", path: ["to"] });
+      }
+    })
+  ).optional().nullable(),
 });
 
 /**

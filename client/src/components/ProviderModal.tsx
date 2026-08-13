@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   Leaf,
   UserCheck,
-  TreePine
+  TreePine,
+  CalendarX,
 } from "lucide-react";
 import { Provider, Review, ProviderImage } from "@shared/schema";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +42,7 @@ import {
 import { ProviderContributions } from "./ProviderContributions";
 import { ReviewVoting } from "./ReviewVoting";
 import { getCostRange, getCostLevel, getBoroughColor, hasPricingData } from "@/lib/providerPricing";
+import { ClosedDatesCalendar, type ClosedDateEntry } from "./ClosedDatesCalendar";
 
 interface ProviderModalProps {
   provider: Provider | null;
@@ -488,6 +490,24 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                           <span>{currentProvider.closureNote}</span>
                         </div>
                       )}
+                      {/* Structured closed-dates calendar */}
+                      {(() => {
+                        const rawDates = (currentProvider as any).closedDates as ClosedDateEntry[] | null | undefined;
+                        const today = new Date().toISOString().slice(0, 10);
+                        const upcoming = (rawDates ?? []).filter((e) => e.to >= today);
+                        if (upcoming.length === 0) return null;
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                              <CalendarX className="h-3.5 w-3.5" />
+                              Closure Calendar
+                            </div>
+                            <div className="rounded-md border border-red-100 bg-red-50/40 p-3">
+                              <ClosedDatesCalendar closedDates={upcoming} />
+                            </div>
+                          </div>
+                        );
+                      })()}
                       {currentProvider.capacity && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">Capacity</span>
