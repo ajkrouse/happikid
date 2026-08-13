@@ -219,4 +219,43 @@ describe("PATCH /api/providers/:id — closure note persistence", () => {
     expect(res.status).toBe(403);
     expect(storage.updateProvider).not.toHaveBeenCalled();
   });
+
+  it("rejects a closureNote exceeding 500 characters with 400", async () => {
+    const stored = makeStoredProvider();
+    vi.mocked(storage.getProvider).mockResolvedValue(stored as any);
+
+    const overlong = "x".repeat(501);
+
+    const app = buildApp();
+    const res = await request(app)
+      .patch("/api/providers/10")
+      .set("x-test-user", "user_owner")
+      .send({ closureNote: overlong });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ message: expect.stringMatching(/invalid provider data/i) });
+    expect(storage.updateProvider).not.toHaveBeenCalled();
+  });
+
+  it("accepts a closureNote of exactly 500 characters", async () => {
+    const stored = makeStoredProvider();
+    const note500 = "a".repeat(500);
+    const updated = { ...stored, closureNote: note500 };
+
+    vi.mocked(storage.getProvider).mockResolvedValue(stored as any);
+    vi.mocked(storage.updateProvider).mockResolvedValue(updated as any);
+
+    const app = buildApp();
+    const res = await request(app)
+      .patch("/api/providers/10")
+      .set("x-test-user", "user_owner")
+      .send({ closureNote: note500 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.closureNote).toBe(note500);
+    expect(storage.updateProvider).toHaveBeenCalledWith(
+      10,
+      expect.objectContaining({ closureNote: note500 })
+    );
+  });
 });

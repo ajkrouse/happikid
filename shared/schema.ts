@@ -592,6 +592,10 @@ export const providerClientUpdateSchema = insertProviderSchema.omit({
   campDirector: true,
   healthDirector: true,
   evaluation: true,
+}).extend({
+  // Enforce the same 500-character limit that the client textarea imposes, so a
+  // custom client or script cannot bypass it and store arbitrarily long notes.
+  closureNote: z.string().max(500, "Closure note must be 500 characters or fewer").nullable().optional(),
 });
 
 export const insertReviewSchema = createInsertSchema(reviews).omit({
