@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
-import { sendLicenseRejectionEmail } from "../services/email";
+import { sendLicenseRejectionEmail, sendLicenseApprovalEmail } from "../services/email";
 import { strictPathInt } from "../lib/pathParams";
 import { createLogger } from "../logger";
 
@@ -60,6 +60,20 @@ export function registerAdminRoutes(app: Express): void {
           isProfileVisible: true,
           isVerified: true,
         });
+
+        // Send approval email if we can look up the owner's email
+        if (provider.userId) {
+          const owner = await storage.getUser(provider.userId);
+          if (owner?.email) {
+            await sendLicenseApprovalEmail({
+              recipientEmail: owner.email,
+              recipientName:
+                [owner.firstName, owner.lastName].filter(Boolean).join(" ") || "Provider",
+              providerName: provider.name,
+              providerId,
+            });
+          }
+        }
 
         // Audit log
         await storage.createAuditLog({
