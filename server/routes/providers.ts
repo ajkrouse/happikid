@@ -59,7 +59,7 @@ export function registerProviderRoutes(app: Express): void {
       const {
         type, borough, city, ageRange, ageRangeMin, ageRangeMax,
         features, search, category, subcategory,
-        limit = 20, offset = 0, aiSummary: requestAiSummary, acceptsSubsidies,
+        limit = 20, offset = 0, aiSummary: requestAiSummary, acceptsSubsidies, verifiedPricing,
       } = req.query;
 
       const ageGroupMap: { [key: string]: [number, number] } = {
@@ -90,6 +90,7 @@ export function registerProviderRoutes(app: Express): void {
         offset: parseInt(offset as string),
         returnTotal: true,
         acceptsSubsidies: acceptsSubsidies === "true",
+        verifiedPricing: verifiedPricing === "true",
       };
 
       if (search && (search as string).trim().length > 0) {

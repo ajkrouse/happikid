@@ -14,6 +14,7 @@ interface SearchFiltersProps {
     priceRange?: string;
     features?: string[];
     acceptsSubsidies?: boolean;
+    verifiedPricing?: boolean;
   };
   onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
@@ -168,7 +169,11 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
     onFiltersChange({ ...filters, acceptsSubsidies: checked || undefined });
   };
 
-  const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || (filters.features && filters.features.length > 0);
+  const handleVerifiedPricingToggle = (checked: boolean) => {
+    onFiltersChange({ ...filters, verifiedPricing: checked || undefined });
+  };
+
+  const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || (filters.features && filters.features.length > 0);
 
   return (
     <Card className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl shadow-lg border-2 border-brand-evergreen/10 bg-white">
@@ -311,6 +316,30 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
               </Label>
               <p className="text-xs text-muted-foreground mt-0.5">
                 CCAP, vouchers & government assistance
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Verified Pricing */}
+        <div className="p-3 bg-action-teal/5 rounded-lg border border-action-teal/20">
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="verified-pricing"
+              checked={filters.verifiedPricing || false}
+              onCheckedChange={(checked) => handleVerifiedPricingToggle(checked as boolean)}
+              className="mt-0.5"
+              aria-label="Show only providers with verified pricing"
+            />
+            <div>
+              <Label
+                htmlFor="verified-pricing"
+                className="text-sm font-medium text-action-teal cursor-pointer"
+              >
+                Verified pricing only
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Hide providers with estimated costs
               </p>
             </div>
           </div>

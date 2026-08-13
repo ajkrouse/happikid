@@ -81,7 +81,8 @@ export interface IStorage {
     includeUnconfirmed?: boolean;
     returnTotal?: boolean;
     acceptsSubsidies?: boolean;
-  }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number }>;
+    verifiedPricing?: boolean;
+  }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number; verifiedPricingCount: number }>;
   getProvider(id: number): Promise<Provider | undefined>;
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
   createProvider(provider: InsertProvider): Promise<Provider>;
@@ -279,7 +280,8 @@ export class DatabaseStorage implements IStorage {
     includeUnconfirmed?: boolean;
     returnTotal?: boolean;
     acceptsSubsidies?: boolean;
-  }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number }> {
+    verifiedPricing?: boolean;
+  }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number; verifiedPricingCount: number }> {
     try {
       let conditions: any[] = [eq(providers.isActive, true)];
 
@@ -360,17 +362,39 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(providers.acceptsSubsidies, true));
       }
 
+      // Verified pricing SQL expression — matches the hasPricingData() rule in client/src/lib/providerPricing.ts:
+      // a provider has verified pricing when it has an explicit price range OR a positive fixed monthly price.
+      const verifiedPricingSql = sql`(
+        (${providers.monthlyPriceMin} IS NOT NULL AND ${providers.monthlyPriceMax} IS NOT NULL)
+        OR
+        (${providers.monthlyPrice} IS NOT NULL AND ${providers.monthlyPrice}::numeric > 0)
+      )`;
+
+      // Capture base conditions before the verifiedPricing filter so we can count
+      // how many providers in the current result set have verified pricing regardless
+      // of whether the filter is active.
+      const baseConditions = [...conditions];
+
+      if (filters?.verifiedPricing) {
+        conditions.push(verifiedPricingSql);
+      }
+
       // Import provider_scores table for ranking
       const { providerScores } = await import("@shared/schema");
 
-      // If returnTotal is requested, get total count first
+      // If returnTotal is requested, get total count + verified-pricing count
       if (filters?.returnTotal) {
-        const countQuery = db
-          .select({ count: sql<number>`count(*)`.as('count') })
-          .from(providers)
-          .where(and(...conditions));
-        
-        const [{ count: total }] = await countQuery;
+        const [countResult, verifiedCountResult] = await Promise.all([
+          db.select({ count: sql<number>`count(*)`.as('count') })
+            .from(providers)
+            .where(and(...conditions)),
+          db.select({ count: sql<number>`count(*)`.as('count') })
+            .from(providers)
+            .where(and(...baseConditions, verifiedPricingSql)),
+        ]);
+
+        const total = countResult[0].count;
+        const verifiedPricingCount = verifiedCountResult[0].count;
 
         // Join with provider_scores to incorporate optimization score in ranking
         const query = db
@@ -391,7 +415,7 @@ export class DatabaseStorage implements IStorage {
           .offset(filters?.offset || 0);
 
         const providerResults = await query;
-        return { providers: providerResults, total };
+        return { providers: providerResults, total, verifiedPricingCount };
       }
 
       // Normal query without total count - also include optimization score ranking

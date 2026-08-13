@@ -99,6 +99,7 @@ export default function SearchPage() {
     category?: string;
     subcategory?: string;
     acceptsSubsidies?: boolean;
+    verifiedPricing?: boolean;
   }>({});
   const [sortBy, setSortBy] = useState("best-match");
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
@@ -201,6 +202,7 @@ export default function SearchPage() {
         features: filters.features?.join(","),
         priceRange: filters.priceRange,
         acceptsSubsidies: filters.acceptsSubsidies ? "true" : undefined,
+        verifiedPricing: filters.verifiedPricing ? "true" : undefined,
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
         aiSummary: debouncedSearchQuery ? "true" : undefined,
@@ -217,6 +219,7 @@ export default function SearchPage() {
 
   const providers = Array.isArray(providerResponse) ? providerResponse : (providerResponse as any)?.providers || [];
   const totalCount = Array.isArray(providerResponse) ? providers.length : (providerResponse as any)?.total || providers.length;
+  const verifiedPricingCount: number | null = (providerResponse as any)?.verifiedPricingCount ?? null;
 
   const { data: favorites = [] } = useQuery({
     queryKey: ["/api/favorites"],
@@ -378,7 +381,7 @@ export default function SearchPage() {
                     <Button variant="outline" className="w-full border-2 border-brand-evergreen/10 text-brand-evergreen">
                       <SlidersHorizontal className="h-4 w-4 mr-2" />
                       Filters
-                      {(filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || (filters.features && filters.features.length > 0)) && (
+                      {(filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || (filters.features && filters.features.length > 0)) && (
                         <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-action-teal text-white">Active</span>
                       )}
                     </Button>
@@ -434,6 +437,22 @@ export default function SearchPage() {
                 <div className="flex-1">
                   <h2 className="text-2xl font-headline font-bold mb-1 text-brand-evergreen">{getResultsText()}</h2>
                   {searchQuery && <p className="text-sm text-text-muted">for "{searchQuery}"</p>}
+                  {!isLoading && verifiedPricingCount !== null && totalCount > 0 && (
+                    <p className="text-sm text-text-muted mt-0.5">
+                      <span className="text-green-600 font-medium">{verifiedPricingCount}</span>
+                      {" "}of {totalCount} have{" "}
+                      <button
+                        className="underline underline-offset-2 hover:text-action-teal transition-colors"
+                        onClick={() => setFilters((prev) => ({ ...prev, verifiedPricing: !prev.verifiedPricing }))}
+                        aria-pressed={!!filters.verifiedPricing}
+                      >
+                        verified pricing
+                      </button>
+                      {filters.verifiedPricing && (
+                        <span className="ml-1 text-action-teal font-medium">· filtered</span>
+                      )}
+                    </p>
+                  )}
 
                   {filters.category && filters.subcategory && (
                     <div className="mt-2 flex items-center gap-2 text-sm">
