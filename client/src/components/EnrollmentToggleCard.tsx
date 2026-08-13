@@ -16,6 +16,7 @@ const STATUS_OPTIONS = [
     description: "Open spots available",
     activeClass: "bg-green-600 hover:bg-green-700 text-white border-green-600",
     inactiveClass: "bg-white hover:bg-green-50 text-green-700 border-green-200",
+    selectClass: "text-green-700",
   },
   {
     value: "waitlist",
@@ -23,6 +24,7 @@ const STATUS_OPTIONS = [
     description: "Taking waitlist sign-ups",
     activeClass: "bg-amber-500 hover:bg-amber-600 text-white border-amber-500",
     inactiveClass: "bg-white hover:bg-amber-50 text-amber-700 border-amber-200",
+    selectClass: "text-amber-700",
   },
   {
     value: "full",
@@ -30,8 +32,15 @@ const STATUS_OPTIONS = [
     description: "No spots available",
     activeClass: "bg-red-600 hover:bg-red-700 text-white border-red-600",
     inactiveClass: "bg-white hover:bg-red-50 text-red-700 border-red-200",
+    selectClass: "text-red-700",
   },
 ] as const;
+
+const selectColorMap: Record<string, string> = {
+  accepting: "text-green-700 border-green-400 bg-green-50",
+  waitlist: "text-amber-700 border-amber-400 bg-amber-50",
+  full: "text-red-700 border-red-400 bg-red-50",
+};
 
 export function EnrollmentToggleCard({ provider }: EnrollmentToggleCardProps) {
   const { toast } = useToast();
@@ -63,6 +72,15 @@ export function EnrollmentToggleCard({ provider }: EnrollmentToggleCardProps) {
     },
   });
 
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value;
+    if (newStatus !== currentStatus) {
+      mutation.mutate(newStatus);
+    }
+  };
+
+  const colorClass = selectColorMap[currentStatus] ?? "";
+
   return (
     <Card>
       <CardHeader>
@@ -75,7 +93,25 @@ export function EnrollmentToggleCard({ provider }: EnrollmentToggleCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-2">
+        {/* Mobile: native select (shown below 480 px) */}
+        <div className="block min-[480px]:hidden">
+          <select
+            value={currentStatus}
+            disabled={mutation.isPending}
+            onChange={handleSelectChange}
+            aria-label="Enrollment status"
+            className={`w-full rounded-md border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-evergreen transition-colors ${colorClass} disabled:opacity-50`}
+          >
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label} — {opt.description}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Desktop: button group (hidden below 480 px) */}
+        <div className="hidden min-[480px]:flex gap-2">
           {STATUS_OPTIONS.map((opt) => {
             const isActive = currentStatus === opt.value;
             return (
@@ -97,6 +133,7 @@ export function EnrollmentToggleCard({ provider }: EnrollmentToggleCardProps) {
             );
           })}
         </div>
+
         <p className="text-xs text-muted-foreground mt-2">
           {STATUS_OPTIONS.find((o) => o.value === currentStatus)?.description ?? ""}
         </p>
