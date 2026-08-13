@@ -326,7 +326,14 @@ export function registerProviderRoutes(app: Express): void {
         // Update path: use providerClientUpdateSchema to strip server-controlled fields,
         // then enforce userId from the authenticated session only.
         const providerId = existingProviders[0].id;
-        const updateData = { ...providerClientUpdateSchema.partial().parse(providerData), userId };
+        const parsed = providerClientUpdateSchema.partial().parse(providerData);
+        // Lazy cleanup: drop any closure entries whose end date has already passed
+        if (Array.isArray(parsed.closedDates)) {
+          const todayIso = new Date().toISOString().slice(0, 10);
+          parsed.closedDates = parsed.closedDates.filter((e) => e.to >= todayIso);
+          if (parsed.closedDates.length === 0) parsed.closedDates = null;
+        }
+        const updateData = { ...parsed, userId };
         const updatedProvider = await storage.updateProvider(providerId, updateData);
         if (validatedLocations.length > 0) {
           const primary = validatedLocations.find((l) => l.isPrimary) || validatedLocations[0];
