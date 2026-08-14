@@ -5,7 +5,7 @@ import { tourRequestClientCreateSchema } from "@shared/schema";
 import { strictPathInt } from "../lib/pathParams";
 import { z } from "zod";
 import { createLogger } from "../logger";
-import { sendTourRequestNotification } from "../services/email";
+import { sendTourRequestNotification, sendTourStatusEmail } from "../services/email";
 
 const log = createLogger("tourRequests");
 
@@ -135,7 +135,24 @@ export function registerTourRequestRoutes(app: Express): void {
         return res.status(403).json({ message: "Not authorized to update this tour request" });
       }
 
-      res.json(await storage.updateTourRequestStatus(id, newStatus));
+      const updated = await storage.updateTourRequestStatus(id, newStatus);
+
+      // Notify the parent when a provider schedules or cancels their tour request.
+      if (isProviderOwner && (newStatus === "scheduled" || newStatus === "cancelled")) {
+        const parent = await storage.getUser(tourRequest.parentUserId);
+        const provider = ownedProviders.find((p) => p.id === tourRequest.providerId);
+        if (parent?.email && provider) {
+          const parentName = [parent.firstName, parent.lastName].filter(Boolean).join(" ") || parent.email;
+          sendTourStatusEmail({
+            recipientEmail: parent.email,
+            recipientName: parentName,
+            providerName: provider.name,
+            newStatus,
+          }).catch(() => {});
+        }
+      }
+
+      res.json(updated);
     } catch (error) {
       log.error({ err: error }, "Error updating tour request");
       res.status(500).json({ message: "Failed to update tour request" });

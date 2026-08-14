@@ -218,6 +218,66 @@ export async function sendTourRequestNotification(opts: {
 /**
  * Notify a provider that their license was approved and their profile is now live.
  */
+/**
+ * Notify a parent that their tour request status has been updated by the provider
+ * (e.g. scheduled or cancelled).
+ */
+export async function sendTourStatusEmail(opts: {
+  recipientEmail: string;
+  recipientName: string;
+  providerName: string;
+  newStatus: "scheduled" | "cancelled";
+}): Promise<void> {
+  const baseUrl = getCanonicalBaseUrl();
+  const toursUrl = `${baseUrl}/messages`;
+
+  const safeRecipient = escapeHtml(opts.recipientName);
+  const safeProvider = escapeHtml(opts.providerName);
+  const safeStatus = opts.newStatus === "scheduled" ? "Scheduled" : "Cancelled";
+
+  const isScheduled = opts.newStatus === "scheduled";
+  const accentColor = isScheduled ? "#16a34a" : "#c0502a";
+  const bgColor = isScheduled ? "#f0fdf4" : "#fff4f2";
+  const textColor = isScheduled ? "#166534" : "#7a2a10";
+  const statusVerb = isScheduled
+    ? "has been scheduled"
+    : "has been cancelled";
+
+  const subject = `Tour request ${opts.newStatus}: ${opts.providerName}`;
+
+  const text = [
+    `Hi ${opts.recipientName},`,
+    ``,
+    `Your tour request for ${opts.providerName} ${statusVerb}.`,
+    ``,
+    `Visit your messages page to view the details:`,
+    toursUrl,
+    ``,
+    `— The HappiKid Team`,
+  ].join("\n");
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
+      <h2 style="color:#1a3a2a;margin-bottom:8px">Tour Request ${safeStatus}</h2>
+      <p style="color:#555;margin-bottom:16px">Hi ${safeRecipient},</p>
+      <p style="color:#555;margin-bottom:16px">
+        Your tour request for <strong>${safeProvider}</strong> ${statusVerb}.
+      </p>
+      <div style="background:${bgColor};border-left:4px solid ${accentColor};padding:12px 16px;border-radius:4px;margin-bottom:24px">
+        <p style="margin:0;font-weight:600;color:${textColor}">Status: ${safeStatus}</p>
+      </div>
+      <a href="${toursUrl}" style="display:inline-block;background:#1a3a2a;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600">
+        View Tour Details
+      </a>
+      <p style="color:#999;font-size:12px;margin-top:32px">
+        You received this because you submitted a tour request on HappiKid.
+      </p>
+    </div>
+  `;
+
+  await sendEmail({ to: opts.recipientEmail, subject, html, text });
+}
+
 export async function sendLicenseApprovalEmail(opts: {
   recipientEmail: string;
   recipientName: string;
