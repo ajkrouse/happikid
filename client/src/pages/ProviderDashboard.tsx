@@ -422,8 +422,17 @@ export default function ProviderDashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{analytics?.profileViews ?? "—"}</div>
               <p className="text-xs text-muted-foreground">
-                {analytics?.profileClicks != null
-                  ? `${analytics.profileClicks} click-throughs`
+                {analytics?.viewsThisWeek != null
+                  ? (() => {
+                      const thisWeek = analytics.viewsThisWeek as number;
+                      const lastWeek = analytics.viewsLastWeek as number;
+                      if (lastWeek === 0) return `${thisWeek} this week`;
+                      const diff = thisWeek - lastWeek;
+                      const pct = Math.round(Math.abs(diff / lastWeek) * 100);
+                      return diff >= 0
+                        ? `↑ ${pct}% vs last week`
+                        : `↓ ${pct}% vs last week`;
+                    })()
                   : "Total all-time views"}
               </p>
             </CardContent>

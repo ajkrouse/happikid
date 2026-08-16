@@ -662,6 +662,40 @@ export class DatabaseStorage implements IStorage {
     return rows.map((r) => ({ date: r.viewedDate, views: r.count }));
   }
 
+  // Return this week's and last week's total view counts for a provider.
+  // "This week"  = today back to 6 days ago  (CURRENT_DATE - 6 days … CURRENT_DATE) — 7 days
+  // "Last week"  = 7 days ago back to 13 days ago (CURRENT_DATE - 13 days … CURRENT_DATE - 7 days) — 7 days
+  // Both windows are equal-length and non-overlapping; aggregation is done in the DB
+  // to avoid JS/local-timezone date-parsing issues.
+  async getWeeklyViewSummary(providerId: number): Promise<{ viewsThisWeek: number; viewsLastWeek: number }> {
+    const [thisWeekResult, lastWeekResult] = await Promise.all([
+      db
+        .select({ total: sql<number>`COALESCE(SUM(${providerProfileViews.count}), 0)` })
+        .from(providerProfileViews)
+        .where(
+          and(
+            eq(providerProfileViews.providerId, providerId),
+            sql`${providerProfileViews.viewedDate} >= CURRENT_DATE - INTERVAL '6 days'`,
+            sql`${providerProfileViews.viewedDate} <= CURRENT_DATE`
+          )
+        ),
+      db
+        .select({ total: sql<number>`COALESCE(SUM(${providerProfileViews.count}), 0)` })
+        .from(providerProfileViews)
+        .where(
+          and(
+            eq(providerProfileViews.providerId, providerId),
+            sql`${providerProfileViews.viewedDate} >= CURRENT_DATE - INTERVAL '13 days'`,
+            sql`${providerProfileViews.viewedDate} <= CURRENT_DATE - INTERVAL '7 days'`
+          )
+        ),
+    ]);
+    return {
+      viewsThisWeek: Number(thisWeekResult[0]?.total ?? 0),
+      viewsLastWeek: Number(lastWeekResult[0]?.total ?? 0),
+    };
+  }
+
   // Provider images
   async getProviderImages(providerId: number): Promise<ProviderImage[]> {
     return await db

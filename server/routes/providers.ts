@@ -192,12 +192,17 @@ export function registerProviderRoutes(app: Express): void {
         createdAt: r.createdAt,
       }));
 
+      const weeklyViews = await storage.getWeeklyViewSummary(provider.id);
+
       res.json({
         // Listing performance (from providers table analytics fields)
         profileViews: provider.profileViews ?? 0,
         profileClicks: provider.profileClicks ?? 0,
         comparisonAdds: provider.comparisonAdds ?? 0,
         favoriteAdds: provider.favoriteAdds ?? 0,
+        // Weekly view trend
+        viewsThisWeek: weeklyViews.viewsThisWeek,
+        viewsLastWeek: weeklyViews.viewsLastWeek,
         // Review summary
         reviewCount: reviews.length,
         averageRating: reviews.length > 0 ? Number(provider.rating) : null,
