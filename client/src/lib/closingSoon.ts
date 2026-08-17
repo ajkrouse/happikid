@@ -61,6 +61,31 @@ export function getClosingSoonEntry(
 }
 
 /**
+ * Returns true when today's local calendar date falls within any closure entry.
+ * Only current entries are matched — past and future entries return false.
+ *
+ * @param closedDates - raw jsonb value from the provider record
+ * @param today - local calendar today (defaults to new Date())
+ */
+export function isClosedToday(
+  closedDates: unknown,
+  today: Date = new Date()
+): boolean {
+  if (!Array.isArray(closedDates) || closedDates.length === 0) return false;
+
+  const todayNorm = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayStr = localDateStr(todayNorm);
+
+  return (closedDates as ClosedDateEntry[]).some(
+    (entry) =>
+      typeof entry.from === "string" &&
+      typeof entry.to === "string" &&
+      entry.from <= todayStr &&
+      entry.to >= todayStr
+  );
+}
+
+/**
  * Formats a closure entry as a human-readable label, e.g. "Aug 25 – Sep 2".
  */
 export function formatClosureDateRange(entry: { from: string; to: string }): string {

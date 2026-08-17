@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
 import { getCostRange, getCostLevel, getBoroughColor, hasPricingData } from "@/lib/providerPricing";
-import { getClosingSoonEntry, formatClosureDateRange } from "@/lib/closingSoon";
+import { getClosingSoonEntry, formatClosureDateRange, isClosedToday } from "@/lib/closingSoon";
 
 interface ProviderCardProps {
   provider: ProviderWithScore;
@@ -211,6 +211,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   };
 
   const closingSoonEntry = getClosingSoonEntry(provider.closedDates);
+  const closedToday = isClosedToday(provider.closedDates);
 
 
   return (
@@ -315,7 +316,12 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
           {provider.badges?.slice(0, provider.acceptsSubsidies ? 2 : 3).map((badgeType: string, index: number) => (
             <ProviderBadge key={index} type={badgeType as BadgeType} size="sm" />
           ))}
-          {closingSoonEntry && (
+          {closedToday && (
+            <Badge className="rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-300">
+              🔴 Closed today
+            </Badge>
+          )}
+          {!closedToday && closingSoonEntry && (
             <Badge className="rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
               ⏰ Closing soon · {formatClosureDateRange(closingSoonEntry)}
             </Badge>
