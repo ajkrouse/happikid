@@ -72,6 +72,7 @@ export interface IStorage {
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   linkGoogleId(userId: string, googleId: string): Promise<User>;
   upsertGoogleUser(data: { id: string; googleId: string; email: string | null; firstName: string | null; lastName: string | null; profileImageUrl: string | null }): Promise<User>;
+  updateGoogleUserProfile(userId: string, data: { email: string | null; firstName: string | null; lastName: string | null; profileImageUrl: string | null }): Promise<User>;
   
   // Provider operations
   getProviders(filters?: {
@@ -256,6 +257,29 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ googleId, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateGoogleUserProfile(
+    userId: string,
+    data: {
+      email: string | null;
+      firstName: string | null;
+      lastName: string | null;
+      profileImageUrl: string | null;
+    }
+  ): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        profileImageUrl: data.profileImageUrl,
+        updatedAt: new Date(),
+      })
       .where(eq(users.id, userId))
       .returning();
     return user;

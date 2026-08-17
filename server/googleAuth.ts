@@ -46,11 +46,22 @@ export function setupGoogleAuth(app: Express) {
           const lastName = profile.name?.familyName ?? null;
           const profileImageUrl = profile.photos?.[0]?.value ?? null;
 
-          // 1. Try to find by googleId (returning user)
+          // 1. Try to find by googleId (returning user, primary lookup — durable across email changes)
           let user = await storage.getUserByGoogleId(googleId);
 
-          if (!user && email) {
-            // 2. Try to merge with an existing account that shares the same email
+          if (user) {
+            // Update profile fields (email, name, photo) in case they changed on Google's side.
+            // This prevents a stale email from causing a duplicate-account collision on the next
+            // sign-in if the user also has a local account with the old address.
+            user = await storage.updateGoogleUserProfile(user.id, {
+              email,
+              firstName,
+              lastName,
+              profileImageUrl,
+            });
+          } else if (email) {
+            // 2. No googleId match — try to merge with an existing account that shares the same email.
+            //    This covers first-time Google sign-in for a user who already has a local account.
             const existing = await storage.getUserByEmail(email);
             if (existing) {
               user = await storage.linkGoogleId(existing.id, googleId);
