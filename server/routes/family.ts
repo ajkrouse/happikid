@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { insertFamilyProfileSchema, familyProfileClientUpdateSchema } from "@shared/schema";
+import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -13,7 +14,7 @@ export function registerFamilyRoutes(app: Express): void {
       res.json((await storage.getFamilyProfile(req.user.claims.sub)) || null);
     } catch (error) {
       log.error({ err: error }, "Error fetching family profile");
-      res.status(500).json({ message: "Failed to fetch family profile" });
+      apiError(res, 500, "Failed to fetch family profile");
     }
   });
 
@@ -26,8 +27,8 @@ export function registerFamilyRoutes(app: Express): void {
       res.json(await storage.upsertFamilyProfile(profileData));
     } catch (error) {
       log.error({ err: error }, "Error saving family profile");
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid family profile data", errors: error.errors });
-      res.status(500).json({ message: "Failed to save family profile" });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid family profile data", { errors: error.errors });
+      apiError(res, 500, "Failed to save family profile");
     }
   });
 
@@ -39,8 +40,8 @@ export function registerFamilyRoutes(app: Express): void {
       res.json(await storage.updateFamilyProfile(req.user.claims.sub, profileData));
     } catch (error) {
       log.error({ err: error }, "Error updating family profile");
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid family profile data", errors: error.errors });
-      res.status(500).json({ message: "Failed to update family profile" });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid family profile data", { errors: error.errors });
+      apiError(res, 500, "Failed to update family profile");
     }
   });
 }

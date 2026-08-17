@@ -270,14 +270,14 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user?.claims?.sub) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
   }
 
   // Google-authenticated sessions carry a long-lived expiry set at login — skip token refresh
   if (user.provider === "google") {
     const now = Math.floor(Date.now() / 1000);
     if (user.expires_at && now <= user.expires_at) return next();
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
   }
 
   // Tokens live on the session (not req.user) to prevent accidental exposure
@@ -290,7 +290,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const expiresAt = sessionTokens?.expires_at ?? user?.expires_at;
 
   if (!expiresAt) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -300,7 +300,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const refreshToken = sessionTokens?.refresh_token;
   if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ ok: false, message: "Unauthorized" });
     return;
   }
 
@@ -311,7 +311,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     updateUserSession(user, tokenResponse, req);
     return next();
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ ok: false, message: "Unauthorized" });
     return;
   }
 };

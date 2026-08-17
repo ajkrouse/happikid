@@ -4,6 +4,7 @@ import { isAuthenticated } from "../replitAuth";
 import { inquiryLimiter } from "../middleware/rateLimiter";
 import { inquiryClientCreateSchema } from "@shared/schema";
 import { strictPathInt } from "../lib/pathParams";
+import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -13,13 +14,13 @@ export function registerInquiryRoutes(app: Express): void {
   app.get("/api/inquiries/provider/:providerId", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = strictPathInt(req.params.providerId);
-      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
-      if (!provider || provider.userId !== req.user?.claims?.sub) return res.status(403).json({ message: "Access denied" });
+      if (!provider || provider.userId !== req.user?.claims?.sub) return apiError(res, 403, "Access denied");
       res.json(await storage.getInquiriesByProviderId(providerId));
     } catch (error) {
       log.error({ err: error }, "Error fetching inquiries");
-      res.status(500).json({ message: "Failed to fetch inquiries" });
+      apiError(res, 500, "Failed to fetch inquiries");
     }
   });
 
@@ -28,7 +29,7 @@ export function registerInquiryRoutes(app: Express): void {
       res.json(await storage.getInquiriesByUserId(req.user?.claims?.sub));
     } catch (error) {
       log.error({ err: error }, "Error fetching user inquiries");
-      res.status(500).json({ message: "Failed to fetch inquiries" });
+      apiError(res, 500, "Failed to fetch inquiries");
     }
   });
 
@@ -39,7 +40,7 @@ export function registerInquiryRoutes(app: Express): void {
       res.json(await storage.getInquiriesByProviderId(providers[0].id));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider inquiries");
-      res.status(500).json({ message: "Failed to fetch inquiries" });
+      apiError(res, 500, "Failed to fetch inquiries");
     }
   });
 
@@ -53,8 +54,8 @@ export function registerInquiryRoutes(app: Express): void {
       res.status(201).json(await storage.createInquiry(inquiryData));
     } catch (error) {
       log.error({ err: error }, "Error creating inquiry");
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid inquiry data", errors: error.errors });
-      res.status(500).json({ message: "Failed to create inquiry" });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid inquiry data", { errors: error.errors });
+      apiError(res, 500, "Failed to create inquiry");
     }
   });
 
@@ -65,47 +66,47 @@ export function registerInquiryRoutes(app: Express): void {
   app.post("/api/inquiries/:id/reply", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) return res.status(400).json({ message: "Invalid inquiry ID" });
+      if (isNaN(id)) return apiError(res, 400, "Invalid inquiry ID");
       const replySchema = z.object({ reply: z.string().min(1).max(2000) });
       const parsed = replySchema.safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ message: "Reply text is required", errors: parsed.error.errors });
+      if (!parsed.success) return apiError(res, 400, "Reply text is required", { errors: parsed.error.errors });
 
       // Confirm the inquiry belongs to one of this provider's listings
       const inquiry = await storage.getInquiry(id);
-      if (!inquiry) return res.status(404).json({ message: "Inquiry not found" });
+      if (!inquiry) return apiError(res, 404, "Inquiry not found");
       const ownedProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
       const owns = ownedProviders.some((p) => p.id === inquiry.providerId);
-      if (!owns) return res.status(403).json({ message: "Not authorized to reply to this inquiry" });
+      if (!owns) return apiError(res, 403, "Not authorized to reply to this inquiry");
 
       res.json(await storage.replyToInquiry(id, parsed.data.reply));
     } catch (error) {
       log.error({ err: error }, "Error replying to inquiry");
-      res.status(500).json({ message: "Failed to send reply" });
+      apiError(res, 500, "Failed to send reply");
     }
   });
 
   app.patch("/api/inquiries/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const inquiryId = strictPathInt(req.params.id);
-      if (!inquiryId) return res.status(400).json({ message: "Invalid inquiry ID" });
+      if (!inquiryId) return apiError(res, 400, "Invalid inquiry ID");
 
       const parsed = updateInquiryStatusSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid status", errors: parsed.error.errors });
+        return apiError(res, 400, "Invalid status", { errors: parsed.error.errors });
       }
 
       // Only the provider that owns this inquiry may update its status
       const inquiry = await storage.getInquiry(inquiryId);
-      if (!inquiry) return res.status(404).json({ message: "Inquiry not found" });
+      if (!inquiry) return apiError(res, 404, "Inquiry not found");
       const provider = await storage.getProvider(inquiry.providerId);
       if (!provider || provider.userId !== req.user?.claims?.sub) {
-        return res.status(403).json({ message: "Access denied" });
+        return apiError(res, 403, "Access denied");
       }
 
       res.json(await storage.updateInquiryStatus(inquiryId, parsed.data.status));
     } catch (error) {
       log.error({ err: error }, "Error updating inquiry status");
-      res.status(500).json({ message: "Failed to update inquiry status" });
+      apiError(res, 500, "Failed to update inquiry status");
     }
   });
 }

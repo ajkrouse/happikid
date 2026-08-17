@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { strictPathInt } from "../lib/pathParams";
+import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 import { sendNewMessageNotification } from "../services/email";
@@ -43,24 +44,22 @@ export function registerThreadRoutes(app: Express): void {
       const userId = req.user?.claims?.sub as string;
       const parsed = startThreadSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid request", errors: parsed.error.errors });
+        return apiError(res, 400, "Invalid request", { errors: parsed.error.errors });
       }
       const { providerId, body } = parsed.data;
 
       // Verify provider exists and has an in-platform recipient
       const provider = await storage.getProvider(providerId);
-      if (!provider) return res.status(404).json({ message: "Provider not found" });
+      if (!provider) return apiError(res, 404, "Provider not found");
 
       const ownerUserId = providerOwnerUserId(provider);
       if (!ownerUserId) {
-        return res.status(422).json({
-          message: "This provider has not yet joined HappiKid — messaging is unavailable for this listing.",
-        });
+        return apiError(res, 422, "This provider has not yet joined HappiKid — messaging is unavailable for this listing.");
       }
 
       // A provider cannot message themselves
       if (userId === ownerUserId) {
-        return res.status(400).json({ message: "You cannot message your own listing." });
+        return apiError(res, 400, "You cannot message your own listing.");
       }
 
       // Get or create thread (idempotent)
@@ -89,7 +88,7 @@ export function registerThreadRoutes(app: Express): void {
       res.status(201).json({ thread, message });
     } catch (error) {
       log.error({ err: error }, "Error creating thread");
-      res.status(500).json({ message: "Failed to start conversation" });
+      apiError(res, 500, "Failed to start conversation");
     }
   });
 
@@ -104,7 +103,7 @@ export function registerThreadRoutes(app: Express): void {
       res.json(threads);
     } catch (error) {
       log.error({ err: error }, "Error listing threads");
-      res.status(500).json({ message: "Failed to fetch conversations" });
+      apiError(res, 500, "Failed to fetch conversations");
     }
   });
 
@@ -132,7 +131,7 @@ export function registerThreadRoutes(app: Express): void {
       res.json(combined);
     } catch (error) {
       log.error({ err: error }, "Error listing provider threads");
-      res.status(500).json({ message: "Failed to fetch conversations" });
+      apiError(res, 500, "Failed to fetch conversations");
     }
   });
 
@@ -144,10 +143,10 @@ export function registerThreadRoutes(app: Express): void {
     try {
       const userId = req.user?.claims?.sub as string;
       const threadId = strictPathInt(req.params.id);
-      if (!threadId) return res.status(400).json({ message: "Invalid thread ID" });
+      if (!threadId) return apiError(res, 400, "Invalid thread ID");
 
       const thread = await storage.getThread(threadId);
-      if (!thread) return res.status(404).json({ message: "Conversation not found" });
+      if (!thread) return apiError(res, 404, "Conversation not found");
 
       // Access control: must be the parent or the canonical provider owner
       const provider = await storage.getProvider(thread.providerId);
@@ -155,7 +154,7 @@ export function registerThreadRoutes(app: Express): void {
       const isParent = thread.parentUserId === userId;
       const isProviderOwner = ownerUserId !== null && ownerUserId === userId;
       if (!isParent && !isProviderOwner) {
-        return res.status(403).json({ message: "Access denied" });
+        return apiError(res, 403, "Access denied");
       }
 
       const messages = await storage.getThreadMessages(threadId);
@@ -165,7 +164,7 @@ export function registerThreadRoutes(app: Express): void {
       res.json({ thread, messages, provider });
     } catch (error) {
       log.error({ err: error }, "Error fetching thread");
-      res.status(500).json({ message: "Failed to fetch conversation" });
+      apiError(res, 500, "Failed to fetch conversation");
     }
   });
 
@@ -177,27 +176,27 @@ export function registerThreadRoutes(app: Express): void {
     try {
       const userId = req.user?.claims?.sub as string;
       const threadId = strictPathInt(req.params.id);
-      if (!threadId) return res.status(400).json({ message: "Invalid thread ID" });
+      if (!threadId) return apiError(res, 400, "Invalid thread ID");
 
       const thread = await storage.getThread(threadId);
-      if (!thread) return res.status(404).json({ message: "Conversation not found" });
+      if (!thread) return apiError(res, 404, "Conversation not found");
 
       const provider = await storage.getProvider(thread.providerId);
       const ownerUserId = provider ? providerOwnerUserId(provider) : null;
       if (!provider || ownerUserId !== userId) {
-        return res.status(403).json({ message: "Only the provider can update conversation status" });
+        return apiError(res, 403, "Only the provider can update conversation status");
       }
 
       const parsed = updateThreadStatusSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid status", errors: parsed.error.errors });
+        return apiError(res, 400, "Invalid status", { errors: parsed.error.errors });
       }
 
       const updated = await storage.updateThreadStatus(threadId, parsed.data.status);
       res.json(updated);
     } catch (error) {
       log.error({ err: error }, "Error updating thread status");
-      res.status(500).json({ message: "Failed to update conversation" });
+      apiError(res, 500, "Failed to update conversation");
     }
   });
 
@@ -209,22 +208,22 @@ export function registerThreadRoutes(app: Express): void {
     try {
       const userId = req.user?.claims?.sub as string;
       const threadId = strictPathInt(req.params.id);
-      if (!threadId) return res.status(400).json({ message: "Invalid thread ID" });
+      if (!threadId) return apiError(res, 400, "Invalid thread ID");
 
       const thread = await storage.getThread(threadId);
-      if (!thread) return res.status(404).json({ message: "Conversation not found" });
+      if (!thread) return apiError(res, 404, "Conversation not found");
 
       const provider = await storage.getProvider(thread.providerId);
       const ownerUserId = provider ? providerOwnerUserId(provider) : null;
       const isParent = thread.parentUserId === userId;
       const isProviderOwner = ownerUserId !== null && ownerUserId === userId;
       if (!isParent && !isProviderOwner) {
-        return res.status(403).json({ message: "Access denied" });
+        return apiError(res, 403, "Access denied");
       }
 
       const parsed = sendMessageSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid message", errors: parsed.error.errors });
+        return apiError(res, 400, "Invalid message", { errors: parsed.error.errors });
       }
 
       const message = await storage.createThreadMessage(threadId, userId, parsed.data.body);
@@ -252,7 +251,7 @@ export function registerThreadRoutes(app: Express): void {
       res.status(201).json(message);
     } catch (error) {
       log.error({ err: error }, "Error sending message");
-      res.status(500).json({ message: "Failed to send message" });
+      apiError(res, 500, "Failed to send message");
     }
   });
 
@@ -264,24 +263,24 @@ export function registerThreadRoutes(app: Express): void {
     try {
       const userId = req.user?.claims?.sub as string;
       const threadId = strictPathInt(req.params.id);
-      if (!threadId) return res.status(400).json({ message: "Invalid thread ID" });
+      if (!threadId) return apiError(res, 400, "Invalid thread ID");
 
       const thread = await storage.getThread(threadId);
-      if (!thread) return res.status(404).json({ message: "Conversation not found" });
+      if (!thread) return apiError(res, 404, "Conversation not found");
 
       const provider = await storage.getProvider(thread.providerId);
       const ownerUserId = provider ? providerOwnerUserId(provider) : null;
       const isParent = thread.parentUserId === userId;
       const isProviderOwner = ownerUserId !== null && ownerUserId === userId;
       if (!isParent && !isProviderOwner) {
-        return res.status(403).json({ message: "Access denied" });
+        return apiError(res, 403, "Access denied");
       }
 
       await storage.markThreadMessagesRead(threadId, userId);
       res.json({ ok: true });
     } catch (error) {
       log.error({ err: error }, "Error marking thread as read");
-      res.status(500).json({ message: "Failed to mark as read" });
+      apiError(res, 500, "Failed to mark as read");
     }
   });
 }

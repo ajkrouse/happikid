@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { intelligentSearch } from "../intelligentSearch";
+import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -16,7 +17,7 @@ export function registerMetaRoutes(app: Express): void {
   app.get("/api/search/test", async (req, res) => {
     const { q } = req.query;
     if (!q || typeof q !== "string") {
-      return res.status(400).json({ error: 'Query parameter "q" is required' });
+      return apiError(res, 400, 'Query parameter "q" is required');
     }
     try {
       const parsed = intelligentSearch.parseQuery(q);
@@ -28,7 +29,7 @@ export function registerMetaRoutes(app: Express): void {
       });
     } catch (error) {
       log.error({ err: error }, "Error testing search");
-      res.status(500).json({ error: "Failed to parse search query" });
+      apiError(res, 500, "Failed to parse search query");
     }
   });
 
@@ -42,7 +43,7 @@ export function registerMetaRoutes(app: Express): void {
       res.json(JSON.parse(fs.readFileSync(featuresPath, "utf8")));
     } catch (error) {
       log.error({ err: error }, "Error loading feature registry");
-      res.status(500).json({ message: "Failed to load features" });
+      apiError(res, 500, "Failed to load features");
     }
   });
 
@@ -50,14 +51,14 @@ export function registerMetaRoutes(app: Express): void {
     try {
       const parsed = contactSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid contact form data", errors: parsed.error.errors });
+        return apiError(res, 400, "Invalid contact form data", { errors: parsed.error.errors });
       }
       const { name, email, subject, message } = parsed.data;
       log.info({ name, email, subject }, "Contact form submission");
       res.json({ success: true });
     } catch (error) {
       log.error({ err: error }, "Error processing contact form");
-      res.status(500).json({ message: "Failed to process contact form" });
+      apiError(res, 500, "Failed to process contact form");
     }
   });
 }

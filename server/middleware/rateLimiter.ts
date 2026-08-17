@@ -6,7 +6,7 @@ export const apiLimiter = rateLimit({
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many requests, please try again later." },
+  message: { ok: false, message: "Too many requests, please try again later." },
 });
 
 /** Strict limit for AI endpoints — 20 requests per 10 minutes per user/IP */
@@ -15,7 +15,7 @@ export const aiLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "AI rate limit reached. Please wait before sending more requests." },
+  message: { ok: false, message: "AI rate limit reached. Please wait before sending more requests." },
   // Suppress the IPv6 normalization warning — authenticated users are keyed by userId,
   // and unauthenticated fallback to req.ip is intentional (AI routes require auth anyway).
   validate: { keyGeneratorIpFallback: false },
@@ -32,7 +32,7 @@ export const inquiryLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many inquiries submitted. Please wait before sending more." },
+  message: { ok: false, message: "Too many inquiries submitted. Please wait before sending more." },
 });
 
 /** Auth route limiter — 20 attempts per 15 minutes per IP to deter brute force */
@@ -41,5 +41,5 @@ export const authLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many login attempts, please try again later." },
+  message: { ok: false, message: "Too many login attempts, please try again later." },
 });

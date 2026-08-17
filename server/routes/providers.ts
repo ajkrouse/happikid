@@ -5,6 +5,7 @@ import { intelligentSearch } from "../intelligentSearch";
 import { generateSearchSummary } from "../services/aiSummaries";
 import { insertProviderSchema, insertProviderUpdateSchema, insertProviderPhotoSchema, insertProviderImageSchema, insertProviderLocationSchema, providerClientUpdateSchema } from "@shared/schema";
 import { strictPathInt } from "../lib/pathParams";
+import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -39,7 +40,7 @@ export function registerProviderRoutes(app: Express): void {
       res.json(shuffled.slice(0, parseInt(limit as string)));
     } catch (error) {
       log.error({ err: error }, "Error fetching featured providers");
-      res.status(500).json({ message: "Failed to fetch featured providers" });
+      apiError(res, 500, "Failed to fetch featured providers");
     }
   });
 
@@ -49,7 +50,7 @@ export function registerProviderRoutes(app: Express): void {
       res.json(await storage.getProviderStats());
     } catch (error) {
       log.error({ err: error }, "Error fetching provider stats");
-      res.status(500).json({ message: "Failed to fetch provider stats" });
+      apiError(res, 500, "Failed to fetch provider stats");
     }
   });
 
@@ -155,7 +156,7 @@ export function registerProviderRoutes(app: Express): void {
       }
     } catch (error) {
       log.error({ err: error }, "Error fetching providers");
-      res.status(500).json({ message: "Failed to fetch providers" });
+      apiError(res, 500, "Failed to fetch providers");
     }
   });
 
@@ -163,7 +164,7 @@ export function registerProviderRoutes(app: Express): void {
   app.get("/api/providers/analytics", isAuthenticated, async (req: any, res) => {
     try {
       const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
-      if (userProviders.length === 0) return res.status(404).json({ message: "No provider profile found" });
+      if (userProviders.length === 0) return apiError(res, 404, "No provider profile found");
       const provider = userProviders[0];
 
       const [reviews, inquiries] = await Promise.all([
@@ -215,7 +216,7 @@ export function registerProviderRoutes(app: Express): void {
       });
     } catch (error) {
       log.error({ err: error }, "Error fetching provider analytics");
-      res.status(500).json({ message: "Failed to fetch analytics" });
+      apiError(res, 500, "Failed to fetch analytics");
     }
   });
 
@@ -223,7 +224,7 @@ export function registerProviderRoutes(app: Express): void {
   app.get("/api/providers/mine", isAuthenticated, async (req: any, res) => {
     try {
       const providers = await storage.getProvidersByUserId(req.user?.claims?.sub);
-      if (providers.length === 0) return res.status(404).json({ message: "No provider profile found" });
+      if (providers.length === 0) return apiError(res, 404, "No provider profile found");
       const provider = providers[0];
       // Strip expired closure entries so the edit form never surfaces stale history
       const todayIso = new Date().toISOString().slice(0, 10);
@@ -235,7 +236,7 @@ export function registerProviderRoutes(app: Express): void {
       res.json(provider);
     } catch (error) {
       log.error({ err: error }, "Error fetching user provider");
-      res.status(500).json({ message: "Failed to fetch provider" });
+      apiError(res, 500, "Failed to fetch provider");
     }
   });
 
@@ -243,9 +244,9 @@ export function registerProviderRoutes(app: Express): void {
   app.get("/api/providers/:id", async (req, res) => {
     try {
       const id = strictPathInt(req.params.id);
-      if (!id) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!id) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProviderWithDetails(id);
-      if (!provider) return res.status(404).json({ message: "Provider not found" });
+      if (!provider) return apiError(res, 404, "Provider not found");
       // Strip expired closure entries so families never see stale history
       const todayIso = new Date().toISOString().slice(0, 10);
       if (Array.isArray((provider as any).closedDates)) {
@@ -258,7 +259,7 @@ export function registerProviderRoutes(app: Express): void {
       res.json(provider);
     } catch (error) {
       log.error({ err: error }, "Error fetching provider");
-      res.status(500).json({ message: "Failed to fetch provider" });
+      apiError(res, 500, "Failed to fetch provider");
     }
   });
 
@@ -266,12 +267,12 @@ export function registerProviderRoutes(app: Express): void {
   app.get("/api/providers/analytics/views", isAuthenticated, async (req: any, res) => {
     try {
       const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
-      if (userProviders.length === 0) return res.status(404).json({ message: "No provider profile found" });
+      if (userProviders.length === 0) return apiError(res, 404, "No provider profile found");
       const trend = await storage.getProfileViewTrend(userProviders[0].id, 30);
       res.json(trend);
     } catch (error) {
       log.error({ err: error }, "Error fetching view trend");
-      res.status(500).json({ message: "Failed to fetch view trend" });
+      apiError(res, 500, "Failed to fetch view trend");
     }
   });
 
@@ -279,7 +280,7 @@ export function registerProviderRoutes(app: Express): void {
   app.get("/api/providers/analytics/score-comparison", isAuthenticated, async (req: any, res) => {
     try {
       const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
-      if (userProviders.length === 0) return res.status(404).json({ message: "No provider profile found" });
+      if (userProviders.length === 0) return apiError(res, 404, "No provider profile found");
       const provider = userProviders[0];
 
       const myScore = await storage.getProviderScore?.(provider.id);
@@ -306,7 +307,7 @@ export function registerProviderRoutes(app: Express): void {
       });
     } catch (error) {
       log.error({ err: error }, "Error fetching score comparison");
-      res.status(500).json({ message: "Failed to fetch score comparison" });
+      apiError(res, 500, "Failed to fetch score comparison");
     }
   });
 
@@ -322,7 +323,7 @@ export function registerProviderRoutes(app: Express): void {
       if (rawLocations != null) {
         const locResult = z.array(locationBodySchema).safeParse(rawLocations);
         if (!locResult.success) {
-          return res.status(400).json({ message: "Invalid location data", errors: locResult.error.errors });
+          return apiError(res, 400, "Invalid location data", { errors: locResult.error.errors });
         }
         validatedLocations = locResult.data;
       }
@@ -392,8 +393,8 @@ export function registerProviderRoutes(app: Express): void {
       }
     } catch (error) {
       log.error({ err: error }, "Error creating/updating provider");
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
-      res.status(500).json({ message: "Failed to create/update provider" });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid provider data", { errors: error.errors });
+      apiError(res, 500, "Failed to create/update provider");
     }
   });
 
@@ -401,10 +402,10 @@ export function registerProviderRoutes(app: Express): void {
   app.put("/api/providers/:id", isAuthenticated, async (req: any, res) => {
     try {
       const id = strictPathInt(req.params.id);
-      if (!id) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!id) return apiError(res, 400, "Invalid provider ID");
       const userId = req.user?.claims?.sub;
       const existing = await storage.getProvider(id);
-      if (!existing || existing.userId !== userId) return res.status(403).json({ message: "Access denied" });
+      if (!existing || existing.userId !== userId) return apiError(res, 403, "Access denied");
       const parsed = providerClientUpdateSchema.partial().parse(req.body);
       // Lazy cleanup: drop any closure entries whose end date has already passed
       if (Array.isArray(parsed.closedDates)) {
@@ -415,8 +416,8 @@ export function registerProviderRoutes(app: Express): void {
       res.json(await storage.updateProvider(id, { ...parsed, userId }));
     } catch (error) {
       log.error({ err: error }, "Error updating provider");
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
-      res.status(500).json({ message: "Failed to update provider" });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid provider data", { errors: error.errors });
+      apiError(res, 500, "Failed to update provider");
     }
   });
 
@@ -424,10 +425,10 @@ export function registerProviderRoutes(app: Express): void {
   app.patch("/api/providers/:id", isAuthenticated, async (req: any, res) => {
     try {
       const id = strictPathInt(req.params.id);
-      if (!id) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!id) return apiError(res, 400, "Invalid provider ID");
       const userId = req.user?.claims?.sub;
       const existing = await storage.getProvider(id);
-      if (!existing || existing.userId !== userId) return res.status(403).json({ message: "Access denied" });
+      if (!existing || existing.userId !== userId) return apiError(res, 403, "Access denied");
       const parsed = providerClientUpdateSchema.partial().parse(req.body);
       // Lazy cleanup: drop any closure entries whose end date has already passed
       if (Array.isArray(parsed.closedDates)) {
@@ -438,19 +439,19 @@ export function registerProviderRoutes(app: Express): void {
       res.json(await storage.updateProvider(id, { ...parsed, userId }));
     } catch (error) {
       log.error({ err: error }, "Error updating provider");
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid provider data", errors: error.errors });
-      res.status(500).json({ message: "Failed to update provider" });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid provider data", { errors: error.errors });
+      apiError(res, 500, "Failed to update provider");
     }
   });
 
   // Providers by user ID
   app.get("/api/providers/user/:userId", isAuthenticated, async (req: any, res) => {
     try {
-      if (req.params.userId !== req.user?.claims?.sub) return res.status(403).json({ message: "Access denied" });
+      if (req.params.userId !== req.user?.claims?.sub) return apiError(res, 403, "Access denied");
       res.json(await storage.getProvidersByUserId(req.params.userId));
     } catch (error) {
       log.error({ err: error }, "Error fetching user providers");
-      res.status(500).json({ message: "Failed to fetch providers" });
+      apiError(res, 500, "Failed to fetch providers");
     }
   });
 
@@ -458,7 +459,7 @@ export function registerProviderRoutes(app: Express): void {
   app.post("/api/providers/confirm-license", isAuthenticated, async (req: any, res) => {
     try {
       const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
-      if (!userProviders?.length) return res.status(404).json({ message: "Provider not found" });
+      if (!userProviders?.length) return apiError(res, 404, "Provider not found");
       const existing = userProviders[0];
 
       // If already confirmed, no-op so existing confirmed providers are unaffected
@@ -474,7 +475,7 @@ export function registerProviderRoutes(app: Express): void {
       res.json({ message: "License submitted for review. An admin will verify your submission shortly.", provider: updated, isPending: true });
     } catch (error) {
       log.error({ err: error }, "Error submitting license for review");
-      res.status(500).json({ message: "Failed to submit license for review" });
+      apiError(res, 500, "Failed to submit license for review");
     }
   });
 
@@ -482,28 +483,28 @@ export function registerProviderRoutes(app: Express): void {
   app.get("/api/providers/:id/images", async (req: any, res) => {
     try {
       const id = strictPathInt(req.params.id);
-      if (!id) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!id) return apiError(res, 400, "Invalid provider ID");
       res.json(await storage.getProviderImages(id));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider images");
-      res.status(500).json({ message: "Failed to fetch images" });
+      apiError(res, 500, "Failed to fetch images");
     }
   });
 
   app.post("/api/providers/:id/images", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = strictPathInt(req.params.id);
-      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
-      if (!provider || provider.userId !== req.user?.claims?.sub) return res.status(403).json({ message: "Access denied" });
+      if (!provider || provider.userId !== req.user?.claims?.sub) return apiError(res, 403, "Access denied");
       const parsed = insertProviderImageSchema.safeParse({ ...req.body, providerId });
       if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid image data", errors: parsed.error.errors });
+        return apiError(res, 400, "Invalid image data", { errors: parsed.error.errors });
       }
       res.status(201).json(await storage.addProviderImage(parsed.data));
     } catch (error) {
       log.error({ err: error }, "Error adding provider image");
-      res.status(500).json({ message: "Failed to add image" });
+      apiError(res, 500, "Failed to add image");
     }
   });
 
@@ -511,10 +512,10 @@ export function registerProviderRoutes(app: Express): void {
   app.get("/api/providers/:id/score", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = strictPathInt(req.params.id);
-      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
-      if (!provider) return res.status(404).json({ message: "Provider not found" });
-      if (provider.userId !== req.user?.claims?.sub && req.user?.claims?.role !== "admin") return res.status(403).json({ message: "Access denied" });
+      if (!provider) return apiError(res, 404, "Provider not found");
+      if (provider.userId !== req.user?.claims?.sub && req.user?.claims?.role !== "admin") return apiError(res, 403, "Access denied");
       const existingScore = await storage.getProviderScore?.(providerId);
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       if (existingScore?.lastCalculatedAt && new Date(existingScore.lastCalculatedAt) > oneHourAgo) {
@@ -553,17 +554,17 @@ export function registerProviderRoutes(app: Express): void {
       res.json({ ...score, rankInCategory, categoryAverage, poolSize, providerType: provider.type, city: provider.city });
     } catch (error) {
       log.error({ err: error }, "Error calculating provider score");
-      res.status(500).json({ message: "Failed to calculate score" });
+      apiError(res, 500, "Failed to calculate score");
     }
   });
 
   app.post("/api/providers/:id/score/calculate", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = strictPathInt(req.params.id);
-      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
-      if (!provider) return res.status(404).json({ message: "Provider not found" });
-      if (provider.userId !== req.user?.claims?.sub && req.user?.claims?.role !== "admin") return res.status(403).json({ message: "Access denied" });
+      if (!provider) return apiError(res, 404, "Provider not found");
+      if (provider.userId !== req.user?.claims?.sub && req.user?.claims?.role !== "admin") return apiError(res, 403, "Access denied");
       const [images, reviews, inquiries] = await Promise.all([
         storage.getProviderImages(providerId),
         storage.getProviderReviews(providerId),
@@ -584,7 +585,7 @@ export function registerProviderRoutes(app: Express): void {
       res.json({ message: "Score recalculated successfully", score });
     } catch (error) {
       log.error({ err: error }, "Error recalculating provider score");
-      res.status(500).json({ message: "Failed to recalculate score" });
+      apiError(res, 500, "Failed to recalculate score");
     }
   });
 
@@ -592,26 +593,26 @@ export function registerProviderRoutes(app: Express): void {
   app.post("/api/providers/:id/suggest-update", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = strictPathInt(req.params.id);
-      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const updateData = insertProviderUpdateSchema.parse({
         ...req.body, userId: req.user?.claims?.sub, providerId,
       });
       res.status(201).json(await storage.createProviderUpdate(updateData));
     } catch (error) {
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid update data", { errors: error.errors });
       log.error({ err: error }, "Error creating provider update");
-      res.status(500).json({ message: "Failed to create update" });
+      apiError(res, 500, "Failed to create update");
     }
   });
 
   app.get("/api/providers/:id/updates", async (req, res) => {
     try {
       const id = strictPathInt(req.params.id);
-      if (!id) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!id) return apiError(res, 400, "Invalid provider ID");
       res.json(await storage.getProviderUpdates(id));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider updates");
-      res.status(500).json({ message: "Failed to fetch updates" });
+      apiError(res, 500, "Failed to fetch updates");
     }
   });
 
@@ -619,7 +620,7 @@ export function registerProviderRoutes(app: Express): void {
   app.post("/api/providers/:id/contribute-photo", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = strictPathInt(req.params.id);
-      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const userId = req.user?.claims?.sub;
       const photoData = insertProviderPhotoSchema.parse({ ...req.body, userId, providerId });
       try {
@@ -631,21 +632,21 @@ export function registerProviderRoutes(app: Express): void {
       }
       res.status(201).json(await storage.createProviderPhoto(photoData));
     } catch (error) {
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid photo data", errors: error.errors });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid photo data", { errors: error.errors });
       log.error({ err: error }, "Error creating provider photo");
-      res.status(500).json({ message: "Failed to add photo" });
+      apiError(res, 500, "Failed to add photo");
     }
   });
 
   app.get("/api/providers/:id/user-photos", async (req, res) => {
     try {
       const id = strictPathInt(req.params.id);
-      if (!id) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!id) return apiError(res, 400, "Invalid provider ID");
       const photos = await storage.getProviderPhotos(id);
       res.json(photos.filter((p) => p.status === "approved"));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider photos");
-      res.status(500).json({ message: "Failed to fetch photos" });
+      apiError(res, 500, "Failed to fetch photos");
     }
   });
 }

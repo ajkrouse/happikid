@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { reviewClientCreateSchema, insertReviewVoteSchema } from "@shared/schema";
 import { strictPathInt } from "../lib/pathParams";
+import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -12,66 +13,66 @@ export function registerReviewRoutes(app: Express): void {
   app.get("/api/providers/:id/reviews", async (req, res) => {
     try {
       const id = strictPathInt(req.params.id);
-      if (!id) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!id) return apiError(res, 400, "Invalid provider ID");
       res.json(await storage.getReviewsByProviderId(id));
     } catch (error) {
       log.error({ err: error }, "Error fetching reviews");
-      res.status(500).json({ message: "Failed to fetch reviews" });
+      apiError(res, 500, "Failed to fetch reviews");
     }
   });
 
   app.post("/api/providers/:id/reviews", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = strictPathInt(req.params.id);
-      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const reviewData = reviewClientCreateSchema.parse({
         ...req.body, providerId, userId: req.user?.claims?.sub,
       });
       res.status(201).json(await storage.createReview(reviewData));
     } catch (error) {
       log.error({ err: error }, "Error creating review");
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid review data", errors: error.errors });
-      res.status(500).json({ message: "Failed to create review" });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid review data", { errors: error.errors });
+      apiError(res, 500, "Failed to create review");
     }
   });
 
   app.post("/api/reviews/:id/vote", isAuthenticated, async (req: any, res) => {
     try {
       const reviewId = strictPathInt(req.params.id);
-      if (!reviewId) return res.status(400).json({ message: "Invalid review ID" });
+      if (!reviewId) return apiError(res, 400, "Invalid review ID");
       const voteData = insertReviewVoteSchema.parse({
         ...req.body, userId: req.user?.claims?.sub, reviewId,
       });
       res.status(201).json(await storage.createReviewVote(voteData));
     } catch (error) {
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid vote data", errors: error.errors });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid vote data", { errors: error.errors });
       log.error({ err: error }, "Error creating review vote");
-      res.status(500).json({ message: "Failed to record vote" });
+      apiError(res, 500, "Failed to record vote");
     }
   });
 
   app.get("/api/reviews/:id/votes", async (req, res) => {
     try {
       const reviewId = strictPathInt(req.params.id);
-      if (!reviewId) return res.status(400).json({ message: "Invalid review ID" });
+      if (!reviewId) return apiError(res, 400, "Invalid review ID");
       const votes = await storage.getReviewVotes(reviewId);
       const helpful = votes.filter((v) => v.voteType === "helpful").length;
       const notHelpful = votes.filter((v) => v.voteType === "not_helpful").length;
       res.json({ helpful, notHelpful, total: votes.length });
     } catch (error) {
       log.error({ err: error }, "Error fetching review votes");
-      res.status(500).json({ message: "Failed to fetch votes" });
+      apiError(res, 500, "Failed to fetch votes");
     }
   });
 
   app.get("/api/reviews/:id/user-vote", isAuthenticated, async (req: any, res) => {
     try {
       const reviewId = strictPathInt(req.params.id);
-      if (!reviewId) return res.status(400).json({ message: "Invalid review ID" });
+      if (!reviewId) return apiError(res, 400, "Invalid review ID");
       res.json((await storage.getUserReviewVote(req.user?.claims?.sub, reviewId)) || null);
     } catch (error) {
       log.error({ err: error }, "Error fetching user vote");
-      res.status(500).json({ message: "Failed to fetch user vote" });
+      apiError(res, 500, "Failed to fetch user vote");
     }
   });
 }

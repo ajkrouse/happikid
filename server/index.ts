@@ -109,7 +109,7 @@ async function scheduleClosurePruning(): Promise<void> {
     const message = err.message || "Internal Server Error";
 
     if (!res.headersSent) {
-      res.status(status).json({ message });
+      res.status(status).json({ ok: false, message });
     }
 
     // Log the error for observability without crashing the process

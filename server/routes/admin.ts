@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { sendLicenseRejectionEmail, sendLicenseApprovalEmail } from "../services/email";
 import { strictPathInt } from "../lib/pathParams";
+import { apiError } from "../lib/apiError";
 import { createLogger } from "../logger";
 
 const log = createLogger("admin");
@@ -12,11 +13,11 @@ const log = createLogger("admin");
  */
 async function isAdmin(req: any, res: any, next: any) {
   if (!req.user?.claims?.sub) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return apiError(res, 401, "Unauthorized");
   }
   const user = await storage.getUser(req.user.claims.sub);
   if (!user || user.role !== "admin") {
-    return res.status(403).json({ message: "Admin access required" });
+    return apiError(res, 403, "Admin access required");
   }
   next();
 }
@@ -30,7 +31,7 @@ export function registerAdminRoutes(app: Express): void {
       res.json(pending);
     } catch (error) {
       log.error({ err: error }, "Error fetching verifications");
-      res.status(500).json({ message: "Failed to fetch verifications" });
+      apiError(res, 500, "Failed to fetch verifications");
     }
   });
 
@@ -42,16 +43,14 @@ export function registerAdminRoutes(app: Express): void {
     async (req: any, res) => {
       try {
         const providerId = strictPathInt(req.params.providerId);
-        if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+        if (!providerId) return apiError(res, 400, "Invalid provider ID");
 
         const provider = await storage.getProvider(providerId);
-        if (!provider) return res.status(404).json({ message: "Provider not found" });
+        if (!provider) return apiError(res, 404, "Provider not found");
 
         // Guard: only process providers that are actually in the review queue
         if (provider.licenseStatus !== "pending" || !provider.licenseSubmittedAt) {
-          return res.status(409).json({
-            message: "Provider is not in the pending-review queue. Only submitted, unreviewed verifications can be approved.",
-          });
+          return apiError(res, 409, "Provider is not in the pending-review queue. Only submitted, unreviewed verifications can be approved.");
         }
 
         const updated = await storage.updateProvider(providerId, {
@@ -88,7 +87,7 @@ export function registerAdminRoutes(app: Express): void {
         res.json({ message: "License approved", provider: updated });
       } catch (error) {
         log.error({ err: error }, "Error approving license");
-        res.status(500).json({ message: "Failed to approve license" });
+        apiError(res, 500, "Failed to approve license");
       }
     }
   );
@@ -101,21 +100,19 @@ export function registerAdminRoutes(app: Express): void {
     async (req: any, res) => {
       try {
         const providerId = strictPathInt(req.params.providerId);
-        if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+        if (!providerId) return apiError(res, 400, "Invalid provider ID");
 
         const { reason } = req.body;
         if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
-          return res.status(400).json({ message: "A rejection reason is required" });
+          return apiError(res, 400, "A rejection reason is required");
         }
 
         const provider = await storage.getProvider(providerId);
-        if (!provider) return res.status(404).json({ message: "Provider not found" });
+        if (!provider) return apiError(res, 404, "Provider not found");
 
         // Guard: only process providers that are actually in the review queue
         if (provider.licenseStatus !== "pending" || !provider.licenseSubmittedAt) {
-          return res.status(409).json({
-            message: "Provider is not in the pending-review queue. Only submitted, unreviewed verifications can be rejected.",
-          });
+          return apiError(res, 409, "Provider is not in the pending-review queue. Only submitted, unreviewed verifications can be rejected.");
         }
 
         // Mark as rejected; keep isProfileVisible false (don't go live)
@@ -151,7 +148,7 @@ export function registerAdminRoutes(app: Express): void {
         res.json({ message: "License rejected", provider: updated });
       } catch (error) {
         log.error({ err: error }, "Error rejecting license");
-        res.status(500).json({ message: "Failed to reject license" });
+        apiError(res, 500, "Failed to reject license");
       }
     }
   );

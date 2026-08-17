@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { tourRequestClientCreateSchema } from "@shared/schema";
 import { strictPathInt } from "../lib/pathParams";
+import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 import { sendTourRequestNotification, sendTourStatusEmail } from "../services/email";
@@ -15,22 +16,22 @@ export function registerTourRequestRoutes(app: Express): void {
   app.post("/api/providers/:id/tour-requests", isAuthenticated, async (req: any, res) => {
     try {
       const providerId = strictPathInt(req.params.id);
-      if (!providerId) return res.status(400).json({ message: "Invalid provider ID" });
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
 
       const parentUserId = req.user?.claims?.sub as string;
 
       // Enforce parent-only access — providers and admins cannot submit tour requests
       const requester = await storage.getUser(parentUserId);
       if (!requester || requester.role !== "parent") {
-        return res.status(403).json({ message: "Only parent accounts can submit tour requests" });
+        return apiError(res, 403, "Only parent accounts can submit tour requests");
       }
 
       const provider = await storage.getProvider(providerId);
-      if (!provider) return res.status(404).json({ message: "Provider not found" });
+      if (!provider) return apiError(res, 404, "Provider not found");
 
       const parsed = tourRequestClientCreateSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid tour request data", errors: parsed.error.errors });
+        return apiError(res, 400, "Invalid tour request data", { errors: parsed.error.errors });
       }
 
       const tourRequest = await storage.createTourRequest({
@@ -58,8 +59,8 @@ export function registerTourRequestRoutes(app: Express): void {
       res.status(201).json(tourRequest);
     } catch (error) {
       log.error({ err: error }, "Error creating tour request");
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid tour request data", errors: error.errors });
-      res.status(500).json({ message: "Failed to create tour request" });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid tour request data", { errors: error.errors });
+      apiError(res, 500, "Failed to create tour request");
     }
   });
 
@@ -69,7 +70,7 @@ export function registerTourRequestRoutes(app: Express): void {
     try {
       const userId = req.user?.claims?.sub as string;
       const user = await storage.getUser(userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
+      if (!user) return apiError(res, 404, "User not found");
 
       if (user.role === "provider") {
         // getProvidersByCanonicalOwner handles both claimed (ownerUserId = userId)
@@ -84,7 +85,7 @@ export function registerTourRequestRoutes(app: Express): void {
       res.json(await storage.getTourRequestsByParentId(userId));
     } catch (error) {
       log.error({ err: error }, "Error fetching tour requests");
-      res.status(500).json({ message: "Failed to fetch tour requests" });
+      apiError(res, 500, "Failed to fetch tour requests");
     }
   });
 
@@ -98,17 +99,17 @@ export function registerTourRequestRoutes(app: Express): void {
   app.patch("/api/tour-requests/:id", isAuthenticated, async (req: any, res) => {
     try {
       const id = strictPathInt(req.params.id);
-      if (!id) return res.status(400).json({ message: "Invalid tour request ID" });
+      if (!id) return apiError(res, 400, "Invalid tour request ID");
 
       const statusSchema = z.object({ status: z.enum(["pending", "scheduled", "cancelled"]) });
       const parsed = statusSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid status", errors: parsed.error.errors });
+        return apiError(res, 400, "Invalid status", { errors: parsed.error.errors });
       }
 
       const userId = req.user?.claims?.sub as string;
       const tourRequest = await storage.getTourRequest(id);
-      if (!tourRequest) return res.status(404).json({ message: "Tour request not found" });
+      if (!tourRequest) return apiError(res, 404, "Tour request not found");
 
       // Canonical provider ownership: getProvidersByCanonicalOwner handles both
       // claimed (ownerUserId = userId) and unclaimed (ownerUserId IS NULL AND userId = userId).
@@ -121,18 +122,18 @@ export function registerTourRequestRoutes(app: Express): void {
       if (isProviderOwner) {
         // Providers may schedule or cancel — they cannot reset to pending
         if (newStatus === "pending") {
-          return res.status(403).json({ message: "Providers cannot reset a tour request to pending" });
+          return apiError(res, 403, "Providers cannot reset a tour request to pending");
         }
       } else if (isRequestAuthor) {
         // Parents may only cancel their own pending requests
         if (newStatus !== "cancelled") {
-          return res.status(403).json({ message: "Parents can only cancel their own tour requests" });
+          return apiError(res, 403, "Parents can only cancel their own tour requests");
         }
         if (tourRequest.status !== "pending") {
-          return res.status(409).json({ message: "Only pending tour requests can be cancelled" });
+          return apiError(res, 409, "Only pending tour requests can be cancelled");
         }
       } else {
-        return res.status(403).json({ message: "Not authorized to update this tour request" });
+        return apiError(res, 403, "Not authorized to update this tour request");
       }
 
       const updated = await storage.updateTourRequestStatus(id, newStatus);
@@ -155,7 +156,7 @@ export function registerTourRequestRoutes(app: Express): void {
       res.json(updated);
     } catch (error) {
       log.error({ err: error }, "Error updating tour request");
-      res.status(500).json({ message: "Failed to update tour request" });
+      apiError(res, 500, "Failed to update tour request");
     }
   });
 }

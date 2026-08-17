@@ -17,7 +17,7 @@ export function setupGoogleAuth(app: Express) {
     );
     // Register stub routes so the frontend doesn't 404; they explain what's missing.
     app.get("/api/auth/google", (_req, res) => {
-      res.status(503).json({ message: "Google sign-in is not configured on this server." });
+      res.status(503).json({ ok: false, message: "Google sign-in is not configured on this server." });
     });
     return;
   }

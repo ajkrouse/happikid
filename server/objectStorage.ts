@@ -185,7 +185,7 @@ export class ObjectStorageService {
       stream.on("error", (err) => {
         import("./logger").then(({ createLogger }) => createLogger("object-storage").error({ err }, "Stream error"));
         if (!res.headersSent) {
-          res.status(500).json({ error: "Error streaming file" });
+          res.status(500).json({ ok: false, message: "Error streaming file" });
         }
       });
 
@@ -193,7 +193,7 @@ export class ObjectStorageService {
     } catch (error) {
       import("./logger").then(({ createLogger }) => createLogger("object-storage").error({ err: error }, "Error downloading file"));
       if (!res.headersSent) {
-        res.status(500).json({ error: "Error downloading file" });
+        res.status(500).json({ ok: false, message: "Error downloading file" });
       }
     }
   }

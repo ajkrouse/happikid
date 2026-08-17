@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
+import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -18,7 +19,7 @@ export function registerAuthRoutes(app: Express): void {
       res.json(await storage.getUser(req.user.claims.sub));
     } catch (error) {
       log.error({ err: error }, "Error fetching user");
-      res.status(500).json({ message: "Failed to fetch user" });
+      apiError(res, 500, "Failed to fetch user");
     }
   });
 
@@ -30,12 +31,12 @@ export function registerAuthRoutes(app: Express): void {
     try {
       const parsed = updateRoleSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: parsed.error.errors[0].message });
+        return apiError(res, 400, parsed.error.errors[0].message);
       }
       res.json(await storage.updateUserRole(req.user.claims.sub, parsed.data.role));
     } catch (error) {
       log.error({ err: error }, "Error updating user role");
-      res.status(500).json({ message: "Failed to update user role" });
+      apiError(res, 500, "Failed to update user role");
     }
   });
 
@@ -46,9 +47,9 @@ export function registerAuthRoutes(app: Express): void {
       log.info({ userId, preferences }, "Saving user preferences");
       res.json({ success: true, message: "Preferences saved successfully", preferences });
     } catch (error) {
-      if (error instanceof z.ZodError) return res.status(400).json({ message: "Invalid preferences data", errors: error.errors });
+      if (error instanceof z.ZodError) return apiError(res, 400, "Invalid preferences data", { errors: error.errors });
       log.error({ err: error }, "Error saving user preferences");
-      res.status(500).json({ message: "Failed to save preferences" });
+      apiError(res, 500, "Failed to save preferences");
     }
   });
 }

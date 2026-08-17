@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { isAuthenticated } from "../replitAuth";
+import { apiError } from "../lib/apiError";
 import { createLogger } from "../logger";
 
 const log = createLogger("uploads");
@@ -10,11 +11,11 @@ export function registerUploadRoutes(app: Express): void {
       const { ObjectStorageService } = await import("../objectStorage");
       const svc = new ObjectStorageService();
       const file = await svc.searchPublicObject(req.params.filePath);
-      if (!file) return res.status(404).json({ message: "File not found" });
+      if (!file) return apiError(res, 404, "File not found");
       svc.downloadObject(file, res);
     } catch (error) {
       log.error({ err: error }, "Error searching for public object");
-      res.status(500).json({ message: "Internal server error" });
+      apiError(res, 500, "Internal server error");
     }
   });
 
@@ -27,13 +28,13 @@ export function registerUploadRoutes(app: Express): void {
       const canAccess = await svc.canAccessObjectEntity({
         objectFile, userId, requestedPermission: ObjectPermission.READ,
       });
-      if (!canAccess) return res.sendStatus(401);
+      if (!canAccess) return apiError(res, 401, "Access denied");
       svc.downloadObject(objectFile, res);
     } catch (error) {
       log.error({ err: error }, "Error checking object access");
       const { ObjectNotFoundError } = await import("../objectStorage");
-      if (error instanceof ObjectNotFoundError) return res.sendStatus(404);
-      res.sendStatus(500);
+      if (error instanceof ObjectNotFoundError) return apiError(res, 404, "File not found");
+      apiError(res, 500, "Internal server error");
     }
   });
 
@@ -44,7 +45,7 @@ export function registerUploadRoutes(app: Express): void {
       res.json({ uploadURL: await svc.getObjectEntityUploadURL() });
     } catch (error) {
       log.error({ err: error }, "Error getting upload URL");
-      res.status(500).json({ message: "Failed to get upload URL" });
+      apiError(res, 500, "Failed to get upload URL");
     }
   });
 }
