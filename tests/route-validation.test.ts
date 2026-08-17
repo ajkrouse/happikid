@@ -1608,6 +1608,111 @@ describe("POST /api/admin/verifications/:providerId/reject — validation", () =
 });
 
 // ============================================================================
+// POST /api/admin/claims/:id/approve  &  POST /api/admin/claims/:id/reject
+// ============================================================================
+
+describe("POST /api/admin/claims/:id/approve — authorization", () => {
+  const VALID_CLAIM_ID = "00000000-0000-0000-0000-000000000001";
+  const adminUser = { id: "user_admin", role: "admin", email: "admin@example.com" };
+  const regularUser = { id: "user_owner", role: "parent", email: "user@example.com" };
+
+  beforeEach(() => {
+    vi.mocked(storage.getUser).mockReset();
+    vi.mocked(storage.approveClaim).mockReset();
+  });
+
+  it("returns 403 when a regular (non-admin) user calls approve", async () => {
+    vi.mocked(storage.getUser).mockResolvedValue(regularUser as any);
+    const app = buildApp();
+    const res = await request(app)
+      .post(`/api/admin/claims/${VALID_CLAIM_ID}/approve`)
+      .set(AUTH)
+      .send({});
+    expect(res.status).toBe(403);
+    expect(storage.approveClaim).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for an invalid (non-UUID) claim ID", async () => {
+    vi.mocked(storage.getUser).mockResolvedValue(adminUser as any);
+    const app = buildApp();
+    const res = await request(app)
+      .post("/api/admin/claims/not-a-uuid/approve")
+      .set(ADMIN_AUTH)
+      .send({});
+    expect(res.status).toBe(400);
+    expect(storage.approveClaim).not.toHaveBeenCalled();
+  });
+
+  it("returns 200 when a valid admin approves a claim", async () => {
+    vi.mocked(storage.getUser).mockResolvedValue(adminUser as any);
+    vi.mocked(storage.approveClaim).mockResolvedValue({ id: VALID_CLAIM_ID, status: "approved" } as any);
+    const app = buildApp();
+    const res = await request(app)
+      .post(`/api/admin/claims/${VALID_CLAIM_ID}/approve`)
+      .set(ADMIN_AUTH)
+      .send({});
+    expect(res.status).toBe(200);
+    expect(storage.approveClaim).toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/admin/claims/:id/reject — authorization", () => {
+  const VALID_CLAIM_ID = "00000000-0000-0000-0000-000000000002";
+  const adminUser = { id: "user_admin", role: "admin", email: "admin@example.com" };
+  const regularUser = { id: "user_owner", role: "parent", email: "user@example.com" };
+
+  beforeEach(() => {
+    vi.mocked(storage.getUser).mockReset();
+    vi.mocked(storage.rejectClaim).mockReset();
+  });
+
+  it("returns 403 when a regular (non-admin) user calls reject", async () => {
+    vi.mocked(storage.getUser).mockResolvedValue(regularUser as any);
+    const app = buildApp();
+    const res = await request(app)
+      .post(`/api/admin/claims/${VALID_CLAIM_ID}/reject`)
+      .set(AUTH)
+      .send({ rejectionReason: "Insufficient documentation" });
+    expect(res.status).toBe(403);
+    expect(storage.rejectClaim).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for a missing rejectionReason when admin calls reject", async () => {
+    vi.mocked(storage.getUser).mockResolvedValue(adminUser as any);
+    const app = buildApp();
+    const res = await request(app)
+      .post(`/api/admin/claims/${VALID_CLAIM_ID}/reject`)
+      .set(ADMIN_AUTH)
+      .send({});
+    expect(res.status).toBe(400);
+    expect(storage.rejectClaim).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for an invalid (non-UUID) claim ID", async () => {
+    vi.mocked(storage.getUser).mockResolvedValue(adminUser as any);
+    const app = buildApp();
+    const res = await request(app)
+      .post("/api/admin/claims/not-a-uuid/reject")
+      .set(ADMIN_AUTH)
+      .send({ rejectionReason: "Bad ID" });
+    expect(res.status).toBe(400);
+    expect(storage.rejectClaim).not.toHaveBeenCalled();
+  });
+
+  it("returns 200 when a valid admin rejects a claim with a reason", async () => {
+    vi.mocked(storage.getUser).mockResolvedValue(adminUser as any);
+    vi.mocked(storage.rejectClaim).mockResolvedValue({ id: VALID_CLAIM_ID, status: "rejected" } as any);
+    const app = buildApp();
+    const res = await request(app)
+      .post(`/api/admin/claims/${VALID_CLAIM_ID}/reject`)
+      .set(ADMIN_AUTH)
+      .send({ rejectionReason: "Insufficient documentation" });
+    expect(res.status).toBe(200);
+    expect(storage.rejectClaim).toHaveBeenCalled();
+  });
+});
+
+// ============================================================================
 // POST /api/contact
 // ============================================================================
 
