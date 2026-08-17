@@ -123,6 +123,30 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
   const [staleWarning, setStaleWarning] = useState(false);
   const serverSnapshotRef = useRef<ProviderSnapshot | null>(null);
 
+  // Tracks the last provider.schedule value we applied to state.
+  // Initialised to the mount-time prop so the effect skips the first render.
+  // Updated in onSuccess (before setEditing(false)) so that leaving edit mode
+  // after a save never re-applies a stale prop that arrived mid-edit.
+  const lastSyncedScheduleRef = useRef<
+    ScheduleEditCardProps["provider"]["schedule"] | undefined
+  >(provider.schedule);
+
+  // Sync schedule from fresh server props while NOT editing.
+  // Keeps the read-only display current after a type-change re-fetch or any
+  // background invalidation.  Only fires when provider.schedule has genuinely
+  // changed (new object from server), not on every re-render or when editing
+  // transitions to false after a successful save.
+  useEffect(() => {
+    if (editing) return;
+    if (
+      JSON.stringify(provider.schedule) ===
+      JSON.stringify(lastSyncedScheduleRef.current)
+    )
+      return;
+    lastSyncedScheduleRef.current = provider.schedule;
+    setSchedule(buildInitialSchedule(provider.schedule));
+  }, [provider.schedule, editing]);
+
   // Watch for incoming prop changes while editing is active.
   useEffect(() => {
     if (!editing || !serverSnapshotRef.current) return;
@@ -154,6 +178,12 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
       // refreshed prop.
       setSavedClosureNote(closureNote.trim());
       setSavedClosedDates([...closedDates]);
+      // Advance the ref to the current prop so the sync effect's equality
+      // check finds a match when editing → false triggers it.  Without this,
+      // any prop change that arrived mid-edit (e.g. a type-switch re-fetch)
+      // would be seen as "new" and overwrite the just-saved schedule before
+      // React Query delivers the true post-save data.
+      lastSyncedScheduleRef.current = provider.schedule;
       setStaleWarning(false);
       serverSnapshotRef.current = null;
       setEditing(false);
