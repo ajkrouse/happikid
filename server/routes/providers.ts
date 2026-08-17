@@ -518,11 +518,15 @@ export function registerProviderRoutes(app: Express): void {
       const existingScore = await storage.getProviderScore?.(providerId);
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       if (existingScore?.lastCalculatedAt && new Date(existingScore.lastCalculatedAt) > oneHourAgo) {
+        const { ProviderScoringService: PSS } = await import("../services/providerScoring");
+        const { rankInCategory, categoryAverage, poolSize } =
+          await PSS.calculateCategoryRank(providerId, provider.type, provider.city ?? null);
         return res.json({
           overallScore: existingScore.overallScore, completenessScore: existingScore.completenessScore,
           engagementScore: existingScore.engagementScore, verificationScore: existingScore.verificationScore,
           freshnessScore: existingScore.freshnessScore, breakdown: existingScore.scoreBreakdown,
           badges: existingScore.badges, improvementSuggestions: existingScore.improvementSuggestions,
+          rankInCategory, categoryAverage, poolSize, providerType: provider.type, city: provider.city,
         });
       }
       const [images, reviews, inquiries] = await Promise.all([
@@ -541,7 +545,12 @@ export function registerProviderRoutes(app: Express): void {
       };
       if (existingScore) await storage.updateProviderScore?.(providerId, scorePayload);
       else await storage.createProviderScore?.({ providerId, ...scorePayload });
-      res.json(score);
+
+      // Compute category rank now that the score is persisted
+      const { rankInCategory, categoryAverage, poolSize } =
+        await ProviderScoringService.calculateCategoryRank(providerId, provider.type, provider.city ?? null);
+
+      res.json({ ...score, rankInCategory, categoryAverage, poolSize, providerType: provider.type, city: provider.city });
     } catch (error) {
       log.error({ err: error }, "Error calculating provider score");
       res.status(500).json({ message: "Failed to calculate score" });

@@ -6,7 +6,13 @@ import { CheckCircle2, Circle, TrendingUp, AlertCircle } from "lucide-react";
 import type { OptimizationScore } from "../../../server/services/providerScoring";
 
 interface ProfileOptimizationCardProps {
-  score: OptimizationScore;
+  score: OptimizationScore & {
+    rankInCategory?: number;
+    categoryAverage?: number;
+    poolSize?: number;
+    providerType?: string;
+    city?: string;
+  };
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
@@ -92,6 +98,61 @@ export function ProfileOptimizationCard({ score, onRefresh, isRefreshing = false
             />
           </div>
         </div>
+
+        {/* Category Comparison */}
+        {score.categoryAverage !== undefined && score.poolSize !== undefined && score.poolSize > 0 && (
+          <div
+            className="bg-brand-evergreen/5 border border-brand-evergreen/10 rounded-lg p-4 space-y-3"
+            data-testid="category-comparison"
+          >
+            <h4 className="font-semibold text-brand-evergreen text-sm">
+              Your score vs. average for{" "}
+              {score.providerType ? (
+                <span className="capitalize">{score.providerType.replace(/_/g, " ")}</span>
+              ) : (
+                "similar providers"
+              )}
+              {score.city ? ` in ${score.city}` : " in your area"}
+            </h4>
+
+            <div className="space-y-2">
+              {/* My score bar */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700 font-medium">Your score</span>
+                  <span className={`font-bold ${getScoreColor(score.overallScore)}`}>
+                    {score.overallScore}
+                  </span>
+                </div>
+                <Progress value={score.overallScore} className="h-2" data-testid="progress-my-score-comparison" />
+              </div>
+
+              {/* Category average bar */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">
+                    {score.providerType
+                      ? `Avg for ${score.providerType.replace(/_/g, " ")}s`
+                      : "Category average"}
+                    {score.city ? ` in ${score.city}` : ""}
+                  </span>
+                  <span className="text-gray-500">{score.categoryAverage}</span>
+                </div>
+                <Progress value={score.categoryAverage} className="h-2 opacity-50" data-testid="progress-category-average" />
+              </div>
+            </div>
+
+            {score.rankInCategory !== undefined && (
+              <p className="text-xs text-gray-600 pt-1" data-testid="rank-in-category">
+                {score.rankInCategory >= 75
+                  ? `You're outperforming ${score.rankInCategory}% of similar listings in your area.`
+                  : score.rankInCategory >= 50
+                  ? `You're above average — ahead of ${score.rankInCategory}% of similar listings.`
+                  : `Complete your profile to move ahead of the ${100 - score.rankInCategory}% of similar listings scoring higher than you.`}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Score Breakdown */}
         <div className="space-y-3">

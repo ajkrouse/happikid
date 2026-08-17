@@ -391,18 +391,52 @@ export class ProviderScoringService {
   }
 
   /**
-   * Compare provider score to category average
+   * Compare provider score to category average.
+   * Returns the provider's percentile rank among similar listings in the same
+   * city + type pool, plus the pool average and pool size.
    */
   static async calculateCategoryRank(
     providerId: number,
-    providerType: string,
-    db: any // Database instance
-  ): Promise<{ rank: number; categoryAverage: number }> {
-    // This would query all providers of the same type and compare scores
-    // For now, return placeholder values
-    return {
-      rank: 0,
-      categoryAverage: 65,
-    };
+    providerType: string | null,
+    city: string | null
+  ): Promise<{ rankInCategory: number; categoryAverage: number; poolSize: number }> {
+    const { db } = await import("../db");
+    const { providerScores, providers } = await import("@shared/schema");
+    const { and, eq, sql } = await import("drizzle-orm");
+
+    // Get this provider's own stored score
+    const [myScoreRow] = await db
+      .select({ overallScore: providerScores.overallScore })
+      .from(providerScores)
+      .where(eq(providerScores.providerId, providerId));
+
+    const myScore = myScoreRow?.overallScore ?? 0;
+
+    // Fetch scores for all other providers in the same city + type pool
+    const similarRows = await db
+      .select({ overallScore: providerScores.overallScore })
+      .from(providerScores)
+      .innerJoin(providers, eq(providerScores.providerId, providers.id))
+      .where(
+        and(
+          sql`${providerScores.providerId} != ${providerId}`,
+          providerType ? eq(providers.type, providerType as any) : sql`TRUE`,
+          city ? eq(providers.city, city) : sql`TRUE`
+        )
+      );
+
+    if (similarRows.length === 0) {
+      // No peers – rank at 100th percentile by default
+      return { rankInCategory: 100, categoryAverage: myScore, poolSize: 0 };
+    }
+
+    const allScores = similarRows.map((r: { overallScore: number | null }) => r.overallScore ?? 0);
+    const categoryAverage = Math.round(
+      allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length
+    );
+    const below = allScores.filter((s: number) => s < myScore).length;
+    const rankInCategory = Math.round((below / allScores.length) * 100);
+
+    return { rankInCategory, categoryAverage, poolSize: allScores.length };
   }
 }
