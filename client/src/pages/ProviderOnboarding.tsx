@@ -155,11 +155,11 @@ export default function ProviderOnboarding() {
     hoursOpen: "",
     hoursClose: "",
     schedule: {
-      monday: { open: "", close: "", isOpen: true },
-      tuesday: { open: "", close: "", isOpen: true },
-      wednesday: { open: "", close: "", isOpen: true },
-      thursday: { open: "", close: "", isOpen: true },
-      friday: { open: "", close: "", isOpen: true },
+      monday: { open: "", close: "", isOpen: false },
+      tuesday: { open: "", close: "", isOpen: false },
+      wednesday: { open: "", close: "", isOpen: false },
+      thursday: { open: "", close: "", isOpen: false },
+      friday: { open: "", close: "", isOpen: false },
       saturday: { open: "", close: "", isOpen: false },
       sunday: { open: "", close: "", isOpen: false }
     },

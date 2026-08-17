@@ -247,4 +247,133 @@ describe("Validation — providerClientUpdateSchema schedule field", () => {
       expect(paths.some((p) => p.startsWith("schedule"))).toBe(true);
     }
   });
+
+  it("rejects an open day where close time is before open time", () => {
+    const backwards = {
+      ...validSchedule,
+      monday: { isOpen: true, open: "18:00", close: "07:00" },
+    };
+    const result = schema.safeParse({ schedule: backwards });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join("."));
+      expect(paths.some((p) => p.startsWith("schedule"))).toBe(true);
+    }
+  });
+
+  it("rejects an open day where close time equals open time", () => {
+    const equal = {
+      ...validSchedule,
+      friday: { isOpen: true, open: "09:00", close: "09:00" },
+    };
+    const result = schema.safeParse({ schedule: equal });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join("."));
+      expect(paths.some((p) => p.startsWith("schedule"))).toBe(true);
+    }
+  });
+
+  it("allows a closed day to have open >= close without error", () => {
+    // When isOpen is false the times are irrelevant — no validation should fire
+    const closedBackwards = {
+      ...validSchedule,
+      saturday: { isOpen: false, open: "18:00", close: "06:00" },
+    };
+    const result = schema.safeParse({ schedule: closedBackwards });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a non-zero-padded close time that would bypass lexical comparison (e.g. '7:00' > '18:00')", () => {
+    // Lexically "7:00" > "18:00", so a plain string comparison would incorrectly accept this.
+    // The schema must reject "7:00" because it is not canonical HH:MM format.
+    const nonPadded = {
+      ...validSchedule,
+      monday: { isOpen: true, open: "18:00", close: "7:00" },
+    };
+    const result = schema.safeParse({ schedule: nonPadded });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join("."));
+      expect(paths.some((p) => p.startsWith("schedule"))).toBe(true);
+    }
+  });
+
+  it("rejects a non-zero-padded open time", () => {
+    const nonPadded = {
+      ...validSchedule,
+      tuesday: { isOpen: true, open: "9:00", close: "17:00" },
+    };
+    const result = schema.safeParse({ schedule: nonPadded });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a time with invalid minutes (e.g. '07:60')", () => {
+    const badMinutes = {
+      ...validSchedule,
+      wednesday: { isOpen: true, open: "07:60", close: "18:00" },
+    };
+    const result = schema.safeParse({ schedule: badMinutes });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a time with an out-of-range hour (e.g. '25:00')", () => {
+    const badHour = {
+      ...validSchedule,
+      thursday: { isOpen: true, open: "25:00", close: "26:00" },
+    };
+    const result = schema.safeParse({ schedule: badHour });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts the onboarding default schedule — all days closed with empty time strings", () => {
+    // ProviderOnboarding initialises every day as isOpen:false with empty open/close strings
+    // before the provider reaches the schedule step. The schema must accept this so early
+    // onboarding steps can save without error.
+    const onboardingDefault = {
+      monday:    { isOpen: false, open: "", close: "" },
+      tuesday:   { isOpen: false, open: "", close: "" },
+      wednesday: { isOpen: false, open: "", close: "" },
+      thursday:  { isOpen: false, open: "", close: "" },
+      friday:    { isOpen: false, open: "", close: "" },
+      saturday:  { isOpen: false, open: "", close: "" },
+      sunday:    { isOpen: false, open: "", close: "" },
+    };
+    const result = schema.safeParse({ schedule: onboardingDefault });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects an open day with empty times (times are required when isOpen is true)", () => {
+    const openWithEmptyTimes = {
+      monday:    { isOpen: true,  open: "", close: "" },
+      tuesday:   { isOpen: false, open: "", close: "" },
+      wednesday: { isOpen: false, open: "", close: "" },
+      thursday:  { isOpen: false, open: "", close: "" },
+      friday:    { isOpen: false, open: "", close: "" },
+      saturday:  { isOpen: false, open: "", close: "" },
+      sunday:    { isOpen: false, open: "", close: "" },
+    };
+    const result = schema.safeParse({ schedule: openWithEmptyTimes });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join("."));
+      expect(paths.some((p) => p.startsWith("schedule"))).toBe(true);
+    }
+  });
+
+  it("accepts a schedule with closed days that have empty open/close strings", () => {
+    // Closed days whose time inputs haven't been filled in should be accepted —
+    // the UI hides the time inputs for closed days.
+    const closedEmpty = {
+      monday:    { isOpen: true,  open: "07:00", close: "18:00" },
+      tuesday:   { isOpen: true,  open: "07:00", close: "18:00" },
+      wednesday: { isOpen: true,  open: "07:00", close: "18:00" },
+      thursday:  { isOpen: true,  open: "07:00", close: "18:00" },
+      friday:    { isOpen: true,  open: "07:00", close: "17:00" },
+      saturday:  { isOpen: false, open: "", close: "" },
+      sunday:    { isOpen: false, open: "", close: "" },
+    };
+    const result = schema.safeParse({ schedule: closedEmpty });
+    expect(result.success).toBe(true);
+  });
 });

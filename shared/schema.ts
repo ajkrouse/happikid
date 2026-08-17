@@ -507,10 +507,46 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
   monthlyPrice: _strictOptDecStr,
   monthlyPriceMin: _strictOptDecStr,
   monthlyPriceMax: _strictOptDecStr,
-  // Schedule: each day entry must have exactly { isOpen, open, close } — strict rejects unknown fields
+  // Schedule: each day entry must have exactly { isOpen, open, close } — strict rejects unknown fields.
+  //
+  // open/close accept an empty string (used by onboarding for days not yet configured) OR a
+  // canonical 24-hour HH:MM value (zero-padded hours and minutes).  Non-zero-padded inputs
+  // like "7:00" are rejected by the regex so they cannot bypass the ordering check.
+  //
+  // When isOpen is true the superRefine additionally requires:
+  //   • both open and close are non-empty canonical HH:MM values
+  //   • close is strictly after open, compared as parsed minutes-since-midnight
   schedule: z.record(
     z.string(),
-    z.object({ isOpen: z.boolean(), open: z.string(), close: z.string() }).strict()
+    z.object({
+      isOpen: z.boolean(),
+      open:  z.string().regex(/^$|^(?:[01]\d|2[0-3]):[0-5]\d$/, "Must be empty or a valid 24-hour time in HH:MM format"),
+      close: z.string().regex(/^$|^(?:[01]\d|2[0-3]):[0-5]\d$/, "Must be empty or a valid 24-hour time in HH:MM format"),
+    })
+      .strict()
+      .superRefine((day, ctx) => {
+        if (!day.isOpen) return; // closed days — no time constraints
+        const HH_MM = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+        if (!HH_MM.test(day.open)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Open time is required and must be a valid 24-hour HH:MM time", path: ["open"] });
+        }
+        if (!HH_MM.test(day.close)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Close time is required and must be a valid 24-hour HH:MM time", path: ["close"] });
+        }
+        if (HH_MM.test(day.open) && HH_MM.test(day.close)) {
+          const toMinutes = (t: string) => {
+            const [h, m] = t.split(":").map(Number);
+            return h * 60 + m;
+          };
+          if (toMinutes(day.close) <= toMinutes(day.open)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Close time must be after open time",
+              path: ["close"],
+            });
+          }
+        }
+      })
   ).optional().nullable(),
   // Structured closure date ranges
   closedDates: z.array(
