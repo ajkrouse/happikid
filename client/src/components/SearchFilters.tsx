@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface SearchFiltersProps {
   filters: {
@@ -16,6 +17,7 @@ interface SearchFiltersProps {
     acceptsSubsidies?: boolean;
     verifiedPricing?: boolean;
     enrollmentStatus?: string;
+    openOn?: string;
   };
   onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
@@ -179,7 +181,11 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
     onFiltersChange({ ...filters, enrollmentStatus: value === "all" ? undefined : value });
   };
 
-  const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || filters.enrollmentStatus || (filters.features && filters.features.length > 0);
+  const handleOpenOnChange = (value: string) => {
+    onFiltersChange({ ...filters, openOn: value || undefined });
+  };
+
+  const hasActiveFilters = filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || filters.enrollmentStatus || filters.openOn || (filters.features && filters.features.length > 0);
 
   return (
     <Card className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl shadow-lg border-2 border-brand-evergreen/10 bg-white">
@@ -335,6 +341,29 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
               </Label>
             </div>
           </RadioGroup>
+        </div>
+
+        {/* Open On Date */}
+        <div>
+          <Label className="text-sm font-medium mb-2 block text-brand-evergreen">
+            Needs to be open on
+          </Label>
+          <Input
+            type="date"
+            value={filters.openOn || ""}
+            onChange={(e) => handleOpenOnChange(e.target.value)}
+            className="rounded-lg border-2 border-brand-evergreen/10 text-sm"
+            aria-label="Filter to providers open on this date"
+          />
+          {filters.openOn && (
+            <button
+              onClick={() => handleOpenOnChange("")}
+              className="mt-1 text-xs text-action-clay hover:underline"
+              aria-label="Clear open-on date filter"
+            >
+              Clear date
+            </button>
+          )}
         </div>
 
         {/* Financial Assistance */}

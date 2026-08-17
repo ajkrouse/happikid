@@ -91,6 +91,7 @@ export interface IStorage {
     acceptsSubsidies?: boolean;
     verifiedPricing?: boolean;
     enrollmentStatus?: string;
+    openOn?: string;
   }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number; verifiedPricingCount: number }>;
   getProvider(id: number): Promise<Provider | undefined>;
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
@@ -338,6 +339,7 @@ export class DatabaseStorage implements IStorage {
     acceptsSubsidies?: boolean;
     verifiedPricing?: boolean;
     enrollmentStatus?: string;
+    openOn?: string;
   }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number; verifiedPricingCount: number }> {
     try {
       let conditions: any[] = [eq(providers.isActive, true)];
@@ -422,6 +424,19 @@ export class DatabaseStorage implements IStorage {
       // Filter by enrollment status
       if (filters?.enrollmentStatus) {
         conditions.push(eq(providers.enrollmentStatus, filters.enrollmentStatus as any));
+      }
+
+      // Filter by open-on date: exclude providers that have a closed-date range covering the given date
+      if (filters?.openOn) {
+        const openOnDate = filters.openOn;
+        conditions.push(
+          sql`NOT EXISTS (
+            SELECT 1 FROM jsonb_array_elements(
+              CASE WHEN jsonb_typeof(${providers.closedDates}) = 'array' THEN ${providers.closedDates} ELSE '[]'::jsonb END
+            ) AS elem
+            WHERE (elem->>'from') <= ${openOnDate} AND (elem->>'to') >= ${openOnDate}
+          )`
+        );
       }
 
       // Verified pricing SQL expression — matches the hasPricingData() rule in client/src/lib/providerPricing.ts:
