@@ -139,18 +139,35 @@ class LazyErrorBoundaryInner extends Component<
     }));
   };
 
+  private handleReload = () => {
+    window.location.reload();
+  };
+
   render() {
     if (this.state.hasError) {
+      const isSecondFailure = this.state.retryKey > 0;
       return (
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-brand-evergreen/20 bg-brand-sage/50 px-6 py-8 text-center text-sm text-text-muted">
           <RefreshCw className="h-5 w-5 text-action-teal" />
           <p className="font-medium text-brand-evergreen">Couldn't load this section</p>
-          <button
-            onClick={this.handleRetry}
-            className="rounded-md bg-action-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-action-teal/90 transition-colors"
-          >
-            Tap to retry
-          </button>
+          {isSecondFailure ? (
+            <>
+              <p className="text-xs text-text-muted">The section is still unavailable. Try refreshing the page.</p>
+              <button
+                onClick={this.handleReload}
+                className="rounded-md bg-action-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-action-teal/90 transition-colors"
+              >
+                Reload page
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={this.handleRetry}
+              className="rounded-md bg-action-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-action-teal/90 transition-colors"
+            >
+              Tap to retry
+            </button>
+          )}
         </div>
       );
     }

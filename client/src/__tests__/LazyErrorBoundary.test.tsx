@@ -201,8 +201,13 @@ describe("retryableLazy", () => {
     expect(screen.queryByText(/couldn't load this section/i)).not.toBeInTheDocument();
   });
 
-  it("shows the fallback UI again if the chunk is still unavailable after retry", async () => {
+  it("shows the reload-page UI after a second consecutive failure", async () => {
     const user = userEvent.setup();
+    const reloadSpy = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { reload: reloadSpy },
+    });
 
     // Factory always rejects — chunk is genuinely unavailable
     const factory = vi.fn(() =>
@@ -217,19 +222,28 @@ describe("retryableLazy", () => {
       </LazyErrorBoundary>,
     );
 
-    // First failure
+    // First failure — shows "Tap to retry"
     await waitFor(() =>
       expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument(),
     );
+    expect(screen.getByRole("button", { name: /tap to retry/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /reload page/i })).not.toBeInTheDocument();
 
     // Click retry — chunk still unavailable
     await user.click(screen.getByRole("button", { name: /tap to retry/i }));
 
-    // Fallback UI must reappear (no infinite spinner)
+    // Second failure — should now show "Reload page" instead of "Tap to retry"
     await waitFor(() =>
       expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument(),
     );
     expect(factory).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("button", { name: /reload page/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /tap to retry/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/try refreshing the page/i)).toBeInTheDocument();
+
+    // Clicking "Reload page" calls window.location.reload()
+    await user.click(screen.getByRole("button", { name: /reload page/i }));
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -311,12 +325,14 @@ describe("LazyErrorBoundary – stall-detection timeout", () => {
     });
     expect(screen.queryByText(/couldn't load this section/i)).not.toBeInTheDocument();
 
-    // Advance past the full timeout again — error should reappear.
+    // Advance past the full timeout again — error should reappear with reload-page UI
+    // (retryKey is now 1, so the second-failure state kicks in).
     await act(async () => {
       vi.advanceTimersByTime(4_001);
     });
     expect(screen.getByText(/couldn't load this section/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /tap to retry/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /reload page/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /tap to retry/i })).not.toBeInTheDocument();
   }, 15_000);
 
   it("does not fire the timeout when content loads before the deadline", async () => {
