@@ -358,7 +358,7 @@ export default function SearchPage() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="hidden lg:block lg:w-1/4">
-            <SearchFilters filters={filters} onFiltersChange={setFilters} onClearFilters={() => setFilters({})} />
+            <SearchFilters filters={filters} onFiltersChange={setFilters} onClearFilters={() => setFilters({})} verifiedPricingCount={verifiedPricingCount} />
 
             {filters.type === "afterschool" && categories.length > 0 && (
               <div className="mt-6">
@@ -407,7 +407,7 @@ export default function SearchPage() {
                       <SheetTitle>Narrow Your Search</SheetTitle>
                     </SheetHeader>
                     <div className="mt-4">
-                      <SearchFilters filters={filters} onFiltersChange={setFilters} onClearFilters={() => setFilters({})} />
+                      <SearchFilters filters={filters} onFiltersChange={setFilters} onClearFilters={() => setFilters({})} verifiedPricingCount={verifiedPricingCount} />
                       {filters.type === "afterschool" && categories.length > 0 && (
                         <div className="mt-6">
                           <TaxonomyNavigator

@@ -19,6 +19,7 @@ interface SearchFiltersProps {
   };
   onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
+  verifiedPricingCount?: number | null;
 }
 
 // City data organized by county
@@ -133,7 +134,7 @@ function getCitiesForCounty(county: string): { name: string; count: number }[] {
   return cityData[county] || [];
 }
 
-export default function SearchFilters({ filters, onFiltersChange, onClearFilters }: SearchFiltersProps) {
+export default function SearchFilters({ filters, onFiltersChange, onClearFilters, verifiedPricingCount }: SearchFiltersProps) {
   const handleTypeChange = (value: string) => {
     onFiltersChange({ ...filters, type: value === "all" ? undefined : value });
   };
@@ -375,7 +376,7 @@ export default function SearchFilters({ filters, onFiltersChange, onClearFilters
                 htmlFor="verified-pricing"
                 className="text-sm font-medium text-action-teal cursor-pointer"
               >
-                Verified pricing only
+                Verified pricing only{verifiedPricingCount != null && ` (${verifiedPricingCount})`}
               </Label>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Hide providers with estimated costs

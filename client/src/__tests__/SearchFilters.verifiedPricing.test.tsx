@@ -24,13 +24,15 @@ import SearchFilters from "@/components/SearchFilters";
 function renderFilters(
   filters: Parameters<typeof SearchFilters>[0]["filters"] = {},
   onFiltersChange = vi.fn(),
-  onClearFilters = vi.fn()
+  onClearFilters = vi.fn(),
+  verifiedPricingCount?: number | null
 ) {
   return { onFiltersChange, onClearFilters, ...render(
     <SearchFilters
       filters={filters}
       onFiltersChange={onFiltersChange}
       onClearFilters={onClearFilters}
+      verifiedPricingCount={verifiedPricingCount}
     />
   )};
 }
@@ -126,5 +128,21 @@ describe("SearchFilters — Verified Pricing checkbox", () => {
     expect(
       screen.getByRole("button", { name: /Clear All/i })
     ).toBeInTheDocument();
+  });
+
+  it("shows the count in the label when verifiedPricingCount is provided", () => {
+    renderFilters({}, vi.fn(), vi.fn(), 42);
+    expect(screen.getByText(/Verified pricing only \(42\)/i)).toBeInTheDocument();
+  });
+
+  it("does not show a count in the label when verifiedPricingCount is null", () => {
+    renderFilters({}, vi.fn(), vi.fn(), null);
+    // Label text should be exactly "Verified pricing only" without any parenthetical
+    expect(screen.getByText(/Verified pricing only$/i)).toBeInTheDocument();
+  });
+
+  it("does not show a count in the label when verifiedPricingCount is not supplied", () => {
+    renderFilters();
+    expect(screen.getByText(/Verified pricing only$/i)).toBeInTheDocument();
   });
 });
