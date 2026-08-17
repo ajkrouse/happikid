@@ -494,6 +494,113 @@ describe("ScheduleEditCard — closure note round-trip", () => {
     // Back in read-only mode — original note still shows
     expect(screen.getByText("Closed on school holidays")).toBeInTheDocument();
   });
+
+  it("amber banner stays correct when parent re-renders with the updated prop after save", async () => {
+    // Scenario: the component saves a new closure note optimistically, then the
+    // parent (React Query) delivers a fresh provider prop with the same note.
+    // The amber banner must remain visible with the correct text throughout —
+    // no flicker, no blank flash between the optimistic-local update and the
+    // eventual prop-sync.
+    const { rerender } = render(
+      <ScheduleEditCard provider={makeProvider({ closureNote: "Original note" })} />
+    );
+
+    // Amber banner shows the initial note in read-only view
+    expect(screen.getByText("Original note")).toBeInTheDocument();
+
+    // Enter edit mode
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // Change the closure note
+    const textarea = screen.getByDisplayValue("Original note");
+    fireEvent.change(textarea, { target: { value: "Updated note" } });
+
+    // Toggle monday on so the save has at least one valid open day
+    const mondayCheckbox = screen.getByRole("checkbox", { name: /monday/i });
+    fireEvent.click(mondayCheckbox);
+
+    // Save — triggers onSuccess which sets savedClosureNote optimistically
+    fireEvent.click(screen.getByRole("button", { name: /save schedule/i }));
+
+    // Wait for the component to exit edit mode (onSuccess ran)
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
+    );
+
+    // Amber banner should already show the new note via the optimistic local state
+    expect(screen.getByText("Updated note")).toBeInTheDocument();
+
+    // Now simulate React Query delivering the refreshed prop (the prop-sync path).
+    // This is what happens when useQuery's invalidation completes and the parent
+    // re-renders with the server-confirmed value.
+    rerender(
+      <ScheduleEditCard
+        provider={makeProvider({ closureNote: "Updated note" })}
+      />
+    );
+
+    // The amber banner must still be visible and contain the correct text —
+    // the prop-sync must NOT cause a flicker or blank the banner.
+    const banner = screen.getByText("Updated note");
+    expect(banner).toBeInTheDocument();
+    expect(banner.closest("div")).toHaveClass("bg-amber-50");
+
+    // And the old note must be completely gone
+    expect(screen.queryByText("Original note")).not.toBeInTheDocument();
+  });
+
+  it("amber banner survives a stale-prop re-render that arrives while the save is still in-flight", async () => {
+    // Scenario: the user saves a new closure note.  Before the PATCH response
+    // arrives, the parent (React Query) fires a background refetch that delivers
+    // the *old* closureNote (null) via a prop update — simulating the focus/
+    // tab-reactivation race the task describes.  Once the PATCH resolves and
+    // onSuccess runs, the optimistic savedClosureNote must win; the banner must
+    // show the newly saved text and must NOT go blank during the race.
+
+    // Use a manually controlled promise so we can inject the stale prop while
+    // the API call is still pending.
+    let resolveApiCall!: (value: any) => void;
+    const deferredResponse = new Promise<any>((resolve) => {
+      resolveApiCall = resolve;
+    });
+    mockApiRequest.mockReturnValue(deferredResponse);
+
+    const { rerender } = render(
+      <ScheduleEditCard provider={makeProvider({ closureNote: null })} />
+    );
+
+    // Enter edit mode and type a new note
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    const textarea = screen.getByPlaceholderText(/Closed Dec 24/i);
+    fireEvent.change(textarea, { target: { value: "Closed for summer break" } });
+
+    const mondayCheckbox = screen.getByRole("checkbox", { name: /monday/i });
+    fireEvent.click(mondayCheckbox);
+
+    // Kick off the save — the mock API call is now pending (deferredResponse hasn't resolved)
+    fireEvent.click(screen.getByRole("button", { name: /save schedule/i }));
+
+    // While the PATCH is still in-flight, the parent re-renders with the stale
+    // prop (closureNote still null — a background refetch raced the mutation)
+    rerender(
+      <ScheduleEditCard provider={makeProvider({ closureNote: null })} />
+    );
+
+    // Resolve the API call — save succeeds
+    resolveApiCall({ ok: true, json: async () => ({ id: 42 }) });
+
+    // Wait for onSuccess to run and the component to exit edit mode
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
+    );
+
+    // The amber banner must show the optimistically saved note.
+    // The stale null prop that arrived mid-flight must NOT have blanked it.
+    const banner = screen.getByText("Closed for summer break");
+    expect(banner).toBeInTheDocument();
+    expect(banner.closest("div")).toHaveClass("bg-amber-50");
+  });
 });
 
 // ---------------------------------------------------------------------------
