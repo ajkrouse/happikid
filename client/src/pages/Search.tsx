@@ -371,7 +371,7 @@ export default function SearchPage() {
                   summary={providerResponse.aiInsights.summary}
                   highlights={providerResponse.aiInsights.highlights || []}
                   followUpSuggestions={providerResponse.aiInsights.followUpSuggestions || []}
-                  onFollowUp={(query) => { setSearchQuery(query); refetch(); }}
+                  onFollowUp={(query: string) => { setSearchQuery(query); refetch(); }}
                 />
               </LazyErrorBoundary>
             )}

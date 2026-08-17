@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -7,28 +7,32 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { retryableLazy } from "@/components/LazyErrorBoundary";
 
 // Eagerly loaded — small, always visible on first paint
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/not-found";
 
-// Lazily loaded — heavier pages only needed on demand
-const Home = lazy(() => import("@/pages/Home"));
-const Search = lazy(() => import("@/pages/Search"));
-const About = lazy(() => import("@/pages/About"));
-const Contact = lazy(() => import("@/pages/Contact"));
-const ProvidersOverview = lazy(() => import("@/pages/ProvidersOverview"));
-const ProviderDashboard = lazy(() => import("@/pages/ProviderDashboard"));
-const ProviderOnboarding = lazy(() => import("@/pages/ProviderOnboarding"));
-const ProviderCelebration = lazy(() => import("@/pages/ProviderCelebration"));
-const ParentSignup = lazy(() => import("@/pages/ParentSignup"));
-const ProviderSignup = lazy(() => import("@/pages/ProviderSignup"));
-const ClaimBusiness = lazy(() => import("@/pages/ClaimBusiness"));
-const AdminClaims = lazy(() => import("@/pages/AdminClaims"));
-const AdminVerifications = lazy(() => import("@/pages/AdminVerifications"));
-const AfterSchoolPrograms = lazy(() => import("@/pages/AfterSchoolPrograms"));
-const Messages = lazy(() => import("@/pages/Messages"));
-const ParentDashboard = lazy(() => import("@/pages/ParentDashboard"));
+// Lazily loaded — heavier pages only needed on demand.
+// retryableLazy (instead of React.lazy) lets ErrorBoundary trigger a fresh
+// import() call on reconnection, so a chunk-load failure caused by going
+// offline is retried automatically when connectivity returns.
+const Home = retryableLazy(() => import("@/pages/Home"));
+const Search = retryableLazy(() => import("@/pages/Search"));
+const About = retryableLazy(() => import("@/pages/About"));
+const Contact = retryableLazy(() => import("@/pages/Contact"));
+const ProvidersOverview = retryableLazy(() => import("@/pages/ProvidersOverview"));
+const ProviderDashboard = retryableLazy(() => import("@/pages/ProviderDashboard"));
+const ProviderOnboarding = retryableLazy(() => import("@/pages/ProviderOnboarding"));
+const ProviderCelebration = retryableLazy(() => import("@/pages/ProviderCelebration"));
+const ParentSignup = retryableLazy(() => import("@/pages/ParentSignup"));
+const ProviderSignup = retryableLazy(() => import("@/pages/ProviderSignup"));
+const ClaimBusiness = retryableLazy(() => import("@/pages/ClaimBusiness"));
+const AdminClaims = retryableLazy(() => import("@/pages/AdminClaims"));
+const AdminVerifications = retryableLazy(() => import("@/pages/AdminVerifications"));
+const AfterSchoolPrograms = retryableLazy(() => import("@/pages/AfterSchoolPrograms"));
+const Messages = retryableLazy(() => import("@/pages/Messages"));
+const ParentDashboard = retryableLazy(() => import("@/pages/ParentDashboard"));
 
 function PageLoader() {
   return (

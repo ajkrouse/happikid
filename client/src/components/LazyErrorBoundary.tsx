@@ -14,11 +14,15 @@ import { RefreshCw } from "lucide-react";
 
 /**
  * Incremented by LazyErrorBoundaryInner each time the user clicks "Tap to
- * retry".  retryableLazy() reads this value and creates a brand-new
+ * retry", or by ErrorBoundary when connectivity is restored after a chunk
+ * error.  retryableLazy() reads this value and creates a brand-new
  * React.lazy() type whenever it changes, forcing the import() factory to run
  * again instead of replaying the cached rejection from the previous attempt.
+ *
+ * Exported so that ErrorBoundary (the page-level boundary) can provide the
+ * same context to its own retryableLazy route children.
  */
-const RetryKeyContext = createContext(0);
+export const RetryKeyContext = createContext(0);
 
 /**
  * Called by <LoadSignal> (rendered inside the Suspense) when children mount
@@ -203,7 +207,7 @@ export function LazyErrorBoundary({
  */
 export function retryableLazy<T extends ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
-): ComponentType<ComponentPropsWithoutRef<T>> {
+): ComponentType<any> {
   // Keyed by retryKey so the same lazy instance is reused within a single
   // attempt but a fresh one is created for every retry.
   const lazyCache = new Map<number, LazyExoticComponent<T>>();

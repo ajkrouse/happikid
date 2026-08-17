@@ -16,12 +16,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import React, { lazy, Suspense } from "react";
+import React, { act, lazy, Suspense } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Router, Switch, Route } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { retryableLazy } from "@/components/LazyErrorBoundary";
 
 // ---------------------------------------------------------------------------
 // Mock heavy / browser-only sub-dependencies so real pages can load
@@ -568,5 +569,143 @@ describe("ErrorBoundary", () => {
         screen.getByRole("button", { name: /reload page/i }),
       ).toBeInTheDocument(),
     );
+  });
+
+  it("shows the offline message instead of reload when chunk fails while offline", async () => {
+    // Simulate being offline
+    Object.defineProperty(navigator, "onLine", {
+      value: false,
+      configurable: true,
+    });
+    try {
+      const ChunkBomb = (): React.ReactElement => {
+        throw new Error(
+          "Failed to fetch dynamically imported module: /assets/Search-abc123.js",
+        );
+      };
+      render(
+        <ErrorBoundary>
+          <Suspense fallback={<div>loading…</div>}>
+            <ChunkBomb />
+          </Suspense>
+        </ErrorBoundary>,
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByText(/you appear to be offline/i),
+        ).toBeInTheDocument(),
+      );
+      expect(
+        screen.queryByRole("button", { name: /reload page/i }),
+      ).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(navigator, "onLine", {
+        value: true,
+        configurable: true,
+      });
+    }
+  });
+
+  it("auto-retries the chunk import when connectivity is restored after an offline chunk error", async () => {
+    // Simulate being offline
+    Object.defineProperty(navigator, "onLine", {
+      value: false,
+      configurable: true,
+    });
+
+    let callCount = 0;
+    const LoadedContent = () => (
+      <div data-testid="retried-content">Chunk recovered</div>
+    );
+    const factory = vi.fn(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.reject(
+          new Error(
+            "Failed to fetch dynamically imported module: /assets/Search-abc123.js",
+          ),
+        );
+      }
+      return Promise.resolve({ default: LoadedContent });
+    });
+
+    const RetryableChunk = retryableLazy(factory);
+
+    render(
+      <ErrorBoundary>
+        <Suspense fallback={<div data-testid="suspense-spinner">loading…</div>}>
+          <RetryableChunk />
+        </Suspense>
+      </ErrorBoundary>,
+    );
+
+    // First attempt: offline + chunk error → offline message
+    await waitFor(() =>
+      expect(
+        screen.getByText(/you appear to be offline/i),
+      ).toBeInTheDocument(),
+    );
+    expect(factory).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+
+    // Simulate coming back online — ErrorBoundary should auto-retry
+    Object.defineProperty(navigator, "onLine", {
+      value: true,
+      configurable: true,
+    });
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+
+    // Factory must be called a second time (fresh chunk request)
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("retried-content"),
+      ).toBeInTheDocument(),
+    );
+    expect(factory).toHaveBeenCalledTimes(2);
+
+    // Error / offline UI should be gone
+    expect(
+      screen.queryByText(/you appear to be offline/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does NOT auto-clear non-chunk errors when coming back online", async () => {
+    function GenericBomb(): React.ReactElement {
+      throw new Error("Some unrelated runtime error");
+    }
+    render(
+      <ErrorBoundary>
+        <Suspense fallback={<div>loading…</div>}>
+          <GenericBomb />
+        </Suspense>
+      </ErrorBoundary>,
+    );
+
+    // Generic error: always shows reload prompt
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /reload page/i }),
+      ).toBeInTheDocument(),
+    );
+
+    // Firing online should not clear a non-chunk error
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+
+    // Reload prompt must still be there
+    expect(
+      screen.getByRole("button", { name: /reload page/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/you appear to be offline/i),
+    ).not.toBeInTheDocument();
   });
 });
