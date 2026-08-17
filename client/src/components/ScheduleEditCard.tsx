@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Clock, Pencil, X, Save, AlertCircle, Plus, Trash2, CalendarX } from "lucide-react";
+import { Clock, Pencil, X, Save, AlertCircle, Plus, Trash2, CalendarX, RefreshCw } from "lucide-react";
 
 const DAYS = [
   "monday",
@@ -83,6 +83,13 @@ function todayIso(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/** Snapshot of the server's provider data taken when the user enters edit mode. */
+interface ProviderSnapshot {
+  schedule: ScheduleEditCardProps["provider"]["schedule"];
+  closureNote: string | null | undefined;
+  closedDates: ClosedDateEntry[] | null | undefined;
+}
+
 export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -106,6 +113,30 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
   const [newEntry, setNewEntry] = useState<ClosedDateEntry>({ from: "", to: "", reason: "" });
   const [showAddForm, setShowAddForm] = useState(false);
 
+  /**
+   * Stale-data detection:
+   * When the user opens edit mode we snapshot the current server data. If the
+   * parent query refetches in the background and delivers a newer provider prop
+   * while the user is still editing, we show a warning so they can decide
+   * whether to reload the latest data or keep their in-progress draft.
+   */
+  const [staleWarning, setStaleWarning] = useState(false);
+  const serverSnapshotRef = useRef<ProviderSnapshot | null>(null);
+
+  // Watch for incoming prop changes while editing is active.
+  useEffect(() => {
+    if (!editing || !serverSnapshotRef.current) return;
+    const snap = serverSnapshotRef.current;
+    const scheduleChanged =
+      JSON.stringify(provider.schedule) !== JSON.stringify(snap.schedule);
+    const noteChanged = provider.closureNote !== snap.closureNote;
+    const datesChanged =
+      JSON.stringify(provider.closedDates) !== JSON.stringify(snap.closedDates);
+    if (scheduleChanged || noteChanged || datesChanged) {
+      setStaleWarning(true);
+    }
+  }, [provider, editing]);
+
   const patchMutation = useMutation({
     mutationFn: async (payload: Record<string, unknown>) => {
       const res = await apiRequest("PATCH", `/api/providers/${provider.id}`, payload);
@@ -123,6 +154,8 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
       // refreshed prop.
       setSavedClosureNote(closureNote.trim());
       setSavedClosedDates([...closedDates]);
+      setStaleWarning(false);
+      serverSnapshotRef.current = null;
       setEditing(false);
     },
     onError: (error: any) => {
@@ -191,7 +224,28 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
     setClosedDates(provider.closedDates ?? []);
     setNewEntry({ from: "", to: "", reason: "" });
     setShowAddForm(false);
+    setStaleWarning(false);
+    serverSnapshotRef.current = null;
     setEditing(false);
+  }
+
+  /**
+   * Called when the user clicks "Reload latest" in the stale-data warning.
+   * Resets all draft state to whatever the parent delivered in the newest prop,
+   * then clears the warning so editing can resume from a fresh baseline.
+   */
+  function handleReloadFromServer() {
+    serverSnapshotRef.current = {
+      schedule: provider.schedule,
+      closureNote: provider.closureNote,
+      closedDates: provider.closedDates,
+    };
+    setSchedule(buildInitialSchedule(provider.schedule));
+    setClosureNote(provider.closureNote ?? "");
+    setClosedDates(provider.closedDates ?? []);
+    setNewEntry({ from: "", to: "", reason: "" });
+    setShowAddForm(false);
+    setStaleWarning(false);
   }
 
   // Read-only summary
@@ -213,7 +267,16 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setEditing(true)}
+              onClick={() => {
+                // Capture the server data as it stands right now so we can
+                // detect background refetches that arrive while editing.
+                serverSnapshotRef.current = {
+                  schedule: provider.schedule,
+                  closureNote: provider.closureNote,
+                  closedDates: provider.closedDates,
+                };
+                setEditing(true);
+              }}
               className="h-8 px-2"
             >
               <Pencil className="h-3.5 w-3.5 mr-1" />
@@ -273,6 +336,48 @@ export function ScheduleEditCard({ provider }: ScheduleEditCardProps) {
         ) : (
           /* Edit form */
           <div className="space-y-3">
+            {/* Stale-data warning — shown when the server data changed while editing */}
+            {staleWarning && (
+              <div
+                role="alert"
+                className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
+              >
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
+                  <div className="flex-1">
+                    <span className="font-medium">
+                      Your schedule was updated elsewhere.
+                    </span>{" "}
+                    <span>
+                      Reload the latest version or keep editing your current
+                      draft — your changes will not be overwritten automatically.
+                    </span>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-6 px-2 text-xs gap-1"
+                        onClick={handleReloadFromServer}
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Reload latest
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => setStaleWarning(false)}
+                      >
+                        Keep editing
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {DAYS.map((day) => (
               <div key={day} className="flex items-center gap-3 py-1.5 border-b last:border-0">
                 <div className="flex items-center gap-2 w-28">

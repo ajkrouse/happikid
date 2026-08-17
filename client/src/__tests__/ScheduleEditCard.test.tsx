@@ -525,3 +525,188 @@ describe("ScheduleEditCard — cancel", () => {
     expect(screen.getByText(/monday/i)).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Stale-data detection — prop change mid-edit
+// ---------------------------------------------------------------------------
+
+describe("ScheduleEditCard — stale data warning", () => {
+  it("shows a warning when the provider prop changes while editing", () => {
+    const initialProvider = makeProvider({
+      schedule: { monday: { isOpen: true, open: "08:00", close: "17:00" } },
+      closureNote: null,
+    });
+
+    const { rerender } = render(<ScheduleEditCard provider={initialProvider} />);
+
+    // Enter edit mode
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // No warning initially
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+    // Simulate a background refetch delivering new server data while the user
+    // is still editing (e.g. another device saved a different schedule)
+    const updatedProvider = makeProvider({
+      schedule: { tuesday: { isOpen: true, open: "09:00", close: "18:00" } },
+      closureNote: "Closed on public holidays",
+    });
+    rerender(<ScheduleEditCard provider={updatedProvider} />);
+
+    // The stale-data warning alert must appear
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByText(/updated elsewhere/i)).toBeInTheDocument();
+  });
+
+  it("does NOT show a warning when the prop changes while NOT editing", () => {
+    const initialProvider = makeProvider({
+      schedule: { monday: { isOpen: true, open: "08:00", close: "17:00" } },
+    });
+
+    const { rerender } = render(<ScheduleEditCard provider={initialProvider} />);
+
+    // We never enter edit mode — just re-render with a different prop
+    const updatedProvider = makeProvider({
+      schedule: { tuesday: { isOpen: true, open: "09:00", close: "18:00" } },
+    });
+    rerender(<ScheduleEditCard provider={updatedProvider} />);
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show a warning when the prop is unchanged mid-edit", () => {
+    const provider = makeProvider({
+      schedule: { monday: { isOpen: true, open: "08:00", close: "17:00" } },
+    });
+
+    const { rerender } = render(<ScheduleEditCard provider={provider} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // Re-render with the identical provider — no warning expected
+    rerender(<ScheduleEditCard provider={{ ...provider }} />);
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("'Reload latest' resets the draft to the new server data and hides the warning", () => {
+    const initialProvider = makeProvider({
+      schedule: { monday: { isOpen: true, open: "08:00", close: "17:00" } },
+      closureNote: null,
+    });
+
+    const { rerender } = render(<ScheduleEditCard provider={initialProvider} />);
+
+    // Enter edit mode and make a local change
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+    // Confirm we're in edit mode
+    expect(screen.getByRole("button", { name: /save schedule/i })).toBeInTheDocument();
+
+    // Simulate a background refetch with a new closure note
+    const updatedProvider = makeProvider({
+      schedule: { monday: { isOpen: true, open: "08:00", close: "17:00" } },
+      closureNote: "Closed all public holidays",
+    });
+    rerender(<ScheduleEditCard provider={updatedProvider} />);
+
+    // Warning is shown
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+
+    // Click "Reload latest"
+    fireEvent.click(screen.getByRole("button", { name: /reload latest/i }));
+
+    // Warning disappears
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+    // The textarea should now contain the new server value
+    const textarea = screen.getByPlaceholderText(/Closed Dec 24/i);
+    expect((textarea as HTMLTextAreaElement).value).toBe("Closed all public holidays");
+  });
+
+  it("'Keep editing' dismisses the warning without changing the draft", () => {
+    const initialProvider = makeProvider({
+      schedule: { monday: { isOpen: true, open: "08:00", close: "17:00" } },
+      closureNote: null,
+    });
+
+    const { rerender } = render(<ScheduleEditCard provider={initialProvider} />);
+
+    // Enter edit mode and type a draft note
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+    const textarea = screen.getByPlaceholderText(/Closed Dec 24/i);
+    fireEvent.change(textarea, { target: { value: "My draft note" } });
+
+    // Simulate a background refetch
+    const updatedProvider = makeProvider({
+      schedule: { tuesday: { isOpen: true, open: "09:00", close: "18:00" } },
+      closureNote: "Server note",
+    });
+    rerender(<ScheduleEditCard provider={updatedProvider} />);
+
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+
+    // Click "Keep editing"
+    fireEvent.click(screen.getByRole("button", { name: /keep editing/i }));
+
+    // Warning is gone
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+    // The draft note the user typed is preserved — not clobbered by server note
+    expect((textarea as HTMLTextAreaElement).value).toBe("My draft note");
+  });
+
+  it("clears the warning after a successful save", async () => {
+    const initialProvider = makeProvider({
+      schedule: { monday: { isOpen: true, open: "08:00", close: "17:00" } },
+    });
+
+    const { rerender } = render(<ScheduleEditCard provider={initialProvider} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // Trigger stale-data warning via prop change
+    const updatedProvider = makeProvider({
+      schedule: { tuesday: { isOpen: true, open: "09:00", close: "18:00" } },
+    });
+    rerender(<ScheduleEditCard provider={updatedProvider} />);
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+
+    // Now save (toggle monday on so save doesn't block)
+    const mondayCheckbox = screen.getByRole("checkbox", { name: /monday/i });
+    fireEvent.click(mondayCheckbox);
+    fireEvent.click(screen.getByRole("button", { name: /save schedule/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument();
+    });
+
+    // Back in read-only mode — no alert
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("clears the warning when Cancel is clicked", () => {
+    const initialProvider = makeProvider({
+      schedule: { monday: { isOpen: true, open: "08:00", close: "17:00" } },
+    });
+
+    const { rerender } = render(<ScheduleEditCard provider={initialProvider} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // Trigger stale-data warning
+    rerender(
+      <ScheduleEditCard
+        provider={makeProvider({
+          schedule: { tuesday: { isOpen: true, open: "09:00", close: "18:00" } },
+        })}
+      />
+    );
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+
+    // Cancel the edit
+    fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+
+    // Back in read-only mode — no alert
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+});
