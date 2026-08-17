@@ -430,6 +430,31 @@ export function registerProviderRoutes(app: Express): void {
       const existing = await storage.getProvider(id);
       if (!existing || existing.userId !== userId) return apiError(res, 403, "Access denied");
       const parsed = providerClientUpdateSchema.partial().parse(req.body);
+      // Cross-field price validation: distinguish field presence (undefined = absent) from
+      // explicit null (= clearing). Reject when exactly one bound is supplied (whether null or
+      // numeric). When both are supplied, accept only both-null (clear) or both-numeric with
+      // max >= min.
+      const sentMin = parsed.monthlyPriceMin !== undefined;
+      const sentMax = parsed.monthlyPriceMax !== undefined;
+      if (sentMin !== sentMax) {
+        return apiError(res, 400, "Invalid provider data", {
+          errors: [{ message: "monthlyPriceMin and monthlyPriceMax must both be provided together" }],
+        });
+      }
+      if (sentMin && sentMax) {
+        const minIsNull = parsed.monthlyPriceMin === null;
+        const maxIsNull = parsed.monthlyPriceMax === null;
+        if (minIsNull !== maxIsNull) {
+          return apiError(res, 400, "Invalid provider data", {
+            errors: [{ message: "monthlyPriceMin and monthlyPriceMax must both be provided together" }],
+          });
+        }
+        if (!minIsNull && !maxIsNull && Number(parsed.monthlyPriceMax) < Number(parsed.monthlyPriceMin)) {
+          return apiError(res, 400, "Invalid provider data", {
+            errors: [{ message: "monthlyPriceMax must be greater than or equal to monthlyPriceMin" }],
+          });
+        }
+      }
       // Lazy cleanup: drop any closure entries whose end date has already passed
       if (Array.isArray(parsed.closedDates)) {
         const todayIso = new Date().toISOString().slice(0, 10);
