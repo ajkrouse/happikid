@@ -79,6 +79,31 @@ vi.mock("@/components/FavoritesSectionWithDnd", () => ({
 vi.mock("@/components/PremiumFeaturesModal", () => ({ default: () => null }));
 vi.mock("@/components/ui/toaster", () => ({ Toaster: () => null }));
 
+// Additional mocks for pages added in the extended smoke-test suite
+vi.mock("@/components/RoleSelectionModal", () => ({ default: () => null }));
+vi.mock("@/components/ProfileOptimizationCard", () => ({
+  default: () => null,
+}));
+vi.mock("@/components/ProviderBadge", () => ({
+  default: () => null,
+  ProviderBadge: () => null,
+}));
+vi.mock("@/components/PricingEditCard", () => ({ default: () => null }));
+vi.mock("@/components/ScheduleEditCard", () => ({ default: () => null }));
+vi.mock("@/components/EnrollmentToggleCard", () => ({ default: () => null }));
+vi.mock("recharts", () => ({
+  AreaChart: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="area-chart">{children}</div>
+  ),
+  Area: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
+  Tooltip: () => null,
+  ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -244,6 +269,222 @@ describe("Lazy-loaded page mount smoke tests", () => {
     render(
       <Shell>
         <LazyAdminClaims />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 2b. Extended page-mount smoke tests — remaining lazy routes
+// ---------------------------------------------------------------------------
+
+const LazyHome = lazy(() => import("@/pages/Home"));
+const LazyAbout = lazy(() => import("@/pages/About"));
+const LazyContact = lazy(() => import("@/pages/Contact"));
+const LazyProvidersOverview = lazy(() => import("@/pages/ProvidersOverview"));
+const LazyProviderDashboard = lazy(() => import("@/pages/ProviderDashboard"));
+const LazyProviderCelebration = lazy(
+  () => import("@/pages/ProviderCelebration"),
+);
+const LazyParentSignup = lazy(() => import("@/pages/ParentSignup"));
+const LazyProviderSignup = lazy(() => import("@/pages/ProviderSignup"));
+const LazyClaimBusiness = lazy(() => import("@/pages/ClaimBusiness"));
+const LazyAfterSchoolPrograms = lazy(
+  () => import("@/pages/AfterSchoolPrograms"),
+);
+const LazyAdminVerifications = lazy(
+  () => import("@/pages/AdminVerifications"),
+);
+const LazyMessages = lazy(() => import("@/pages/Messages"));
+const LazyParentDashboard = lazy(() => import("@/pages/ParentDashboard"));
+
+describe("Remaining lazy-loaded page mount smoke tests", () => {
+  let fetchSpy: ReturnType<typeof stubFetch>;
+  beforeEach(() => {
+    fetchSpy = stubFetch();
+  });
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("Home page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyHome />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("About page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyAbout />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("Contact page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyContact />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ProvidersOverview page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyProvidersOverview />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ProviderDashboard page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyProviderDashboard />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ProviderCelebration page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyProviderCelebration />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ParentSignup page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyParentSignup />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ProviderSignup page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyProviderSignup />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ClaimBusiness page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyClaimBusiness />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("AfterSchoolPrograms page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyAfterSchoolPrograms />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("AdminVerifications page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyAdminVerifications />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("Messages page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyMessages />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ParentDashboard page mounts without throwing", async () => {
+    render(
+      <Shell>
+        <LazyParentDashboard />
       </Shell>,
     );
     await waitFor(() =>
