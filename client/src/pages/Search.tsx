@@ -307,6 +307,7 @@ export default function SearchPage() {
               </div>
               <Button
                 onClick={() => setShowFamilyProfileWizard(true)}
+                onMouseEnter={() => import("@/components/FamilyProfileWizard")}
                 size="sm"
                 className="bg-action-clay hover:bg-action-clay/90 whitespace-nowrap self-start sm:self-auto"
               >
@@ -488,6 +489,7 @@ export default function SearchPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowSavedGroupsModal(true)}
+                    onMouseEnter={() => import("@/components/FavoritesSectionWithDnd")}
                     className="rounded-lg font-medium border-2 border-brand-evergreen/10 text-action-teal bg-brand-sage"
                   >
                     <Bookmark className="h-4 w-4 mr-2" />
@@ -584,7 +586,11 @@ export default function SearchPage() {
                         ))}
                       </div>
                     </div>
-                    <Button onClick={handleCompareProviders} disabled={comparisonProviders.length < 2}>
+                    <Button
+                      onClick={handleCompareProviders}
+                      onMouseEnter={() => import("@/components/ComparisonModal")}
+                      disabled={comparisonProviders.length < 2}
+                    >
                       Compare & Save
                     </Button>
                   </div>
