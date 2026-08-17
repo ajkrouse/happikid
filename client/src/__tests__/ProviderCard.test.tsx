@@ -313,3 +313,125 @@ describe("ProviderCard — dollar-sign meter ($ count)", () => {
     expect(screen.getByText(/est\. range/i)).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Pricing prop-update tests — re-render with new provider props
+// ---------------------------------------------------------------------------
+
+describe("ProviderCard — pricing prop updates (rerender)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  /**
+   * Helper that returns a QueryClientProvider-wrapped rerender function so
+   * tests can drive the same lifecycle as renderCard but also call rerender.
+   */
+  function renderCardWithRerender(provider: ProviderWithScore) {
+    const qc = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const { rerender, ...rest } = render(
+      <QueryClientProvider client={qc}>
+        <ProviderCard provider={provider} />
+      </QueryClientProvider>,
+    );
+
+    const rerenderCard = (nextProvider: ProviderWithScore) => {
+      rerender(
+        <QueryClientProvider client={qc}>
+          <ProviderCard provider={nextProvider} />
+        </QueryClientProvider>,
+      );
+    };
+
+    return { rerenderCard, ...rest };
+  }
+
+  it("meter level rises and badge changes from Est. range to Verified pricing when provider adds an explicit price range", () => {
+    // Initial state: no explicit price → Brooklyn daycare estimate → midpoint 2650 → level 3
+    const initial = makeProvider({
+      monthlyPrice: "0",
+      monthlyPriceMin: null,
+      monthlyPriceMax: null,
+      type: "daycare",
+      borough: "Brooklyn",
+      city: "Brooklyn",
+    });
+    const { rerenderCard } = renderCardWithRerender(initial);
+
+    let spans = getDollarSpans();
+    expect(filledCount(spans)).toBe(3);
+    expect(screen.getByText(/est\. range/i)).toBeInTheDocument();
+
+    // Provider updates their pricing to a high verified range → midpoint 5000 → level 5
+    const updated = makeProvider({
+      ...initial,
+      monthlyPriceMin: "4500",
+      monthlyPriceMax: "5500",
+    });
+    rerenderCard(updated);
+
+    spans = getDollarSpans();
+    expect(filledCount(spans)).toBe(5);
+    expect(unfilledCount(spans)).toBe(0);
+    expect(screen.getByText(/verified pricing/i)).toBeInTheDocument();
+    // The estimate text should be gone
+    expect(screen.queryByText(/est\. range/i)).not.toBeInTheDocument();
+  });
+
+  it("meter level drops and price text updates when provider switches to a lower verified range", () => {
+    // Initial state: high fixed price → level 5
+    const initial = makeProvider({ monthlyPrice: "5000" });
+    const { rerenderCard } = renderCardWithRerender(initial);
+
+    let spans = getDollarSpans();
+    expect(filledCount(spans)).toBe(5);
+
+    // Provider updates price to a lower range → midpoint 1350 → level 1
+    const updated = makeProvider({
+      ...initial,
+      monthlyPrice: "0",
+      monthlyPriceMin: "1200",
+      monthlyPriceMax: "1500",
+    });
+    rerenderCard(updated);
+
+    spans = getDollarSpans();
+    expect(filledCount(spans)).toBe(1);
+    expect(unfilledCount(spans)).toBe(4);
+    // Price text should reflect the new range
+    expect(screen.getByText(/\$1,200\s*-\s*\$1,500\/mo/)).toBeInTheDocument();
+  });
+
+  it("hides price amount text when showExactPrice transitions from true to false", () => {
+    const initial = makeProvider({ monthlyPrice: "2000", showExactPrice: true });
+    const { rerenderCard } = renderCardWithRerender(initial);
+
+    // Price text should be visible initially
+    expect(screen.getByText(/\$2,000\s*-\s*\$2,000\/mo/)).toBeInTheDocument();
+
+    // Provider toggles showExactPrice off
+    rerenderCard(makeProvider({ monthlyPrice: "2000", showExactPrice: false }));
+
+    // Price text should now be hidden
+    expect(screen.queryByText(/\$2,000\s*-\s*\$2,000\/mo/)).not.toBeInTheDocument();
+    // But the meter ($ signs) should still be present
+    const spans = getDollarSpans();
+    expect(spans).toHaveLength(5);
+  });
+
+  it("shows price amount text again when showExactPrice transitions from false back to true", () => {
+    const initial = makeProvider({ monthlyPrice: "3000", showExactPrice: false });
+    const { rerenderCard } = renderCardWithRerender(initial);
+
+    // Price text hidden initially
+    expect(screen.queryByText(/\$3,000\s*-\s*\$3,000\/mo/)).not.toBeInTheDocument();
+
+    // Provider re-enables exact price display
+    rerenderCard(makeProvider({ monthlyPrice: "3000", showExactPrice: true }));
+
+    // Price text should now be visible
+    expect(screen.getByText(/\$3,000\s*-\s*\$3,000\/mo/)).toBeInTheDocument();
+  });
+});
