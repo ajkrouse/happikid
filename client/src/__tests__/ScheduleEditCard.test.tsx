@@ -549,6 +549,80 @@ describe("ScheduleEditCard — closure note round-trip", () => {
     expect(screen.queryByText("Original note")).not.toBeInTheDocument();
   });
 
+  it("amber banner disappears immediately when a provider clears their closure note and saves", async () => {
+    // Scenario: the provider has an existing closure note. They enter edit mode,
+    // clear the textarea (or leave only whitespace), and save. The amber banner
+    // must be gone from the read-only view right after the save — without
+    // waiting for the parent to re-render with a refreshed prop.
+    render(
+      <ScheduleEditCard
+        provider={makeProvider({ closureNote: "Closed for winter break" })}
+      />
+    );
+
+    // Amber banner is visible in the initial read-only view
+    expect(screen.getByText("Closed for winter break")).toBeInTheDocument();
+
+    // Enter edit mode
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // Clear the textarea — use only whitespace to also exercise the trim logic
+    const textarea = screen.getByDisplayValue("Closed for winter break");
+    fireEvent.change(textarea, { target: { value: "   " } });
+
+    // Toggle monday on so the save has at least one valid open day
+    const mondayCheckbox = screen.getByRole("checkbox", { name: /monday/i });
+    fireEvent.click(mondayCheckbox);
+
+    // Save — onSuccess should set savedClosureNote to "" (trimmed whitespace)
+    fireEvent.click(screen.getByRole("button", { name: /save schedule/i }));
+
+    // Wait for the component to exit edit mode (onSuccess ran)
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
+    );
+
+    // The amber banner must be gone — savedClosureNote is now "" so the
+    // conditional {savedClosureNote && ...} must not render the banner.
+    expect(screen.queryByText("Closed for winter break")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { hidden: true })).toBeNull(); // no AlertCircle icon
+    // Double-check: no bg-amber-50 element referencing the old note
+    const amberDivs = document.querySelectorAll(".bg-amber-50");
+    // The stale-data warning also uses bg-amber-50 but we're in read-only mode
+    // so neither the warning nor the banner should be present
+    expect(amberDivs.length).toBe(0);
+  });
+
+  it("amber banner disappears immediately when clearing note with an empty string", async () => {
+    // Same as above but clearing to a strictly empty string instead of whitespace
+    render(
+      <ScheduleEditCard
+        provider={makeProvider({ closureNote: "Open Mon–Fri, closed weekends" })}
+      />
+    );
+
+    expect(screen.getByText("Open Mon–Fri, closed weekends")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    const textarea = screen.getByDisplayValue("Open Mon–Fri, closed weekends");
+    fireEvent.change(textarea, { target: { value: "" } });
+
+    const mondayCheckbox = screen.getByRole("checkbox", { name: /monday/i });
+    fireEvent.click(mondayCheckbox);
+
+    fireEvent.click(screen.getByRole("button", { name: /save schedule/i }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDocument()
+    );
+
+    // Banner gone — empty string is falsy so the conditional renders nothing
+    expect(screen.queryByText("Open Mon–Fri, closed weekends")).not.toBeInTheDocument();
+    const amberDivs = document.querySelectorAll(".bg-amber-50");
+    expect(amberDivs.length).toBe(0);
+  });
+
   it("amber banner survives a stale-prop re-render that arrives while the save is still in-flight", async () => {
     // Scenario: the user saves a new closure note.  Before the PATCH response
     // arrives, the parent (React Query) fires a background refetch that delivers
