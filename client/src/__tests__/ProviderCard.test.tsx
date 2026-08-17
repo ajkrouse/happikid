@@ -194,9 +194,14 @@ function makeProvider(
 /** Returns the 5 $ span elements rendered by the dollar meter. */
 function getDollarSpans() {
   // All 5 spans contain the literal "$" character and sit inside the meter div.
-  return screen
-    .getAllByText("$")
-    .filter((el) => el.tagName === "SPAN");
+  // aria-hidden spans are excluded from getByText, so query the DOM directly.
+  return Array.from(document.querySelectorAll<HTMLElement>("span"))
+    .filter((el) => el.textContent === "$");
+}
+
+/** Returns the meter container element (role="img" with aria-label). */
+function getMeterContainer() {
+  return screen.getByRole("img", { name: /cost level/i });
 }
 
 function filledCount(spans: HTMLElement[]) {
@@ -210,6 +215,67 @@ function unfilledCount(spans: HTMLElement[]) {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Accessibility tests — aria-label on meter container
+// ---------------------------------------------------------------------------
+
+describe("ProviderCard — dollar-sign meter (accessibility)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("meter container has role='img' and aria-label matching the cost level", () => {
+    // monthlyPrice "2000" → level 2
+    renderCard(makeProvider({ monthlyPrice: "2000" }));
+    const meter = getMeterContainer();
+    expect(meter).toBeInTheDocument();
+    expect(meter).toHaveAttribute("aria-label", "Cost level: 2 out of 5");
+  });
+
+  it("aria-label reflects level 1 for a very low price", () => {
+    renderCard(makeProvider({ monthlyPrice: "1200" }));
+    const meter = getMeterContainer();
+    expect(meter).toHaveAttribute("aria-label", "Cost level: 1 out of 5");
+  });
+
+  it("aria-label reflects level 5 for a very high price", () => {
+    renderCard(makeProvider({ monthlyPrice: "5000" }));
+    const meter = getMeterContainer();
+    expect(meter).toHaveAttribute("aria-label", "Cost level: 5 out of 5");
+  });
+
+  it("aria-label reflects level 3 for a mid-range price", () => {
+    renderCard(makeProvider({ monthlyPriceMin: "2600", monthlyPriceMax: "3200" }));
+    const meter = getMeterContainer();
+    // midpoint 2900 → level 3
+    expect(meter).toHaveAttribute("aria-label", "Cost level: 3 out of 5");
+  });
+
+  it("all individual $ spans have aria-hidden='true'", () => {
+    renderCard(makeProvider({ monthlyPrice: "3000" }));
+    const spans = getDollarSpans();
+    expect(spans).toHaveLength(5);
+    spans.forEach((span) => {
+      expect(span).toHaveAttribute("aria-hidden", "true");
+    });
+  });
+
+  it("aria-label updates when provider pricing changes", () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const initial = makeProvider({ monthlyPrice: "1200" }); // level 1
+    const { rerender } = render(
+      <QueryClientProvider client={qc}><ProviderCard provider={initial} /></QueryClientProvider>,
+    );
+    expect(getMeterContainer()).toHaveAttribute("aria-label", "Cost level: 1 out of 5");
+
+    const updated = makeProvider({ monthlyPrice: "5000" }); // level 5
+    rerender(
+      <QueryClientProvider client={qc}><ProviderCard provider={updated} /></QueryClientProvider>,
+    );
+    expect(getMeterContainer()).toHaveAttribute("aria-label", "Cost level: 5 out of 5");
+  });
+});
 
 describe("ProviderCard — dollar-sign meter ($ count)", () => {
   beforeEach(() => {

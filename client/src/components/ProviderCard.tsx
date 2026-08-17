@@ -109,10 +109,15 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     const showAmounts = provider.showExactPrice !== false;
     
     const dollarMeter = (
-      <div className="flex items-center gap-0.5 mb-0.5">
+      <div
+        className="flex items-center gap-0.5 mb-0.5"
+        aria-label={`Cost level: ${dollarSigns} out of 5`}
+        role="img"
+      >
         {[1, 2, 3, 4, 5].map((i) => (
           <span 
             key={i} 
+            aria-hidden="true"
             className={`text-xs font-semibold ${i <= dollarSigns ? 'text-action-clay' : 'text-gray-300'}`}
           >
             $
