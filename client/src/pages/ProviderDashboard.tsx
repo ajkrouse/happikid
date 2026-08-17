@@ -226,7 +226,8 @@ export default function ProviderDashboard() {
     (realInquiries.length > 0
       ? Math.round((respondedCount / realInquiries.length) * 100)
       : 0);
-  const recentInquiries = realInquiries.slice(0, 5);
+  const [showAllInquiries, setShowAllInquiries] = useState(false);
+  const recentInquiries = showAllInquiries ? realInquiries : realInquiries.slice(0, 5);
 
   // Rating distribution helpers
   const ratingDist: Record<number, number> = analytics?.ratingDistribution ?? {};
@@ -934,9 +935,23 @@ export default function ProviderDashboard() {
 
         {/* Recent Inquiries */}
         <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Inquiries</CardTitle>
-            <CardDescription>Families who have reached out about your program</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between gap-2">
+            <div>
+              <CardTitle className="text-lg">
+                {showAllInquiries ? "All Inquiries" : "Recent Inquiries"}
+              </CardTitle>
+              <CardDescription>Families who have reached out about your program</CardDescription>
+            </div>
+            {realInquiries.length > 5 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="shrink-0 mt-1"
+                onClick={() => setShowAllInquiries((v) => !v)}
+              >
+                {showAllInquiries ? "Show less" : `View all ${realInquiries.length} inquiries`}
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {recentInquiries.length === 0 ? (
