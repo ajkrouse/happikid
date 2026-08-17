@@ -132,7 +132,20 @@ export default function SearchPage() {
   });
 
   const showProfileBanner = isAuthenticated && user?.role === "parent" && !isFamilyProfileLoading && familyProfile === null;
-  const showAreaSummary = isAuthenticated && user?.role === "parent" && !isFamilyProfileLoading && familyProfile !== null && !!familyProfile?.preferredBorough;
+  const activeAreaLabel = filters.borough || familyProfile?.preferredBorough || null;
+  const showAreaSummary = isAuthenticated && user?.role === "parent" && !isFamilyProfileLoading && familyProfile !== null && !!activeAreaLabel;
+
+  // Automatically apply the family's preferred borough as the initial filter when:
+  // - URL parsing is complete (so URL-set filters take precedence)
+  // - The family profile has loaded and has a preferredBorough
+  // - No borough or city filter is already active
+  useEffect(() => {
+    if (!urlParsed) return;
+    if (isFamilyProfileLoading) return;
+    if (!familyProfile?.preferredBorough) return;
+    if (filters.borough || filters.city) return;
+    setFilters((prev) => ({ ...prev, borough: familyProfile.preferredBorough! }));
+  }, [urlParsed, isFamilyProfileLoading, familyProfile?.preferredBorough]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -326,7 +339,7 @@ export default function SearchPage() {
               className="flex items-center gap-2 text-sm text-action-teal hover:text-action-teal/80 transition-colors"
             >
               <MapPin className="h-3.5 w-3.5 shrink-0" />
-              <span>Searching near <span className="font-medium">{formatAreaLabel(familyProfile!.preferredBorough!)}</span></span>
+              <span>Searching near <span className="font-medium">{formatAreaLabel(activeAreaLabel!)}</span></span>
               <span className="text-text-muted text-xs ml-1">· Edit</span>
             </button>
           </div>
