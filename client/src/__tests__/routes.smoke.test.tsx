@@ -1216,6 +1216,138 @@ describe("Reply composer send path – Messages thread detail", () => {
       screen.queryByRole("button", { name: /reload page/i }),
     ).not.toBeInTheDocument();
   });
+
+  it("Send button is disabled before the user types anything", async () => {
+    stubFetchForReplyTest();
+
+    render(
+      <ShellWithFetch>
+        <LazyMessages />
+      </ShellWithFetch>,
+    );
+
+    // Wait for the authenticated heading
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+
+    // Open the thread detail panel
+    await waitFor(() =>
+      expect(screen.getByText("Sunshine Childcare")).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      screen.getByText("Sunshine Childcare").closest("button")!,
+    );
+
+    // Wait for detail panel to render
+    await waitFor(() =>
+      expect(screen.getByText(DETAIL_MESSAGE_BODY)).toBeInTheDocument(),
+    );
+
+    // Textarea must be present and empty
+    const textarea = screen.getByPlaceholderText(/type a message/i);
+    expect((textarea as HTMLTextAreaElement).value).toBe("");
+
+    // Send button must be disabled with no text typed
+    const allButtons = screen.getAllByRole("button");
+    const sendButton = allButtons.find((btn) =>
+      btn.className.includes("bg-action-clay"),
+    )!;
+    expect(sendButton).toBeDefined();
+    expect(sendButton).toBeDisabled();
+  });
+
+  it("Send button stays disabled when only whitespace is typed", async () => {
+    const user = userEvent.setup();
+    stubFetchForReplyTest();
+
+    render(
+      <ShellWithFetch>
+        <LazyMessages />
+      </ShellWithFetch>,
+    );
+
+    // Wait for the authenticated heading
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+
+    // Open the thread detail panel
+    await waitFor(() =>
+      expect(screen.getByText("Sunshine Childcare")).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      screen.getByText("Sunshine Childcare").closest("button")!,
+    );
+
+    // Wait for detail panel to render
+    await waitFor(() =>
+      expect(screen.getByText(DETAIL_MESSAGE_BODY)).toBeInTheDocument(),
+    );
+
+    // Type whitespace-only content
+    const textarea = screen.getByPlaceholderText(/type a message/i);
+    await user.click(textarea);
+    await user.type(textarea, "   ");
+
+    // Send button must remain disabled
+    const allButtons = screen.getAllByRole("button");
+    const sendButton = allButtons.find((btn) =>
+      btn.className.includes("bg-action-clay"),
+    )!;
+    expect(sendButton).toBeDefined();
+    expect(sendButton).toBeDisabled();
+  });
+
+  it("Send button becomes enabled after real text is typed", async () => {
+    const user = userEvent.setup();
+    stubFetchForReplyTest();
+
+    render(
+      <ShellWithFetch>
+        <LazyMessages />
+      </ShellWithFetch>,
+    );
+
+    // Wait for the authenticated heading
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+
+    // Open the thread detail panel
+    await waitFor(() =>
+      expect(screen.getByText("Sunshine Childcare")).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      screen.getByText("Sunshine Childcare").closest("button")!,
+    );
+
+    // Wait for detail panel to render
+    await waitFor(() =>
+      expect(screen.getByText(DETAIL_MESSAGE_BODY)).toBeInTheDocument(),
+    );
+
+    // Confirm button starts disabled
+    const allButtons = screen.getAllByRole("button");
+    const sendButton = allButtons.find((btn) =>
+      btn.className.includes("bg-action-clay"),
+    )!;
+    expect(sendButton).toBeDefined();
+    expect(sendButton).toBeDisabled();
+
+    // Type real text — button must become enabled
+    const textarea = screen.getByPlaceholderText(/type a message/i);
+    await user.click(textarea);
+    await user.type(textarea, "Hello there");
+
+    await waitFor(() => expect(sendButton).not.toBeDisabled());
+  });
 });
 
 // ---------------------------------------------------------------------------
