@@ -18,6 +18,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { act, lazy, Suspense } from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Router, Switch, Route } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
@@ -1056,6 +1057,141 @@ describe("Provider status dropdown visibility in thread detail panel", () => {
 
     // The status Select must NOT be rendered for a non-owner
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 2g. Reply composer send path – Messages with ?thread=1
+//
+// Stubs POST /api/threads/1/messages so the mutation fires against a fake
+// server.  Uses userEvent to type into the Textarea and click Send, then
+// asserts the POST was called and no error boundary fallback appeared.
+// ---------------------------------------------------------------------------
+
+function stubFetchForReplyTest() {
+  const postCalls: string[] = [];
+
+  const spy = vi.spyOn(globalThis, "fetch").mockImplementation(
+    async (input, init) => {
+      const url =
+        typeof input === "string" ? input : (input as Request).url;
+      const method =
+        init?.method?.toUpperCase() ??
+        (typeof input !== "string" ? (input as Request).method : "GET");
+
+      if (url.includes("/api/auth/user")) {
+        return new Response(
+          JSON.stringify({
+            id: "user-1",
+            firstName: "Test",
+            lastName: "Parent",
+            email: "test@example.com",
+            role: "parent",
+          }),
+          { status: 200 },
+        );
+      }
+      // Record POST to the messages endpoint and return success
+      if (/\/api\/threads\/1\/messages/.test(url) && method === "POST") {
+        postCalls.push(url);
+        return new Response(
+          JSON.stringify({
+            id: 999,
+            threadId: 1,
+            senderUserId: "user-1",
+            body: "Hello from the composer",
+            createdAt: new Date().toISOString(),
+            readAt: null,
+          }),
+          { status: 200 },
+        );
+      }
+      if (/\/api\/threads\/1\/read/.test(url)) {
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      }
+      if (/\/api\/threads\/1$/.test(url)) {
+        return new Response(JSON.stringify(stubThreadDetail), { status: 200 });
+      }
+      if (url.includes("/api/threads")) {
+        return new Response(JSON.stringify([stubThread]), { status: 200 });
+      }
+      return new Response(JSON.stringify(null), { status: 401 });
+    },
+  );
+
+  return { spy, postCalls };
+}
+
+describe("Reply composer send path – Messages thread detail", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("POSTs the message and does not crash when Send is clicked", async () => {
+    const { spy, postCalls } = stubFetchForReplyTest();
+    const user = userEvent.setup();
+
+    render(
+      <ShellWithFetch>
+        <LazyMessages />
+      </ShellWithFetch>,
+    );
+
+    // Wait for the authenticated heading
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+
+    // Open the thread detail panel by clicking the list item
+    await waitFor(() =>
+      expect(screen.getByText("Sunshine Childcare")).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      screen.getByText("Sunshine Childcare").closest("button")!,
+    );
+
+    // Wait for the detail panel to render (message bubble visible)
+    await waitFor(() =>
+      expect(screen.getByText(DETAIL_MESSAGE_BODY)).toBeInTheDocument(),
+    );
+
+    // Composer textarea must be present
+    const textarea = screen.getByPlaceholderText(/type a message/i);
+    expect(textarea).toBeInTheDocument();
+
+    // Type a reply
+    await user.click(textarea);
+    await user.type(textarea, "Hello from the composer");
+
+    // Send button should now be enabled — click it.
+    // Find it by its unique bg-action-clay class rather than by SVG
+    // content (the Back button also contains an SVG).
+    const allButtons = screen.getAllByRole("button");
+    const sendButton = allButtons.find((btn) =>
+      btn.className.includes("bg-action-clay"),
+    )!;
+    expect(sendButton).toBeDefined();
+    await user.click(sendButton);
+
+    // The POST to /api/threads/1/messages must have fired
+    await waitFor(() =>
+      expect(
+        spy.mock.calls.some(([url, init]) => {
+          const u =
+            typeof url === "string" ? url : (url as Request).url;
+          const m =
+            (init as RequestInit | undefined)?.method?.toUpperCase() ?? "GET";
+          return /\/api\/threads\/1\/messages/.test(u) && m === "POST";
+        }),
+      ).toBe(true),
+    );
+
+    // No error boundary fallback must be shown
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
   });
 });
 
