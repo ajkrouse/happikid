@@ -19,6 +19,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { lazy, Suspense } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { retryableLazy, LazyErrorBoundary } from "@/components/LazyErrorBoundary";
 import type { Provider } from "@shared/schema";
@@ -26,6 +27,15 @@ import type { Provider } from "@shared/schema";
 // ---------------------------------------------------------------------------
 // Module-level mocks — must be declared before any dynamic imports
 // ---------------------------------------------------------------------------
+
+// Hoist mockApiRequest so it is available inside vi.mock factory below
+const mockApiRequest = vi.hoisted(() => vi.fn().mockResolvedValue({}));
+
+vi.mock("@/lib/queryClient", () => ({
+  apiRequest: mockApiRequest,
+  getQueryFn: vi.fn(),
+  queryClient: { invalidateQueries: vi.fn() },
+}));
 
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ isAuthenticated: false, user: null }),
@@ -366,6 +376,73 @@ describe("Lazy-loaded Search panels — smoke tests", () => {
       );
 
       expect(screen.queryByText("Your Children")).not.toBeInTheDocument();
+    });
+
+    it("advances through all steps when Next is clicked and calls apiRequest on Finish", async () => {
+      const user = userEvent.setup();
+      mockApiRequest.mockResolvedValue({});
+
+      render(
+        <Shell>
+          <LazyFamilyProfileWizard
+            isOpen={true}
+            onClose={vi.fn()}
+            onComplete={vi.fn()}
+          />
+        </Shell>,
+      );
+
+      // Wait for Suspense to resolve
+      await waitFor(() =>
+        expect(screen.queryByTestId("lazy-fallback")).not.toBeInTheDocument(),
+      );
+
+      // Step 1 — "Your Children"
+      expect(screen.getByText("Your Children")).toBeInTheDocument();
+
+      // Advance step 1 → 2
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await waitFor(() =>
+        expect(screen.getByText("Location")).toBeInTheDocument(),
+      );
+
+      // Advance step 2 → 3
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await waitFor(() =>
+        expect(screen.getByText("Schedule")).toBeInTheDocument(),
+      );
+
+      // Advance step 3 → 4
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await waitFor(() =>
+        expect(screen.getByText("Budget")).toBeInTheDocument(),
+      );
+
+      // Advance step 4 → 5 (last step)
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await waitFor(() =>
+        expect(screen.getByText("Preferences")).toBeInTheDocument(),
+      );
+
+      // On the last step the forward button should say "Find My Matches"
+      const finishBtn = screen.getByRole("button", { name: /find my matches/i });
+      expect(finishBtn).toBeInTheDocument();
+
+      // Click Finish — triggers the save mutation
+      await user.click(finishBtn);
+
+      // apiRequest must have been called with POST /api/family-profile and
+      // a payload that marks the profile as complete
+      await waitFor(() =>
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          "POST",
+          "/api/family-profile",
+          expect.objectContaining({
+            isComplete: true,
+            completedSteps: ["children", "location", "schedule", "budget", "preferences"],
+          }),
+        ),
+      );
     });
   });
 
