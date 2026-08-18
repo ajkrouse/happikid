@@ -23,6 +23,7 @@ import { Router, Switch, Route } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { retryableLazy } from "@/components/LazyErrorBoundary";
+import { getQueryFn } from "@/lib/queryClient";
 
 // ---------------------------------------------------------------------------
 // Mock heavy / browser-only sub-dependencies so real pages can load
@@ -118,6 +119,33 @@ function stubFetch() {
 
 function makeQC() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } });
+}
+
+/** QueryClient that includes the app's default queryFn so data queries fire. */
+function makeQCWithFetch() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        queryFn: getQueryFn({ on401: "returnNull" }),
+        retry: false,
+        staleTime: Infinity,
+        refetchInterval: false,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+}
+
+function ShellWithFetch({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={makeQCWithFetch()}>
+      <ErrorBoundary>
+        <Suspense fallback={<div data-testid="loading">loading…</div>}>
+          {children}
+        </Suspense>
+      </ErrorBoundary>
+    </QueryClientProvider>
+  );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -570,6 +598,134 @@ describe("Authenticated-session smoke tests – Messages and ParentDashboard", (
     // The sign-in gate must not be shown
     expect(
       screen.queryByText(/sign in required/i),
+    ).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 2d. Non-empty data smoke tests – Messages and ParentDashboard
+//
+// The authenticated tests above stub the data APIs to return empty arrays.
+// These tests provide a real ThreadSummary and a real tour-request object so
+// that list-item rendering code is exercised and any crash inside the map()
+// callbacks is caught before it reaches production.
+// ---------------------------------------------------------------------------
+
+const stubThread = {
+  id: 1,
+  providerId: 10,
+  parentUserId: "user-1",
+  status: "open" as const,
+  createdAt: "2026-08-01T10:00:00Z",
+  updatedAt: "2026-08-01T11:00:00Z",
+  provider: { id: 10, name: "Sunshine Childcare" },
+  parentUser: {
+    id: "user-1",
+    firstName: "Test",
+    lastName: "Parent",
+    email: "test@example.com",
+  },
+  latestMessage: {
+    body: "Hello, I would like to schedule a tour.",
+    createdAt: "2026-08-01T11:00:00Z",
+    senderUserId: "user-1",
+  },
+  unreadCount: 2,
+  messageCount: 3,
+};
+
+const stubTourRequest = {
+  id: 1,
+  status: "pending",
+  providerName: "Sunshine Childcare",
+  providerAddress: "123 Main St, Springfield",
+  preferredDates: ["2026-08-20", "2026-08-21"],
+  preferredTime: "morning",
+  note: "Looking forward to the visit!",
+  createdAt: "2026-08-10T09:00:00Z",
+};
+
+function stubFetchWithData() {
+  return vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const url =
+      typeof input === "string" ? input : (input as Request).url;
+    if (url.includes("/api/auth/user")) {
+      return new Response(
+        JSON.stringify({
+          id: "user-1",
+          firstName: "Test",
+          lastName: "Parent",
+          email: "test@example.com",
+          role: "parent",
+        }),
+        { status: 200 },
+      );
+    }
+    if (url.includes("/api/threads")) {
+      return new Response(JSON.stringify([stubThread]), { status: 200 });
+    }
+    if (url.includes("/api/tour-requests")) {
+      return new Response(JSON.stringify([stubTourRequest]), { status: 200 });
+    }
+    return new Response(JSON.stringify(null), { status: 401 });
+  });
+}
+
+describe("Non-empty data smoke tests – Messages and ParentDashboard", () => {
+  let fetchSpy: ReturnType<typeof stubFetchWithData>;
+  beforeEach(() => {
+    fetchSpy = stubFetchWithData();
+  });
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("Messages renders a thread list item when threads are returned", async () => {
+    render(
+      <ShellWithFetch>
+        <LazyMessages />
+      </ShellWithFetch>,
+    );
+    // Wait for the page heading (authenticated state)
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+    // The thread list item should render the provider name without crashing
+    await waitFor(() =>
+      expect(screen.getByText("Sunshine Childcare")).toBeInTheDocument(),
+    );
+    // Unread badge (unreadCount = 2) should be visible inside the thread button
+    const badges = screen.getAllByText("2");
+    expect(badges.length).toBeGreaterThan(0);
+    // No error boundary fallback
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ParentDashboard renders a tour request card when tour requests are returned", async () => {
+    render(
+      <ShellWithFetch>
+        <LazyParentDashboard />
+      </ShellWithFetch>,
+    );
+    // Wait for the page heading (authenticated state)
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /my dashboard/i }),
+      ).toBeInTheDocument(),
+    );
+    // The tour request card should show the provider name without crashing
+    await waitFor(() =>
+      expect(screen.getAllByText("Sunshine Childcare").length).toBeGreaterThan(0),
+    );
+    // Pending badge count (1 pending) should be visible
+    expect(screen.getByText(/1 pending/i)).toBeInTheDocument();
+    // No error boundary fallback
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
     ).not.toBeInTheDocument();
   });
 });
