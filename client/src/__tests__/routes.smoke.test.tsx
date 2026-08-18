@@ -883,6 +883,183 @@ describe("Thread detail panel smoke test – Messages with ?thread=1", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 2f. Provider status dropdown visibility – only shown to provider owner
+//
+// Messages.tsx computes `isProviderRole` by comparing the logged-in user's id
+// against `provider.ownerUserId ?? provider.userId`.  The status-change Select
+// is only rendered when `isProviderRole` is true.  These two tests confirm that
+// guard works: the Select appears for the owner and is absent for everyone else.
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a stubThreadDetail-shaped object whose provider has the given ownerUserId.
+ * The logged-in user is always "user-1" in these tests.
+ */
+function makeOwnerDetail(ownerUserId: string | null) {
+  return {
+    thread: {
+      id: 1,
+      providerId: 10,
+      parentUserId: "user-1",
+      status: "open" as const,
+      createdAt: "2026-08-01T10:00:00Z",
+      updatedAt: "2026-08-01T11:00:00Z",
+      provider: { id: 10, name: "Sunshine Childcare" },
+      parentUser: {
+        id: "user-1",
+        firstName: "Test",
+        lastName: "Parent",
+        email: "test@example.com",
+      },
+      latestMessage: {
+        body: "Can I schedule a visit?",
+        createdAt: "2026-08-01T11:00:00Z",
+        senderUserId: "user-1",
+      },
+      unreadCount: 0,
+      messageCount: 1,
+    },
+    messages: [
+      {
+        id: 201,
+        threadId: 1,
+        senderUserId: "user-1",
+        body: "Can I schedule a visit?",
+        createdAt: "2026-08-01T11:00:00Z",
+        readAt: null,
+      },
+    ],
+    provider: {
+      id: 10,
+      name: "Sunshine Childcare",
+      userId: null,
+      ownerUserId,
+    },
+  };
+}
+
+function stubFetchForOwnerTest(ownerUserId: string | null) {
+  const detail = makeOwnerDetail(ownerUserId);
+  return vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const url =
+      typeof input === "string" ? input : (input as Request).url;
+    if (url.includes("/api/auth/user")) {
+      return new Response(
+        JSON.stringify({
+          id: "user-1",
+          firstName: "Test",
+          lastName: "Parent",
+          email: "test@example.com",
+          role: "parent",
+        }),
+        { status: 200 },
+      );
+    }
+    if (/\/api\/threads\/1\/read/.test(url)) {
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }
+    if (/\/api\/threads\/1$/.test(url)) {
+      return new Response(JSON.stringify(detail), { status: 200 });
+    }
+    if (url.includes("/api/threads")) {
+      return new Response(
+        JSON.stringify([
+          {
+            id: 1,
+            providerId: 10,
+            parentUserId: "user-1",
+            status: "open",
+            createdAt: "2026-08-01T10:00:00Z",
+            updatedAt: "2026-08-01T11:00:00Z",
+            provider: { id: 10, name: "Sunshine Childcare" },
+            parentUser: null,
+            latestMessage: null,
+            unreadCount: 0,
+            messageCount: 1,
+          },
+        ]),
+        { status: 200 },
+      );
+    }
+    return new Response(JSON.stringify(null), { status: 401 });
+  });
+}
+
+describe("Provider status dropdown visibility in thread detail panel", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("shows the status Select when the logged-in user is the provider owner", async () => {
+    // provider.ownerUserId === "user-1" (the logged-in user) → isProviderRole true
+    stubFetchForOwnerTest("user-1");
+
+    render(
+      <ShellWithFetch>
+        <LazyMessages />
+      </ShellWithFetch>,
+    );
+
+    // Reach authenticated heading
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+
+    // Open the thread detail panel
+    await waitFor(() =>
+      expect(screen.getByText("Sunshine Childcare")).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      screen.getByText("Sunshine Childcare").closest("button")!,
+    );
+
+    // Wait for the detail panel message to appear, confirming the detail loaded
+    await waitFor(() =>
+      expect(screen.getByText("Can I schedule a visit?")).toBeInTheDocument(),
+    );
+
+    // The status Select (rendered as a combobox) must be present for the owner
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+  });
+
+  it("hides the status Select when the logged-in user is not the provider owner", async () => {
+    // provider.ownerUserId === "other-user" ≠ "user-1" → isProviderRole false
+    stubFetchForOwnerTest("other-user");
+
+    render(
+      <ShellWithFetch>
+        <LazyMessages />
+      </ShellWithFetch>,
+    );
+
+    // Reach authenticated heading
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+
+    // Open the thread detail panel
+    await waitFor(() =>
+      expect(screen.getByText("Sunshine Childcare")).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      screen.getByText("Sunshine Childcare").closest("button")!,
+    );
+
+    // Wait for the detail panel message to appear, confirming the detail loaded
+    await waitFor(() =>
+      expect(screen.getByText("Can I schedule a visit?")).toBeInTheDocument(),
+    );
+
+    // The status Select must NOT be rendered for a non-owner
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 3. ErrorBoundary unit tests
 // ---------------------------------------------------------------------------
 
