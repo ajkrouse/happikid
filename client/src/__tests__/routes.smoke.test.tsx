@@ -498,6 +498,83 @@ describe("Remaining lazy-loaded page mount smoke tests", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 2c. Authenticated-session smoke tests — Messages and ParentDashboard
+//
+// The pages above render a sign-in gate when useAuth returns unauthenticated.
+// These tests stub fetch so that /api/auth/user returns a real user, which
+// lets the pages advance past the gate and render their main content.
+// ---------------------------------------------------------------------------
+
+/** Stub fetch for an authenticated parent session. */
+function stubFetchAuthenticated() {
+  return vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const url =
+      typeof input === "string" ? input : (input as Request).url;
+    if (url.includes("/api/auth/user")) {
+      return new Response(
+        JSON.stringify({
+          id: "user-1",
+          firstName: "Test",
+          lastName: "Parent",
+          email: "test@example.com",
+          role: "parent",
+        }),
+        { status: 200 },
+      );
+    }
+    // Data endpoints — return empty collections so the page can finish loading
+    if (url.includes("/api/threads") || url.includes("/api/tour-requests")) {
+      return new Response(JSON.stringify([]), { status: 200 });
+    }
+    return new Response(JSON.stringify(null), { status: 401 });
+  });
+}
+
+describe("Authenticated-session smoke tests – Messages and ParentDashboard", () => {
+  let fetchSpy: ReturnType<typeof stubFetchAuthenticated>;
+  beforeEach(() => {
+    fetchSpy = stubFetchAuthenticated();
+  });
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("Messages renders its heading when the user is signed in", async () => {
+    render(
+      <Shell>
+        <LazyMessages />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+    // The sign-in gate must not be shown
+    expect(
+      screen.queryByText(/sign in to view messages/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("ParentDashboard renders its heading when the user is signed in", async () => {
+    render(
+      <Shell>
+        <LazyParentDashboard />
+      </Shell>,
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /my dashboard/i }),
+      ).toBeInTheDocument(),
+    );
+    // The sign-in gate must not be shown
+    expect(
+      screen.queryByText(/sign in required/i),
+    ).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 3. ErrorBoundary unit tests
 // ---------------------------------------------------------------------------
 
