@@ -360,3 +360,62 @@ describe("PATCH /api/providers/:id — closedDates reason length", () => {
     expect(storage.updateProvider).toHaveBeenCalled();
   });
 });
+
+// ---------------------------------------------------------------------------
+// PUT /api/providers/:id — closedDates reason length validation
+// ---------------------------------------------------------------------------
+
+describe("PUT /api/providers/:id — closedDates reason length", () => {
+  it("rejects a closedDates entry whose reason exceeds 200 characters with 400", async () => {
+    const stored = makeStoredProvider();
+    vi.mocked(storage.getProvider).mockResolvedValue(stored as any);
+
+    const overlongReason = "r".repeat(201);
+
+    const app = buildApp();
+    const res = await request(app)
+      .put("/api/providers/10")
+      .set("x-test-user", "user_owner")
+      .send({
+        closedDates: [
+          { from: "2026-12-24", to: "2026-12-26", reason: overlongReason },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ message: expect.stringMatching(/invalid provider data/i) });
+    expect(storage.updateProvider).not.toHaveBeenCalled();
+  });
+
+  it("accepts a closedDates entry whose reason is exactly 200 characters via PUT", async () => {
+    const stored = makeStoredProvider();
+    const reason200 = "r".repeat(200);
+    const updated = {
+      ...stored,
+      closedDates: [{ from: "2026-12-24", to: "2026-12-26", reason: reason200 }],
+    };
+
+    vi.mocked(storage.getProvider).mockResolvedValue(stored as any);
+    vi.mocked(storage.updateProvider).mockResolvedValue(updated as any);
+
+    const app = buildApp();
+    const res = await request(app)
+      .put("/api/providers/10")
+      .set("x-test-user", "user_owner")
+      .send({
+        closedDates: [
+          { from: "2026-12-24", to: "2026-12-26", reason: reason200 },
+        ],
+      });
+
+    expect(res.status).toBe(200);
+    expect(storage.updateProvider).toHaveBeenCalledWith(
+      10,
+      expect.objectContaining({
+        closedDates: expect.arrayContaining([
+          expect.objectContaining({ reason: reason200 }),
+        ]),
+      })
+    );
+  });
+});
