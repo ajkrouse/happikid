@@ -1188,6 +1188,29 @@ describe("Reply composer send path – Messages thread detail", () => {
       ).toBe(true),
     );
 
+    // After a successful send the composer textarea must be cleared
+    // (sendReplyMutation.onSuccess calls setReplyText(""))
+    await waitFor(() =>
+      expect(
+        (screen.getByPlaceholderText(/type a message/i) as HTMLTextAreaElement)
+          .value,
+      ).toBe(""),
+    );
+
+    // invalidateQueries must trigger a fresh GET /api/threads/1 after the POST.
+    // Count GET calls to that endpoint: there must be at least one that arrived
+    // after the POST call (i.e. the total GET count is ≥ 2: the initial load
+    // plus the refresh).
+    await waitFor(() => {
+      const getCalls = spy.mock.calls.filter(([url, init]) => {
+        const u = typeof url === "string" ? url : (url as Request).url;
+        const m =
+          (init as RequestInit | undefined)?.method?.toUpperCase() ?? "GET";
+        return /\/api\/threads\/1$/.test(u) && m === "GET";
+      });
+      expect(getCalls.length).toBeGreaterThanOrEqual(2);
+    });
+
     // No error boundary fallback must be shown
     expect(
       screen.queryByRole("button", { name: /reload page/i }),
