@@ -17,7 +17,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { act, lazy, Suspense } from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Router, Switch, Route } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
@@ -724,6 +724,158 @@ describe("Non-empty data smoke tests – Messages and ParentDashboard", () => {
     // Pending badge count (1 pending) should be visible
     expect(screen.getByText(/1 pending/i)).toBeInTheDocument();
     // No error boundary fallback
+    expect(
+      screen.queryByRole("button", { name: /reload page/i }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 2e. Thread detail panel smoke test – Messages with ?thread=1
+//
+// When ?thread=1 is in the URL the component sets selectedThreadId=1 and
+// fetches /api/threads/1.  A crash inside the message map() or reply
+// composer would not be caught by the list-only tests above.  This test
+// stubs /api/threads/1 with a realistic ThreadDetail (one ThreadMessage)
+// and confirms the message bubble renders without error.
+// ---------------------------------------------------------------------------
+
+// The detail message body must be DISTINCT from stubThread.latestMessage.body
+// ("Hello, I would like to schedule a tour.") so that an assertion on this
+// text can only pass when the detail panel actually rendered — not when the
+// list-item preview text happens to match.
+const DETAIL_MESSAGE_BODY = "Can I schedule a visit for next week?";
+
+const stubThreadDetail = {
+  thread: {
+    id: 1,
+    providerId: 10,
+    parentUserId: "user-1",
+    status: "open" as const,
+    createdAt: "2026-08-01T10:00:00Z",
+    updatedAt: "2026-08-01T11:00:00Z",
+    provider: { id: 10, name: "Sunshine Childcare" },
+    parentUser: {
+      id: "user-1",
+      firstName: "Test",
+      lastName: "Parent",
+      email: "test@example.com",
+    },
+    latestMessage: {
+      body: DETAIL_MESSAGE_BODY,
+      createdAt: "2026-08-01T11:00:00Z",
+      senderUserId: "user-1",
+    },
+    unreadCount: 0,
+    messageCount: 1,
+  },
+  messages: [
+    {
+      id: 101,
+      threadId: 1,
+      senderUserId: "user-1",
+      body: DETAIL_MESSAGE_BODY,
+      createdAt: "2026-08-01T11:00:00Z",
+      readAt: null,
+    },
+  ],
+  provider: {
+    id: 10,
+    name: "Sunshine Childcare",
+    userId: null,
+    ownerUserId: null,
+  },
+};
+
+function stubFetchWithThreadDetail() {
+  return vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const url =
+      typeof input === "string" ? input : (input as Request).url;
+    if (url.includes("/api/auth/user")) {
+      return new Response(
+        JSON.stringify({
+          id: "user-1",
+          firstName: "Test",
+          lastName: "Parent",
+          email: "test@example.com",
+          role: "parent",
+        }),
+        { status: 200 },
+      );
+    }
+    // Mark-read endpoint (must be checked before the broader /api/threads/1 match)
+    if (/\/api\/threads\/1\/read/.test(url)) {
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }
+    // Thread detail for thread 1
+    if (/\/api\/threads\/1$/.test(url)) {
+      return new Response(JSON.stringify(stubThreadDetail), { status: 200 });
+    }
+    // Thread list
+    if (url.includes("/api/threads")) {
+      return new Response(JSON.stringify([stubThread]), { status: 200 });
+    }
+    return new Response(JSON.stringify(null), { status: 401 });
+  });
+}
+
+describe("Thread detail panel smoke test – Messages with ?thread=1", () => {
+  let fetchSpy: ReturnType<typeof stubFetchWithThreadDetail>;
+  beforeEach(() => {
+    fetchSpy = stubFetchWithThreadDetail();
+  });
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("renders the message bubble when a thread is selected", async () => {
+    render(
+      <ShellWithFetch>
+        <LazyMessages />
+      </ShellWithFetch>,
+    );
+
+    // Page must reach the authenticated heading without crashing
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /messages/i }),
+      ).toBeInTheDocument(),
+    );
+
+    // Wait for the thread list item, then click it to open the detail panel
+    await waitFor(() =>
+      expect(screen.getByText("Sunshine Childcare")).toBeInTheDocument(),
+    );
+    const threadButton = screen
+      .getByText("Sunshine Childcare")
+      .closest("button")!;
+    fireEvent.click(threadButton);
+
+    // Assert /api/threads/1 was actually fetched — the check is inside waitFor
+    // so it re-evaluates as new fetch calls arrive after the click.
+    await waitFor(() => {
+      const fetchedUrls = fetchSpy.mock.calls.map(([url]) =>
+        typeof url === "string" ? url : (url as Request).url,
+      );
+      expect(
+        fetchedUrls.some((u) => /\/api\/threads\/1($|\?)/.test(u)),
+      ).toBe(true);
+    });
+
+    // DETAIL_MESSAGE_BODY ("Can I schedule a visit for next week?") is distinct
+    // from stubThread.latestMessage.body ("Hello, I would like to schedule a
+    // tour."), so this can only pass when the thread detail panel rendered the
+    // message bubble — not when the list-item preview text matched instead.
+    await waitFor(() =>
+      expect(screen.getByText(DETAIL_MESSAGE_BODY)).toBeInTheDocument(),
+    );
+
+    // Reply composer textarea must be present (exercises that rendering branch)
+    expect(
+      screen.getByPlaceholderText(/type a message/i),
+    ).toBeInTheDocument();
+
+    // No error boundary fallback must be shown
     expect(
       screen.queryByRole("button", { name: /reload page/i }),
     ).not.toBeInTheDocument();
