@@ -1,0 +1,9 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "PGxKjBfaMkVkjHI6j19xh"
+uri = "file://HAPPIKID_SOLUTION.md"
+type = "text"
+title = "HappiKid Solution Overview"
+description = "Detailed overview of the HappiKid solution for parents and providers."
