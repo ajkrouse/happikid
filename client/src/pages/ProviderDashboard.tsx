@@ -14,6 +14,7 @@ import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { PricingEditCard } from "@/components/PricingEditCard";
 import { ScheduleEditCard } from "@/components/ScheduleEditCard";
 import { EnrollmentToggleCard } from "@/components/EnrollmentToggleCard";
+import { AiAutoReplyCard } from "@/components/AiAutoReplyCard";
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -657,6 +658,9 @@ export default function ProviderDashboard() {
 
             {/* Enrollment Status Quick-Edit */}
             <EnrollmentToggleCard provider={provider} />
+
+            {/* AI Auto-Reply setting */}
+            <AiAutoReplyCard provider={provider} />
 
             {/* Inline Pricing Editor */}
             <div id="pricing-edit-card">

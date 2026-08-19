@@ -221,10 +221,35 @@ export function registerProviderRoutes(app: Express): void {
     }
   });
 
+  // Toggle AI auto-reply for the authenticated provider's own listing
+  app.patch("/api/providers/mine/ai-auto-reply", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = z.object({ enabled: z.boolean() }).safeParse(req.body);
+      if (!parsed.success) {
+        return apiError(res, 400, "Invalid request", { errors: parsed.error.errors });
+      }
+      // Canonical ownership: ownerUserId wins for claimed listings; fall back to
+      // userId only when the listing was never claimed. This prevents a stale
+      // listing creator from toggling AI replies on a listing someone else claimed.
+      const providers = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
+      if (providers.length === 0) return apiError(res, 404, "No provider profile found");
+      const updated = await storage.updateProvider(providers[0].id, {
+        aiAutoReplyEnabled: parsed.data.enabled,
+      } as any);
+      res.json({ aiAutoReplyEnabled: updated.aiAutoReplyEnabled });
+    } catch (error) {
+      log.error({ err: error }, "Error updating AI auto-reply setting");
+      apiError(res, 500, "Failed to update AI auto-reply setting");
+    }
+  });
+
   // My provider (authenticated user's own listing)
+  // Canonical ownership: a claimed listing belongs to ownerUserId; userId only
+  // counts when the listing was never claimed. This lets claimants (ownerUserId
+  // set, userId possibly someone else) see and manage their dashboard.
   app.get("/api/providers/mine", isAuthenticated, async (req: any, res) => {
     try {
-      const providers = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      const providers = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
       if (providers.length === 0) return apiError(res, 404, "No provider profile found");
       const provider = providers[0];
       // Strip expired closure entries so the edit form never surfaces stale history

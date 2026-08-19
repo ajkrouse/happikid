@@ -6,6 +6,7 @@ import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 import { sendNewMessageNotification } from "../services/email";
+import { generateReplyDraft } from "../services/aiReply";
 import type { Provider } from "@shared/schema";
 
 const log = createLogger("threads");
@@ -100,7 +101,10 @@ export function registerThreadRoutes(app: Express): void {
     try {
       const userId = req.user?.claims?.sub as string;
       const threads = await storage.getThreadsForUser(userId);
-      res.json(threads);
+      // Defense in depth: AI drafts are provider-side working state and must never
+      // reach parents through the shared list endpoint. Storage already strips
+      // these fields; redact again here in case a storage change reintroduces them.
+      res.json(threads.map(({ aiDraftBody, aiDraftMessageId, ...t }: any) => t));
     } catch (error) {
       log.error({ err: error }, "Error listing threads");
       apiError(res, 500, "Failed to fetch conversations");
@@ -128,7 +132,9 @@ export function registerThreadRoutes(app: Express): void {
           (b.latestMessage?.createdAt ? new Date(b.latestMessage.createdAt).getTime() : 0) -
           (a.latestMessage?.createdAt ? new Date(a.latestMessage.createdAt).getTime() : 0)
       );
-      res.json(combined);
+      // Redact AI draft fields from list responses (drafts are surfaced only in
+      // the owner-gated thread detail endpoint)
+      res.json(combined.map(({ aiDraftBody, aiDraftMessageId, ...t }: any) => t));
     } catch (error) {
       log.error({ err: error }, "Error listing provider threads");
       apiError(res, 500, "Failed to fetch conversations");
@@ -161,7 +167,12 @@ export function registerThreadRoutes(app: Express): void {
       // Mark messages as read for this user
       await storage.markThreadMessagesRead(threadId, userId);
 
-      res.json({ thread, messages, provider });
+      // AI draft replies are provider-side only — never expose them to the parent
+      const responseThread = isProviderOwner
+        ? thread
+        : { ...thread, aiDraftBody: null, aiDraftMessageId: null };
+
+      res.json({ thread: responseThread, messages, provider });
     } catch (error) {
       log.error({ err: error }, "Error fetching thread");
       apiError(res, 500, "Failed to fetch conversation");
@@ -228,6 +239,11 @@ export function registerThreadRoutes(app: Express): void {
 
       const message = await storage.createThreadMessage(threadId, userId, parsed.data.body);
 
+      // Once the provider replies, any pending AI draft is spent — clear it
+      if (isProviderOwner && thread.aiDraftBody) {
+        storage.clearThreadAiDraft(threadId).catch(() => {});
+      }
+
       // Email the other party — use canonical owner for provider side
       const recipientUserId = isParent ? ownerUserId : thread.parentUserId;
       if (recipientUserId) {
@@ -252,6 +268,83 @@ export function registerThreadRoutes(app: Express): void {
     } catch (error) {
       log.error({ err: error }, "Error sending message");
       apiError(res, 500, "Failed to send message");
+    }
+  });
+
+  /**
+   * POST /api/threads/:id/ai-draft
+   * Generate (or regenerate) an AI draft reply for the latest parent message.
+   * Provider owner only; requires the provider's aiAutoReplyEnabled setting.
+   * The draft is stored on the thread and returned — it is never auto-sent.
+   */
+  app.post("/api/threads/:id/ai-draft", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub as string;
+      const threadId = strictPathInt(req.params.id);
+      if (!threadId) return apiError(res, 400, "Invalid thread ID");
+
+      const thread = await storage.getThread(threadId);
+      if (!thread) return apiError(res, 404, "Conversation not found");
+
+      const provider = await storage.getProvider(thread.providerId);
+      const ownerUserId = provider ? providerOwnerUserId(provider) : null;
+      if (!provider || ownerUserId !== userId) {
+        return apiError(res, 403, "Only the provider can generate AI draft replies");
+      }
+      if (!provider.aiAutoReplyEnabled) {
+        return apiError(res, 400, "AI auto-reply is not enabled for this provider");
+      }
+
+      const messages = await storage.getThreadMessages(threadId);
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage || lastMessage.senderUserId === userId) {
+        return apiError(res, 400, "No parent message to reply to");
+      }
+
+      // Reuse a cached draft generated for this same parent message
+      if (thread.aiDraftBody && thread.aiDraftMessageId === lastMessage.id) {
+        return res.json({ draft: thread.aiDraftBody, forMessageId: thread.aiDraftMessageId });
+      }
+
+      const draft = await generateReplyDraft(provider, messages, ownerUserId);
+      if (!draft) {
+        return apiError(res, 502, "Could not generate a draft right now. Please try again or write your own reply.");
+      }
+
+      await storage.setThreadAiDraft(threadId, draft, lastMessage.id);
+      res.json({ draft, forMessageId: lastMessage.id });
+    } catch (error) {
+      log.error({ err: error }, "Error generating AI draft");
+      apiError(res, 500, "Failed to generate AI draft");
+    }
+  });
+
+  /**
+   * DELETE /api/threads/:id/ai-draft
+   * Discard the stored AI draft (provider owner only).
+   */
+  app.delete("/api/threads/:id/ai-draft", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub as string;
+      const threadId = strictPathInt(req.params.id);
+      if (!threadId) return apiError(res, 400, "Invalid thread ID");
+
+      const thread = await storage.getThread(threadId);
+      if (!thread) return apiError(res, 404, "Conversation not found");
+
+      const provider = await storage.getProvider(thread.providerId);
+      const ownerUserId = provider ? providerOwnerUserId(provider) : null;
+      if (!provider || ownerUserId !== userId) {
+        return apiError(res, 403, "Only the provider can discard AI draft replies");
+      }
+
+      // Keep aiDraftMessageId as a discard marker so the client does not
+      // immediately auto-regenerate a draft for the same parent message.
+      await storage.clearThreadAiDraft(threadId, { keepMarker: true });
+      res.json({ ok: true });
+    } catch (error) {
+      log.error({ err: error }, "Error discarding AI draft");
+      apiError(res, 500, "Failed to discard AI draft");
     }
   });
 

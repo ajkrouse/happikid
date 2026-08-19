@@ -23,6 +23,9 @@ import {
   Circle,
   CheckCircle2,
   UserX,
+  Sparkles,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 
 interface ThreadSummary {
@@ -32,6 +35,8 @@ interface ThreadSummary {
   status: "open" | "enrolled" | "not_a_fit";
   createdAt: string;
   updatedAt: string;
+  aiDraftBody?: string | null;
+  aiDraftMessageId?: number | null;
   provider: { id: number; name: string } | null;
   parentUser: { id: string; firstName: string | null; lastName: string | null; email: string | null } | null;
   latestMessage: { body: string; createdAt: string; senderUserId: string } | null;
@@ -161,6 +166,63 @@ export default function Messages() {
       toast({ title: "Failed to update status", variant: "destructive" });
     },
   });
+
+  // ----- AI draft reply (provider side, human-in-the-loop) -----
+  const generateDraftMutation = useMutation({
+    mutationFn: async (threadId: number) => {
+      const res = await apiRequest("POST", `/api/threads/${threadId}/ai-draft`, {});
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/threads/${selectedThreadId}`] });
+    },
+    onError: () => {
+      // Draft generation is best-effort; the provider can always write their own reply
+    },
+  });
+
+  const discardDraftMutation = useMutation({
+    mutationFn: async (threadId: number) => {
+      await apiRequest("DELETE", `/api/threads/${threadId}/ai-draft`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/threads/${selectedThreadId}`] });
+    },
+    onError: () => {
+      toast({ title: "Failed to discard draft", variant: "destructive" });
+    },
+  });
+
+  const aiEnabled = !!threadDetail?.provider?.aiAutoReplyEnabled;
+  const lastMessage = threadDetail?.messages?.[threadDetail.messages.length - 1];
+  const lastIsFromParent = !!lastMessage && lastMessage.senderUserId !== user?.id;
+  const currentDraft =
+    isProviderRole &&
+    threadDetail?.thread?.aiDraftBody &&
+    lastMessage &&
+    threadDetail.thread.aiDraftMessageId === lastMessage.id
+      ? threadDetail.thread.aiDraftBody
+      : null;
+  // A thread whose aiDraftMessageId already points at the latest parent message but has
+  // no body means the provider discarded that draft — don't auto-regenerate it.
+  const draftHandledForLastMessage =
+    !!lastMessage && threadDetail?.thread?.aiDraftMessageId === lastMessage.id;
+
+  // Auto-generate a draft when the provider opens a thread whose latest message
+  // is from the parent and no draft was generated (or discarded) for it yet.
+  useEffect(() => {
+    if (
+      isProviderRole &&
+      aiEnabled &&
+      lastIsFromParent &&
+      !draftHandledForLastMessage &&
+      selectedThreadId &&
+      !generateDraftMutation.isPending
+    ) {
+      generateDraftMutation.mutate(selectedThreadId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedThreadId, isProviderRole, aiEnabled, lastMessage?.id, draftHandledForLastMessage]);
 
   const handleSend = () => {
     if (!selectedThreadId || !replyText.trim()) return;
@@ -371,6 +433,48 @@ export default function Messages() {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
+
+                {/* AI draft reply (provider review — never auto-sent) */}
+                {isProviderRole && aiEnabled && lastIsFromParent && !currentDraft && generateDraftMutation.isPending && (
+                  <div className="border-t px-4 py-3 flex items-center gap-2 text-sm text-purple-600 bg-purple-50/60">
+                    <div className="animate-spin w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full" />
+                    Drafting a suggested reply…
+                  </div>
+                )}
+                {currentDraft && (
+                  <div className="border-t bg-purple-50/60 px-4 py-3" data-testid="card-ai-draft">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 gap-1">
+                        <Sparkles className="h-3 w-3" /> Draft by AI
+                      </Badge>
+                      <span className="text-xs text-gray-500">Review before sending — edit or discard</span>
+                    </div>
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap break-words mb-2">
+                      {currentDraft}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-purple-700 border-purple-300 hover:bg-purple-100"
+                        data-testid="button-use-ai-draft"
+                        onClick={() => setReplyText(currentDraft)}
+                      >
+                        <Pencil className="h-3.5 w-3.5 mr-1.5" /> Use &amp; edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-gray-500"
+                        data-testid="button-discard-ai-draft"
+                        disabled={discardDraftMutation.isPending}
+                        onClick={() => selectedThreadId && discardDraftMutation.mutate(selectedThreadId)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Discard
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Reply composer */}
                 <div className="border-t p-3 flex gap-2 items-end">

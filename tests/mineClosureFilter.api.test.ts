@@ -34,6 +34,7 @@ vi.mock("../server/storage", () => ({
     updateProvider: vi.fn(),
     getProviders: vi.fn(),
     getProvidersByUserId: vi.fn(),
+    getProvidersByCanonicalOwner: vi.fn(),
     getProviderWithDetails: vi.fn(),
     trackProfileView: vi.fn().mockResolvedValue(undefined),
     getProviderStats: vi.fn(),
@@ -123,7 +124,7 @@ function makeProvider(overrides: Record<string, unknown> = {}) {
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  vi.mocked(storage.getProvidersByUserId).mockReset();
+  vi.mocked(storage.getProvidersByCanonicalOwner).mockReset();
 });
 
 // ---------------------------------------------------------------------------
@@ -135,7 +136,7 @@ describe("GET /api/providers/mine — expired closure filtering", () => {
     const provider = makeProvider({
       closedDates: [EXPIRED_ENTRY, FUTURE_ENTRY, EXPIRED_ENTRY_2, FUTURE_ENTRY_2],
     });
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([provider] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([provider] as any);
 
     const app = buildApp();
     const res = await request(app)
@@ -161,7 +162,7 @@ describe("GET /api/providers/mine — expired closure filtering", () => {
 
   it("returns an empty array when all closedDates entries are expired", async () => {
     const provider = makeProvider({ closedDates: [EXPIRED_ENTRY, EXPIRED_ENTRY_2] });
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([provider] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([provider] as any);
 
     const app = buildApp();
     const res = await request(app)
@@ -174,7 +175,7 @@ describe("GET /api/providers/mine — expired closure filtering", () => {
 
   it("returns all entries unchanged when all closedDates entries are in the future", async () => {
     const provider = makeProvider({ closedDates: [FUTURE_ENTRY, FUTURE_ENTRY_2] });
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([provider] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([provider] as any);
 
     const app = buildApp();
     const res = await request(app)
@@ -193,7 +194,7 @@ describe("GET /api/providers/mine — expired closure filtering", () => {
 
   it("preserves closedDates: null without converting it to an array", async () => {
     const provider = makeProvider({ closedDates: null });
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([provider] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([provider] as any);
 
     const app = buildApp();
     const res = await request(app)
@@ -204,8 +205,22 @@ describe("GET /api/providers/mine — expired closure filtering", () => {
     expect(res.body.closedDates).toBeNull();
   });
 
+  it("resolves the listing via canonical ownership (claimed listing, ownerUserId set, userId different)", async () => {
+    const provider = makeProvider({ userId: "someone_else", ownerUserId: "user_owner" } as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([provider] as any);
+
+    const app = buildApp();
+    const res = await request(app)
+      .get("/api/providers/mine")
+      .set("x-test-user", "user_owner");
+
+    expect(res.status).toBe(200);
+    expect(storage.getProvidersByCanonicalOwner).toHaveBeenCalledWith("user_owner");
+    expect(storage.getProvidersByUserId).not.toHaveBeenCalled();
+  });
+
   it("returns 404 when the authenticated user has no provider profile", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([]);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([]);
 
     const app = buildApp();
     const res = await request(app)

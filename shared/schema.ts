@@ -148,6 +148,10 @@ export const providers = pgTable("providers", {
   // Closure / exception note — free-text field for holiday closures or temporary exceptions
   closureNote: text("closure_note"),
 
+  // AI-assisted replies — when enabled, incoming parent messages get an AI draft reply
+  // surfaced in the provider's thread view (never auto-sent; provider reviews and sends)
+  aiAutoReplyEnabled: boolean("ai_auto_reply_enabled").default(false),
+
   // Structured closed-date ranges — array of { from, to, reason } objects (ISO date strings)
   closedDates: jsonb("closed_dates").default(sql`'[]'::jsonb`),
 
@@ -919,6 +923,11 @@ export const threads = pgTable("threads", {
   parentUserId: varchar("parent_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
   status: threadStatusEnum("status").default('open').notNull(),
+  // AI-generated draft reply (provider-side only, never auto-sent).
+  // aiDraftMessageId records which parent message the draft was generated for,
+  // so stale drafts can be detected and regenerated.
+  aiDraftBody: text("ai_draft_body"),
+  aiDraftMessageId: integer("ai_draft_message_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (t) => ({

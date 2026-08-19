@@ -204,6 +204,8 @@ export interface IStorage {
   createThreadMessage(threadId: number, senderUserId: string, body: string): Promise<ThreadMessage>;
   getThreadMessages(threadId: number): Promise<ThreadMessage[]>;
   markThreadMessagesRead(threadId: number, userId: string): Promise<void>;
+  setThreadAiDraft(threadId: number, body: string, forMessageId: number): Promise<Thread>;
+  clearThreadAiDraft(threadId: number, options?: { keepMarker?: boolean }): Promise<void>;
 
   // Admin license verification queue
   getPendingLicenseVerifications(): Promise<(Provider & { ownerEmail: string | null; ownerFirstName: string | null; ownerLastName: string | null })[]>;
@@ -1328,8 +1330,13 @@ export class DatabaseStorage implements IStorage {
           (m) => m.senderUserId !== userId && !m.readAt
         ).length;
 
+        // AI draft replies are provider-side working state — never expose them in
+        // list responses (parents share this endpoint). Drafts are only returned
+        // by GET /api/threads/:id after a canonical-owner check.
+        const { aiDraftBody: _draft, aiDraftMessageId: _draftMsgId, ...safeThread } = thread as any;
+
         return {
-          ...thread,
+          ...safeThread,
           provider: provider[0] ?? null,
           parentUser: parentUser[0] ?? null,
           latestMessage: latest
@@ -1386,8 +1393,12 @@ export class DatabaseStorage implements IStorage {
           ? msgs.filter((m) => m.senderUserId !== canonicalOwner && !m.readAt).length
           : 0;
 
+        // Strip AI draft fields from list responses — drafts are only surfaced
+        // through GET /api/threads/:id after the canonical-owner check.
+        const { aiDraftBody: _draft, aiDraftMessageId: _draftMsgId, ...safeThread } = thread as any;
+
         return {
-          ...thread,
+          ...safeThread,
           providerName: providerRow?.name ?? null,
           parentUser: parentUser[0] ?? null,
           latestMessage: latest
@@ -1463,6 +1474,24 @@ export class DatabaseStorage implements IStorage {
           sql`${threadMessages.readAt} IS NULL`
         )
       );
+  }
+
+  async setThreadAiDraft(threadId: number, body: string, forMessageId: number): Promise<Thread> {
+    const [updated] = await db
+      .update(threads)
+      .set({ aiDraftBody: body, aiDraftMessageId: forMessageId })
+      .where(eq(threads.id, threadId))
+      .returning();
+    return updated;
+  }
+
+  async clearThreadAiDraft(threadId: number, options?: { keepMarker?: boolean }): Promise<void> {
+    // keepMarker: null the body but retain aiDraftMessageId as a "discarded for this
+    // message" marker so the client does not auto-regenerate the same draft.
+    await db
+      .update(threads)
+      .set(options?.keepMarker ? { aiDraftBody: null } : { aiDraftBody: null, aiDraftMessageId: null })
+      .where(eq(threads.id, threadId));
   }
 
   // Tour request operations
