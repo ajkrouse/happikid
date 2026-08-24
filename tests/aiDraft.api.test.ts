@@ -75,6 +75,10 @@ const provider = {
   ownerUserId: OWNER,
   userId: null,
   aiAutoReplyEnabled: true,
+  isActive: true,
+  licenseStatus: "confirmed",
+  isProfileVisible: true,
+  isProfilePublic: true,
 };
 
 const baseThread = {

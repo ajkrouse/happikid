@@ -200,6 +200,22 @@ describe("GET /api/threads/:id — access control", () => {
     expect(res.body).toHaveProperty("messages");
   });
 
+  it("returns 404 when a parent opens a thread for a provider that is no longer public", async () => {
+    vi.mocked(storage.getThread).mockResolvedValue(makeThread() as any);
+    vi.mocked(storage.getProvider).mockResolvedValue(
+      makeProvider({ isProfileVisible: false }) as any
+    );
+
+    const res = await request(buildApp())
+      .get("/api/threads/99")
+      .set("x-test-user", "user_parent");
+
+    expect(res.status).toBe(404);
+    expect(res.body).toMatchObject({ message: /provider not found/i });
+    expect(storage.getThreadMessages).not.toHaveBeenCalled();
+    expect(storage.markThreadMessagesRead).not.toHaveBeenCalled();
+  });
+
   it("returns 200 and messages for the canonical provider owner", async () => {
     vi.mocked(storage.getThread).mockResolvedValue(makeThread() as any);
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);

@@ -165,6 +165,12 @@ export function registerThreadRoutes(app: Express): void {
       if (!isParent && !isProviderOwner) {
         return apiError(res, 403, "Access denied");
       }
+      // A parent may only continue viewing a conversation while its provider
+      // listing remains family-visible. The provider owner can still access
+      // their own private listing to manage existing conversations.
+      if (isParent && (!provider || !isPublicProvider(provider))) {
+        return apiError(res, 404, "Provider not found");
+      }
 
       const messages = await storage.getThreadMessages(threadId);
       // Mark messages as read for this user
