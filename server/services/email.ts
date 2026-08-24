@@ -48,7 +48,7 @@ async function sendEmail(opts: EmailOptions): Promise<void> {
     // SMTP not configured — log only non-sensitive delivery diagnostics.
     // Never log message body or recipient details to avoid leaking private
     // conversation content into application logs.
-    log.info({ subject: opts.subject }, "[EMAIL] SMTP not configured — notification skipped");
+    log.info("[EMAIL] SMTP not configured — notification skipped");
     return;
   }
 
@@ -66,9 +66,9 @@ async function sendEmail(opts: EmailOptions): Promise<void> {
       html: opts.html,
       text: opts.text,
     });
-    log.info({ to: opts.to, subject: opts.subject }, "Email sent");
+    log.info("Email sent");
   } catch (err) {
-    log.error({ err, to: opts.to, subject: opts.subject }, "Failed to send email");
+    log.error({ err }, "Failed to send email");
   }
 }
 

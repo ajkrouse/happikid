@@ -90,7 +90,7 @@ Please provide:
     if (!content) return null;
     return parseAIResponse(content);
   } catch (error) {
-    log.error({ err: error, query }, "Error generating AI summary");
+    log.error({ err: error }, "Error generating AI summary");
     return null;
   }
 }

@@ -53,8 +53,8 @@ export function registerMetaRoutes(app: Express): void {
       if (!parsed.success) {
         return apiError(res, 400, "Invalid contact form data", { errors: parsed.error.errors });
       }
-      const { name, email, subject, message } = parsed.data;
-      log.info({ name, email, subject }, "Contact form submission");
+      // Do not log contact names, email addresses, subjects, or message text.
+      log.info("Contact form submission received");
       res.json({ success: true });
     } catch (error) {
       log.error({ err: error }, "Error processing contact form");

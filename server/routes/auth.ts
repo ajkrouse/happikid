@@ -44,7 +44,7 @@ export function registerAuthRoutes(app: Express): void {
     try {
       const userId = req.user.claims.sub;
       const preferences = userPreferencesSchema.parse(req.body);
-      log.info({ userId, preferences }, "Saving user preferences");
+      log.info("Saving user preferences");
       res.json({ success: true, message: "Preferences saved successfully", preferences });
     } catch (error) {
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid preferences data", { errors: error.errors });
