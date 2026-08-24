@@ -16,6 +16,12 @@ import {
   toPublicProviderPhoto,
   toPublicProviderUpdate,
 } from "../lib/providerAccess";
+import {
+  ProviderImageValidationError,
+  assertProviderImageObjectPath,
+  isStoredProviderImagePath,
+  verifyProviderImageUploadToken,
+} from "../lib/providerImageUpload";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -65,6 +71,67 @@ const locationBodySchema = insertProviderLocationSchema.omit({ providerId: true 
   ).optional(),
 });
 
+const providerImageCreateSchema = z.object({
+  objectPath: z.string().optional(),
+  uploadToken: z.string().optional(),
+  imageUrl: z.string().url().max(2048).optional(),
+  caption: z.string().trim().max(300).nullable().optional(),
+  isPrimary: z.boolean().optional(),
+}).superRefine((data, ctx) => {
+  const usesUploadedObject = !!data.objectPath;
+  const usesExternalUrl = !!data.imageUrl;
+  if (usesUploadedObject === usesExternalUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Provide exactly one image source",
+      path: ["objectPath"],
+    });
+  }
+  if (usesUploadedObject && !data.uploadToken) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Missing upload token",
+      path: ["uploadToken"],
+    });
+  }
+});
+
+const providerImageUpdateSchema = z.object({
+  caption: z.string().trim().max(300).nullable().optional(),
+  isPrimary: z.boolean().optional(),
+}).refine((data) => data.caption !== undefined || data.isPrimary !== undefined, {
+  message: "Provide an image update",
+});
+
+async function toPublicProviderWithImages(provider: any) {
+  const images = (await storage.getProviderImages(provider.id)) ?? [];
+  return toPublicProvider({ ...provider, images } as any);
+}
+
+async function cleanUpFailedProviderImageObject(objectPath: string): Promise<void> {
+  const isPermanentObject = isStoredProviderImagePath(objectPath);
+  let cleanupJobQueued = false;
+
+  if (isPermanentObject) {
+    try {
+      await storage.queueProviderImageCleanup(objectPath);
+      cleanupJobQueued = true;
+    } catch (queueError) {
+      log.error({ err: queueError, objectPath }, "Unable to queue failed provider image cleanup");
+    }
+  }
+
+  try {
+    const { ObjectStorageService } = await import("../objectStorage");
+    await new ObjectStorageService().deleteObjectEntity(objectPath);
+    if (cleanupJobQueued) {
+      await storage.completeProviderImageCleanupByObjectPath(objectPath);
+    }
+  } catch (cleanupError) {
+    log.warn({ err: cleanupError, objectPath }, "Unable to clean up failed provider image upload");
+  }
+}
+
 export function registerProviderRoutes(app: Express): void {
   // Featured providers — diverse selection across types
   app.get("/api/providers/featured", async (req, res) => {
@@ -78,7 +145,9 @@ export function registerProviderRoutes(app: Express): void {
       ]);
       const allProviders = diverseProviders.flat();
       const shuffled = allProviders.sort(() => 0.5 - Math.random());
-      res.json(shuffled.slice(0, parseInt(limit as string)).map((provider) => toPublicProvider(provider as any)));
+      res.json(await Promise.all(
+        shuffled.slice(0, parseInt(limit as string)).map(toPublicProviderWithImages),
+      ));
     } catch (error) {
       log.error({ err: error }, "Error fetching featured providers");
       apiError(res, 500, "Failed to fetch featured providers");
@@ -167,10 +236,10 @@ export function registerProviderRoutes(app: Express): void {
 
       const result = await storage.getProviders(filters);
       const publicResult = Array.isArray(result)
-        ? result.map((provider) => toPublicProvider(provider as any))
+        ? await Promise.all(result.map(toPublicProviderWithImages))
         : {
             ...result,
-            providers: result.providers.map((provider) => toPublicProvider(provider as any)),
+            providers: await Promise.all(result.providers.map(toPublicProviderWithImages)),
           };
 
       if (search && (search as string).trim().length > 0) {
@@ -585,7 +654,7 @@ export function registerProviderRoutes(app: Express): void {
       if (!id) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(id);
       if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
-      res.json((await storage.getProviderImages(id)).map(toPublicProviderImage));
+      res.json((await storage.getProviderImages(id)).map((image) => toPublicProviderImage(image, id)));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider images");
       apiError(res, 500, "Failed to fetch images");
@@ -593,19 +662,149 @@ export function registerProviderRoutes(app: Express): void {
   });
 
   app.post("/api/providers/:id/images", isAuthenticated, async (req: any, res) => {
+    let uploadedObjectPath: string | null = null;
+    let canCleanUploadedObject = false;
     try {
       const providerId = strictPathInt(req.params.id);
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
       if (!provider || !isCanonicalProviderOwner(provider, req.user?.claims?.sub)) return apiError(res, 403, "Access denied");
-      const parsed = insertProviderImageSchema.safeParse({ ...req.body, providerId });
+      const parsed = providerImageCreateSchema.safeParse(req.body);
       if (!parsed.success) {
         return apiError(res, 400, "Invalid image data", { errors: parsed.error.errors });
       }
-      res.status(201).json(await storage.addProviderImage(parsed.data));
+
+      const userId = req.user?.claims?.sub;
+      let imageUrl = parsed.data.imageUrl;
+      if (parsed.data.objectPath) {
+        assertProviderImageObjectPath(parsed.data.objectPath);
+        if (!userId || !verifyProviderImageUploadToken(parsed.data.uploadToken, userId, parsed.data.objectPath, providerId)) {
+          return apiError(res, 400, "Invalid upload reference");
+        }
+
+        uploadedObjectPath = parsed.data.objectPath;
+        canCleanUploadedObject = true;
+        const { ObjectStorageService } = await import("../objectStorage");
+        const service = new ObjectStorageService();
+        await service.validateProviderImageObject(uploadedObjectPath);
+        uploadedObjectPath = await service.promoteProviderImageObject(uploadedObjectPath);
+        await service.trySetObjectEntityAclPolicy(uploadedObjectPath, {
+          owner: userId,
+          visibility: isPublicProvider(provider) ? "public" : "private",
+        });
+        imageUrl = uploadedObjectPath;
+      }
+
+      const image = await storage.addProviderImage(
+        insertProviderImageSchema.parse({
+          providerId,
+          imageUrl,
+          caption: parsed.data.caption ?? null,
+          isPrimary: parsed.data.isPrimary ?? false,
+        }),
+      );
+      canCleanUploadedObject = false;
+      // Return the storage path to the authenticated editor. Public endpoints
+      // deliberately translate private object paths to a visibility-checked URL.
+      res.status(201).json(image);
     } catch (error) {
+      if (canCleanUploadedObject && uploadedObjectPath) {
+        await cleanUpFailedProviderImageObject(uploadedObjectPath);
+      }
+      if (error instanceof z.ZodError || error instanceof ProviderImageValidationError) {
+        return apiError(res, 400, "Invalid image data");
+      }
       log.error({ err: error }, "Error adding provider image");
       apiError(res, 500, "Failed to add image");
+    }
+  });
+
+  app.get("/api/providers/:id/images/manage", isAuthenticated, async (req: any, res) => {
+    try {
+      const providerId = strictPathInt(req.params.id);
+      if (!providerId) return apiError(res, 400, "Invalid provider ID");
+      const provider = await storage.getProvider(providerId);
+      if (!provider || !isCanonicalProviderOwner(provider, req.user?.claims?.sub)) return apiError(res, 403, "Access denied");
+      res.json(await storage.getProviderImages(providerId));
+    } catch (error) {
+      log.error({ err: error }, "Error fetching provider images for editing");
+      apiError(res, 500, "Failed to fetch images");
+    }
+  });
+
+  app.get("/api/providers/:id/images/:imageId/content", async (req: any, res) => {
+    try {
+      const providerId = strictPathInt(req.params.id);
+      const imageId = strictPathInt(req.params.imageId);
+      if (!providerId || !imageId) return apiError(res, 400, "Invalid image ID");
+      const provider = await storage.getProvider(providerId);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Image not found");
+      const image = await storage.getProviderImage(imageId);
+      if (!image || image.providerId !== providerId) return apiError(res, 404, "Image not found");
+
+      if (!isStoredProviderImagePath(image.imageUrl)) {
+        return res.redirect(image.imageUrl);
+      }
+      const { ObjectStorageService } = await import("../objectStorage");
+      const service = new ObjectStorageService();
+      service.downloadObject(await service.getObjectEntityFile(image.imageUrl), res);
+    } catch (error) {
+      log.error({ err: error }, "Error serving provider image");
+      apiError(res, 500, "Failed to load image");
+    }
+  });
+
+  app.patch("/api/providers/:id/images/:imageId", isAuthenticated, async (req: any, res) => {
+    try {
+      const providerId = strictPathInt(req.params.id);
+      const imageId = strictPathInt(req.params.imageId);
+      if (!providerId || !imageId) return apiError(res, 400, "Invalid image ID");
+      const provider = await storage.getProvider(providerId);
+      if (!provider || !isCanonicalProviderOwner(provider, req.user?.claims?.sub)) return apiError(res, 403, "Access denied");
+      const existingImage = await storage.getProviderImage(imageId);
+      if (!existingImage || existingImage.providerId !== providerId) return apiError(res, 404, "Image not found");
+      const parsed = providerImageUpdateSchema.safeParse(req.body);
+      if (!parsed.success) return apiError(res, 400, "Invalid image data", { errors: parsed.error.errors });
+
+      let updatedImage = existingImage;
+      if (parsed.data.caption !== undefined) {
+        updatedImage = await storage.updateProviderImage(imageId, { caption: parsed.data.caption });
+      }
+      if (parsed.data.isPrimary === true) {
+        updatedImage = (await storage.setProviderImagePrimary(providerId, imageId)) ?? updatedImage;
+      }
+      res.json(updatedImage);
+    } catch (error) {
+      log.error({ err: error }, "Error updating provider image");
+      apiError(res, 500, "Failed to update image");
+    }
+  });
+
+  app.delete("/api/providers/:id/images/:imageId", isAuthenticated, async (req: any, res) => {
+    try {
+      const providerId = strictPathInt(req.params.id);
+      const imageId = strictPathInt(req.params.imageId);
+      if (!providerId || !imageId) return apiError(res, 400, "Invalid image ID");
+      const provider = await storage.getProvider(providerId);
+      if (!provider || !isCanonicalProviderOwner(provider, req.user?.claims?.sub)) return apiError(res, 403, "Access denied");
+      const image = await storage.getProviderImage(imageId);
+      if (!image || image.providerId !== providerId) return apiError(res, 404, "Image not found");
+
+      await storage.deleteProviderImageWithCleanup(imageId);
+      let cleanupPending = false;
+      if (isStoredProviderImagePath(image.imageUrl)) {
+        try {
+          const { ObjectStorageService } = await import("../objectStorage");
+          await new ObjectStorageService().deleteObjectEntity(image.imageUrl);
+        } catch (cleanupError) {
+          cleanupPending = true;
+          log.warn({ err: cleanupError, imageId }, "Provider image record deleted but storage cleanup failed");
+        }
+      }
+      res.json({ ok: true, cleanupPending });
+    } catch (error) {
+      log.error({ err: error }, "Error deleting provider image");
+      apiError(res, 500, "Failed to delete image");
     }
   });
 

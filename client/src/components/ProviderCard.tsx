@@ -17,6 +17,7 @@ import { useLocation } from "wouter";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
 import { getCostRange, getCostLevel, getBoroughColor, hasPricingData } from "@/lib/providerPricing";
 import { getClosingSoonEntry, formatClosureDateRange, isClosedToday } from "@/lib/closingSoon";
+import { getPrimaryProviderImage } from "@/lib/providerImages";
 
 interface ProviderCardProps {
   provider: ProviderWithScore;
@@ -219,21 +220,7 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       <Card className="hover:shadow-xl transition-all cursor-pointer rounded-2xl border-2 border-brand-evergreen/10" onClick={() => onViewDetails?.(provider)}>
       <div className="aspect-[4/3] relative overflow-hidden rounded-t-2xl">
         <img
-          src={
-            provider.name.includes('Bright Horizons') 
-              ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
-              : provider.name.includes('Learning Experience') 
-              ? "https://images.pexels.com/photos/8613097/pexels-photo-8613097.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
-              : provider.name.includes('Little Sunshine') 
-              ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
-              : provider.name.includes('Montessori') 
-              ? "https://images.pexels.com/photos/8613106/pexels-photo-8613106.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
-              : provider.name.includes('Bronx Academy') 
-              ? "https://images.pexels.com/photos/8613090/pexels-photo-8613090.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
-              : provider.name.includes('Camp') 
-              ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
-              : "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop"
-          }
+          src={getPrimaryProviderImage(provider as any)}
           alt={provider.name}
           className="w-full h-full object-cover"
         />

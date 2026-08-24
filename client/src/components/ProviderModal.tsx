@@ -44,6 +44,7 @@ import { ProviderContributions } from "./ProviderContributions";
 import { ReviewVoting } from "./ReviewVoting";
 import { getCostRange, getCostLevel, getBoroughColor, hasPricingData } from "@/lib/providerPricing";
 import { ClosedDatesCalendar, type ClosedDateEntry } from "./ClosedDatesCalendar";
+import { ProviderImageGallery } from "./ProviderImageGallery";
 
 interface ProviderModalProps {
   provider: Provider | null;
@@ -367,66 +368,10 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Provider Images */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <img
-                src={
-                  currentProvider.name.includes('Bright Horizons') 
-                    ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children in modern daycare
-                    : currentProvider.name.includes('Learning Experience') 
-                    ? "https://images.pexels.com/photos/8613097/pexels-photo-8613097.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children in classroom setting
-                    : currentProvider.name.includes('Little Sunshine') 
-                    ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Happy children playing
-                    : currentProvider.name.includes('Montessori') 
-                    ? "https://images.pexels.com/photos/8613106/pexels-photo-8613106.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children with Montessori materials
-                    : currentProvider.name.includes('Bronx Academy') 
-                    ? "https://images.pexels.com/photos/8613090/pexels-photo-8613090.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children after school learning
-                    : currentProvider.name.includes('Camp') 
-                    ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children summer camp activities
-                    : "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Default children
-                }
-                alt={currentProvider.name}
-                className="rounded-lg object-cover h-48 w-full"
-              />
-              <img
-                src={
-                  currentProvider.name.includes('Bright Horizons') 
-                    ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children playing together
-                    : currentProvider.name.includes('Learning Experience') 
-                    ? "https://images.pexels.com/photos/8613106/pexels-photo-8613106.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children with learning materials
-                    : currentProvider.name.includes('Little Sunshine') 
-                    ? "https://images.pexels.com/photos/8613090/pexels-photo-8613090.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children in learning environment
-                    : currentProvider.name.includes('Montessori') 
-                    ? "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children collaborative learning
-                    : currentProvider.name.includes('Bronx Academy') 
-                    ? "https://images.pexels.com/photos/8613106/pexels-photo-8613106.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Educational activities
-                    : currentProvider.name.includes('Camp') 
-                    ? "https://images.pexels.com/photos/8613090/pexels-photo-8613090.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Camp activities
-                    : "https://images.pexels.com/photos/8613179/pexels-photo-8613179.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Default
-                }
-                alt="Activity Area"
-                className="rounded-lg object-cover h-48 w-full"
-              />
-              <img
-                src={
-                  currentProvider.name.includes('Bright Horizons') 
-                    ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children creative activities
-                    : currentProvider.name.includes('Learning Experience') 
-                    ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children outdoor learning
-                    : currentProvider.name.includes('Little Sunshine') 
-                    ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children playing outdoors
-                    : currentProvider.name.includes('Montessori') 
-                    ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children nature-based learning
-                    : currentProvider.name.includes('Bronx Academy') 
-                    ? "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children group activities
-                    : currentProvider.name.includes('Camp') 
-                    ? "https://images.pexels.com/photos/8613311/pexels-photo-8613311.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Children camp fun
-                    : "https://images.pexels.com/photos/8613068/pexels-photo-8613068.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop" // Default
-                }
-                alt="Learning Space"
-                className="rounded-lg object-cover h-48 w-full"
-              />
-            </div>
+            <ProviderImageGallery
+              providerName={currentProvider.name}
+              images={(currentProvider as Provider & { images?: ProviderImage[] }).images}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Main Content */}

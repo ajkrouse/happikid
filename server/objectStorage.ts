@@ -1,6 +1,13 @@
 import { Storage, File } from "@google-cloud/storage";
 import { Response } from "express";
 import { randomUUID } from "crypto";
+import {
+  assertProviderImageObjectPath,
+  isStagedProviderImagePath,
+  PROVIDER_IMAGE_CONTENT_TYPES,
+  PROVIDER_IMAGE_MAX_BYTES,
+  ProviderImageValidationError,
+} from "./lib/providerImageUpload";
 export interface ObjectAclPolicy {
   owner: string;
   visibility: "public" | "private";
@@ -220,6 +227,93 @@ export class ObjectStorageService {
       method: "PUT",
       ttlSec: 900,
     });
+  }
+
+  async getProviderImageUploadURL(): Promise<{ uploadURL: string; objectPath: string }> {
+    const privateObjectDir = this.getPrivateObjectDir().replace(/\/$/, "");
+    const objectId = randomUUID();
+    const objectName = `uploads/provider-image-staging/${objectId}`;
+    const { bucketName, objectName: storageObjectName } = parseObjectPath(
+      `${privateObjectDir}/${objectName}`,
+    );
+
+    return {
+      uploadURL: await signObjectURL({
+        bucketName,
+        objectName: storageObjectName,
+        method: "PUT",
+        ttlSec: 900,
+      }),
+      objectPath: `/objects/${objectName}`,
+    };
+  }
+
+  async validateProviderImageObject(objectPath: string): Promise<File> {
+    assertProviderImageObjectPath(objectPath);
+    const objectFile = await this.getObjectEntityFile(objectPath);
+    const [metadata] = await objectFile.getMetadata();
+    const contentType = typeof metadata.contentType === "string"
+      ? metadata.contentType.toLowerCase().split(";")[0]
+      : "";
+    const size = Number(metadata.size);
+
+    if (!PROVIDER_IMAGE_CONTENT_TYPES.has(contentType)) {
+      throw new ProviderImageValidationError("Only JPG, PNG, WebP, and GIF images are allowed");
+    }
+    if (!Number.isFinite(size) || size <= 0 || size > PROVIDER_IMAGE_MAX_BYTES) {
+      throw new ProviderImageValidationError("Image files must be 5MB or smaller");
+    }
+
+    return objectFile;
+  }
+
+  async promoteProviderImageObject(stagedObjectPath: string): Promise<string> {
+    if (!isStagedProviderImagePath(stagedObjectPath)) {
+      throw new ProviderImageValidationError("Invalid staged provider image reference");
+    }
+
+    const sourceFile = await this.getObjectEntityFile(stagedObjectPath);
+    const privateObjectDir = this.getPrivateObjectDir().replace(/\/$/, "");
+    const finalObjectName = `uploads/provider-images/${randomUUID()}`;
+    const { bucketName, objectName } = parseObjectPath(
+      `${privateObjectDir}/${finalObjectName}`,
+    );
+    await sourceFile.copy(objectStorageClient.bucket(bucketName).file(objectName));
+    // The promoted copy is now authoritative. A failed staging delete is safe:
+    // the hourly reconciliation targets only this staging namespace.
+    await sourceFile.delete().catch(() => undefined);
+    return `/objects/${finalObjectName}`;
+  }
+
+  async deleteObjectEntity(objectPath: string): Promise<void> {
+    assertProviderImageObjectPath(objectPath);
+    try {
+      const objectFile = await this.getObjectEntityFile(objectPath);
+      await objectFile.delete();
+    } catch (error) {
+      if (error instanceof ObjectNotFoundError) return;
+      throw error;
+    }
+  }
+
+  async purgeStaleProviderImageUploads(maxAgeMs = 60 * 60 * 1000): Promise<number> {
+    const privateObjectDir = this.getPrivateObjectDir().replace(/\/$/, "");
+    const { bucketName, objectName } = parseObjectPath(
+      `${privateObjectDir}/uploads/provider-image-staging/`,
+    );
+    const [files] = await objectStorageClient.bucket(bucketName).getFiles({ prefix: objectName });
+    const cutoff = Date.now() - maxAgeMs;
+    let deleted = 0;
+
+    for (const file of files) {
+      const [metadata] = await file.getMetadata();
+      const updatedAt = new Date(metadata.updated || metadata.timeCreated || 0).getTime();
+      if (Number.isFinite(updatedAt) && updatedAt < cutoff) {
+        await file.delete();
+        deleted += 1;
+      }
+    }
+    return deleted;
   }
 
   // Gets the object entity file from the object path.

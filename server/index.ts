@@ -81,12 +81,47 @@ async function scheduleClosurePruning(): Promise<void> {
   setInterval(runPrune, TWENTY_FOUR_HOURS);
 }
 
+async function scheduleProviderImageCleanup(): Promise<void> {
+  const runCleanup = async () => {
+    try {
+      const { ObjectStorageService } = await import("./objectStorage");
+      const service = new ObjectStorageService();
+      const expiredUploadCount = await service.purgeStaleProviderImageUploads();
+      const jobs = await storage.getPendingProviderImageCleanupJobs();
+      let completedJobCount = 0;
+
+      for (const job of jobs) {
+        try {
+          await service.deleteObjectEntity(job.objectPath);
+          await storage.completeProviderImageCleanupJob(job.id);
+          completedJobCount += 1;
+        } catch (error) {
+          await storage.recordProviderImageCleanupFailure(job.id);
+          logger.warn({ err: error, cleanupJobId: job.id }, "Provider image cleanup will retry");
+        }
+      }
+
+      if (expiredUploadCount > 0 || completedJobCount > 0) {
+        logger.info({ expiredUploadCount, completedJobCount }, "Completed provider image object cleanup");
+      }
+    } catch (err) {
+      logger.error({ err }, "Provider image cleanup scheduler failed");
+    }
+  };
+
+  await runCleanup();
+  setInterval(runCleanup, 60 * 60 * 1000);
+}
+
 (async () => {
   const server = await registerRoutes(app);
 
   // Start the closure-pruning background job
   scheduleClosurePruning().catch((err) =>
     logger.error({ err }, "Closure pruning scheduler failed to start")
+  );
+  scheduleProviderImageCleanup().catch((err) =>
+    logger.error({ err }, "Provider image cleanup scheduler failed to start")
   );
 
   // ── Global error handler ──────────────────────────────────────────────────

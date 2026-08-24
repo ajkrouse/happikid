@@ -5,6 +5,10 @@ import type {
   ProviderUpdate,
   Review,
 } from "@shared/schema";
+import {
+  isStoredProviderImagePath,
+  providerImageContentUrl,
+} from "./providerImageUpload";
 
 /**
  * A provider is family-visible only after it is active, license-confirmed, and
@@ -93,15 +97,20 @@ export function toPublicProvider(provider: Provider & Record<string, unknown>) {
     lat: provider.lat,
     lng: provider.lng,
     badges: Array.isArray(provider.badges) ? provider.badges : undefined,
+    images: Array.isArray(provider.images)
+      ? provider.images.map((image) => toPublicProviderImage(image as ProviderImage, provider.id))
+      : undefined,
   };
 
   return publicProvider;
 }
 
-export function toPublicProviderImage(image: ProviderImage) {
+export function toPublicProviderImage(image: ProviderImage, providerId = image.providerId) {
   return {
     id: image.id,
-    imageUrl: image.imageUrl,
+    imageUrl: isStoredProviderImagePath(image.imageUrl)
+      ? providerImageContentUrl(providerId, image.id)
+      : image.imageUrl,
     caption: image.caption,
     isPrimary: image.isPrimary,
   };
@@ -143,7 +152,7 @@ export function toPublicProviderDetail(
 ) {
   return {
     ...toPublicProvider(provider),
-    images: (provider.images ?? []).map(toPublicProviderImage),
+    images: (provider.images ?? []).map((image) => toPublicProviderImage(image, provider.id)),
     reviews: (provider.reviews ?? []).map(toPublicReview),
   };
 }

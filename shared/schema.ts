@@ -179,6 +179,18 @@ export const providerImages = pgTable("provider_images", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Durable cleanup queue for private objects that should be deleted after a
+// provider image record is removed. It deliberately has no foreign key to the
+// image row because that row is deleted before the external object is retried.
+export const providerImageCleanupJobs = pgTable("provider_image_cleanup_jobs", {
+  id: serial("id").primaryKey(),
+  objectPath: varchar("object_path").notNull().unique(),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
 // Reviews
 export const reviews = pgTable("reviews", {
   id: serial("id").primaryKey(),
@@ -709,6 +721,8 @@ export const insertProviderImageSchema = createInsertSchema(providerImages).omit
   id: true,
   createdAt: true,
 });
+
+export type ProviderImageCleanupJob = typeof providerImageCleanupJobs.$inferSelect;
 
 export const insertProviderLocationSchema = createInsertSchema(providerLocations).omit({
   id: true,

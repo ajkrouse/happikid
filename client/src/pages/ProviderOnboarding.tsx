@@ -205,8 +205,8 @@ export default function ProviderOnboarding() {
     caption: string;
     isPrimary: boolean;
   }>>([]);
-  const [imageUrlInput, setImageUrlInput] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   // Check if user is authenticated; redirect to login if not
   useEffect(() => {
@@ -230,6 +230,16 @@ export default function ProviderOnboarding() {
   const { data: existingProvider } = useQuery<Provider | null>({
     queryKey: ["/api/providers/mine"],
     enabled: isAuthenticated
+  });
+
+  const { data: savedImages = [] } = useQuery<Array<{
+    id: number;
+    imageUrl: string;
+    caption: string | null;
+    isPrimary: boolean;
+  }>>({
+    queryKey: [`/api/providers/${existingProvider?.id}/images/manage`],
+    enabled: isAuthenticated && !!existingProvider?.id,
   });
 
   // Update form with existing data
@@ -276,6 +286,16 @@ export default function ProviderOnboarding() {
     }
   }, [existingProvider]);
 
+  useEffect(() => {
+    if (!existingProvider?.id) return;
+    setUploadedImages(savedImages.map((image) => ({
+      id: image.id,
+      url: image.imageUrl,
+      caption: image.caption ?? "",
+      isPrimary: image.isPrimary,
+    })));
+  }, [existingProvider?.id, savedImages]);
+
   const createProviderMutation = useMutation({
     mutationFn: async (data: any) => {
       return apiRequest("POST", "/api/providers", data);
@@ -291,25 +311,6 @@ export default function ProviderOnboarding() {
       toast({
         title: "Error",
         description: error.message || "Failed to save provider profile",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const addImageMutation = useMutation({
-    mutationFn: async ({ providerId, imageData }: { providerId: number; imageData: any }) => {
-      return apiRequest("POST", `/api/providers/${providerId}/images`, imageData);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Image Added",
-        description: "Your image has been uploaded successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Upload Failed",
-        description: error.message || "Failed to upload image",
         variant: "destructive",
       });
     },
@@ -431,48 +432,114 @@ export default function ProviderOnboarding() {
   };
 
   // Image upload functions
-  const processFiles = (files: FileList | File[]) => {
-    Array.from(files).forEach((file) => {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Invalid File Type",
-          description: `${file.name} is not an image file`,
-          variant: "destructive",
-        });
-        return;
-      }
+  const processFiles = async (files: FileList | File[]) => {
+    if (!existingProvider?.id) {
+      toast({
+        title: "Save your profile first",
+        description: "Complete the previous steps before uploading photos.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      // Validate file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File Too Large",
-          description: `${file.name} is larger than 5MB`,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          const newImage = {
-            url: e.target.result as string,
-            caption: file.name.split('.')[0], // Use filename without extension as default caption
-            isPrimary: uploadedImages.length === 0
-          };
-          setUploadedImages(prev => [...prev, newImage]);
+    const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+    let shouldUsePrimary = uploadedImages.length === 0;
+    setIsUploadingImages(true);
+    try {
+      for (const file of Array.from(files)) {
+        if (!allowedTypes.has(file.type)) {
+          toast({
+            title: "Invalid File Type",
+            description: `${file.name} must be a JPG, PNG, WebP, or GIF image`,
+            variant: "destructive",
+          });
+          continue;
         }
-      };
-      reader.readAsDataURL(file);
-    });
+
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: "File Too Large",
+            description: `${file.name} is larger than 5MB`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
+        let objectPath: string | undefined;
+        let uploadToken: string | undefined;
+        try {
+          const prepareResponse = await apiRequest("POST", "/api/provider-images/upload", {
+            providerId: existingProvider.id,
+          });
+          const prepared = await prepareResponse.json() as {
+            uploadURL: string;
+            objectPath: string;
+            uploadToken: string;
+          };
+          objectPath = prepared.objectPath;
+          uploadToken = prepared.uploadToken;
+          const uploadResponse = await fetch(prepared.uploadURL, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file,
+          });
+          if (!uploadResponse.ok) throw new Error(`Upload failed (${uploadResponse.status})`);
+
+          const finalizeResponse = await apiRequest(
+            "POST",
+            `/api/providers/${existingProvider.id}/images`,
+            {
+              objectPath,
+              uploadToken,
+              caption: file.name.replace(/\.[^.]+$/, ""),
+              isPrimary: shouldUsePrimary,
+            },
+          );
+          const savedImage = await finalizeResponse.json() as {
+            id: number;
+            imageUrl: string;
+            caption: string | null;
+            isPrimary: boolean;
+          };
+          setUploadedImages((previous) => [
+            ...previous,
+            {
+              id: savedImage.id,
+              url: savedImage.imageUrl,
+              caption: savedImage.caption ?? "",
+              isPrimary: savedImage.isPrimary,
+            },
+          ]);
+          shouldUsePrimary = false;
+          toast({ title: "Image uploaded", description: `${file.name} is saved to your profile.` });
+        } catch (error) {
+          if (objectPath && uploadToken) {
+            await apiRequest("DELETE", "/api/provider-images/upload", {
+              providerId: existingProvider.id,
+              objectPath,
+              uploadToken,
+            })
+              .catch(() => undefined);
+          }
+          toast({
+            title: "Upload Failed",
+            description: error instanceof Error ? error.message : `Could not upload ${file.name}`,
+            variant: "destructive",
+          });
+        }
+      }
+      await queryClient.invalidateQueries({
+        queryKey: [`/api/providers/${existingProvider.id}/images/manage`],
+      });
+    } finally {
+      setIsUploadingImages(false);
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
-    processFiles(files);
-    // Reset the input so the same file can be selected again
+    void processFiles(files);
     event.target.value = '';
   };
 
@@ -493,69 +560,75 @@ export default function ProviderOnboarding() {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      processFiles(files);
-    }
+    if (e.dataTransfer.files.length > 0) void processFiles(e.dataTransfer.files);
   };
 
-  const handleAddImageUrl = async () => {
-    if (!imageUrlInput.trim()) return;
-    
-    // Validate URL format
+  const removeImage = async (index: number) => {
+    const image = uploadedImages[index];
     try {
-      new URL(imageUrlInput);
-    } catch {
+      if (image?.id && existingProvider?.id) {
+        await apiRequest("DELETE", `/api/providers/${existingProvider.id}/images/${image.id}`);
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/providers/${existingProvider.id}/images/manage`],
+        });
+      }
+      setUploadedImages((previous) => previous.filter((_, imageIndex) => imageIndex !== index));
+    } catch (error) {
       toast({
-        title: "Invalid URL",
-        description: "Please enter a valid image URL",
+        title: "Could not remove image",
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
-      return;
     }
-
-    const newImage = {
-      url: imageUrlInput.trim(),
-      caption: "",
-      isPrimary: uploadedImages.length === 0
-    };
-
-    // If we have a provider ID, upload immediately
-    if (existingProvider?.id) {
-      try {
-        await addImageMutation.mutateAsync({
-          providerId: existingProvider.id,
-          imageData: {
-            imageUrl: newImage.url,
-            caption: newImage.caption,
-            isPrimary: newImage.isPrimary
-          }
-        });
-      } catch (error) {
-        return; // Error already handled by mutation
-      }
-    }
-
-    setUploadedImages(prev => [...prev, newImage]);
-    setImageUrlInput("");
   };
 
-  const removeImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const setPrimaryImage = (index: number) => {
-    setUploadedImages(prev => 
-      prev.map((img, i) => ({ ...img, isPrimary: i === index }))
-    );
+  const setPrimaryImage = async (index: number) => {
+    const image = uploadedImages[index];
+    if (!image?.id || !existingProvider?.id) return;
+    try {
+      await apiRequest("PATCH", `/api/providers/${existingProvider.id}/images/${image.id}`, { isPrimary: true });
+      setUploadedImages((previous) =>
+        previous.map((currentImage, imageIndex) => ({ ...currentImage, isPrimary: imageIndex === index })),
+      );
+      await queryClient.invalidateQueries({
+        queryKey: [`/api/providers/${existingProvider.id}/images/manage`],
+      });
+    } catch (error) {
+      toast({
+        title: "Could not set primary image",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const updateImageCaption = (index: number, caption: string) => {
-    setUploadedImages(prev => 
-      prev.map((img, i) => i === index ? { ...img, caption } : img)
+    setUploadedImages((previous) =>
+      previous.map((image, imageIndex) => imageIndex === index ? { ...image, caption } : image),
     );
   };
+
+  const saveImageCaption = async (index: number) => {
+    const image = uploadedImages[index];
+    if (!image?.id || !existingProvider?.id) return;
+    try {
+      await apiRequest("PATCH", `/api/providers/${existingProvider.id}/images/${image.id}`, {
+        caption: image.caption || null,
+      });
+    } catch (error) {
+      toast({
+        title: "Could not save caption",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  /*
+   * Provider files are uploaded directly to object storage and finalized through
+   * the provider-image API above. Do not add browser data URLs here: those
+   * disappear on refresh and are never visible to families.
+   */
 
   const renderStepContent = () => {
     const stepId = ONBOARDING_STEPS[currentStep].id;
@@ -599,11 +672,8 @@ export default function ProviderOnboarding() {
         return (
           <StepMediaPhotos
             uploadedImages={uploadedImages}
-            imageUrlInput={imageUrlInput}
             isDragOver={isDragOver}
-            addImageMutationPending={addImageMutation.isPending}
-            onImageUrlInputChange={setImageUrlInput}
-            onAddImageUrl={handleAddImageUrl}
+              isUploading={isUploadingImages}
             onFileUpload={handleFileUpload}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -611,6 +681,7 @@ export default function ProviderOnboarding() {
             onRemoveImage={removeImage}
             onSetPrimaryImage={setPrimaryImage}
             onUpdateCaption={updateImageCaption}
+              onSaveCaption={saveImageCaption}
             tips={tips}
           />
         );
@@ -799,7 +870,7 @@ export default function ProviderOnboarding() {
           
           <Button
             onClick={handleNext}
-            disabled={createProviderMutation.isPending}
+            disabled={createProviderMutation.isPending || isUploadingImages}
             className="flex items-center"
           >
             {currentStep === ONBOARDING_STEPS.length - 1 ? "Complete Setup" : "Next Step"}

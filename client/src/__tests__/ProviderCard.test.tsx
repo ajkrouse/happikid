@@ -501,3 +501,20 @@ describe("ProviderCard — pricing prop updates (rerender)", () => {
     expect(screen.getByText(/\$3,000\s*-\s*\$3,000\/mo/)).toBeInTheDocument();
   });
 });
+
+describe("ProviderCard — persisted provider imagery", () => {
+  it("renders the provider's primary public image instead of the stock fallback", () => {
+    renderCard({
+      ...makeProvider(),
+      images: [
+        { id: 11, imageUrl: "/api/providers/1/images/11/content", caption: "Classroom", isPrimary: false },
+        { id: 12, imageUrl: "/api/providers/1/images/12/content", caption: "Playground", isPrimary: true },
+      ],
+    } as any);
+
+    expect(screen.getByAltText("Test Provider")).toHaveAttribute(
+      "src",
+      "/api/providers/1/images/12/content",
+    );
+  });
+});

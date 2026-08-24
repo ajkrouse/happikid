@@ -8,11 +8,8 @@ import type { UploadedImage } from "@/types/onboarding";
 
 interface StepMediaPhotosProps {
   uploadedImages: UploadedImage[];
-  imageUrlInput: string;
   isDragOver: boolean;
-  addImageMutationPending: boolean;
-  onImageUrlInputChange: (value: string) => void;
-  onAddImageUrl: () => void;
+  isUploading: boolean;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: (e: React.DragEvent) => void;
@@ -20,16 +17,14 @@ interface StepMediaPhotosProps {
   onRemoveImage: (index: number) => void;
   onSetPrimaryImage: (index: number) => void;
   onUpdateCaption: (index: number, caption: string) => void;
+  onSaveCaption: (index: number) => void;
   tips?: string[];
 }
 
 export function StepMediaPhotos({
   uploadedImages,
-  imageUrlInput,
   isDragOver,
-  addImageMutationPending,
-  onImageUrlInputChange,
-  onAddImageUrl,
+  isUploading,
   onFileUpload,
   onDragOver,
   onDragLeave,
@@ -37,6 +32,7 @@ export function StepMediaPhotos({
   onRemoveImage,
   onSetPrimaryImage,
   onUpdateCaption,
+  onSaveCaption,
   tips,
 }: StepMediaPhotosProps) {
   return (
@@ -64,27 +60,12 @@ export function StepMediaPhotos({
               {isDragOver ? "Drop photos here" : "Upload Photos"}
             </p>
             <p className="text-sm text-gray-600 mb-4">
-              Drag and drop photos here, or click to browse (JPG, PNG, GIF up to 5MB)
+              Drag and drop photos here, or click to browse (JPG, PNG, WebP, or GIF up to 5MB)
             </p>
-            <input type="file" accept="image/*" multiple onChange={onFileUpload} className="hidden" id="file-upload" />
-            <Button variant="outline" type="button" className="pointer-events-none" onClick={(e) => e.stopPropagation()}>
-              Choose Photos
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={onFileUpload} className="hidden" id="file-upload" />
+            <Button variant="outline" type="button" disabled={isUploading} className="pointer-events-none" onClick={(e) => e.stopPropagation()}>
+              {isUploading ? "Uploading..." : "Choose Photos"}
             </Button>
-          </div>
-
-          <div className="border border-brand-evergreen/10 rounded-lg p-4">
-            <Label className="text-sm font-medium mb-2 block">Or add image from URL</Label>
-            <div className="flex gap-2">
-              <Input
-                value={imageUrlInput}
-                onChange={(e) => onImageUrlInputChange(e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                className="flex-1"
-              />
-              <Button onClick={onAddImageUrl} disabled={!imageUrlInput.trim() || addImageMutationPending}>
-                {addImageMutationPending ? "Adding..." : "Add"}
-              </Button>
-            </div>
           </div>
 
           {uploadedImages.length > 0 ? (
@@ -111,6 +92,7 @@ export function StepMediaPhotos({
                       <Input
                         value={image.caption}
                         onChange={(e) => onUpdateCaption(index, e.target.value)}
+                        onBlur={() => onSaveCaption(index)}
                         placeholder="Add a caption..."
                         className="text-sm"
                       />

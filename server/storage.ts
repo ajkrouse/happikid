@@ -9,6 +9,7 @@ import {
   inquiries,
   favorites,
   providerImages,
+  providerImageCleanupJobs,
   providerLocations,
   providerPrograms,
   providerAmenities,
@@ -26,6 +27,7 @@ import {
   type InsertInquiry,
   type Favorite,
   type ProviderImage,
+  type ProviderImageCleanupJob,
   type InsertProviderImage,
   type ProviderLocation,
   type InsertProviderLocation,
@@ -62,7 +64,8 @@ import {
   providerClosedDatesSchema,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "drizzle-orm";
+import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns, isNull } from "drizzle-orm";
+import { isStoredProviderImagePath } from "./lib/providerImageUpload";
 
 export interface FavoriteWriteResult {
   favorite: Favorite;
@@ -132,7 +135,17 @@ export interface IStorage {
   
   // Provider images
   getProviderImages(providerId: number): Promise<ProviderImage[]>;
+  getProviderImage(id: number): Promise<ProviderImage | undefined>;
   addProviderImage(image: InsertProviderImage): Promise<ProviderImage>;
+  updateProviderImage(id: number, image: Partial<Pick<InsertProviderImage, "caption">>): Promise<ProviderImage>;
+  setProviderImagePrimary(providerId: number, imageId: number): Promise<ProviderImage | undefined>;
+  deleteProviderImage(id: number): Promise<ProviderImage | undefined>;
+  deleteProviderImageWithCleanup(id: number): Promise<ProviderImage | undefined>;
+  queueProviderImageCleanup(objectPath: string): Promise<void>;
+  getPendingProviderImageCleanupJobs(limit?: number): Promise<ProviderImageCleanupJob[]>;
+  completeProviderImageCleanupJob(id: number): Promise<void>;
+  completeProviderImageCleanupByObjectPath(objectPath: string): Promise<void>;
+  recordProviderImageCleanupFailure(id: number): Promise<void>;
   
   // Provider locations
   getProviderLocations(providerId: number): Promise<ProviderLocation[]>;
@@ -822,9 +835,175 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(providerImages.isPrimary), asc(providerImages.id));
   }
 
+  async getProviderImage(id: number): Promise<ProviderImage | undefined> {
+    const [image] = await db
+      .select()
+      .from(providerImages)
+      .where(eq(providerImages.id, id));
+    return image;
+  }
+
   async addProviderImage(image: InsertProviderImage): Promise<ProviderImage> {
-    const [newImage] = await db.insert(providerImages).values(image).returning();
-    return newImage;
+    return db.transaction(async (tx) => {
+      const [existingPrimary] = await tx
+        .select({ id: providerImages.id })
+        .from(providerImages)
+        .where(and(
+          eq(providerImages.providerId, image.providerId),
+          eq(providerImages.isPrimary, true),
+        ))
+        .limit(1);
+      const shouldBePrimary = image.isPrimary === true || !existingPrimary;
+
+      if (shouldBePrimary) {
+        await tx
+          .update(providerImages)
+          .set({ isPrimary: false })
+          .where(eq(providerImages.providerId, image.providerId));
+      }
+
+      const [newImage] = await tx
+        .insert(providerImages)
+        .values({ ...image, isPrimary: shouldBePrimary })
+        .returning();
+      return newImage;
+    });
+  }
+
+  async updateProviderImage(
+    id: number,
+    image: Partial<Pick<InsertProviderImage, "caption">>,
+  ): Promise<ProviderImage> {
+    const [updatedImage] = await db
+      .update(providerImages)
+      .set(image)
+      .where(eq(providerImages.id, id))
+      .returning();
+    return updatedImage;
+  }
+
+  async setProviderImagePrimary(providerId: number, imageId: number): Promise<ProviderImage | undefined> {
+    return db.transaction(async (tx) => {
+      const [image] = await tx
+        .select()
+        .from(providerImages)
+        .where(and(eq(providerImages.id, imageId), eq(providerImages.providerId, providerId)));
+      if (!image) return undefined;
+
+      await tx
+        .update(providerImages)
+        .set({ isPrimary: false })
+        .where(eq(providerImages.providerId, providerId));
+      const [updatedImage] = await tx
+        .update(providerImages)
+        .set({ isPrimary: true })
+        .where(eq(providerImages.id, imageId))
+        .returning();
+      return updatedImage;
+    });
+  }
+
+  async deleteProviderImage(id: number): Promise<ProviderImage | undefined> {
+    return db.transaction(async (tx) => {
+      const [deletedImage] = await tx
+        .delete(providerImages)
+        .where(eq(providerImages.id, id))
+        .returning();
+      if (!deletedImage) return undefined;
+
+      if (deletedImage.isPrimary) {
+        const [nextImage] = await tx
+          .select({ id: providerImages.id })
+          .from(providerImages)
+          .where(eq(providerImages.providerId, deletedImage.providerId))
+          .orderBy(asc(providerImages.id))
+          .limit(1);
+        if (nextImage) {
+          await tx
+            .update(providerImages)
+            .set({ isPrimary: true })
+            .where(eq(providerImages.id, nextImage.id));
+        }
+      }
+      return deletedImage;
+    });
+  }
+
+  async deleteProviderImageWithCleanup(id: number): Promise<ProviderImage | undefined> {
+    return db.transaction(async (tx) => {
+      const [image] = await tx
+        .select()
+        .from(providerImages)
+        .where(eq(providerImages.id, id));
+      if (!image) return undefined;
+
+      if (isStoredProviderImagePath(image.imageUrl)) {
+        await tx
+          .insert(providerImageCleanupJobs)
+          .values({ objectPath: image.imageUrl })
+          .onConflictDoNothing();
+      }
+
+      const [deletedImage] = await tx
+        .delete(providerImages)
+        .where(eq(providerImages.id, id))
+        .returning();
+      if (deletedImage.isPrimary) {
+        const [nextImage] = await tx
+          .select({ id: providerImages.id })
+          .from(providerImages)
+          .where(eq(providerImages.providerId, deletedImage.providerId))
+          .orderBy(asc(providerImages.id))
+          .limit(1);
+        if (nextImage) {
+          await tx
+            .update(providerImages)
+            .set({ isPrimary: true })
+            .where(eq(providerImages.id, nextImage.id));
+        }
+      }
+      return deletedImage;
+    });
+  }
+
+  async getPendingProviderImageCleanupJobs(limit = 50): Promise<ProviderImageCleanupJob[]> {
+    return db
+      .select()
+      .from(providerImageCleanupJobs)
+      .where(isNull(providerImageCleanupJobs.completedAt))
+      .orderBy(asc(providerImageCleanupJobs.createdAt))
+      .limit(limit);
+  }
+
+  async queueProviderImageCleanup(objectPath: string): Promise<void> {
+    await db
+      .insert(providerImageCleanupJobs)
+      .values({ objectPath })
+      .onConflictDoNothing();
+  }
+
+  async completeProviderImageCleanupJob(id: number): Promise<void> {
+    await db
+      .update(providerImageCleanupJobs)
+      .set({ completedAt: new Date(), lastError: null })
+      .where(eq(providerImageCleanupJobs.id, id));
+  }
+
+  async completeProviderImageCleanupByObjectPath(objectPath: string): Promise<void> {
+    await db
+      .update(providerImageCleanupJobs)
+      .set({ completedAt: new Date(), lastError: null })
+      .where(eq(providerImageCleanupJobs.objectPath, objectPath));
+  }
+
+  async recordProviderImageCleanupFailure(id: number): Promise<void> {
+    await db
+      .update(providerImageCleanupJobs)
+      .set({
+        attempts: sql`${providerImageCleanupJobs.attempts} + 1`,
+        lastError: "Object deletion failed; retry scheduled",
+      })
+      .where(eq(providerImageCleanupJobs.id, id));
   }
 
   // Provider locations

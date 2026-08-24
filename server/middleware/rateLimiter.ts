@@ -35,6 +35,17 @@ export const inquiryLimiter = rateLimit({
   message: { ok: false, message: "Too many inquiries submitted. Please wait before sending more." },
 });
 
+/** Provider-image signing limit — bounds temporary object creation per account. */
+export const providerImageUploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, message: "Too many image uploads requested. Please try again later." },
+  validate: { keyGeneratorIpFallback: false },
+  keyGenerator: (req: any) => req.user?.claims?.sub ? `user:${req.user.claims.sub}` : req.ip ?? "unknown",
+});
+
 /** Auth route limiter — 20 attempts per 15 minutes per IP to deter brute force */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
