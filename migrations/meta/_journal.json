@@ -78,6 +78,13 @@
       "when": 1787600864164,
       "tag": "0010_marketplace_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1787603500000,
+      "tag": "0011_marketplace_feature_search_index",
+      "breakpoints": true
     }
   ]
 }

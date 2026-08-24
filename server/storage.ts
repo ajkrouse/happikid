@@ -379,7 +379,7 @@ export class DatabaseStorage implements IStorage {
           sql`(
             ${providers.name} ILIKE ${`%${filters.search}%`} OR 
             ${providers.description} ILIKE ${`%${filters.search}%`} OR
-            array_to_string(${providers.features}, ' ') ILIKE ${`%${filters.search}%`} OR
+            provider_features_search_text(${providers.features}) ILIKE ${`%${filters.search}%`} OR
             ${providers.address} ILIKE ${`%${filters.search}%`} OR
             ${providers.city} ILIKE ${`%${filters.search}%`}
           )`
@@ -399,7 +399,7 @@ export class DatabaseStorage implements IStorage {
                 sql`(
                   ${providers.name} ILIKE ${`%${keyword}%`} OR 
                   ${providers.description} ILIKE ${`%${keyword}%`} OR
-                  array_to_string(${providers.features}, ' ') ILIKE ${`%${keyword}%`}
+                  provider_features_search_text(${providers.features}) ILIKE ${`%${keyword}%`}
                 )`
               );
               conditions.push(or(...keywordConditions));
@@ -423,7 +423,7 @@ export class DatabaseStorage implements IStorage {
         // Check if any of the requested features exist in the provider's features array
         // Convert array to text and use LIKE for simple containment check
         const featureConditions = filters.features.map(feature => 
-          sql`array_to_string(${providers.features}, ',') ILIKE ${`%${feature}%`}`
+          sql`provider_features_search_text(${providers.features}) ILIKE ${`%${feature}%`}`
         );
         conditions.push(or(...featureConditions));
       }
@@ -575,26 +575,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReview(review: InsertReview): Promise<Review> {
-    const [newReview] = await db.insert(reviews).values(review).returning();
+    // Serialize review writes for a provider. The review, its aggregate, and
+    // the denormalized provider fields then commit together, so retries cannot
+    // leave a persisted review behind with a stale rating or review count.
+    return await db.transaction(async (tx) => {
+      await tx.execute(sql`
+        SELECT 1
+        FROM "providers"
+        WHERE "id" = ${review.providerId}
+        FOR UPDATE
+      `);
 
-    // Update provider rating
-    const avgRating = await db
-      .select({ avg: sql<number>`AVG(${reviews.rating})`, count: sql<number>`COUNT(*)` })
-      .from(reviews)
-      .where(eq(reviews.providerId, review.providerId));
+      const [newReview] = await tx.insert(reviews).values(review).returning();
+      const [aggregate] = await tx
+        .select({ avg: sql<number>`AVG(${reviews.rating})`, count: sql<number>`COUNT(*)` })
+        .from(reviews)
+        .where(eq(reviews.providerId, review.providerId));
 
-    if (avgRating[0]) {
-      await db
+      if (!aggregate) {
+        throw new Error("Review aggregate was not found after insert");
+      }
+
+      await tx
         .update(providers)
         .set({
-          rating: avgRating[0].avg.toFixed(2),
-          reviewCount: avgRating[0].count,
+          rating: Number(aggregate.avg).toFixed(2),
+          reviewCount: Number(aggregate.count),
           updatedAt: new Date(),
         })
         .where(eq(providers.id, review.providerId));
-    }
 
-    return newReview;
+      return newReview;
+    });
   }
 
   // Favorites operations

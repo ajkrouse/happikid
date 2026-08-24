@@ -160,8 +160,8 @@ export const providers = pgTable("providers", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
   // Matches public marketplace equality filters before pagination and ranking.
-  // The migration also owns four pg_trgm expression indexes for the ILIKE
-  // columns (name, description, address, city). Drizzle cannot model the
+  // The migration also owns five pg_trgm expression indexes for the ILIKE
+  // columns (name, description, address, city, and feature text). Drizzle cannot model the
   // pg_trgm operator class, so preserve those deliberate raw indexes when
   // generating future migrations.
   publicSearchFiltersIdx: index("providers_public_search_filters_idx")
@@ -677,7 +677,9 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
 });
 
 /** Client-safe schema for review creation — strips isVerified so clients cannot self-mark reviews as verified. */
-export const reviewClientCreateSchema = insertReviewSchema.omit({ isVerified: true });
+export const reviewClientCreateSchema = insertReviewSchema.omit({ isVerified: true }).extend({
+  rating: z.number().int().min(1, "Rating must be between 1 and 5").max(5, "Rating must be between 1 and 5"),
+});
 
 export const insertInquirySchema = createInsertSchema(inquiries).omit({
   id: true,

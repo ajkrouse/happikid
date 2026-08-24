@@ -10,6 +10,11 @@ import { createLogger } from "../logger";
 
 const log = createLogger("reviews");
 
+function postgresErrorCode(error: unknown): string | undefined {
+  const databaseError = error as { code?: string; cause?: { code?: string } };
+  return databaseError.code ?? databaseError.cause?.code;
+}
+
 export function registerReviewRoutes(app: Express): void {
   app.get("/api/providers/:id/reviews", async (req, res) => {
     try {
@@ -37,8 +42,11 @@ export function registerReviewRoutes(app: Express): void {
     } catch (error) {
       log.error({ err: error }, "Error creating review");
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid review data", { errors: error.errors });
-      if ((error as { code?: string }).code === "23505") {
+      if (postgresErrorCode(error) === "23505") {
         return apiError(res, 409, "You have already reviewed this provider");
+      }
+      if (postgresErrorCode(error) === "23514") {
+        return apiError(res, 400, "Invalid review data");
       }
       apiError(res, 500, "Failed to create review");
     }

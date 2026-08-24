@@ -2,3 +2,4 @@
 - [useFavoriteGroups hook](favorites-hook.md) — centralizes favoriteGroups localStorage logic; all 3 consumers (Search, ProviderCard, ComparisonModal) must use it instead of direct localStorage calls.
 - [API validation patterns](api-validation-patterns.md) — strict schemas, client-safe omit schemas, strictPathInt helper, claim UUID IDs
 - [Schema change checklist](schema-change-checklist.md) — db:push isn't enough (commit drizzle-kit generate output); canonical-owner lookups; strip party-private fields from list endpoints; hidden pricing never enters AI prompts
+- [Feature search indexes](feature-search-indexes.md) — PostgreSQL requires an immutable helper before trigram-indexing a text-array search expression.

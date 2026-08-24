@@ -1,10 +1,10 @@
 /**
- * Server-side tests — POST /api/providers (create branch) strips inverted closedDates.
+ * Server-side tests — POST /api/providers (create branch) rejects inverted closedDates.
  *
  * Confirms that when the authenticated user has NO existing provider, the POST
  * create-or-update handler (existingProviders.length === 0):
- * 1. Inverted entry (to < from) mixed with valid entries → only valid entries passed to storage.
- * 2. All entries inverted → closedDates set to null before storage call.
+ * 1. Inverted entries are rejected before storage, even when mixed with valid entries.
+ * 2. All entries inverted are rejected before storage.
  * 3. All entries valid (from <= to) → all kept unchanged.
  * 4. closedDates absent from body → storage called without closedDates interference.
  * 5. Unauthenticated request → 401.
@@ -144,14 +144,10 @@ beforeEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("POST /api/providers (create branch) — inverted closure filtering", () => {
-  it("passes only valid entries to storage when body has mixed inverted and valid closedDates", async () => {
+describe("POST /api/providers (create branch) — inverted closure validation", () => {
+  it("rejects mixed inverted and valid closedDates before storage", async () => {
     // No existing provider → triggers create branch
     vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([] as any);
-    vi.mocked(storage.createProvider).mockResolvedValue(
-      makeCreatedProvider({ closedDates: [VALID_ENTRY, VALID_ENTRY_2] }) as any
-    );
-
     const app = buildApp();
     const res = await request(app)
       .post("/api/providers")
@@ -161,31 +157,13 @@ describe("POST /api/providers (create branch) — inverted closure filtering", (
         closedDates: [INVERTED_ENTRY, VALID_ENTRY, INVERTED_ENTRY_2, VALID_ENTRY_2],
       });
 
-    expect(res.status).toBe(201);
-
-    // Capture the data passed to storage.createProvider
-    const [createArg] = vi.mocked(storage.createProvider).mock.calls[0];
-    expect(createArg.closedDates).toHaveLength(2);
-    expect(createArg.closedDates).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ to: VALID_ENTRY.to }),
-        expect.objectContaining({ to: VALID_ENTRY_2.to }),
-      ])
-    );
-    // Inverted entries must not reach storage
-    expect(createArg.closedDates).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ to: INVERTED_ENTRY.to })])
-    );
-    expect(createArg.closedDates).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ to: INVERTED_ENTRY_2.to })])
-    );
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ message: expect.stringMatching(/invalid provider data/i) });
+    expect(storage.createProvider).not.toHaveBeenCalled();
   });
 
-  it("sets closedDates to null in the storage call when all entries are inverted", async () => {
+  it("rejects all inverted closedDates before storage", async () => {
     vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([] as any);
-    vi.mocked(storage.createProvider).mockResolvedValue(
-      makeCreatedProvider({ closedDates: null }) as any
-    );
 
     const app = buildApp();
     const res = await request(app)
@@ -196,10 +174,9 @@ describe("POST /api/providers (create branch) — inverted closure filtering", (
         closedDates: [INVERTED_ENTRY, INVERTED_ENTRY_2],
       });
 
-    expect(res.status).toBe(201);
-
-    const [createArg] = vi.mocked(storage.createProvider).mock.calls[0];
-    expect(createArg.closedDates).toBeNull();
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ message: expect.stringMatching(/invalid provider data/i) });
+    expect(storage.createProvider).not.toHaveBeenCalled();
   });
 
   it("passes all entries unchanged to storage when all closedDates are valid", async () => {
