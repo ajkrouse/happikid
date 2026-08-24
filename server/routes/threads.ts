@@ -8,6 +8,11 @@ import { createLogger } from "../logger";
 import { sendNewMessageNotification } from "../services/email";
 import { generateReplyDraft } from "../services/aiReply";
 import type { Provider } from "@shared/schema";
+import {
+  getCanonicalProviderOwnerUserId,
+  isPublicProvider,
+  toPublicProvider,
+} from "../lib/providerAccess";
 
 const log = createLogger("threads");
 
@@ -30,9 +35,7 @@ const startThreadSchema = z.object({
  * Fall back to `userId` for listings that were created directly and never claimed.
  * Returns null only when neither field is set (no in-platform recipient exists).
  */
-function providerOwnerUserId(provider: Provider): string | null {
-  return provider.ownerUserId ?? provider.userId ?? null;
-}
+const providerOwnerUserId = getCanonicalProviderOwnerUserId;
 
 export function registerThreadRoutes(app: Express): void {
   /**
@@ -49,9 +52,9 @@ export function registerThreadRoutes(app: Express): void {
       }
       const { providerId, body } = parsed.data;
 
-      // Verify provider exists and has an in-platform recipient
+      // Messages can only be started for a currently family-visible listing.
       const provider = await storage.getProvider(providerId);
-      if (!provider) return apiError(res, 404, "Provider not found");
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
 
       const ownerUserId = providerOwnerUserId(provider);
       if (!ownerUserId) {
@@ -172,7 +175,11 @@ export function registerThreadRoutes(app: Express): void {
         ? thread
         : { ...thread, aiDraftBody: null, aiDraftMessageId: null };
 
-      res.json({ thread: responseThread, messages, provider });
+      res.json({
+        thread: responseThread,
+        messages,
+        provider: isProviderOwner ? provider : provider ? toPublicProvider(provider as any) : null,
+      });
     } catch (error) {
       log.error({ err: error }, "Error fetching thread");
       apiError(res, 500, "Failed to fetch conversation");
@@ -230,6 +237,9 @@ export function registerThreadRoutes(app: Express): void {
       const isProviderOwner = ownerUserId !== null && ownerUserId === userId;
       if (!isParent && !isProviderOwner) {
         return apiError(res, 403, "Access denied");
+      }
+      if (isParent && (!provider || !isPublicProvider(provider))) {
+        return apiError(res, 404, "Provider not found");
       }
 
       const parsed = sendMessageSchema.safeParse(req.body);

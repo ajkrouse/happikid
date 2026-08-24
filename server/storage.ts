@@ -346,9 +346,14 @@ export class DatabaseStorage implements IStorage {
     try {
       let conditions: any[] = [eq(providers.isActive, true)];
 
-      // By default, only show confirmed providers to the public
+      // Public search must apply the same publish policy as detail pages. Do
+      // not return hidden, pending, or unapproved rows even if a query fails.
       if (!filters?.includeUnconfirmed) {
-        conditions.push(eq(providers.licenseStatus, "confirmed"));
+        conditions.push(
+          eq(providers.licenseStatus, "confirmed"),
+          eq(providers.isProfileVisible, true),
+          eq(providers.isProfilePublic, true),
+        );
       }
 
       if (filters?.type) {
@@ -518,9 +523,7 @@ export class DatabaseStorage implements IStorage {
       return await query;
     } catch (error) {
       log.error({ err: error }, "Error in getProviders");
-      // Fallback to simple query without complex filters
-      const fallbackResults = await db.select().from(providers).where(eq(providers.isActive, true)).limit(20);
-      return (filters?.returnTotal ? { providers: fallbackResults, total: fallbackResults.length } : fallbackResults) as any;
+      throw error;
     }
   }
 

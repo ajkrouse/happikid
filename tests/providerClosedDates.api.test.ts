@@ -104,6 +104,10 @@ function makeProvider(overrides: Record<string, unknown> = {}) {
     id: 42,
     userId: "user_owner",
     name: "Happy Kids Daycare",
+    isActive: true,
+    licenseStatus: "confirmed",
+    isProfileVisible: true,
+    isProfilePublic: true,
     closedDates: null,
     ...overrides,
   };

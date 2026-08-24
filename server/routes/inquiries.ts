@@ -5,6 +5,7 @@ import { inquiryLimiter } from "../middleware/rateLimiter";
 import { inquiryClientCreateSchema } from "@shared/schema";
 import { strictPathInt } from "../lib/pathParams";
 import { apiError } from "../lib/apiError";
+import { isCanonicalProviderOwner, isPublicProvider } from "../lib/providerAccess";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -16,7 +17,7 @@ export function registerInquiryRoutes(app: Express): void {
       const providerId = strictPathInt(req.params.providerId);
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
-      if (!provider || provider.userId !== req.user?.claims?.sub) return apiError(res, 403, "Access denied");
+      if (!provider || !isCanonicalProviderOwner(provider, req.user?.claims?.sub)) return apiError(res, 403, "Access denied");
       res.json(await storage.getInquiriesByProviderId(providerId));
     } catch (error) {
       log.error({ err: error }, "Error fetching inquiries");
@@ -35,7 +36,7 @@ export function registerInquiryRoutes(app: Express): void {
 
   app.get("/api/inquiries/provider", isAuthenticated, async (req: any, res) => {
     try {
-      const providers = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      const providers = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
       if (providers.length === 0) return res.json([]);
       res.json(await storage.getInquiriesByProviderId(providers[0].id));
     } catch (error) {
@@ -50,6 +51,8 @@ export function registerInquiryRoutes(app: Express): void {
       // Use client-safe schema to strip userId/status from request body,
       // then enforce server-side values for those fields.
       const clientData = inquiryClientCreateSchema.parse(req.body);
+      const provider = await storage.getProvider(clientData.providerId);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
       const inquiryData = { ...clientData, userId, status: "pending" as const };
       res.status(201).json(await storage.createInquiry(inquiryData));
     } catch (error) {
@@ -74,7 +77,7 @@ export function registerInquiryRoutes(app: Express): void {
       // Confirm the inquiry belongs to one of this provider's listings
       const inquiry = await storage.getInquiry(id);
       if (!inquiry) return apiError(res, 404, "Inquiry not found");
-      const ownedProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      const ownedProviders = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
       const owns = ownedProviders.some((p) => p.id === inquiry.providerId);
       if (!owns) return apiError(res, 403, "Not authorized to reply to this inquiry");
 
@@ -99,7 +102,7 @@ export function registerInquiryRoutes(app: Express): void {
       const inquiry = await storage.getInquiry(inquiryId);
       if (!inquiry) return apiError(res, 404, "Inquiry not found");
       const provider = await storage.getProvider(inquiry.providerId);
-      if (!provider || provider.userId !== req.user?.claims?.sub) {
+      if (!provider || !isCanonicalProviderOwner(provider, req.user?.claims?.sub)) {
         return apiError(res, 403, "Access denied");
       }
 

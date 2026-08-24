@@ -33,7 +33,7 @@ vi.mock("../server/storage", () => ({
     getProvider: vi.fn(),
     updateProvider: vi.fn(),
     getProviders: vi.fn(),
-    getProvidersByUserId: vi.fn(),
+    getProvidersByCanonicalOwner: vi.fn(),
     getProviderWithDetails: vi.fn(),
     trackProfileView: vi.fn().mockResolvedValue(undefined),
     getProviderStats: vi.fn(),
@@ -123,7 +123,7 @@ function makeExistingProvider(overrides: Record<string, unknown> = {}) {
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  vi.mocked(storage.getProvidersByUserId).mockReset();
+  vi.mocked(storage.getProvidersByCanonicalOwner).mockReset();
   vi.mocked(storage.updateProvider).mockReset();
 });
 
@@ -134,7 +134,7 @@ beforeEach(() => {
 describe("POST /api/providers (update branch) — expired closure filtering", () => {
   it("passes only future entries to storage when body has mixed expired and future closedDates", async () => {
     const existing = makeExistingProvider();
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([existing] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([existing] as any);
     vi.mocked(storage.updateProvider).mockResolvedValue({
       ...existing,
       closedDates: [FUTURE_ENTRY, FUTURE_ENTRY_2],
@@ -171,7 +171,7 @@ describe("POST /api/providers (update branch) — expired closure filtering", ()
 
   it("sets closedDates to null in the storage call when all entries are expired", async () => {
     const existing = makeExistingProvider();
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([existing] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([existing] as any);
     vi.mocked(storage.updateProvider).mockResolvedValue({
       ...existing,
       closedDates: null,
@@ -191,7 +191,7 @@ describe("POST /api/providers (update branch) — expired closure filtering", ()
 
   it("passes all entries unchanged to storage when all closedDates are in the future", async () => {
     const existing = makeExistingProvider();
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([existing] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([existing] as any);
     vi.mocked(storage.updateProvider).mockResolvedValue({
       ...existing,
       closedDates: [FUTURE_ENTRY, FUTURE_ENTRY_2],
@@ -217,7 +217,7 @@ describe("POST /api/providers (update branch) — expired closure filtering", ()
 
   it("does not alter the storage call when closedDates is absent from the body", async () => {
     const existing = makeExistingProvider();
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([existing] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([existing] as any);
     vi.mocked(storage.updateProvider).mockResolvedValue({
       ...existing,
       name: "Updated Name",

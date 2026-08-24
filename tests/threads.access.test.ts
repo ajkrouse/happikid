@@ -89,6 +89,10 @@ function makeProvider(overrides: Record<string, unknown> = {}) {
     name: "Sunshine Daycare",
     ownerUserId: "user_provider",
     userId: "user_provider",
+    isActive: true,
+    licenseStatus: "confirmed",
+    isProfileVisible: true,
+    isProfilePublic: true,
     ...overrides,
   };
 }
@@ -516,6 +520,20 @@ describe("POST /api/threads — create thread", () => {
       .set("x-test-user", "user_parent")
       .send({ providerId: 42, body: "Hello!" });
     expect(res.status).toBe(404);
+  });
+
+  it("does not start a thread for a private provider", async () => {
+    vi.mocked(storage.getProvider).mockResolvedValue(
+      makeProvider({ isProfileVisible: false }) as any,
+    );
+
+    const res = await request(buildApp())
+      .post("/api/threads")
+      .set("x-test-user", "user_parent")
+      .send({ providerId: 42, body: "Hello!" });
+
+    expect(res.status).toBe(404);
+    expect(storage.getOrCreateThread).not.toHaveBeenCalled();
   });
 
   it("returns 422 when the provider has no in-platform owner", async () => {

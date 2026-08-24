@@ -33,7 +33,7 @@ vi.mock("../server/storage", () => ({
     getProvider: vi.fn(),
     updateProvider: vi.fn(),
     getProviders: vi.fn(),
-    getProvidersByUserId: vi.fn(),
+    getProvidersByCanonicalOwner: vi.fn(),
     getProviderWithDetails: vi.fn(),
     trackProfileView: vi.fn().mockResolvedValue(undefined),
     getProviderStats: vi.fn(),
@@ -135,7 +135,7 @@ function makeCreatedProvider(overrides: Record<string, unknown> = {}) {
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  vi.mocked(storage.getProvidersByUserId).mockReset();
+  vi.mocked(storage.getProvidersByCanonicalOwner).mockReset();
   vi.mocked(storage.createProvider).mockReset();
   vi.mocked(storage.addProviderLocation).mockReset();
 });
@@ -147,7 +147,7 @@ beforeEach(() => {
 describe("POST /api/providers (create branch) — inverted closure filtering", () => {
   it("passes only valid entries to storage when body has mixed inverted and valid closedDates", async () => {
     // No existing provider → triggers create branch
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([] as any);
     vi.mocked(storage.createProvider).mockResolvedValue(
       makeCreatedProvider({ closedDates: [VALID_ENTRY, VALID_ENTRY_2] }) as any
     );
@@ -182,7 +182,7 @@ describe("POST /api/providers (create branch) — inverted closure filtering", (
   });
 
   it("sets closedDates to null in the storage call when all entries are inverted", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([] as any);
     vi.mocked(storage.createProvider).mockResolvedValue(
       makeCreatedProvider({ closedDates: null }) as any
     );
@@ -203,7 +203,7 @@ describe("POST /api/providers (create branch) — inverted closure filtering", (
   });
 
   it("passes all entries unchanged to storage when all closedDates are valid", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([] as any);
     vi.mocked(storage.createProvider).mockResolvedValue(
       makeCreatedProvider({ closedDates: [VALID_ENTRY, VALID_ENTRY_2] }) as any
     );
@@ -231,7 +231,7 @@ describe("POST /api/providers (create branch) — inverted closure filtering", (
 
   it("accepts a same-day closure where from equals to (boundary: valid)", async () => {
     const SAME_DAY_ENTRY = { from: "2099-08-15", to: "2099-08-15", reason: "Staff training day" };
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([] as any);
     vi.mocked(storage.createProvider).mockResolvedValue(
       makeCreatedProvider({ closedDates: [SAME_DAY_ENTRY] }) as any
     );
@@ -250,7 +250,7 @@ describe("POST /api/providers (create branch) — inverted closure filtering", (
   });
 
   it("does not alter the storage call when closedDates is absent from the body", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([] as any);
     vi.mocked(storage.createProvider).mockResolvedValue(
       makeCreatedProvider() as any
     );

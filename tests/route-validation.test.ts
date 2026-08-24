@@ -241,6 +241,10 @@ const storedProvider = {
   ownerUserId: "user_owner",
   name: "Sunshine Daycare",
   type: "daycare",
+  isActive: true,
+  licenseStatus: "confirmed",
+  isProfileVisible: true,
+  isProfilePublic: true,
   borough: "Brooklyn",
   city: "New York",
   state: "NY",
@@ -250,7 +254,7 @@ const storedProvider = {
   claimStatus: "unclaimed",
   closedDates: null,
   schedule: null,
-  licenseStatus: "pending",
+  licenseStatus: "confirmed",
   licenseSubmittedAt: new Date(),
 };
 
@@ -285,14 +289,14 @@ const storedTourRequest = {
 
 describe("POST /api/providers — validation", () => {
   beforeEach(() => {
-    vi.mocked(storage.getProvidersByUserId).mockReset();
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockReset();
     vi.mocked(storage.createProvider).mockReset();
     vi.mocked(storage.updateProvider).mockReset();
     vi.mocked(storage.addProviderLocation).mockReset();
   });
 
   it("rejects an invalid location payload (non-integer capacity) → 400", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([]);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([]);
     const app = buildApp();
     const res = await request(app)
       .post("/api/providers")
@@ -306,7 +310,7 @@ describe("POST /api/providers — validation", () => {
   });
 
   it("rejects an invalid enrollmentStatus value on the create path → 400", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([]);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([]);
     const app = buildApp();
     const res = await request(app)
       .post("/api/providers")
@@ -317,7 +321,7 @@ describe("POST /api/providers — validation", () => {
   });
 
   it("rejects a non-numeric monthlyPrice → 400", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([]);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([]);
     const app = buildApp();
     const res = await request(app)
       .post("/api/providers")
@@ -328,7 +332,7 @@ describe("POST /api/providers — validation", () => {
   });
 
   it("accepts a valid create payload → 201", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([]);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([]);
     vi.mocked(storage.createProvider).mockResolvedValue({ ...storedProvider, id: 99 } as any);
     const app = buildApp();
     const res = await request(app)
@@ -349,7 +353,7 @@ describe("POST /api/providers — validation", () => {
   });
 
   it("accepts a valid update payload (existing provider) → 200", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([storedProvider as any]);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([storedProvider as any]);
     vi.mocked(storage.updateProvider).mockResolvedValue({ ...storedProvider, name: "Updated Name" } as any);
     const app = buildApp();
     const res = await request(app)
@@ -378,7 +382,7 @@ describe("PATCH /api/providers/:id — validation", () => {
   });
 
   it("rejects an invalid enrollmentStatus enum → 400", async () => {
-    vi.mocked(storage.getProvider).mockResolvedValue(storedProvider as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, licenseStatus: "pending" } as any);
     const app = buildApp();
     const res = await request(app)
       .patch("/api/providers/1")
@@ -389,7 +393,7 @@ describe("PATCH /api/providers/:id — validation", () => {
   });
 
   it("rejects a non-numeric monthlyPriceMin → 400", async () => {
-    vi.mocked(storage.getProvider).mockResolvedValue(storedProvider as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, licenseStatus: "pending" } as any);
     const app = buildApp();
     const res = await request(app)
       .patch("/api/providers/1")
@@ -431,7 +435,7 @@ describe("PATCH /api/providers/:id — validation", () => {
   });
 
   it("returns 403 when the authenticated user does not own the provider", async () => {
-    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "someone_else" } as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "someone_else", ownerUserId: "someone_else" } as any);
     const app = buildApp();
     const res = await request(app).patch("/api/providers/1").set(AUTH).send({ name: "Hack" });
     expect(res.status).toBe(403);
@@ -484,7 +488,7 @@ describe("PUT /api/providers/:id — validation", () => {
   });
 
   it("returns 403 when the caller does not own the provider", async () => {
-    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "someone_else" } as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "someone_else", ownerUserId: "someone_else" } as any);
     const app = buildApp();
     const res = await request(app).put("/api/providers/1").set(AUTH).send({ name: "Hack" });
     expect(res.status).toBe(403);
@@ -545,7 +549,7 @@ describe("POST /api/providers/:id/images — validation", () => {
   });
 
   it("returns 403 when the authenticated user does not own the provider", async () => {
-    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "someone_else" } as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "someone_else", ownerUserId: "someone_else" } as any);
     const app = buildApp();
     const res = await request(app)
       .post("/api/providers/1/images")
@@ -960,7 +964,7 @@ describe("POST /api/inquiries/:id/reply — validation", () => {
 
   it("accepts a valid reply → 200", async () => {
     vi.mocked(storage.getInquiry).mockResolvedValue(storedInquiry as any);
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([storedProvider as any]);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([storedProvider as any]);
     vi.mocked(storage.replyToInquiry).mockResolvedValue({ ...storedInquiry, providerReply: "Thanks!" } as any);
     const app = buildApp();
     const res = await request(app)
@@ -1009,7 +1013,7 @@ describe("PATCH /api/inquiries/:id/status — validation", () => {
 
   it("accepts a valid 'responded' status transition → 200", async () => {
     vi.mocked(storage.getInquiry).mockResolvedValue(storedInquiry as any);
-    vi.mocked(storage.getProvider).mockResolvedValue(storedProvider as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, licenseStatus: "pending" } as any);
     vi.mocked(storage.updateInquiryStatus).mockResolvedValue({ ...storedInquiry, status: "responded" } as any);
     const app = buildApp();
     const res = await request(app).patch("/api/inquiries/5/status").set(AUTH).send({ status: "responded" });
@@ -1029,7 +1033,7 @@ describe("PATCH /api/inquiries/:id/status — validation", () => {
 
   it("returns 403 when the authenticated user does not own the provider", async () => {
     vi.mocked(storage.getInquiry).mockResolvedValue(storedInquiry as any);
-    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "someone_else" } as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "someone_else", ownerUserId: "someone_else" } as any);
     const app = buildApp();
     const res = await request(app).patch("/api/inquiries/5/status").set(AUTH).send({ status: "responded" });
     expect(res.status).toBe(403);
@@ -1314,6 +1318,22 @@ describe("POST /api/providers/:id/tour-requests — validation", () => {
     expect(res.status).toBe(403);
     expect(storage.createTourRequest).not.toHaveBeenCalled();
   });
+
+  it("does not allow a parent to request a tour from a private provider", async () => {
+    vi.mocked(storage.getUser).mockResolvedValue(parentUser as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({
+      ...storedProvider,
+      isProfileVisible: false,
+    } as any);
+
+    const res = await request(buildApp())
+      .post("/api/providers/1/tour-requests")
+      .set(AUTH)
+      .send({ preferredDates: ["2026-09-10"], preferredTime: "morning" });
+
+    expect(res.status).toBe(404);
+    expect(storage.createTourRequest).not.toHaveBeenCalled();
+  });
 });
 
 // ============================================================================
@@ -1581,7 +1601,7 @@ describe("POST /api/admin/verifications/:providerId/reject — validation", () =
 
   it("accepts a valid rejection with a non-empty reason → 200", async () => {
     vi.mocked(storage.getUser).mockResolvedValue(adminUser as any);
-    vi.mocked(storage.getProvider).mockResolvedValue(storedProvider as any);
+    vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, licenseStatus: "pending" } as any);
     vi.mocked(storage.updateProvider).mockResolvedValue({ ...storedProvider, licenseStatus: "rejected" } as any);
     vi.mocked(storage.createAuditLog).mockResolvedValue(undefined as any);
     const app = buildApp();

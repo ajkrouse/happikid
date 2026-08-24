@@ -31,7 +31,7 @@ vi.mock("../server/replitAuth", () => ({
 
 vi.mock("../server/storage", () => ({
   storage: {
-    getProvidersByUserId: vi.fn(),
+    getProvidersByCanonicalOwner: vi.fn(),
     updateProvider: vi.fn(),
     getProviders: vi.fn(),
     getProvider: vi.fn(),
@@ -101,7 +101,7 @@ function makeProvider(overrides: Record<string, unknown> = {}) {
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  vi.mocked(storage.getProvidersByUserId).mockReset();
+  vi.mocked(storage.getProvidersByCanonicalOwner).mockReset();
   vi.mocked(storage.updateProvider).mockReset();
 });
 
@@ -117,7 +117,7 @@ describe("POST /api/providers/confirm-license — resubmission after rejection",
   });
 
   it("returns 404 when the authenticated user has no provider record", async () => {
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([]);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([]);
 
     const res = await request(buildApp())
       .post("/api/providers/confirm-license")
@@ -136,7 +136,7 @@ describe("POST /api/providers/confirm-license — resubmission after rejection",
       isProfileVisible: false,
     };
 
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([rejectedProvider] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([rejectedProvider] as any);
     vi.mocked(storage.updateProvider).mockResolvedValue(resubmittedProvider as any);
 
     const before = Date.now();
@@ -170,7 +170,7 @@ describe("POST /api/providers/confirm-license — resubmission after rejection",
       isVerified: true,
     });
 
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([confirmedProvider] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([confirmedProvider] as any);
 
     const res = await request(buildApp())
       .post("/api/providers/confirm-license")
@@ -193,7 +193,7 @@ describe("POST /api/providers/confirm-license — resubmission after rejection",
       licenseSubmittedAt: new Date().toISOString(),
     };
 
-    vi.mocked(storage.getProvidersByUserId).mockResolvedValue([pendingProvider] as any);
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([pendingProvider] as any);
     vi.mocked(storage.updateProvider).mockResolvedValue(refreshedProvider as any);
 
     const res = await request(buildApp())

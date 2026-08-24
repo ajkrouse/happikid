@@ -7,6 +7,7 @@ import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
 import { sendTourRequestNotification, sendTourStatusEmail } from "../services/email";
+import { getCanonicalProviderOwnerUserId, isPublicProvider } from "../lib/providerAccess";
 
 const log = createLogger("tourRequests");
 
@@ -27,7 +28,7 @@ export function registerTourRequestRoutes(app: Express): void {
       }
 
       const provider = await storage.getProvider(providerId);
-      if (!provider) return apiError(res, 404, "Provider not found");
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
 
       const parsed = tourRequestClientCreateSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -41,19 +42,23 @@ export function registerTourRequestRoutes(app: Express): void {
         status: "pending",
       });
 
-      // Fire-and-forget email to provider
-      if (provider.email) {
-        const parentName = [requester.firstName, requester.lastName].filter(Boolean).join(" ") || requester.email || "A parent";
-        sendTourRequestNotification({
-          recipientEmail: provider.email,
-          recipientName: provider.name,
-          parentName,
-          parentEmail: requester.email || "",
-          providerName: provider.name,
-          preferredDates: parsed.data.preferredDates,
-          preferredTime: parsed.data.preferredTime,
-          note: parsed.data.note ?? null,
-        }).catch(() => {});
+      // Notify the canonical listing owner, never a stale import/contact email.
+      const ownerUserId = getCanonicalProviderOwnerUserId(provider);
+      if (ownerUserId) {
+        const owner = await storage.getUser(ownerUserId);
+        if (owner?.email) {
+          const parentName = [requester.firstName, requester.lastName].filter(Boolean).join(" ") || requester.email || "A parent";
+          sendTourRequestNotification({
+            recipientEmail: owner.email,
+            recipientName: [owner.firstName, owner.lastName].filter(Boolean).join(" ") || provider.name,
+            parentName,
+            parentEmail: requester.email || "",
+            providerName: provider.name,
+            preferredDates: parsed.data.preferredDates,
+            preferredTime: parsed.data.preferredTime,
+            note: parsed.data.note ?? null,
+          }).catch(() => {});
+        }
       }
 
       res.status(201).json(tourRequest);

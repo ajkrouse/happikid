@@ -6,6 +6,15 @@ import { generateSearchSummary } from "../services/aiSummaries";
 import { insertProviderSchema, insertProviderUpdateSchema, insertProviderPhotoSchema, insertProviderImageSchema, insertProviderLocationSchema, providerClientUpdateSchema } from "@shared/schema";
 import { strictPathInt } from "../lib/pathParams";
 import { apiError } from "../lib/apiError";
+import {
+  isCanonicalProviderOwner,
+  isPublicProvider,
+  toPublicProvider,
+  toPublicProviderDetail,
+  toPublicProviderImage,
+  toPublicProviderPhoto,
+  toPublicProviderUpdate,
+} from "../lib/providerAccess";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -37,7 +46,7 @@ export function registerProviderRoutes(app: Express): void {
       ]);
       const allProviders = diverseProviders.flat();
       const shuffled = allProviders.sort(() => 0.5 - Math.random());
-      res.json(shuffled.slice(0, parseInt(limit as string)));
+      res.json(shuffled.slice(0, parseInt(limit as string)).map((provider) => toPublicProvider(provider as any)));
     } catch (error) {
       log.error({ err: error }, "Error fetching featured providers");
       apiError(res, 500, "Failed to fetch featured providers");
@@ -125,6 +134,12 @@ export function registerProviderRoutes(app: Express): void {
       }, "Provider filters received");
 
       const result = await storage.getProviders(filters);
+      const publicResult = Array.isArray(result)
+        ? result.map((provider) => toPublicProvider(provider as any))
+        : {
+            ...result,
+            providers: result.providers.map((provider) => toPublicProvider(provider as any)),
+          };
 
       if (search && (search as string).trim().length > 0) {
         const parsed = intelligentSearch.parseQuery(search as string);
@@ -138,22 +153,24 @@ export function registerProviderRoutes(app: Express): void {
         let aiSummaryResult = null;
         if (requestAiSummary === "true") {
           try {
-            const providersArray = Array.isArray(result) ? result : result.providers;
+            const providersArray = Array.isArray(publicResult)
+              ? publicResult
+              : publicResult.providers;
             aiSummaryResult = await generateSearchSummary(
-              search as string, providersArray,
+              search as string, providersArray as any,
               { matchedTerms: parsed.matchedTerms, confidence: parsed.confidence }
             );
           } catch (aiError) {
             log.error({ err: aiError }, "Error generating AI summary");
           }
         }
-        if (Array.isArray(result)) {
-          res.json({ providers: result, total: result.length, searchMetadata, ...(aiSummaryResult && { aiInsights: aiSummaryResult }) });
+        if (Array.isArray(publicResult)) {
+          res.json({ providers: publicResult, total: publicResult.length, searchMetadata, ...(aiSummaryResult && { aiInsights: aiSummaryResult }) });
         } else {
-          res.json({ ...result, searchMetadata, ...(aiSummaryResult && { aiInsights: aiSummaryResult }) });
+          res.json({ ...publicResult, searchMetadata, ...(aiSummaryResult && { aiInsights: aiSummaryResult }) });
         }
       } else {
-        res.json(result);
+        res.json(publicResult);
       }
     } catch (error) {
       log.error({ err: error }, "Error fetching providers");
@@ -164,7 +181,7 @@ export function registerProviderRoutes(app: Express): void {
   // Provider analytics for the authenticated provider owner
   app.get("/api/providers/analytics", isAuthenticated, async (req: any, res) => {
     try {
-      const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      const userProviders = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
       if (userProviders.length === 0) return apiError(res, 404, "No provider profile found");
       const provider = userProviders[0];
 
@@ -267,12 +284,15 @@ export function registerProviderRoutes(app: Express): void {
   });
 
   // Single provider by ID — also records a daily profile view
-  app.get("/api/providers/:id", async (req, res) => {
+  app.get("/api/providers/:id", async (req, res, next) => {
     try {
+      // Keep the specific analytics route reachable even though this dynamic
+      // public-detail route is registered earlier in the module.
+      if (req.params.id === "analytics") return next();
       const id = strictPathInt(req.params.id);
       if (!id) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProviderWithDetails(id);
-      if (!provider) return apiError(res, 404, "Provider not found");
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
       // Strip expired closure entries so families never see stale history
       const todayIso = new Date().toISOString().slice(0, 10);
       if (Array.isArray((provider as any).closedDates)) {
@@ -282,7 +302,7 @@ export function registerProviderRoutes(app: Express): void {
       }
       // Fire-and-forget: track the view without blocking the response
       storage.trackProfileView(id).catch(() => {});
-      res.json(provider);
+      res.json(toPublicProviderDetail(provider as any));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider");
       apiError(res, 500, "Failed to fetch provider");
@@ -292,7 +312,7 @@ export function registerProviderRoutes(app: Express): void {
   // Profile view trend — last 30 days of daily view counts for the authenticated provider
   app.get("/api/providers/analytics/views", isAuthenticated, async (req: any, res) => {
     try {
-      const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      const userProviders = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
       if (userProviders.length === 0) return apiError(res, 404, "No provider profile found");
       const trend = await storage.getProfileViewTrend(userProviders[0].id, 30);
       res.json(trend);
@@ -305,7 +325,7 @@ export function registerProviderRoutes(app: Express): void {
   // Score comparison — how this provider's optimization score ranks among similar listings
   app.get("/api/providers/analytics/score-comparison", isAuthenticated, async (req: any, res) => {
     try {
-      const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      const userProviders = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
       if (userProviders.length === 0) return apiError(res, 404, "No provider profile found");
       const provider = userProviders[0];
 
@@ -354,11 +374,11 @@ export function registerProviderRoutes(app: Express): void {
         validatedLocations = locResult.data;
       }
 
-      const existingProviders = await storage.getProvidersByUserId(userId);
+      const existingProviders = await storage.getProvidersByCanonicalOwner(userId);
 
       if (existingProviders.length > 0) {
-        // Update path: use providerClientUpdateSchema to strip server-controlled fields,
-        // then enforce userId from the authenticated session only.
+        // Update path: the canonical owner may update a claimed listing, but the
+        // historical userId remains unchanged after a claim transfer.
         const providerId = existingProviders[0].id;
         const parsed = providerClientUpdateSchema.partial().parse(providerData);
         // Lazy cleanup: drop any closure entries whose end date has already passed
@@ -367,8 +387,7 @@ export function registerProviderRoutes(app: Express): void {
           parsed.closedDates = parsed.closedDates.filter((e) => e.to >= todayIso);
           if (parsed.closedDates.length === 0) parsed.closedDates = null;
         }
-        const updateData = { ...parsed, userId };
-        const updatedProvider = await storage.updateProvider(providerId, updateData);
+        const updatedProvider = await storage.updateProvider(providerId, parsed);
         if (validatedLocations.length > 0) {
           const primary = validatedLocations.find((l) => l.isPrimary) || validatedLocations[0];
           if (primary) {
@@ -431,7 +450,7 @@ export function registerProviderRoutes(app: Express): void {
       if (!id) return apiError(res, 400, "Invalid provider ID");
       const userId = req.user?.claims?.sub;
       const existing = await storage.getProvider(id);
-      if (!existing || existing.userId !== userId) return apiError(res, 403, "Access denied");
+      if (!existing || !isCanonicalProviderOwner(existing, userId)) return apiError(res, 403, "Access denied");
       const parsed = providerClientUpdateSchema.partial().parse(req.body);
       // Lazy cleanup: drop any closure entries whose end date has already passed
       if (Array.isArray(parsed.closedDates)) {
@@ -439,7 +458,7 @@ export function registerProviderRoutes(app: Express): void {
         parsed.closedDates = parsed.closedDates.filter((e) => e.to >= todayIso);
         if (parsed.closedDates.length === 0) parsed.closedDates = null;
       }
-      res.json(await storage.updateProvider(id, { ...parsed, userId }));
+      res.json(await storage.updateProvider(id, parsed));
     } catch (error) {
       log.error({ err: error }, "Error updating provider");
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid provider data", { errors: error.errors });
@@ -454,7 +473,7 @@ export function registerProviderRoutes(app: Express): void {
       if (!id) return apiError(res, 400, "Invalid provider ID");
       const userId = req.user?.claims?.sub;
       const existing = await storage.getProvider(id);
-      if (!existing || existing.userId !== userId) return apiError(res, 403, "Access denied");
+      if (!existing || !isCanonicalProviderOwner(existing, userId)) return apiError(res, 403, "Access denied");
       const parsed = providerClientUpdateSchema.partial().parse(req.body);
       // Cross-field price validation: distinguish field presence (undefined = absent) from
       // explicit null (= clearing). Reject when exactly one bound is supplied (whether null or
@@ -487,7 +506,7 @@ export function registerProviderRoutes(app: Express): void {
         parsed.closedDates = parsed.closedDates.filter((e) => e.to >= todayIso);
         if (parsed.closedDates.length === 0) parsed.closedDates = null;
       }
-      res.json(await storage.updateProvider(id, { ...parsed, userId }));
+      res.json(await storage.updateProvider(id, parsed));
     } catch (error) {
       log.error({ err: error }, "Error updating provider");
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid provider data", { errors: error.errors });
@@ -499,7 +518,7 @@ export function registerProviderRoutes(app: Express): void {
   app.get("/api/providers/user/:userId", isAuthenticated, async (req: any, res) => {
     try {
       if (req.params.userId !== req.user?.claims?.sub) return apiError(res, 403, "Access denied");
-      res.json(await storage.getProvidersByUserId(req.params.userId));
+      res.json(await storage.getProvidersByCanonicalOwner(req.params.userId));
     } catch (error) {
       log.error({ err: error }, "Error fetching user providers");
       apiError(res, 500, "Failed to fetch providers");
@@ -509,7 +528,7 @@ export function registerProviderRoutes(app: Express): void {
   // Submit license for admin review
   app.post("/api/providers/confirm-license", isAuthenticated, async (req: any, res) => {
     try {
-      const userProviders = await storage.getProvidersByUserId(req.user?.claims?.sub);
+      const userProviders = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
       if (!userProviders?.length) return apiError(res, 404, "Provider not found");
       const existing = userProviders[0];
 
@@ -535,7 +554,9 @@ export function registerProviderRoutes(app: Express): void {
     try {
       const id = strictPathInt(req.params.id);
       if (!id) return apiError(res, 400, "Invalid provider ID");
-      res.json(await storage.getProviderImages(id));
+      const provider = await storage.getProvider(id);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
+      res.json((await storage.getProviderImages(id)).map(toPublicProviderImage));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider images");
       apiError(res, 500, "Failed to fetch images");
@@ -547,7 +568,7 @@ export function registerProviderRoutes(app: Express): void {
       const providerId = strictPathInt(req.params.id);
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
-      if (!provider || provider.userId !== req.user?.claims?.sub) return apiError(res, 403, "Access denied");
+      if (!provider || !isCanonicalProviderOwner(provider, req.user?.claims?.sub)) return apiError(res, 403, "Access denied");
       const parsed = insertProviderImageSchema.safeParse({ ...req.body, providerId });
       if (!parsed.success) {
         return apiError(res, 400, "Invalid image data", { errors: parsed.error.errors });
@@ -566,7 +587,7 @@ export function registerProviderRoutes(app: Express): void {
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
       if (!provider) return apiError(res, 404, "Provider not found");
-      if (provider.userId !== req.user?.claims?.sub && req.user?.claims?.role !== "admin") return apiError(res, 403, "Access denied");
+      if (!isCanonicalProviderOwner(provider, req.user?.claims?.sub) && req.user?.claims?.role !== "admin") return apiError(res, 403, "Access denied");
       const existingScore = await storage.getProviderScore?.(providerId);
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       if (existingScore?.lastCalculatedAt && new Date(existingScore.lastCalculatedAt) > oneHourAgo) {
@@ -615,7 +636,7 @@ export function registerProviderRoutes(app: Express): void {
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
       const provider = await storage.getProvider(providerId);
       if (!provider) return apiError(res, 404, "Provider not found");
-      if (provider.userId !== req.user?.claims?.sub && req.user?.claims?.role !== "admin") return apiError(res, 403, "Access denied");
+      if (!isCanonicalProviderOwner(provider, req.user?.claims?.sub) && req.user?.claims?.role !== "admin") return apiError(res, 403, "Access denied");
       const [images, reviews, inquiries] = await Promise.all([
         storage.getProviderImages(providerId),
         storage.getProviderReviews(providerId),
@@ -645,6 +666,8 @@ export function registerProviderRoutes(app: Express): void {
     try {
       const providerId = strictPathInt(req.params.id);
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
+      const provider = await storage.getProvider(providerId);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
       const updateData = insertProviderUpdateSchema.parse({
         ...req.body, userId: req.user?.claims?.sub, providerId,
       });
@@ -660,7 +683,14 @@ export function registerProviderRoutes(app: Express): void {
     try {
       const id = strictPathInt(req.params.id);
       if (!id) return apiError(res, 400, "Invalid provider ID");
-      res.json(await storage.getProviderUpdates(id));
+      const provider = await storage.getProvider(id);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
+      const updates = await storage.getProviderUpdates(id);
+      res.json(
+        updates
+          .filter((update) => update.status === "approved")
+          .map(toPublicProviderUpdate),
+      );
     } catch (error) {
       log.error({ err: error }, "Error fetching provider updates");
       apiError(res, 500, "Failed to fetch updates");
@@ -672,6 +702,8 @@ export function registerProviderRoutes(app: Express): void {
     try {
       const providerId = strictPathInt(req.params.id);
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
+      const provider = await storage.getProvider(providerId);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
       const userId = req.user?.claims?.sub;
       const photoData = insertProviderPhotoSchema.parse({ ...req.body, userId, providerId });
       try {
@@ -693,8 +725,10 @@ export function registerProviderRoutes(app: Express): void {
     try {
       const id = strictPathInt(req.params.id);
       if (!id) return apiError(res, 400, "Invalid provider ID");
+      const provider = await storage.getProvider(id);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
       const photos = await storage.getProviderPhotos(id);
-      res.json(photos.filter((p) => p.status === "approved"));
+      res.json(photos.filter((photo) => photo.status === "approved").map(toPublicProviderPhoto));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider photos");
       apiError(res, 500, "Failed to fetch photos");

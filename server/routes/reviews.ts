@@ -4,6 +4,7 @@ import { isAuthenticated } from "../replitAuth";
 import { reviewClientCreateSchema, insertReviewVoteSchema } from "@shared/schema";
 import { strictPathInt } from "../lib/pathParams";
 import { apiError } from "../lib/apiError";
+import { isPublicProvider, toPublicReview } from "../lib/providerAccess";
 import { z } from "zod";
 import { createLogger } from "../logger";
 
@@ -14,7 +15,9 @@ export function registerReviewRoutes(app: Express): void {
     try {
       const id = strictPathInt(req.params.id);
       if (!id) return apiError(res, 400, "Invalid provider ID");
-      res.json(await storage.getReviewsByProviderId(id));
+      const provider = await storage.getProvider(id);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
+      res.json((await storage.getReviewsByProviderId(id)).map(toPublicReview));
     } catch (error) {
       log.error({ err: error }, "Error fetching reviews");
       apiError(res, 500, "Failed to fetch reviews");
@@ -25,10 +28,12 @@ export function registerReviewRoutes(app: Express): void {
     try {
       const providerId = strictPathInt(req.params.id);
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
+      const provider = await storage.getProvider(providerId);
+      if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
       const reviewData = reviewClientCreateSchema.parse({
         ...req.body, providerId, userId: req.user?.claims?.sub,
       });
-      res.status(201).json(await storage.createReview(reviewData));
+      res.status(201).json(toPublicReview(await storage.createReview(reviewData)));
     } catch (error) {
       log.error({ err: error }, "Error creating review");
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid review data", { errors: error.errors });
