@@ -1,0 +1,35 @@
+You are an expert backend security and full-stack engineer. Your task is to execute "Sprint 0"—a high-priority security, authorization, and privacy hardening pass on this application before any external alpha users are invited. 
+
+Please review the codebase and systematically implement the following 5 requirements:
+
+### 1. Enforce Public Provider Visibility
+- Update public-facing endpoints (detail, messaging, tours, image retrieval) to strictly block listings that are inactive, pending, rejected, or hidden.
+- Ensure endpoints return safe public DTOs rather than exposing raw database records or sensitive provider fields.
+
+### 2. Centralize Ownership Checks
+- Make `ownerUserId` the single source of truth for claimed listings.
+- Apply consistent ownership authorization checks across profile edits, image management, analytics, inquiries, messaging, and tour requests.
+
+### 3. Fix Fail-Open Search Behavior
+- Refactor provider search queries so that if a search query fails or errors out, it returns a controlled error response rather than failing-open to all active providers without verification filters.
+
+### 4. Remove Sensitive Response Logging
+- Audit API logging middleware/interceptors and stop logging full response bodies.
+- Redact sensitive text fields, including message content, email addresses, tour details, and any PII.
+
+### 5. Add Comprehensive Regression Tests
+Implement automated tests covering the following critical security scenarios:
+- Unauthenticated users cannot access private/unverified providers.
+- Former listing owners cannot edit a claimed listing.
+- Current verified claimants can edit their listing.
+- Private providers cannot receive messages or tour requests.
+- Search failures never leak unconfirmed providers.
+
+### Definition of Done (Exit Criteria)
+Do not complete the task until:
+- All P0 authorization and privacy findings are fully patched.
+- The new regression tests are written and passing.
+- No public-facing endpoint returns private provider fields.
+- The project passes all TypeScript checks and the existing server test suite successfully.
+
+Start by auditing the codebase to locate the authorization layers, search queries, and logging configuration, then implement the fixes step-by-step.
