@@ -21,6 +21,16 @@ import { createLogger } from "../logger";
 
 const log = createLogger("providers");
 
+function postgresErrorCode(error: unknown): string | undefined {
+  let current: unknown = error;
+  for (let depth = 0; depth < 4 && current && typeof current === "object"; depth += 1) {
+    const databaseError = current as { code?: unknown; cause?: unknown };
+    if (typeof databaseError.code === "string") return databaseError.code;
+    current = databaseError.cause;
+  }
+  return undefined;
+}
+
 /**
  * Returns an opaque, stable per-visitor key for daily profile-view deduplication.
  * Authenticated identities and anonymous session IDs are hashed before storage.
@@ -455,6 +465,7 @@ export function registerProviderRoutes(app: Express): void {
     } catch (error) {
       log.error({ err: error }, "Error creating/updating provider");
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid provider data", { errors: error.errors });
+      if (postgresErrorCode(error) === "23514") return apiError(res, 400, "Invalid provider data");
       apiError(res, 500, "Failed to create/update provider");
     }
   });
@@ -478,6 +489,7 @@ export function registerProviderRoutes(app: Express): void {
     } catch (error) {
       log.error({ err: error }, "Error updating provider");
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid provider data", { errors: error.errors });
+      if (postgresErrorCode(error) === "23514") return apiError(res, 400, "Invalid provider data");
       apiError(res, 500, "Failed to update provider");
     }
   });
@@ -526,6 +538,7 @@ export function registerProviderRoutes(app: Express): void {
     } catch (error) {
       log.error({ err: error }, "Error updating provider");
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid provider data", { errors: error.errors });
+      if (postgresErrorCode(error) === "23514") return apiError(res, 400, "Invalid provider data");
       apiError(res, 500, "Failed to update provider");
     }
   });

@@ -9,7 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { and, eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { DatabaseStorage } from "../server/storage";
-import { favorites, providerProfileViews, providers, users } from "@shared/schema";
+import { favorites, providerProfileViews, providers, threads, users } from "@shared/schema";
 
 const TEST_SCOPE = `__idempotency_${Date.now()}__`;
 const TEST_USER_ID = `${TEST_SCOPE}_parent`;
@@ -99,5 +99,20 @@ describe("DatabaseStorage high-frequency actions", () => {
       .from(providers)
       .where(eq(providers.id, providerId));
     expect(Number(provider.profileViews)).toBe(1);
+  });
+
+  it("reuses one thread when concurrent callers start the same conversation", async () => {
+    const results = await Promise.all(
+      Array.from({ length: 12 }, () => storage.getOrCreateThread(TEST_USER_ID, providerId)),
+    );
+
+    expect(new Set(results.map((thread) => thread.id)).size).toBe(1);
+    expect(results.every((thread) => thread.parentUserId === TEST_USER_ID && thread.providerId === providerId)).toBe(true);
+
+    const savedThreads = await db
+      .select()
+      .from(threads)
+      .where(and(eq(threads.parentUserId, TEST_USER_ID), eq(threads.providerId, providerId)));
+    expect(savedThreads).toHaveLength(1);
   });
 });

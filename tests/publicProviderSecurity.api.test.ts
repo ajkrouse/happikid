@@ -286,6 +286,22 @@ describe("claimed provider ownership", () => {
 });
 
 describe("review integrity", () => {
+  it("returns a conflict for a direct PostgreSQL duplicate error", async () => {
+    vi.mocked(storage.getProvider).mockResolvedValue(publicProvider() as any);
+    vi.mocked(storage.createReview).mockRejectedValue({ code: "23505" });
+
+    const res = await request(buildApp())
+      .post("/api/providers/7/reviews")
+      .set("x-test-user", "parent")
+      .send({ rating: 5, title: "Great care", content: "My child had a great experience." });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/already reviewed/i),
+    });
+  });
+
   it("returns a conflict when a parent submits a second review for the same provider", async () => {
     vi.mocked(storage.getProvider).mockResolvedValue(publicProvider() as any);
     vi.mocked(storage.createReview).mockRejectedValue({ cause: { code: "23505" } });
@@ -302,13 +318,13 @@ describe("review integrity", () => {
     });
   });
 
-  it("rejects an out-of-range review rating before it reaches storage", async () => {
+  it.each([0, 6, 3.5])("rejects an invalid review rating (%s) before it reaches storage", async (rating) => {
     vi.mocked(storage.getProvider).mockResolvedValue(publicProvider() as any);
 
     const res = await request(buildApp())
       .post("/api/providers/7/reviews")
       .set("x-test-user", "parent")
-      .send({ rating: 0, title: "Invalid rating" });
+      .send({ rating, title: "Invalid rating" });
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ ok: false, message: expect.stringMatching(/invalid review data/i) });

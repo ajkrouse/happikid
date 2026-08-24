@@ -11,8 +11,13 @@ import { createLogger } from "../logger";
 const log = createLogger("reviews");
 
 function postgresErrorCode(error: unknown): string | undefined {
-  const databaseError = error as { code?: string; cause?: { code?: string } };
-  return databaseError.code ?? databaseError.cause?.code;
+  let current: unknown = error;
+  for (let depth = 0; depth < 4 && current && typeof current === "object"; depth += 1) {
+    const databaseError = current as { code?: unknown; cause?: unknown };
+    if (typeof databaseError.code === "string") return databaseError.code;
+    current = databaseError.cause;
+  }
+  return undefined;
 }
 
 export function registerReviewRoutes(app: Express): void {

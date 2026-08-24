@@ -59,6 +59,7 @@ import {
   type ThreadMessage,
   type TourRequest,
   type InsertTourRequest,
+  providerClosedDatesSchema,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "drizzle-orm";
@@ -66,6 +67,14 @@ import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns } from "dri
 export interface FavoriteWriteResult {
   favorite: Favorite;
   created: boolean;
+}
+
+function validateProviderClosedDates<T extends { closedDates?: unknown }>(provider: T): T {
+  if (provider.closedDates === undefined || provider.closedDates === null) return provider;
+  return {
+    ...provider,
+    closedDates: providerClosedDatesSchema.parse(provider.closedDates),
+  };
 }
 
 export interface IStorage {
@@ -548,14 +557,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProvider(provider: InsertProvider): Promise<Provider> {
-    const [newProvider] = await db.insert(providers).values(provider as any).returning();
+    const validatedProvider = validateProviderClosedDates(provider);
+    const [newProvider] = await db.insert(providers).values(validatedProvider as any).returning();
     return newProvider;
   }
 
   async updateProvider(id: number, provider: Partial<InsertProvider>): Promise<Provider> {
+    const validatedProvider = validateProviderClosedDates(provider);
     const [updatedProvider] = await db
       .update(providers)
-      .set({ ...(provider as any), updatedAt: new Date() })
+      .set({ ...(validatedProvider as any), updatedAt: new Date() })
       .where(eq(providers.id, id))
       .returning();
     return updatedProvider;
@@ -1304,18 +1315,28 @@ export class DatabaseStorage implements IStorage {
   // ─── Thread (in-platform messaging) operations ──────────────────────────────
 
   async getOrCreateThread(parentUserId: string, providerId: number): Promise<Thread> {
-    // Try to find existing thread first
-    const [existing] = await db
-      .select()
-      .from(threads)
-      .where(and(eq(threads.parentUserId, parentUserId), eq(threads.providerId, providerId)));
-    if (existing) return existing;
-    // Create new thread
-    const [thread] = await db
-      .insert(threads)
-      .values({ parentUserId, providerId, status: "open" })
-      .returning();
-    return thread;
+    // The unique parent/provider constraint is the single source of truth.
+    // Insert first so concurrent callers cannot both observe an absent thread;
+    // a loser of the conflict reads and reuses the thread created by the winner.
+    return await db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(threads)
+        .values({ parentUserId, providerId, status: "open" })
+        .onConflictDoNothing({
+          target: [threads.parentUserId, threads.providerId],
+        })
+        .returning();
+      if (created) return created;
+
+      const [existing] = await tx
+        .select()
+        .from(threads)
+        .where(and(eq(threads.parentUserId, parentUserId), eq(threads.providerId, providerId)));
+      if (!existing) {
+        throw new Error("Thread conflict did not resolve to an existing thread");
+      }
+      return existing;
+    });
   }
 
   async getThread(id: number): Promise<Thread | undefined> {

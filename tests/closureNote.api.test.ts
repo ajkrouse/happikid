@@ -265,6 +265,22 @@ describe("PATCH /api/providers/:id — closure note persistence", () => {
 // ---------------------------------------------------------------------------
 
 describe("PATCH /api/providers/:id — closedDates reason length", () => {
+  it.each([
+    ["an impossible calendar day", { from: "2026-02-30", to: "2026-03-02" }],
+    ["an inverted range", { from: "2026-12-27", to: "2026-12-24" }],
+  ])("rejects %s before it reaches storage", async (_description, closedDate) => {
+    vi.mocked(storage.getProvider).mockResolvedValue(makeStoredProvider() as any);
+
+    const res = await request(buildApp())
+      .patch("/api/providers/10")
+      .set("x-test-user", "user_owner")
+      .send({ closedDates: [closedDate] });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ ok: false, message: expect.stringMatching(/invalid provider data/i) });
+    expect(storage.updateProvider).not.toHaveBeenCalled();
+  });
+
   it("rejects overlapping closedDates ranges before they reach storage", async () => {
     vi.mocked(storage.getProvider).mockResolvedValue(makeStoredProvider() as any);
 
@@ -397,6 +413,19 @@ describe("PATCH /api/providers/:id — closedDates reason length", () => {
 
     expect(res.status).toBe(200);
     expect(storage.updateProvider).toHaveBeenCalled();
+  });
+
+  it("returns a client-safe validation error when the database closure guard rejects a write", async () => {
+    vi.mocked(storage.getProvider).mockResolvedValue(makeStoredProvider() as any);
+    vi.mocked(storage.updateProvider).mockRejectedValue({ cause: { cause: { code: "23514" } } });
+
+    const res = await request(buildApp())
+      .patch("/api/providers/10")
+      .set("x-test-user", "user_owner")
+      .send({ closedDates: [{ from: "2026-12-24", to: "2026-12-26" }] });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ ok: false, message: expect.stringMatching(/invalid provider data/i) });
   });
 });
 

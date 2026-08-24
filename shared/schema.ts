@@ -483,6 +483,56 @@ const _strictOptDecStr = z.preprocess(
   ])
 ).nullable().optional();
 
+/**
+ * Validates provider closure ranges independently of a full provider payload.
+ * Storage also uses this schema so internal write paths cannot bypass the same
+ * calendar, ordering, and overlap safeguards applied to API requests.
+ */
+export const providerClosedDatesSchema = z.array(
+  z.object({
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
+    reason: z.string().max(200).optional(),
+  }).superRefine((entry, ctx) => {
+    // JavaScript normalizes impossible dates (for example, Feb 30), so round-trip
+    // each component before accepting it as a real calendar date.
+    const strictParseIso = (iso: string): Date | null => {
+      const [year, month, day] = iso.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      return date.getFullYear() === year
+        && date.getMonth() === month - 1
+        && date.getDate() === day
+        ? date
+        : null;
+    };
+    const fromDate = strictParseIso(entry.from);
+    const toDate = strictParseIso(entry.to);
+    if (fromDate === null) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Invalid calendar date: ${entry.from}`, path: ["from"] });
+    }
+    if (toDate === null) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Invalid calendar date: ${entry.to}`, path: ["to"] });
+    }
+    if (fromDate !== null && toDate !== null && entry.to < entry.from) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "End date must be on or after start date", path: ["to"] });
+    }
+  }),
+).superRefine((entries, ctx) => {
+  for (let index = 0; index < entries.length; index += 1) {
+    for (let comparison = index + 1; comparison < entries.length; comparison += 1) {
+      const first = entries[index];
+      const second = entries[comparison];
+      if (first.from <= second.to && second.from <= first.to) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Closure date ranges cannot overlap",
+          path: [comparison],
+        });
+      }
+    }
+  }
+});
+
 // Insert schemas
 export const insertProviderSchema = createInsertSchema(providers).omit({
   id: true,
@@ -566,48 +616,7 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
       })
   ).optional().nullable(),
   // Structured closure date ranges
-  closedDates: z.array(
-    z.object({
-      from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
-      to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
-      reason: z.string().max(200).optional(),
-    }).superRefine((entry, ctx) => {
-      // Strict calendar validation: parse components and verify they round-trip exactly.
-      // JavaScript's Date normalises impossible values (e.g. Feb 30 → Mar 2) so we must
-      // compare the constructed date back against the original components.
-      function strictParseIso(iso: string): Date | null {
-        const [y, m, d] = iso.split("-").map(Number);
-        const dt = new Date(y, m - 1, d); // local, no timezone shift
-        if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
-        return dt;
-      }
-      const fromDate = strictParseIso(entry.from);
-      const toDate = strictParseIso(entry.to);
-      if (fromDate === null) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Invalid calendar date: ${entry.from}`, path: ["from"] });
-      }
-      if (toDate === null) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Invalid calendar date: ${entry.to}`, path: ["to"] });
-      }
-      if (fromDate !== null && toDate !== null && entry.to < entry.from) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "End date must be on or after start date", path: ["to"] });
-      }
-    })
-  ).superRefine((entries, ctx) => {
-    for (let i = 0; i < entries.length; i += 1) {
-      for (let j = i + 1; j < entries.length; j += 1) {
-        const first = entries[i];
-        const second = entries[j];
-        if (first.from <= second.to && second.from <= first.to) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Closure date ranges cannot overlap",
-            path: [j],
-          });
-        }
-      }
-    }
-  }).optional().nullable(),
+  closedDates: providerClosedDatesSchema.optional().nullable(),
 });
 
 /**
@@ -678,7 +687,7 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
 
 /** Client-safe schema for review creation — strips isVerified so clients cannot self-mark reviews as verified. */
 export const reviewClientCreateSchema = insertReviewSchema.omit({ isVerified: true }).extend({
-  rating: z.number().int().min(1, "Rating must be between 1 and 5").max(5, "Rating must be between 1 and 5"),
+  rating: z.number().finite().int().min(1, "Rating must be between 1 and 5").max(5, "Rating must be between 1 and 5"),
 });
 
 export const insertInquirySchema = createInsertSchema(inquiries).omit({
