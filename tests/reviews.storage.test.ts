@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
-import { providers, users } from "@shared/schema";
+import { providers, reviews, users } from "@shared/schema";
 import { DatabaseStorage } from "../server/storage";
 
 describe("DatabaseStorage.createReview", () => {
@@ -50,6 +50,48 @@ describe("DatabaseStorage.createReview", () => {
       }
       await db.delete(users).where(eq(users.id, userOneId));
       await db.delete(users).where(eq(users.id, userTwoId));
+    }
+  });
+
+  it("rejects a duplicate provider/user review through the database constraint", async () => {
+    const suffix = randomUUID();
+    const userId = `review-duplicate-${suffix}`;
+    let providerId: number | undefined;
+
+    try {
+      const [provider] = await db.insert(providers).values({
+        name: `Duplicate Review ${suffix}`,
+        address: "1 Test Street",
+        borough: "Test Borough",
+        city: "Review Test City",
+        state: "NY",
+        zipCode: "10001",
+        type: "daycare",
+        ageRangeMin: 0,
+        ageRangeMax: 60,
+        monthlyPrice: "1000",
+      }).returning({ id: providers.id });
+      providerId = provider.id;
+      await db.insert(users).values({ id: userId });
+
+      const storage = new DatabaseStorage();
+      await storage.createReview({ providerId, userId, rating: 4 });
+
+      await expect(
+        storage.createReview({ providerId, userId, rating: 5 }),
+      ).rejects.toBeDefined();
+
+      const savedReviews = await db
+        .select()
+        .from(reviews)
+        .where(eq(reviews.providerId, providerId));
+      expect(savedReviews).toHaveLength(1);
+      expect(savedReviews[0].rating).toBe(4);
+    } finally {
+      if (providerId) {
+        await db.delete(providers).where(eq(providers.id, providerId));
+      }
+      await db.delete(users).where(eq(users.id, userId));
     }
   });
 });

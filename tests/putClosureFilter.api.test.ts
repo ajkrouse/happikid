@@ -133,6 +133,25 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("PUT /api/providers/:id — expired closure filtering", () => {
+  it("rejects overlapping closure ranges before they reach storage", async () => {
+    const existing = makeExistingProvider();
+    vi.mocked(storage.getProvider).mockResolvedValue(existing as any);
+
+    const res = await request(buildApp())
+      .put("/api/providers/42")
+      .set("x-test-user", "user_owner")
+      .send({
+        closedDates: [
+          { from: "2099-07-01", to: "2099-07-14" },
+          { from: "2099-07-14", to: "2099-07-21" },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ ok: false, message: expect.stringMatching(/invalid provider data/i) });
+    expect(storage.updateProvider).not.toHaveBeenCalled();
+  });
+
   it("passes only future entries to storage when body has mixed expired and future closedDates", async () => {
     const existing = makeExistingProvider();
     vi.mocked(storage.getProvider).mockResolvedValue(existing as any);

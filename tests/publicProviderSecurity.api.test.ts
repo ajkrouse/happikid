@@ -286,6 +286,28 @@ describe("claimed provider ownership", () => {
 });
 
 describe("review integrity", () => {
+  it.each([1, 5])("accepts the rating boundary %s", async (rating) => {
+    vi.mocked(storage.getProvider).mockResolvedValue(publicProvider() as any);
+    vi.mocked(storage.createReview).mockResolvedValue({
+      id: 1,
+      providerId: 7,
+      userId: "parent",
+      rating,
+      title: "Boundary rating",
+      content: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(buildApp())
+      .post("/api/providers/7/reviews")
+      .set("x-test-user", "parent")
+      .send({ rating, title: "Boundary rating" });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ id: 1, rating });
+  });
+
   it("returns a conflict for a direct PostgreSQL duplicate error", async () => {
     vi.mocked(storage.getProvider).mockResolvedValue(publicProvider() as any);
     vi.mocked(storage.createReview).mockRejectedValue({ code: "23505" });
