@@ -42,6 +42,16 @@ vi.mock("../server/storage", () => ({
     createProviderUpdate: vi.fn(),
     getProviderPhotos: vi.fn(),
     createProviderPhoto: vi.fn(),
+    getOrCreateThread: vi.fn(),
+    createThreadMessage: vi.fn(),
+    getUser: vi.fn(),
+    getThread: vi.fn(),
+    getThreadMessages: vi.fn(),
+    markThreadMessagesRead: vi.fn(),
+    getThreadsForUser: vi.fn(),
+    getThreadsByProviderId: vi.fn(),
+    getProvidersByCanonicalOwner: vi.fn(),
+    createTourRequest: vi.fn(),
   },
 }));
 
@@ -69,12 +79,16 @@ vi.mock("../server/logger", () => ({
 import { storage } from "../server/storage";
 import { registerProviderRoutes } from "../server/routes/providers";
 import { registerReviewRoutes } from "../server/routes/reviews";
+import { registerThreadRoutes } from "../server/routes/threads";
+import { registerTourRequestRoutes } from "../server/routes/tourRequests";
 
 function buildApp() {
   const app = express();
   app.use(express.json());
   registerProviderRoutes(app);
   registerReviewRoutes(app);
+  registerThreadRoutes(app);
+  registerTourRequestRoutes(app);
   return app;
 }
 
@@ -101,15 +115,46 @@ beforeEach(() => {
 });
 
 describe("public provider visibility", () => {
-  it("returns 404 to an unauthenticated visitor for a private or unverified provider", async () => {
+  it.each([
+    ["inactive", { isActive: false }],
+    ["pending", { licenseStatus: "pending" }],
+    ["rejected", { licenseStatus: "rejected", isProfileVisible: false }],
+    ["hidden", { isProfileVisible: false }],
+    ["unpublished", { isProfilePublic: false }],
+  ])("returns 404 to an unauthenticated visitor for an %s provider", async (_state, overrides) => {
     vi.mocked(storage.getProviderWithDetails).mockResolvedValue(
-      publicProvider({ isProfileVisible: false }) as any,
+      publicProvider(overrides) as any,
     );
 
     const res = await request(buildApp()).get("/api/providers/7");
 
     expect(res.status).toBe(404);
     expect(storage.trackProfileView).not.toHaveBeenCalled();
+  });
+
+  it("blocks private providers from receiving messages or tour requests", async () => {
+    vi.mocked(storage.getProvider).mockResolvedValue(
+      publicProvider({ isProfileVisible: false }) as any,
+    );
+    vi.mocked(storage.getUser).mockResolvedValue({ id: "parent", role: "parent" } as any);
+    const app = buildApp();
+
+    const [message, tour] = await Promise.all([
+      request(app)
+        .post("/api/threads")
+        .set("x-test-user", "parent")
+        .send({ providerId: 7, body: "Is there availability?" }),
+      request(app)
+        .post("/api/providers/7/tour-requests")
+        .set("x-test-user", "parent")
+        .send({ providerId: 7, preferredDates: ["2026-09-10"], preferredTime: "morning" }),
+    ]);
+
+    expect(message.status).toBe(404);
+    expect(tour.status).toBe(404);
+    expect(storage.getOrCreateThread).not.toHaveBeenCalled();
+    expect(storage.createThreadMessage).not.toHaveBeenCalled();
+    expect(storage.createTourRequest).not.toHaveBeenCalled();
   });
 
   it("blocks public review, update, and photo routes for a private provider", async () => {
