@@ -21,7 +21,10 @@ export function registerFavoriteRoutes(app: Express): void {
     try {
       const providerId = strictPathInt(req.params.providerId);
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
-      res.status(201).json(await storage.addFavorite(req.user?.claims?.sub, providerId));
+      // Retries and concurrent requests return the canonical bookmark instead
+      // of surfacing the unique-key conflict.
+      const result = await storage.addFavorite(req.user?.claims?.sub, providerId);
+      res.status(result.created ? 201 : 200).json(result.favorite);
     } catch (error) {
       log.error({ err: error }, "Error adding favorite");
       apiError(res, 500, "Failed to add favorite");
