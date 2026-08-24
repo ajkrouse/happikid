@@ -71,6 +71,13 @@
       "when": 1787060774762,
       "tag": "0009_ai_auto_reply",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1787600864164,
+      "tag": "0010_marketplace_integrity",
+      "breakpoints": true
     }
   ]
 }

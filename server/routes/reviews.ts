@@ -37,6 +37,9 @@ export function registerReviewRoutes(app: Express): void {
     } catch (error) {
       log.error({ err: error }, "Error creating review");
       if (error instanceof z.ZodError) return apiError(res, 400, "Invalid review data", { errors: error.errors });
+      if ((error as { code?: string }).code === "23505") {
+        return apiError(res, 409, "You have already reviewed this provider");
+      }
       apiError(res, 500, "Failed to create review");
     }
   });

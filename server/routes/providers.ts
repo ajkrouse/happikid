@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import crypto from "crypto";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { intelligentSearch } from "../intelligentSearch";
@@ -19,6 +20,27 @@ import { z } from "zod";
 import { createLogger } from "../logger";
 
 const log = createLogger("providers");
+
+/**
+ * Returns an opaque, stable per-visitor key for daily profile-view deduplication.
+ * Authenticated identities and anonymous session IDs are hashed before storage.
+ */
+function getProfileViewViewerKey(req: any): string | null {
+  const userId = req.user?.claims?.sub;
+  let identity: string | null = typeof userId === "string" && userId.length > 0
+    ? `user:${userId}`
+    : null;
+
+  if (!identity && req.session) {
+    if (!req.session.providerViewVisitorId) {
+      req.session.providerViewVisitorId = crypto.randomUUID();
+    }
+    identity = `visitor:${req.session.providerViewVisitorId}`;
+  }
+
+  if (!identity) return null;
+  return crypto.createHash("sha256").update(identity).digest("hex");
+}
 
 // Schema for location items submitted in the provider create/update body.
 // Capacity is optional/nullable but must be a non-negative integer when supplied — reject anything else.
@@ -300,8 +322,10 @@ export function registerProviderRoutes(app: Express): void {
           (e: any) => typeof e?.to === "string" && e.to >= todayIso
         );
       }
-      // Fire-and-forget: track the view without blocking the response
-      storage.trackProfileView(id).catch(() => {});
+      // Fire-and-forget: track the first view for this visitor today without
+      // blocking the response. setupAuth supplies the session in production.
+      const viewerKey = getProfileViewViewerKey(req);
+      if (viewerKey) storage.trackProfileView(id, viewerKey).catch(() => {});
       res.json(toPublicProviderDetail(provider as any));
     } catch (error) {
       log.error({ err: error }, "Error fetching provider");

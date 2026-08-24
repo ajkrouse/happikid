@@ -265,6 +265,45 @@ describe("PATCH /api/providers/:id — closure note persistence", () => {
 // ---------------------------------------------------------------------------
 
 describe("PATCH /api/providers/:id — closedDates reason length", () => {
+  it("rejects overlapping closedDates ranges before they reach storage", async () => {
+    vi.mocked(storage.getProvider).mockResolvedValue(makeStoredProvider() as any);
+
+    const res = await request(buildApp())
+      .patch("/api/providers/10")
+      .set("x-test-user", "user_owner")
+      .send({
+        closedDates: [
+          { from: "2026-12-20", to: "2026-12-24" },
+          { from: "2026-12-24", to: "2026-12-27" },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ message: expect.stringMatching(/invalid provider data/i) });
+    expect(storage.updateProvider).not.toHaveBeenCalled();
+  });
+
+  it("accepts adjacent, non-overlapping closedDates ranges", async () => {
+    const stored = makeStoredProvider();
+    const closedDates = [
+      { from: "2026-12-20", to: "2026-12-24" },
+      { from: "2026-12-25", to: "2026-12-27" },
+    ];
+    vi.mocked(storage.getProvider).mockResolvedValue(stored as any);
+    vi.mocked(storage.updateProvider).mockResolvedValue({ ...stored, closedDates } as any);
+
+    const res = await request(buildApp())
+      .patch("/api/providers/10")
+      .set("x-test-user", "user_owner")
+      .send({ closedDates });
+
+    expect(res.status).toBe(200);
+    expect(storage.updateProvider).toHaveBeenCalledWith(
+      10,
+      expect.objectContaining({ closedDates }),
+    );
+  });
+
   it("rejects a closedDates entry whose reason exceeds 200 characters with 400", async () => {
     const stored = makeStoredProvider();
     vi.mocked(storage.getProvider).mockResolvedValue(stored as any);

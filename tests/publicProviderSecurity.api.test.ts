@@ -285,6 +285,24 @@ describe("claimed provider ownership", () => {
   });
 });
 
+describe("review integrity", () => {
+  it("returns a conflict when a parent submits a second review for the same provider", async () => {
+    vi.mocked(storage.getProvider).mockResolvedValue(publicProvider() as any);
+    vi.mocked(storage.createReview).mockRejectedValue({ code: "23505" });
+
+    const res = await request(buildApp())
+      .post("/api/providers/7/reviews")
+      .set("x-test-user", "parent")
+      .send({ rating: 5, title: "Great care", content: "My child had a great experience." });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/already reviewed/i),
+    });
+  });
+});
+
 describe("public search failure handling", () => {
   it("fails closed instead of returning an unfiltered provider fallback", async () => {
     vi.mocked(storage.getProviders).mockRejectedValue(new Error("database query failed"));

@@ -15,6 +15,7 @@ import {
   date,
   doublePrecision,
   unique,
+  check,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
@@ -157,7 +158,16 @@ export const providers = pgTable("providers", {
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  // Matches public marketplace equality filters before pagination and ranking.
+  // The migration also owns four pg_trgm expression indexes for the ILIKE
+  // columns (name, description, address, city). Drizzle cannot model the
+  // pg_trgm operator class, so preserve those deliberate raw indexes when
+  // generating future migrations.
+  publicSearchFiltersIdx: index("providers_public_search_filters_idx")
+    .on(table.city, table.borough, table.type, table.enrollmentStatus, table.acceptsSubsidies)
+    .where(sql`${table.isActive} = true AND ${table.licenseStatus} = 'confirmed' AND ${table.isProfileVisible} = true AND ${table.isProfilePublic} = true`),
+}));
 
 // Provider images
 export const providerImages = pgTable("provider_images", {
@@ -180,7 +190,10 @@ export const reviews = pgTable("reviews", {
   isVerified: boolean("is_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  providerUserUniq: unique("reviews_provider_user_uniq").on(table.providerId, table.userId),
+  ratingBounds: check("reviews_rating_bounds", sql`${table.rating} BETWEEN 1 AND 5`),
+}));
 
 // Favorites
 export const favorites = pgTable("favorites", {
@@ -580,7 +593,21 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "End date must be on or after start date", path: ["to"] });
       }
     })
-  ).optional().nullable(),
+  ).superRefine((entries, ctx) => {
+    for (let i = 0; i < entries.length; i += 1) {
+      for (let j = i + 1; j < entries.length; j += 1) {
+        const first = entries[i];
+        const second = entries[j];
+        if (first.from <= second.to && second.from <= first.to) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Closure date ranges cannot overlap",
+            path: [j],
+          });
+        }
+      }
+    }
+  }).optional().nullable(),
 });
 
 /**
@@ -974,14 +1001,17 @@ export type InsertThread = z.infer<typeof insertThreadSchema>;
 export type ThreadMessage = typeof threadMessages.$inferSelect;
 export type InsertThreadMessage = z.infer<typeof insertThreadMessageSchema>;
 
-// Daily profile view tracking — one row per provider per day
+// Daily profile view tracking — one row per provider, privacy-safe viewer key, and day.
 export const providerProfileViews = pgTable("provider_profile_views", {
   id: serial("id").primaryKey(),
   providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  viewerKey: varchar("viewer_key", { length: 64 }).notNull(),
   viewedDate: date("viewed_date").notNull(),
   count: integer("count").notNull().default(1),
 }, (t) => ({
   dateProviderIdx: index("ppv_provider_date_idx").on(t.providerId, t.viewedDate),
+  providerViewerDateUniq: unique("ppv_provider_viewer_date_uniq").on(t.providerId, t.viewerKey, t.viewedDate),
+  positiveCount: check("ppv_count_positive", sql`${t.count} > 0`),
 }));
 
 export type ProviderProfileView = typeof providerProfileViews.$inferSelect;
