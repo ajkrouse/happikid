@@ -5,6 +5,7 @@ import { sendLicenseRejectionEmail, sendLicenseApprovalEmail } from "../services
 import { strictPathInt } from "../lib/pathParams";
 import { apiError } from "../lib/apiError";
 import { createLogger } from "../logger";
+import { getCanonicalProviderOwnerUserId } from "../lib/providerAccess";
 
 const log = createLogger("admin");
 
@@ -60,9 +61,10 @@ export function registerAdminRoutes(app: Express): void {
           isVerified: true,
         });
 
-        // Send approval email if we can look up the owner's email
-        if (provider.userId) {
-          const owner = await storage.getUser(provider.userId);
+        // Claimed listings belong to ownerUserId, not their original importer.
+        const ownerUserId = getCanonicalProviderOwnerUserId(provider);
+        if (ownerUserId) {
+          const owner = await storage.getUser(ownerUserId);
           if (owner?.email) {
             await sendLicenseApprovalEmail({
               recipientEmail: owner.email,
@@ -121,9 +123,10 @@ export function registerAdminRoutes(app: Express): void {
           isProfileVisible: false,
         });
 
-        // Send rejection email if we can look up the owner's email
-        if (provider.userId) {
-          const owner = await storage.getUser(provider.userId);
+        // Claimed listings belong to ownerUserId, not their original importer.
+        const ownerUserId = getCanonicalProviderOwnerUserId(provider);
+        if (ownerUserId) {
+          const owner = await storage.getUser(ownerUserId);
           if (owner?.email) {
             await sendLicenseRejectionEmail({
               recipientEmail: owner.email,
