@@ -167,6 +167,11 @@ describe("GET /api/providers search contract", () => {
       })],
       expect.anything(),
     );
+    expect(response.body).toMatchObject({
+      aiInsights: null,
+      aiInsightsStatus: "unavailable",
+      aiInsightsMessage: expect.stringMatching(/search results are still complete/i),
+    });
   });
 
   it.each([

@@ -441,6 +441,19 @@ export default function Messages() {
                     Drafting a suggested reply…
                   </div>
                 )}
+                {isProviderRole && aiEnabled && lastIsFromParent && !currentDraft && generateDraftMutation.isError && (
+                  <div className="border-t px-4 py-3 text-sm text-amber-800 bg-amber-50/80" data-testid="alert-ai-draft-unavailable">
+                    AI draft suggestions are temporarily unavailable. You can write and send your reply normally.
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 ml-1 text-amber-900"
+                      onClick={() => selectedThreadId && generateDraftMutation.mutate(selectedThreadId)}
+                    >
+                      Try again
+                    </Button>
+                  </div>
+                )}
                 {currentDraft && (
                   <div className="border-t bg-purple-50/60 px-4 py-3" data-testid="card-ai-draft">
                     <div className="flex items-center gap-2 mb-2">

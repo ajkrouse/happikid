@@ -51,6 +51,9 @@ const MapView = retryableLazy(() => import("@/components/MapView"));
 const AIInsights = retryableLazy(() =>
   import("@/components/AIInsights").then((m) => ({ default: m.AIInsights }))
 );
+const AIInsightsUnavailable = retryableLazy(() =>
+  import("@/components/AIInsights").then((m) => ({ default: m.AIInsightsUnavailable }))
+);
 const ComparisonModal = retryableLazy(() => import("@/components/ComparisonModal"));
 const FamilyProfileWizard = retryableLazy(() =>
   import("@/components/FamilyProfileWizard").then((m) => ({ default: m.FamilyProfileWizard }))
@@ -400,6 +403,14 @@ export default function SearchPage() {
             )}
 
             {debouncedSearchQuery && isLoading && <AIInsightsSkeleton />}
+
+            {debouncedSearchQuery && !isLoading && providerResponse?.aiInsightsStatus === "unavailable" && (
+              <LazyErrorBoundary fallback={<AIInsightsSkeleton />}>
+                <AIInsightsUnavailable
+                  message={providerResponse.aiInsightsMessage}
+                />
+              </LazyErrorBoundary>
+            )}
 
             {debouncedSearchQuery && !isLoading && providerResponse?.aiInsights && (
               <LazyErrorBoundary fallback={<AIInsightsSkeleton />}>

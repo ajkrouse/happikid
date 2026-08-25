@@ -2,6 +2,11 @@ import OpenAI from "openai";
 import type { Provider, ThreadMessage } from "@shared/schema";
 import { createLogger } from "../logger";
 import { getPublicPricing } from "../lib/providerAccess";
+import {
+  AI_REPLY_CACHE_TTL_MS,
+  createAICacheKey,
+  runBoundedCachedAI,
+} from "./aiResilience";
 
 const log = createLogger("ai-reply");
 
@@ -106,21 +111,34 @@ Provider profile facts:
 ${buildProviderContext(provider)}`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: `Conversation so far:\n${transcript}\n\nDraft the provider's reply to the parent's most recent message.`,
-        },
-      ],
-      max_tokens: 300,
-      temperature: 0.6,
-    });
+    return await runBoundedCachedAI(
+      createAICacheKey("reply-draft", {
+        providerOwnerUserId,
+        providerContext: buildProviderContext(provider),
+        transcript,
+      }),
+      async (signal) => {
+        const response = await openai.chat.completions.create(
+          {
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: systemPrompt },
+              {
+                role: "user",
+                content: `Conversation so far:\n${transcript}\n\nDraft the provider's reply to the parent's most recent message.`,
+              },
+            ],
+            max_tokens: 300,
+            temperature: 0.6,
+          },
+          { signal },
+        );
 
-    const draft = response.choices[0]?.message?.content?.trim();
-    return draft && draft.length > 0 ? draft : null;
+        const draft = response.choices[0]?.message?.content?.trim();
+        return draft && draft.length > 0 ? draft : null;
+      },
+      { ttlMs: AI_REPLY_CACHE_TTL_MS },
+    );
   } catch (error) {
     log.error({ err: error }, "Failed to generate AI reply draft");
     return null;

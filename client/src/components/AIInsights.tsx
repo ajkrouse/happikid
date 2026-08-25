@@ -117,3 +117,21 @@ export function AIInsightsSkeleton() {
     </Card>
   );
 }
+
+export function AIInsightsUnavailable({ message }: { message?: string }) {
+  return (
+    <Card
+      className="mb-6 border-2 border-amber-200 bg-amber-50 overflow-hidden"
+      data-testid="alert-ai-insights-unavailable"
+    >
+      <CardContent className="p-5">
+        <div className="flex items-center gap-3">
+          <Sparkles className="h-5 w-5 text-amber-600" />
+          <p className="text-sm text-amber-900">
+            {message || "AI insights are temporarily unavailable. Your search results are still complete."}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { createLogger } from "../logger";
 import { sendNewMessageNotification } from "../services/email";
 import { generateReplyDraft } from "../services/aiReply";
+import { aiLimiter } from "../middleware/rateLimiter";
 import type { Provider } from "@shared/schema";
 import {
   getCanonicalProviderOwnerUserId,
@@ -293,7 +294,7 @@ export function registerThreadRoutes(app: Express): void {
    * Provider owner only; requires the provider's aiAutoReplyEnabled setting.
    * The draft is stored on the thread and returned — it is never auto-sent.
    */
-  app.post("/api/threads/:id/ai-draft", isAuthenticated, async (req: any, res) => {
+  app.post("/api/threads/:id/ai-draft", isAuthenticated, aiLimiter, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub as string;
       const threadId = strictPathInt(req.params.id);

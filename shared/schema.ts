@@ -883,9 +883,14 @@ export type ProviderWithScore = Provider & {
 // Chat conversations for AI integration
 export const conversations = pgTable("conversations", {
   id: serial("id").primaryKey(),
+  // Nullable only to preserve legacy records safely during the ownership migration.
+  // New conversations are always created with an authenticated user ID.
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+}, (table) => ({
+  userCreatedIdx: index("conversations_user_created_idx").on(table.userId, table.createdAt),
+}));
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),

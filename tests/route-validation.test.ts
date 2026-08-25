@@ -175,6 +175,7 @@ vi.mock("../server/middleware/rateLimiter", () => ({
   inquiryLimiter: (_req: any, _res: any, next: any) => next(),
   apiLimiter: (_req: any, _res: any, next: any) => next(),
   aiLimiter: (_req: any, _res: any, next: any) => next(),
+  aiSummaryLimiter: (_req: any, _res: any, next: any) => next(),
 }));
 
 vi.mock("../server/services/email", () => ({

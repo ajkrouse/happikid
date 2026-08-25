@@ -26,6 +26,22 @@ export const aiLimiter = rateLimit({
   },
 });
 
+/** Applies the AI budget only when a provider search explicitly requests a summary. */
+export const aiSummaryLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.query.aiSummary !== "true",
+  message: { ok: false, message: "AI rate limit reached. Please wait before requesting more insights." },
+  validate: { keyGeneratorIpFallback: false },
+  keyGenerator: (req: any) => {
+    const userId = req.user?.claims?.sub;
+    if (userId) return `user:${userId}`;
+    return req.ip ?? "unknown";
+  },
+});
+
 /** Inquiry limiter — 10 submissions per hour per IP to prevent spam */
 export const inquiryLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,

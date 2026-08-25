@@ -24,6 +24,7 @@ import {
 } from "../lib/providerImageUpload";
 import { z } from "zod";
 import { createLogger } from "../logger";
+import { aiSummaryLimiter } from "../middleware/rateLimiter";
 import {
   formatProviderSearchValidationError,
   parseProviderSearchQuery,
@@ -169,7 +170,7 @@ export function registerProviderRoutes(app: Express): void {
   });
 
   // List providers with filtering + intelligent search
-  app.get("/api/providers", async (req, res) => {
+  app.get("/api/providers", aiSummaryLimiter, async (req, res) => {
     try {
       const ageGroupMap: { [key: string]: [number, number] } = {
         infants: [0, 12],
@@ -277,10 +278,24 @@ export function registerProviderRoutes(app: Express): void {
             log.error({ err: aiError }, "Error generating AI summary");
           }
         }
+        const aiFallback = "AI insights are temporarily unavailable. Your search results are still complete.";
         if (Array.isArray(publicResult)) {
-          res.json({ providers: publicResult, total: publicResult.length, searchMetadata, ...(aiSummaryResult && { aiInsights: aiSummaryResult }) });
+          res.json({
+            providers: publicResult,
+            total: publicResult.length,
+            searchMetadata,
+            aiInsights: aiSummaryResult,
+            aiInsightsStatus: aiSummaryResult ? "ready" : "unavailable",
+            aiInsightsMessage: aiSummaryResult ? undefined : aiFallback,
+          });
         } else {
-          res.json({ ...publicResult, searchMetadata, ...(aiSummaryResult && { aiInsights: aiSummaryResult }) });
+          res.json({
+            ...publicResult,
+            searchMetadata,
+            aiInsights: aiSummaryResult,
+            aiInsightsStatus: aiSummaryResult ? "ready" : "unavailable",
+            aiInsightsMessage: aiSummaryResult ? undefined : aiFallback,
+          });
         }
       } else {
         res.json(publicResult);

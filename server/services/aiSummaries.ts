@@ -2,6 +2,12 @@ import OpenAI from "openai";
 import type { Provider } from "@shared/schema";
 import { createLogger } from "../logger";
 import { getPublicPricing } from "../lib/providerAccess";
+import {
+  AI_REPLY_CACHE_TTL_MS,
+  AI_SUMMARY_CACHE_TTL_MS,
+  createAICacheKey,
+  runBoundedCachedAI,
+} from "./aiResilience";
 
 const log = createLogger("ai-summaries");
 
@@ -86,19 +92,33 @@ Please provide:
 3. 2-3 follow-up questions the parent might want to explore`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      max_tokens: 400,
-      temperature: 0.7,
-    });
+    return await runBoundedCachedAI(
+      createAICacheKey("search-summary", {
+        query,
+        providerContext,
+        parsedContext,
+        totalResults: providers.length,
+      }),
+      async (signal) => {
+        const response = await openai.chat.completions.create(
+          {
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            max_tokens: 400,
+            temperature: 0.7,
+          },
+          { signal },
+        );
 
-    const content = response.choices[0]?.message?.content;
-    if (!content) return null;
-    return parseAIResponse(content);
+        const content = response.choices[0]?.message?.content;
+        if (!content) return null;
+        return parseAIResponse(content);
+      },
+      { ttlMs: AI_SUMMARY_CACHE_TTL_MS },
+    );
   } catch (error) {
     log.error({ err: error }, "Error generating AI summary");
     return null;
@@ -161,21 +181,30 @@ export async function generateProviderComparison(providers: Provider[]): Promise
   const providerContext = providers.map((p, i) => `${i + 1}. ${formatProviderForContext(p)}`).join("\n");
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are HappiKid's childcare assistant. Compare these providers concisely, highlighting key differences that matter to parents. Keep it under 100 words.",
-        },
-        { role: "user", content: `Compare these providers:\n${providerContext}` },
-      ],
-      max_tokens: 200,
-      temperature: 0.7,
-    });
+    return await runBoundedCachedAI(
+      createAICacheKey("provider-comparison", { providerContext }),
+      async (signal) => {
+        const response = await openai.chat.completions.create(
+          {
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are HappiKid's childcare assistant. Compare these providers concisely, highlighting key differences that matter to parents. Keep it under 100 words.",
+              },
+              { role: "user", content: `Compare these providers:\n${providerContext}` },
+            ],
+            max_tokens: 200,
+            temperature: 0.7,
+          },
+          { signal },
+        );
 
-    return response.choices[0]?.message?.content || null;
+        return response.choices[0]?.message?.content || null;
+      },
+      { ttlMs: AI_SUMMARY_CACHE_TTL_MS },
+    );
   } catch (error) {
     log.error({ err: error }, "Error generating comparison");
     return null;
