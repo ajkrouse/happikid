@@ -5,8 +5,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
+    "dev:release": "NODE_ENV=development tsx server/start.ts",
+    "build": "vite build && esbuild server/start.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/start.js",
+    "db:migrate": "tsx server/db/migrate-cli.ts",
+    "start": "NODE_ENV=production node dist/start.js",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "test:client": "vitest run --config vitest.client.config.ts"
