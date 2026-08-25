@@ -192,6 +192,29 @@ export const providerImageCleanupJobs = pgTable("provider_image_cleanup_jobs", {
   completedAt: timestamp("completed_at"),
 });
 
+// Durable delivery queue. Domain mutations insert one of these rows in the
+// same database transaction; SMTP delivery happens later in a leased worker.
+export const notificationOutbox = pgTable("notification_outbox", {
+  id: serial("id").primaryKey(),
+  eventType: varchar("event_type", { length: 64 }).notNull(),
+  payload: jsonb("payload").notNull().$type<Record<string, unknown>>(),
+  idempotencyKey: varchar("idempotency_key", { length: 200 }).notNull().unique(),
+  status: varchar("status", { enum: ["pending", "processing", "delivered", "failed"] }).notNull().default("pending"),
+  attempts: integer("attempts").notNull().default(0),
+  availableAt: timestamp("available_at").notNull().defaultNow(),
+  lockedAt: timestamp("locked_at"),
+  lockedBy: varchar("locked_by", { length: 128 }),
+  deliveredAt: timestamp("delivered_at"),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  dueIdx: index("notification_outbox_due_idx").on(table.status, table.availableAt),
+  leaseIdx: index("notification_outbox_lease_idx").on(table.status, table.lockedAt),
+}));
+
+export type NotificationOutbox = typeof notificationOutbox.$inferSelect;
+
 // Reviews
 export const reviews = pgTable("reviews", {
   id: serial("id").primaryKey(),

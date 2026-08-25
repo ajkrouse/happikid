@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
-import { sendLicenseRejectionEmail, sendLicenseApprovalEmail } from "../services/email";
 import { strictPathInt } from "../lib/pathParams";
 import { apiError } from "../lib/apiError";
 import { createLogger } from "../logger";
@@ -54,35 +53,23 @@ export function registerAdminRoutes(app: Express): void {
           return apiError(res, 409, "Provider is not in the pending-review queue. Only submitted, unreviewed verifications can be approved.");
         }
 
-        const updated = await storage.updateProvider(providerId, {
-          licenseStatus: "confirmed",
-          licenseConfirmedAt: new Date(),
-          isProfileVisible: true,
-          isVerified: true,
-        });
-
         // Claimed listings belong to ownerUserId, not their original importer.
         const ownerUserId = getCanonicalProviderOwnerUserId(provider);
-        if (ownerUserId) {
-          const owner = await storage.getUser(ownerUserId);
-          if (owner?.email) {
-            await sendLicenseApprovalEmail({
+        const owner = ownerUserId ? await storage.getUser(ownerUserId) : undefined;
+        const updated = await storage.completeLicenseVerificationWithNotification({
+          providerId,
+          outcome: "approved",
+          actorUserId: req.user.claims.sub,
+          notification: owner?.email ? {
+            eventType: "license_approved",
+            payload: {
+              type: "license_approved",
               recipientEmail: owner.email,
-              recipientName:
-                [owner.firstName, owner.lastName].filter(Boolean).join(" ") || "Provider",
+              recipientName: [owner.firstName, owner.lastName].filter(Boolean).join(" ") || "Provider",
               providerName: provider.name,
               providerId,
-            });
-          }
-        }
-
-        // Audit log
-        await storage.createAuditLog({
-          actorUserId: req.user.claims.sub,
-          action: "license_approved",
-          targetType: "provider",
-          targetId: String(providerId),
-          meta: { providerId },
+            },
+          } : undefined,
         });
 
         log.info({ providerId, adminId: req.user.claims.sub }, "License approved");
@@ -117,34 +104,24 @@ export function registerAdminRoutes(app: Express): void {
           return apiError(res, 409, "Provider is not in the pending-review queue. Only submitted, unreviewed verifications can be rejected.");
         }
 
-        // Mark as rejected; keep isProfileVisible false (don't go live)
-        const updated = await storage.updateProvider(providerId, {
-          licenseStatus: "rejected",
-          isProfileVisible: false,
-        });
-
         // Claimed listings belong to ownerUserId, not their original importer.
         const ownerUserId = getCanonicalProviderOwnerUserId(provider);
-        if (ownerUserId) {
-          const owner = await storage.getUser(ownerUserId);
-          if (owner?.email) {
-            await sendLicenseRejectionEmail({
+        const owner = ownerUserId ? await storage.getUser(ownerUserId) : undefined;
+        const updated = await storage.completeLicenseVerificationWithNotification({
+          providerId,
+          outcome: "rejected",
+          actorUserId: req.user.claims.sub,
+          reason: reason.trim(),
+          notification: owner?.email ? {
+            eventType: "license_rejected",
+            payload: {
+              type: "license_rejected",
               recipientEmail: owner.email,
-              recipientName:
-                [owner.firstName, owner.lastName].filter(Boolean).join(" ") || "Provider",
+              recipientName: [owner.firstName, owner.lastName].filter(Boolean).join(" ") || "Provider",
               providerName: provider.name,
               reason: reason.trim(),
-            });
-          }
-        }
-
-        // Audit log
-        await storage.createAuditLog({
-          actorUserId: req.user.claims.sub,
-          action: "license_rejected",
-          targetType: "provider",
-          targetId: String(providerId),
-          meta: { providerId, reason: reason.trim() },
+            },
+          } : undefined,
         });
 
         log.info({ providerId, adminId: req.user.claims.sub }, "License rejected");

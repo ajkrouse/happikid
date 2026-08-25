@@ -31,6 +31,7 @@ vi.mock("../server/storage", () => ({
     getUser: vi.fn(),
     getProvider: vi.fn(),
     updateProvider: vi.fn(),
+    completeLicenseVerificationWithNotification: vi.fn(),
     getPendingLicenseVerifications: vi.fn(),
     createAuditLog: vi.fn(),
   },
@@ -105,6 +106,7 @@ beforeEach(() => {
   vi.mocked(storage.getUser).mockReset();
   vi.mocked(storage.getProvider).mockReset();
   vi.mocked(storage.updateProvider).mockReset();
+  vi.mocked(storage.completeLicenseVerificationWithNotification).mockReset();
   vi.mocked(storage.getPendingLicenseVerifications).mockReset();
   vi.mocked(storage.createAuditLog).mockReset();
 });
@@ -225,20 +227,15 @@ describe("POST /api/admin/verifications/:providerId/approve — access control",
       return makeNonAdminUser() as any;
     });
     vi.mocked(storage.getProvider).mockResolvedValue(provider as any);
-    vi.mocked(storage.updateProvider).mockResolvedValue(approved as any);
-    vi.mocked(storage.createAuditLog).mockResolvedValue(undefined as any);
+    vi.mocked(storage.completeLicenseVerificationWithNotification).mockResolvedValue(approved as any);
 
     const res = await request(buildApp())
       .post("/api/admin/verifications/1/approve")
       .set("x-test-user", ADMIN_USER_ID);
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ message: /approved/i });
-    expect(storage.updateProvider).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({ licenseStatus: "confirmed", isVerified: true })
-    );
-    expect(storage.createAuditLog).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "license_approved", actorUserId: ADMIN_USER_ID })
+    expect(storage.completeLicenseVerificationWithNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 1, outcome: "approved", actorUserId: ADMIN_USER_ID })
     );
   });
 });
@@ -338,8 +335,7 @@ describe("POST /api/admin/verifications/:providerId/reject — access control", 
       return makeNonAdminUser() as any;
     });
     vi.mocked(storage.getProvider).mockResolvedValue(provider as any);
-    vi.mocked(storage.updateProvider).mockResolvedValue(rejected as any);
-    vi.mocked(storage.createAuditLog).mockResolvedValue(undefined as any);
+    vi.mocked(storage.completeLicenseVerificationWithNotification).mockResolvedValue(rejected as any);
 
     const res = await request(buildApp())
       .post("/api/admin/verifications/1/reject")
@@ -347,12 +343,8 @@ describe("POST /api/admin/verifications/:providerId/reject — access control", 
       .send({ reason: "License number could not be verified." });
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ message: /rejected/i });
-    expect(storage.updateProvider).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({ licenseStatus: "rejected", isProfileVisible: false })
-    );
-    expect(storage.createAuditLog).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "license_rejected", actorUserId: ADMIN_USER_ID })
+    expect(storage.completeLicenseVerificationWithNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 1, outcome: "rejected", actorUserId: ADMIN_USER_ID })
     );
   });
 });

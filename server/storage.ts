@@ -20,6 +20,7 @@ import {
   threads,
   threadMessages,
   tourRequests,
+  notificationOutbox,
   type User,
   type UpsertUser,
   type Provider,
@@ -68,9 +69,10 @@ import {
   providerClosedDatesSchema,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns, isNull } from "drizzle-orm";
+import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns, isNull, isNotNull } from "drizzle-orm";
 import { isStoredProviderImagePath } from "./lib/providerImageUpload";
 import type { ProviderSearchQuery } from "./lib/providerSearch";
+import type { LeasedNotification, NotificationOutboxInput } from "./services/notificationOutbox";
 
 export interface FavoriteWriteResult {
   favorite: Favorite;
@@ -90,6 +92,11 @@ export interface SavedProviderGroupWithProviders extends SavedProviderGroup {
 export interface SavedProviderGroupsState {
   groups: SavedProviderGroupWithProviders[];
   revision: number;
+}
+
+export interface LicenseVerificationNotification {
+  eventType: "license_approved" | "license_rejected";
+  payload: NotificationOutboxInput["payload"];
 }
 
 export class SavedProviderGroupsConflictError extends Error {
@@ -148,6 +155,13 @@ export interface IStorage {
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
   createProvider(provider: InsertProvider): Promise<Provider>;
   updateProvider(id: number, provider: Partial<InsertProvider>): Promise<Provider>;
+  completeLicenseVerificationWithNotification(input: {
+    providerId: number;
+    outcome: "approved" | "rejected";
+    actorUserId: string;
+    reason?: string;
+    notification?: LicenseVerificationNotification;
+  }): Promise<Provider>;
   getProvidersByUserId(userId: string): Promise<Provider[]>;
   
   // Review operations
@@ -267,6 +281,12 @@ export interface IStorage {
   getProvidersByCanonicalOwner(userId: string): Promise<Provider[]>;
   updateThreadStatus(id: number, status: "open" | "enrolled" | "not_a_fit"): Promise<Thread>;
   createThreadMessage(threadId: number, senderUserId: string, body: string): Promise<ThreadMessage>;
+  createThreadMessageWithNotification(
+    threadId: number,
+    senderUserId: string,
+    body: string,
+    notification?: NotificationOutboxInput,
+  ): Promise<ThreadMessage>;
   getThreadMessages(threadId: number): Promise<ThreadMessage[]>;
   markThreadMessagesRead(threadId: number, userId: string): Promise<void>;
   setThreadAiDraft(threadId: number, body: string, forMessageId: number): Promise<Thread>;
@@ -277,10 +297,27 @@ export interface IStorage {
 
   // Tour request operations
   createTourRequest(tourRequest: InsertTourRequest): Promise<TourRequest>;
+  createTourRequestWithNotification(tourRequest: InsertTourRequest, notification?: NotificationOutboxInput): Promise<TourRequest>;
   getTourRequest(id: number): Promise<TourRequest | undefined>;
   getTourRequestsByParentId(parentUserId: string): Promise<(TourRequest & { providerName: string; providerAddress: string })[]>;
   getTourRequestsByProviderId(providerId: number): Promise<(TourRequest & { parentFirstName: string | null; parentLastName: string | null; parentEmail: string | null })[]>;
   updateTourRequestStatus(id: number, status: "pending" | "scheduled" | "cancelled"): Promise<TourRequest>;
+  updateTourRequestStatusWithNotification(
+    id: number,
+    status: "pending" | "scheduled" | "cancelled",
+    notification?: NotificationOutboxInput,
+  ): Promise<TourRequest>;
+
+  // Notification outbox operations
+  claimNotificationOutboxEvents(workerId: string, limit: number, leaseMs: number): Promise<LeasedNotification[]>;
+  completeNotificationOutboxEvent(id: number, workerId: string): Promise<void>;
+  retryNotificationOutboxEvent(
+    id: number,
+    workerId: string,
+    errorMessage: string,
+    availableAt: Date,
+    permanentlyFailed: boolean,
+  ): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1413,6 +1450,49 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async completeLicenseVerificationWithNotification(input: {
+    providerId: number;
+    outcome: "approved" | "rejected";
+    actorUserId: string;
+    reason?: string;
+    notification?: LicenseVerificationNotification;
+  }): Promise<Provider> {
+    return db.transaction(async (tx) => {
+      const isApproved = input.outcome === "approved";
+      const [updated] = await tx
+        .update(providers)
+        .set(isApproved
+          ? { licenseStatus: "confirmed", licenseConfirmedAt: new Date(), isProfileVisible: true, isVerified: true }
+          : { licenseStatus: "rejected", isProfileVisible: false })
+        .where(and(
+          eq(providers.id, input.providerId),
+          eq(providers.licenseStatus, "pending"),
+          isNotNull(providers.licenseSubmittedAt),
+        ))
+        .returning();
+      if (!updated) throw new Error("Provider is no longer awaiting license review");
+
+      await tx.insert(auditLogs).values({
+        actorUserId: input.actorUserId,
+        action: isApproved ? "license_approved" : "license_rejected",
+        targetType: "provider",
+        targetId: String(input.providerId),
+        meta: isApproved ? { providerId: input.providerId } : { providerId: input.providerId, reason: input.reason },
+      });
+
+      if (input.notification) {
+        const submittedAt = updated.licenseSubmittedAt?.toISOString() ?? "unknown-submission";
+        await tx.insert(notificationOutbox).values({
+          eventType: input.notification.eventType,
+          payload: input.notification.payload,
+          idempotencyKey: `${input.notification.eventType}:${input.providerId}:${submittedAt}`,
+        }).onConflictDoNothing();
+      }
+
+      return updated;
+    });
+  }
+
   async createProviderPhoto(photo: InsertProviderPhoto): Promise<ProviderPhoto> {
     const [newPhoto] = await db.insert(providerPhotos).values(photo).returning();
     return newPhoto;
@@ -2021,6 +2101,29 @@ export class DatabaseStorage implements IStorage {
     return msg;
   }
 
+  async createThreadMessageWithNotification(
+    threadId: number,
+    senderUserId: string,
+    body: string,
+    notification?: NotificationOutboxInput,
+  ): Promise<ThreadMessage> {
+    return db.transaction(async (tx) => {
+      const [msg] = await tx
+        .insert(threadMessages)
+        .values({ threadId, senderUserId, body })
+        .returning();
+      await tx.update(threads).set({ updatedAt: new Date() }).where(eq(threads.id, threadId));
+      if (notification) {
+        await tx.insert(notificationOutbox).values({
+          eventType: notification.eventType,
+          payload: notification.payload,
+          idempotencyKey: `thread_message:${msg.id}`,
+        }).onConflictDoNothing();
+      }
+      return msg;
+    });
+  }
+
   async getThreadMessages(threadId: number): Promise<ThreadMessage[]> {
     return db
       .select()
@@ -2067,6 +2170,20 @@ export class DatabaseStorage implements IStorage {
     return row;
   }
 
+  async createTourRequestWithNotification(tourRequest: InsertTourRequest, notification?: NotificationOutboxInput): Promise<TourRequest> {
+    return db.transaction(async (tx) => {
+      const [row] = await tx.insert(tourRequests).values(tourRequest as any).returning();
+      if (notification) {
+        await tx.insert(notificationOutbox).values({
+          eventType: notification.eventType,
+          payload: notification.payload,
+          idempotencyKey: `tour_request:${row.id}`,
+        }).onConflictDoNothing();
+      }
+      return row;
+    });
+  }
+
   async getTourRequest(id: number): Promise<TourRequest | undefined> {
     const [row] = await db.select().from(tourRequests).where(eq(tourRequests.id, id));
     return row;
@@ -2108,6 +2225,87 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tourRequests.id, id))
       .returning();
     return row;
+  }
+
+  async updateTourRequestStatusWithNotification(
+    id: number,
+    status: "pending" | "scheduled" | "cancelled",
+    notification?: NotificationOutboxInput,
+  ): Promise<TourRequest> {
+    return db.transaction(async (tx) => {
+      const [row] = await tx
+        .update(tourRequests)
+        .set({ status })
+        .where(eq(tourRequests.id, id))
+        .returning();
+      if (!row) throw new Error("Tour request not found");
+      if (notification) {
+        await tx.insert(notificationOutbox).values({
+          eventType: notification.eventType,
+          payload: notification.payload,
+          idempotencyKey: `tour_status:${row.id}:${status}`,
+        }).onConflictDoNothing();
+      }
+      return row;
+    });
+  }
+
+  async claimNotificationOutboxEvents(workerId: string, limit: number, leaseMs: number): Promise<LeasedNotification[]> {
+    const result = await db.execute(sql`
+      WITH candidates AS (
+        SELECT id
+        FROM notification_outbox
+        WHERE
+          (status = 'pending' AND available_at <= now())
+          OR (status = 'processing' AND locked_at < now() - (${leaseMs} * interval '1 millisecond'))
+        ORDER BY available_at ASC, id ASC
+        LIMIT ${limit}
+        FOR UPDATE SKIP LOCKED
+      )
+      UPDATE notification_outbox AS outbox
+      SET
+        status = 'processing',
+        attempts = outbox.attempts + 1,
+        locked_at = now(),
+        locked_by = ${workerId},
+        updated_at = now()
+      FROM candidates
+      WHERE outbox.id = candidates.id
+      RETURNING outbox.id, outbox.event_type, outbox.payload, outbox.attempts
+    `);
+    return (result.rows as any[]).map((row) => ({
+      id: Number(row.id),
+      eventType: row.event_type,
+      payload: row.payload,
+      attempts: Number(row.attempts),
+    })) as LeasedNotification[];
+  }
+
+  async completeNotificationOutboxEvent(id: number, workerId: string): Promise<void> {
+    await db
+      .update(notificationOutbox)
+      .set({ status: "delivered", deliveredAt: new Date(), lockedAt: null, lockedBy: null, updatedAt: new Date(), lastError: null })
+      .where(and(eq(notificationOutbox.id, id), eq(notificationOutbox.status, "processing"), eq(notificationOutbox.lockedBy, workerId)));
+  }
+
+  async retryNotificationOutboxEvent(
+    id: number,
+    workerId: string,
+    errorMessage: string,
+    availableAt: Date,
+    permanentlyFailed: boolean,
+  ): Promise<void> {
+    await db
+      .update(notificationOutbox)
+      .set({
+        status: permanentlyFailed ? "failed" : "pending",
+        availableAt,
+        lockedAt: null,
+        lockedBy: null,
+        lastError: errorMessage,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(notificationOutbox.id, id), eq(notificationOutbox.status, "processing"), eq(notificationOutbox.lockedBy, workerId)));
   }
 
   // Admin license verification queue — returns submitted-but-unreviewed providers

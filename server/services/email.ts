@@ -69,6 +69,7 @@ async function sendEmail(opts: EmailOptions): Promise<void> {
     log.info("Email sent");
   } catch (err) {
     log.error({ err }, "Failed to send email");
+    throw err;
   }
 }
 

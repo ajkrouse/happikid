@@ -126,6 +126,7 @@ vi.mock("../server/storage", () => ({
     // threads
     getOrCreateThread: vi.fn(),
     createThreadMessage: vi.fn(),
+    createThreadMessageWithNotification: vi.fn(),
     getThread: vi.fn(),
     updateThreadStatus: vi.fn(),
     getThreadsByProviderId: vi.fn(),
@@ -134,13 +135,16 @@ vi.mock("../server/storage", () => ({
     markThreadMessagesRead: vi.fn(),
     // tour requests
     createTourRequest: vi.fn(),
+    createTourRequestWithNotification: vi.fn(),
     getTourRequest: vi.fn(),
     updateTourRequestStatus: vi.fn(),
+    updateTourRequestStatusWithNotification: vi.fn(),
     getTourRequestsByProviderId: vi.fn(),
     getTourRequestsByParentId: vi.fn(),
     // admin
     getPendingLicenseVerifications: vi.fn(),
     createAuditLog: vi.fn().mockResolvedValue(undefined),
+    completeLicenseVerificationWithNotification: vi.fn(),
   },
 }));
 
@@ -1061,7 +1065,7 @@ describe("POST /api/threads — validation", () => {
       .set(AUTH)
       .send({ body: "Hello, is there availability?" });
     expect(res.status).toBe(400);
-    expect(storage.createThreadMessage).not.toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).not.toHaveBeenCalled();
   });
 
   it("rejects a non-integer providerId → 400", async () => {
@@ -1108,7 +1112,7 @@ describe("POST /api/threads — validation", () => {
     // Provider owned by a different user so the sender (user_owner) is the parent
     vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, userId: "provider_user", ownerUserId: "provider_user" } as any);
     vi.mocked(storage.getOrCreateThread).mockResolvedValue(storedThread as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue({ id: 1, threadId: 10, body: "Hello", senderUserId: "user_owner" } as any);
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue({ id: 1, threadId: 10, body: "Hello", senderUserId: "user_owner" } as any);
     vi.mocked(storage.getUser).mockResolvedValue(null as any); // fire-and-forget; no email in test
     const app = buildApp();
     const res = await request(app)
@@ -1116,7 +1120,7 @@ describe("POST /api/threads — validation", () => {
       .set(AUTH)
       .send({ providerId: 1, body: "Is there availability?" });
     expect(res.status).toBe(201);
-    expect(storage.createThreadMessage).toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalled();
   });
 });
 
@@ -1175,6 +1179,7 @@ describe("POST /api/threads/:id/messages — validation", () => {
     vi.mocked(storage.getThread).mockReset();
     vi.mocked(storage.getProvider).mockReset();
     vi.mocked(storage.createThreadMessage).mockReset();
+    vi.mocked(storage.createThreadMessageWithNotification).mockReset();
     vi.mocked(storage.getUser).mockReset();
   });
 
@@ -1186,7 +1191,7 @@ describe("POST /api/threads/:id/messages — validation", () => {
     const app = buildApp();
     const res = await request(app).post("/api/threads/10/messages").set(AUTH).send({ body: "" });
     expect(res.status).toBe(400);
-    expect(storage.createThreadMessage).not.toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).not.toHaveBeenCalled();
   });
 
   it("rejects a missing body field → 400", async () => {
@@ -1213,7 +1218,7 @@ describe("POST /api/threads/:id/messages — validation", () => {
   it("accepts a valid message → 201", async () => {
     vi.mocked(storage.getThread).mockResolvedValue(threadWithParentUser as any);
     vi.mocked(storage.getProvider).mockResolvedValue(storedProvider as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue({
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue({
       id: 100, threadId: 10, senderUserId: "user_owner", body: "Hello",
     } as any);
     vi.mocked(storage.getUser).mockResolvedValue(null as any);
@@ -1223,7 +1228,7 @@ describe("POST /api/threads/:id/messages — validation", () => {
       .set(AUTH)
       .send({ body: "Hello, looking forward to a tour!" });
     expect(res.status).toBe(201);
-    expect(storage.createThreadMessage).toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalled();
   });
 
   it("returns 400 for a non-integer thread ID in the path", async () => {
@@ -1242,6 +1247,7 @@ describe("POST /api/providers/:id/tour-requests — validation", () => {
     vi.mocked(storage.getUser).mockReset();
     vi.mocked(storage.getProvider).mockReset();
     vi.mocked(storage.createTourRequest).mockReset();
+    vi.mocked(storage.createTourRequestWithNotification).mockReset();
   });
 
   const parentUser = { id: "user_owner", role: "parent", email: "parent@example.com" };
@@ -1255,7 +1261,7 @@ describe("POST /api/providers/:id/tour-requests — validation", () => {
       .set(AUTH)
       .send({ preferredTime: "morning" });
     expect(res.status).toBe(400);
-    expect(storage.createTourRequest).not.toHaveBeenCalled();
+    expect(storage.createTourRequestWithNotification).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid date format in preferredDates → 400", async () => {
@@ -1297,7 +1303,7 @@ describe("POST /api/providers/:id/tour-requests — validation", () => {
   it("accepts a valid tour request payload → 201", async () => {
     vi.mocked(storage.getUser).mockResolvedValue(parentUser as any);
     vi.mocked(storage.getProvider).mockResolvedValue(storedProvider as any);
-    vi.mocked(storage.createTourRequest).mockResolvedValue({ ...storedTourRequest } as any);
+    vi.mocked(storage.createTourRequestWithNotification).mockResolvedValue({ ...storedTourRequest } as any);
     const app = buildApp();
     // providerId must be included in the body because the drizzle-generated schema marks it
     // notNull; the route also enforces it server-side from the URL param.
@@ -1306,7 +1312,7 @@ describe("POST /api/providers/:id/tour-requests — validation", () => {
       .set(AUTH)
       .send({ providerId: 1, preferredDates: ["2026-09-10", "2026-09-12"], preferredTime: "morning" });
     expect(res.status).toBe(201);
-    expect(storage.createTourRequest).toHaveBeenCalled();
+    expect(storage.createTourRequestWithNotification).toHaveBeenCalled();
   });
 
   it("returns 403 when the caller is not a parent-role user", async () => {
@@ -1317,7 +1323,7 @@ describe("POST /api/providers/:id/tour-requests — validation", () => {
       .set(AUTH)
       .send({ preferredDates: ["2026-09-10"], preferredTime: "morning" });
     expect(res.status).toBe(403);
-    expect(storage.createTourRequest).not.toHaveBeenCalled();
+    expect(storage.createTourRequestWithNotification).not.toHaveBeenCalled();
   });
 
   it("does not allow a parent to request a tour from a private provider", async () => {
@@ -1333,7 +1339,7 @@ describe("POST /api/providers/:id/tour-requests — validation", () => {
       .send({ preferredDates: ["2026-09-10"], preferredTime: "morning" });
 
     expect(res.status).toBe(404);
-    expect(storage.createTourRequest).not.toHaveBeenCalled();
+    expect(storage.createTourRequestWithNotification).not.toHaveBeenCalled();
   });
 });
 
@@ -1345,7 +1351,7 @@ describe("PATCH /api/tour-requests/:id — validation", () => {
   beforeEach(() => {
     vi.mocked(storage.getTourRequest).mockReset();
     vi.mocked(storage.getProvidersByCanonicalOwner).mockReset();
-    vi.mocked(storage.updateTourRequestStatus).mockReset();
+    vi.mocked(storage.updateTourRequestStatusWithNotification).mockReset();
     vi.mocked(storage.getUser).mockReset();
   });
 
@@ -1353,14 +1359,14 @@ describe("PATCH /api/tour-requests/:id — validation", () => {
     const app = buildApp();
     const res = await request(app).patch("/api/tour-requests/7").set(AUTH).send({});
     expect(res.status).toBe(400);
-    expect(storage.updateTourRequestStatus).not.toHaveBeenCalled();
+    expect(storage.updateTourRequestStatusWithNotification).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid status enum value → 400", async () => {
     const app = buildApp();
     const res = await request(app).patch("/api/tour-requests/7").set(AUTH).send({ status: "confirmed" });
     expect(res.status).toBe(400);
-    expect(storage.updateTourRequestStatus).not.toHaveBeenCalled();
+    expect(storage.updateTourRequestStatusWithNotification).not.toHaveBeenCalled();
   });
 
   it("returns 400 for a non-integer tour request ID in the path", async () => {
@@ -1372,23 +1378,23 @@ describe("PATCH /api/tour-requests/:id — validation", () => {
   it("accepts provider scheduling a tour → 200", async () => {
     vi.mocked(storage.getTourRequest).mockResolvedValue(storedTourRequest as any);
     vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([storedProvider as any]);
-    vi.mocked(storage.updateTourRequestStatus).mockResolvedValue({ ...storedTourRequest, status: "scheduled" } as any);
+    vi.mocked(storage.updateTourRequestStatusWithNotification).mockResolvedValue({ ...storedTourRequest, status: "scheduled" } as any);
     vi.mocked(storage.getUser).mockResolvedValue(null as any);
     const app = buildApp();
     const res = await request(app).patch("/api/tour-requests/7").set(AUTH).send({ status: "scheduled" });
     expect(res.status).toBe(200);
-    expect(storage.updateTourRequestStatus).toHaveBeenCalledWith(7, "scheduled");
+    expect(storage.updateTourRequestStatusWithNotification).toHaveBeenCalledWith(7, "scheduled", undefined);
   });
 
   it("accepts parent cancelling their own pending request → 200", async () => {
     // user_owner is the parentUserId; provider is owned by someone else
     vi.mocked(storage.getTourRequest).mockResolvedValue({ ...storedTourRequest, parentUserId: "user_owner" } as any);
     vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([]); // not the provider owner
-    vi.mocked(storage.updateTourRequestStatus).mockResolvedValue({ ...storedTourRequest, status: "cancelled" } as any);
+    vi.mocked(storage.updateTourRequestStatusWithNotification).mockResolvedValue({ ...storedTourRequest, status: "cancelled" } as any);
     const app = buildApp();
     const res = await request(app).patch("/api/tour-requests/7").set(AUTH).send({ status: "cancelled" });
     expect(res.status).toBe(200);
-    expect(storage.updateTourRequestStatus).toHaveBeenCalledWith(7, "cancelled");
+    expect(storage.updateTourRequestStatusWithNotification).toHaveBeenCalledWith(7, "cancelled", undefined);
   });
 });
 
@@ -1574,7 +1580,7 @@ describe("POST /api/admin/verifications/:providerId/reject — validation", () =
       .set(ADMIN_AUTH)
       .send({});
     expect(res.status).toBe(400);
-    expect(storage.updateProvider).not.toHaveBeenCalled();
+    expect(storage.completeLicenseVerificationWithNotification).not.toHaveBeenCalled();
   });
 
   it("rejects a whitespace-only reason → 400", async () => {
@@ -1603,17 +1609,15 @@ describe("POST /api/admin/verifications/:providerId/reject — validation", () =
   it("accepts a valid rejection with a non-empty reason → 200", async () => {
     vi.mocked(storage.getUser).mockResolvedValue(adminUser as any);
     vi.mocked(storage.getProvider).mockResolvedValue({ ...storedProvider, licenseStatus: "pending" } as any);
-    vi.mocked(storage.updateProvider).mockResolvedValue({ ...storedProvider, licenseStatus: "rejected" } as any);
-    vi.mocked(storage.createAuditLog).mockResolvedValue(undefined as any);
+    vi.mocked(storage.completeLicenseVerificationWithNotification).mockResolvedValue({ ...storedProvider, licenseStatus: "rejected" } as any);
     const app = buildApp();
     const res = await request(app)
       .post("/api/admin/verifications/1/reject")
       .set(ADMIN_AUTH)
       .send({ reason: "License document is expired." });
     expect(res.status).toBe(200);
-    expect(storage.updateProvider).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({ licenseStatus: "rejected" }),
+    expect(storage.completeLicenseVerificationWithNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 1, outcome: "rejected" }),
     );
   });
 

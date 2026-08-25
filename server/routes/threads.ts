@@ -5,7 +5,6 @@ import { strictPathInt } from "../lib/pathParams";
 import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
-import { sendNewMessageNotification } from "../services/email";
 import { generateReplyDraft } from "../services/aiReply";
 import { aiLimiter } from "../middleware/rateLimiter";
 import type { Provider } from "@shared/schema";
@@ -70,25 +69,25 @@ export function registerThreadRoutes(app: Express): void {
       // Get or create thread (idempotent)
       const thread = await storage.getOrCreateThread(userId, providerId);
 
-      // Send the message
-      const message = await storage.createThreadMessage(thread.id, userId, body);
-
-      // Fire-and-forget email notification to provider owner (canonical)
-      storage.getUser(ownerUserId).then(async (providerUser) => {
-        if (!providerUser?.email) return;
-        const senderUser = await storage.getUser(userId);
-        const senderName = senderUser
-          ? `${senderUser.firstName ?? ""} ${senderUser.lastName ?? ""}`.trim() || senderUser.email || "A parent"
-          : "A parent";
-        sendNewMessageNotification({
+      const providerUser = await storage.getUser(ownerUserId);
+      const senderUser = providerUser?.email ? await storage.getUser(userId) : undefined;
+      const notification = providerUser?.email ? {
+        eventType: "thread_message" as const,
+        payload: {
+          type: "thread_message" as const,
           recipientEmail: providerUser.email,
           recipientName: `${providerUser.firstName ?? ""} ${providerUser.lastName ?? ""}`.trim() || "Provider",
-          senderName,
+          senderName: senderUser
+            ? `${senderUser.firstName ?? ""} ${senderUser.lastName ?? ""}`.trim() || senderUser.email || "A parent"
+            : "A parent",
           providerName: provider.name,
           messagePreview: body.slice(0, 200),
           threadId: thread.id,
-        }).catch(() => {});
-      }).catch(() => {});
+        },
+      } : undefined;
+
+      // Persist the message and durable notification in one transaction.
+      const message = await storage.createThreadMessageWithNotification(thread.id, userId, body, notification);
 
       res.status(201).json({ thread, message });
     } catch (error) {
@@ -254,31 +253,31 @@ export function registerThreadRoutes(app: Express): void {
         return apiError(res, 400, "Invalid message", { errors: parsed.error.errors });
       }
 
-      const message = await storage.createThreadMessage(threadId, userId, parsed.data.body);
+      // Resolve notification data before the domain write so it can share that
+      // write's transaction. Do not put a notification in the outbox when no
+      // recipient email exists — that preserves the existing recipient rule.
+      const recipientUserId = isParent ? ownerUserId : thread.parentUserId;
+      const recipientUser = recipientUserId ? await storage.getUser(recipientUserId) : undefined;
+      const senderUser = recipientUser?.email ? await storage.getUser(userId) : undefined;
+      const notification = recipientUser?.email ? {
+        eventType: "thread_message" as const,
+        payload: {
+          type: "thread_message" as const,
+          recipientEmail: recipientUser.email,
+          recipientName: `${recipientUser.firstName ?? ""} ${recipientUser.lastName ?? ""}`.trim() || "there",
+          senderName: senderUser
+            ? `${senderUser.firstName ?? ""} ${senderUser.lastName ?? ""}`.trim() || senderUser.email || "Someone"
+            : "Someone",
+          providerName: provider?.name ?? "a provider",
+          messagePreview: parsed.data.body.slice(0, 200),
+          threadId,
+        },
+      } : undefined;
+      const message = await storage.createThreadMessageWithNotification(threadId, userId, parsed.data.body, notification);
 
       // Once the provider replies, any pending AI draft is spent — clear it
       if (isProviderOwner && thread.aiDraftBody) {
         storage.clearThreadAiDraft(threadId).catch(() => {});
-      }
-
-      // Email the other party — use canonical owner for provider side
-      const recipientUserId = isParent ? ownerUserId : thread.parentUserId;
-      if (recipientUserId) {
-        storage.getUser(recipientUserId).then(async (recipientUser) => {
-          if (!recipientUser?.email) return;
-          const senderUser = await storage.getUser(userId);
-          const senderName = senderUser
-            ? `${senderUser.firstName ?? ""} ${senderUser.lastName ?? ""}`.trim() || senderUser.email || "Someone"
-            : "Someone";
-          sendNewMessageNotification({
-            recipientEmail: recipientUser.email,
-            recipientName: `${recipientUser.firstName ?? ""} ${recipientUser.lastName ?? ""}`.trim() || "there",
-            senderName,
-            providerName: provider?.name ?? "a provider",
-            messagePreview: parsed.data.body.slice(0, 200),
-            threadId,
-          }).catch(() => {});
-        }).catch(() => {});
       }
 
       res.status(201).json(message);

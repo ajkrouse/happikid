@@ -6,7 +6,6 @@ import { strictPathInt } from "../lib/pathParams";
 import { apiError } from "../lib/apiError";
 import { z } from "zod";
 import { createLogger } from "../logger";
-import { sendTourRequestNotification, sendTourStatusEmail } from "../services/email";
 import { getCanonicalProviderOwnerUserId, isPublicProvider } from "../lib/providerAccess";
 
 const log = createLogger("tourRequests");
@@ -35,31 +34,30 @@ export function registerTourRequestRoutes(app: Express): void {
         return apiError(res, 400, "Invalid tour request data", { errors: parsed.error.errors });
       }
 
-      const tourRequest = await storage.createTourRequest({
+      // Resolve the notification payload before the write so it can be committed
+      // atomically with the new request.
+      const ownerUserId = getCanonicalProviderOwnerUserId(provider);
+      const owner = ownerUserId ? await storage.getUser(ownerUserId) : undefined;
+      const notification = owner?.email ? {
+        eventType: "tour_request" as const,
+        payload: {
+          type: "tour_request" as const,
+          recipientEmail: owner.email,
+          recipientName: [owner.firstName, owner.lastName].filter(Boolean).join(" ") || provider.name,
+          parentName: [requester.firstName, requester.lastName].filter(Boolean).join(" ") || requester.email || "A parent",
+          parentEmail: requester.email || "",
+          providerName: provider.name,
+          preferredDates: parsed.data.preferredDates,
+          preferredTime: parsed.data.preferredTime,
+          note: parsed.data.note ?? null,
+        },
+      } : undefined;
+      const tourRequest = await storage.createTourRequestWithNotification({
         ...parsed.data,
         parentUserId,
         providerId,
         status: "pending",
-      });
-
-      // Notify the canonical listing owner, never a stale import/contact email.
-      const ownerUserId = getCanonicalProviderOwnerUserId(provider);
-      if (ownerUserId) {
-        const owner = await storage.getUser(ownerUserId);
-        if (owner?.email) {
-          const parentName = [requester.firstName, requester.lastName].filter(Boolean).join(" ") || requester.email || "A parent";
-          sendTourRequestNotification({
-            recipientEmail: owner.email,
-            recipientName: [owner.firstName, owner.lastName].filter(Boolean).join(" ") || provider.name,
-            parentName,
-            parentEmail: requester.email || "",
-            providerName: provider.name,
-            preferredDates: parsed.data.preferredDates,
-            preferredTime: parsed.data.preferredTime,
-            note: parsed.data.note ?? null,
-          }).catch(() => {});
-        }
-      }
+      }, notification);
 
       res.status(201).json(tourRequest);
     } catch (error) {
@@ -141,22 +139,19 @@ export function registerTourRequestRoutes(app: Express): void {
         return apiError(res, 403, "Not authorized to update this tour request");
       }
 
-      const updated = await storage.updateTourRequestStatus(id, newStatus);
-
-      // Notify the parent when a provider schedules or cancels their tour request.
-      if (isProviderOwner && (newStatus === "scheduled" || newStatus === "cancelled")) {
-        const parent = await storage.getUser(tourRequest.parentUserId);
-        const provider = ownedProviders.find((p) => p.id === tourRequest.providerId);
-        if (parent?.email && provider) {
-          const parentName = [parent.firstName, parent.lastName].filter(Boolean).join(" ") || parent.email;
-          sendTourStatusEmail({
-            recipientEmail: parent.email,
-            recipientName: parentName,
-            providerName: provider.name,
-            newStatus,
-          }).catch(() => {});
-        }
-      }
+      const provider = isProviderOwner ? ownedProviders.find((p) => p.id === tourRequest.providerId) : undefined;
+      const parent = provider ? await storage.getUser(tourRequest.parentUserId) : undefined;
+      const notification = provider && parent?.email && (newStatus === "scheduled" || newStatus === "cancelled") ? {
+        eventType: "tour_status" as const,
+        payload: {
+          type: "tour_status" as const,
+          recipientEmail: parent.email,
+          recipientName: [parent.firstName, parent.lastName].filter(Boolean).join(" ") || parent.email,
+          providerName: provider.name,
+          newStatus,
+        },
+      } : undefined;
+      const updated = await storage.updateTourRequestStatusWithNotification(id, newStatus, notification);
 
       res.json(updated);
     } catch (error) {

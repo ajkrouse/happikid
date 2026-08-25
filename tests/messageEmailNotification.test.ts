@@ -2,11 +2,11 @@
  * Email notification smoke-tests for the messaging feature.
  *
  * Confirms that:
- * 1. POST /api/threads dispatches sendNewMessageNotification to the provider
+ * 1. POST /api/threads queues a durable message notification for the provider
  *    owner when a parent starts a new thread.
- * 2. POST /api/threads/:id/messages dispatches the notification to the
- *    recipient on both sides (parent → provider, provider → parent).
- * 3. The notification is NOT dispatched when the recipient has no email.
+ * 2. POST /api/threads/:id/messages queues a notification for the recipient
+ *    on both sides (parent → provider, provider → parent).
+ * 3. A notification is not queued when the recipient has no email.
  * 4. sendNewMessageNotification itself produces a subject line that contains
  *    both the sender name and the provider name.
  * 5. The thread URL in the generated HTML and plain-text body correctly
@@ -36,6 +36,7 @@ vi.mock("../server/storage", () => ({
     getProvider: vi.fn(),
     getOrCreateThread: vi.fn(),
     createThreadMessage: vi.fn(),
+    createThreadMessageWithNotification: vi.fn(),
     getUser: vi.fn(),
     getThread: vi.fn(),
     getThreadMessages: vi.fn(),
@@ -157,6 +158,7 @@ beforeEach(() => {
   vi.mocked(storage.markThreadMessagesRead).mockReset();
   vi.mocked(storage.updateThreadStatus).mockReset();
   vi.mocked(storage.createThreadMessage).mockReset();
+  vi.mocked(storage.createThreadMessageWithNotification).mockReset();
   vi.mocked(storage.getOrCreateThread).mockReset();
   vi.mocked(storage.getUser).mockReset();
   vi.mocked(storage.getThreadsForUser).mockReset();
@@ -291,6 +293,19 @@ describe("sendNewMessageNotification — email content", () => {
     const call = mockSendMail.mock.calls[0][0];
     expect(call.to).toBe("specific-recipient@example.com");
   });
+
+  it("propagates SMTP failures so the durable outbox can retry them", async () => {
+    mockSendMail.mockRejectedValueOnce(new Error("SMTP unavailable"));
+
+    await expect(sendNewMessageNotification({
+      recipientEmail: "provider@example.com",
+      recipientName: "Jane Provider",
+      senderName: "Alex Parent",
+      providerName: "Sunshine Daycare",
+      messagePreview: "Hello!",
+      threadId: 99,
+    })).rejects.toThrow("SMTP unavailable");
+  });
 });
 
 // ===========================================================================
@@ -321,7 +336,7 @@ describe("POST /api/threads — email notification dispatch", () => {
 
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);
     vi.mocked(storage.getOrCreateThread).mockResolvedValue(thread as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue(message as any);
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue(message as any);
 
     // getUser is called twice: once for providerUser, once for senderUser
     vi.mocked(storage.getUser)
@@ -337,15 +352,20 @@ describe("POST /api/threads — email notification dispatch", () => {
       .set("x-test-user", "user_parent")
       .send({ providerId: 42, body: "Is there availability?" });
 
-    // Allow fire-and-forget promises to settle
-    await flushPromises();
-
-    expect(mockSendMail).toHaveBeenCalledTimes(1);
-    const mailArgs = mockSendMail.mock.calls[0][0];
-    expect(mailArgs.to).toBe("jane@provider.com");
-    expect(mailArgs.subject).toContain("Alex Parent");
-    expect(mailArgs.subject).toContain("Sunshine Daycare");
-    expect(mailArgs.html).toContain(`thread=${thread.id}`);
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalledWith(
+      thread.id,
+      "user_parent",
+      "Is there availability?",
+      expect.objectContaining({
+        eventType: "thread_message",
+        payload: expect.objectContaining({
+          recipientEmail: "jane@provider.com",
+          senderName: "Alex Parent",
+          providerName: "Sunshine Daycare",
+          threadId: thread.id,
+        }),
+      }),
+    );
   });
 
   it("does not dispatch an email when the provider owner has no email address", async () => {
@@ -354,7 +374,7 @@ describe("POST /api/threads — email notification dispatch", () => {
 
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);
     vi.mocked(storage.getOrCreateThread).mockResolvedValue(thread as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue(message as any);
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue(message as any);
 
     // Provider user has no email
     vi.mocked(storage.getUser).mockResolvedValue(
@@ -366,9 +386,9 @@ describe("POST /api/threads — email notification dispatch", () => {
       .set("x-test-user", "user_parent")
       .send({ providerId: 42, body: "Hello!" });
 
-    await flushPromises();
-
-    expect(mockSendMail).not.toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalledWith(
+      thread.id, "user_parent", "Hello!", undefined,
+    );
   });
 });
 
@@ -396,7 +416,7 @@ describe("POST /api/threads/:id/messages — email notification dispatch", () =>
   it("notifies the provider owner when the parent sends a message", async () => {
     vi.mocked(storage.getThread).mockResolvedValue(makeThread() as any);
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue(makeMessage() as any);
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue(makeMessage() as any);
 
     // getUser: first call is for the recipient (provider), second for the sender (parent)
     vi.mocked(storage.getUser)
@@ -412,20 +432,20 @@ describe("POST /api/threads/:id/messages — email notification dispatch", () =>
       .set("x-test-user", "user_parent")
       .send({ body: "Any spots for September?" });
 
-    await flushPromises();
-
-    expect(mockSendMail).toHaveBeenCalledTimes(1);
-    const mailArgs = mockSendMail.mock.calls[0][0];
-    expect(mailArgs.to).toBe("jane@provider.com");
-    expect(mailArgs.subject).toContain("Alex Parent");
-    expect(mailArgs.subject).toContain("Sunshine Daycare");
-    expect(mailArgs.html).toContain("thread=99");
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalledWith(
+      99,
+      "user_parent",
+      "Any spots for September?",
+      expect.objectContaining({
+        payload: expect.objectContaining({ recipientEmail: "jane@provider.com", senderName: "Alex Parent", threadId: 99 }),
+      }),
+    );
   });
 
   it("notifies the parent when the provider owner replies", async () => {
     vi.mocked(storage.getThread).mockResolvedValue(makeThread() as any);
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue(
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue(
       makeMessage({ senderUserId: "user_provider" }) as any
     );
 
@@ -443,20 +463,20 @@ describe("POST /api/threads/:id/messages — email notification dispatch", () =>
       .set("x-test-user", "user_provider")
       .send({ body: "Yes, we have spots!" });
 
-    await flushPromises();
-
-    expect(mockSendMail).toHaveBeenCalledTimes(1);
-    const mailArgs = mockSendMail.mock.calls[0][0];
-    expect(mailArgs.to).toBe("alex@parent.com");
-    expect(mailArgs.subject).toContain("Jane Provider");
-    expect(mailArgs.subject).toContain("Sunshine Daycare");
-    expect(mailArgs.html).toContain("thread=99");
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalledWith(
+      99,
+      "user_provider",
+      "Yes, we have spots!",
+      expect.objectContaining({
+        payload: expect.objectContaining({ recipientEmail: "alex@parent.com", senderName: "Jane Provider", threadId: 99 }),
+      }),
+    );
   });
 
   it("does not dispatch an email when the recipient has no email address", async () => {
     vi.mocked(storage.getThread).mockResolvedValue(makeThread() as any);
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue(makeMessage() as any);
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue(makeMessage() as any);
 
     // Recipient user has no email
     vi.mocked(storage.getUser).mockResolvedValue(
@@ -468,8 +488,8 @@ describe("POST /api/threads/:id/messages — email notification dispatch", () =>
       .set("x-test-user", "user_parent")
       .send({ body: "Any spots?" });
 
-    await flushPromises();
-
-    expect(mockSendMail).not.toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalledWith(
+      99, "user_parent", "Any spots?", undefined,
+    );
   });
 });

@@ -36,6 +36,7 @@ vi.mock("../server/storage", () => ({
     getProvider: vi.fn(),
     getOrCreateThread: vi.fn(),
     createThreadMessage: vi.fn(),
+    createThreadMessageWithNotification: vi.fn(),
     getUser: vi.fn(),
     getThread: vi.fn(),
     getThreadMessages: vi.fn(),
@@ -299,7 +300,7 @@ describe("POST /api/threads/:id/messages — access control", () => {
       .send({ body: "I shouldn't be here." });
     expect(res.status).toBe(403);
     expect(res.body).toMatchObject({ message: /access denied/i });
-    expect(storage.createThreadMessage).not.toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).not.toHaveBeenCalled();
   });
 
   it("returns 400 when the message body is empty", async () => {
@@ -311,7 +312,7 @@ describe("POST /api/threads/:id/messages — access control", () => {
       .set("x-test-user", "user_parent")
       .send({ body: "" });
     expect(res.status).toBe(400);
-    expect(storage.createThreadMessage).not.toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).not.toHaveBeenCalled();
   });
 
   it("returns 400 when the message body exceeds 5000 characters", async () => {
@@ -323,13 +324,13 @@ describe("POST /api/threads/:id/messages — access control", () => {
       .set("x-test-user", "user_parent")
       .send({ body: "x".repeat(5001) });
     expect(res.status).toBe(400);
-    expect(storage.createThreadMessage).not.toHaveBeenCalled();
+    expect(storage.createThreadMessageWithNotification).not.toHaveBeenCalled();
   });
 
   it("allows the parent to send a message", async () => {
     vi.mocked(storage.getThread).mockResolvedValue(makeThread() as any);
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue(makeMessage() as any);
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue(makeMessage() as any);
     vi.mocked(storage.getUser).mockResolvedValue(null as any);
 
     const res = await request(buildApp())
@@ -337,13 +338,13 @@ describe("POST /api/threads/:id/messages — access control", () => {
       .set("x-test-user", "user_parent")
       .send({ body: "Is there availability?" });
     expect(res.status).toBe(201);
-    expect(storage.createThreadMessage).toHaveBeenCalledWith(99, "user_parent", "Is there availability?");
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalledWith(99, "user_parent", "Is there availability?", undefined);
   });
 
   it("allows the canonical provider owner to reply", async () => {
     vi.mocked(storage.getThread).mockResolvedValue(makeThread() as any);
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue({ ...makeMessage(), senderUserId: "user_provider" } as any);
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue({ ...makeMessage(), senderUserId: "user_provider" } as any);
     vi.mocked(storage.getUser).mockResolvedValue(null as any);
 
     const res = await request(buildApp())
@@ -351,7 +352,7 @@ describe("POST /api/threads/:id/messages — access control", () => {
       .set("x-test-user", "user_provider")
       .send({ body: "Yes, we have spots!" });
     expect(res.status).toBe(201);
-    expect(storage.createThreadMessage).toHaveBeenCalledWith(99, "user_provider", "Yes, we have spots!");
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalledWith(99, "user_provider", "Yes, we have spots!", undefined);
   });
 });
 
@@ -581,7 +582,7 @@ describe("POST /api/threads — create thread", () => {
     const message = makeMessage();
     vi.mocked(storage.getProvider).mockResolvedValue(makeProvider() as any);
     vi.mocked(storage.getOrCreateThread).mockResolvedValue(thread as any);
-    vi.mocked(storage.createThreadMessage).mockResolvedValue(message as any);
+    vi.mocked(storage.createThreadMessageWithNotification).mockResolvedValue(message as any);
     vi.mocked(storage.getUser).mockResolvedValue(null as any);
 
     const res = await request(buildApp())
@@ -592,7 +593,7 @@ describe("POST /api/threads — create thread", () => {
     expect(res.body).toHaveProperty("thread");
     expect(res.body).toHaveProperty("message");
     expect(storage.getOrCreateThread).toHaveBeenCalledWith("user_parent", 42);
-    expect(storage.createThreadMessage).toHaveBeenCalledWith(thread.id, "user_parent", "Is there availability?");
+    expect(storage.createThreadMessageWithNotification).toHaveBeenCalledWith(thread.id, "user_parent", "Is there availability?", undefined);
   });
 });
 

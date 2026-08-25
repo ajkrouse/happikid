@@ -40,6 +40,7 @@ vi.mock("../server/storage", () => ({
     clearThreadAiDraft: vi.fn(),
     getUser: vi.fn(),
     createThreadMessage: vi.fn(),
+    createThreadMessageWithNotification: vi.fn(),
   },
 }));
 

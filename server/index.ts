@@ -6,6 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { apiLimiter, authLimiter } from "./middleware/rateLimiter";
 import { logger } from "./logger";
 import { storage } from "./storage";
+import { scheduleNotificationOutboxWorker } from "./services/notificationWorker";
 
 const app = express();
 
@@ -123,6 +124,7 @@ async function scheduleProviderImageCleanup(): Promise<void> {
   scheduleProviderImageCleanup().catch((err) =>
     logger.error({ err }, "Provider image cleanup scheduler failed to start")
   );
+  scheduleNotificationOutboxWorker();
 
   // ── Global error handler ──────────────────────────────────────────────────
   // NOTE: Must be registered AFTER routes. The `throw err` that was here

@@ -3,8 +3,8 @@
  *
  * Confirms that a single POST to the approve endpoint:
  * 1. Flips licenseStatus to "confirmed" and isProfileVisible to true.
- * 2. Calls sendLicenseApprovalEmail with the correct recipient email and
- *    providerId — both actions happen in the same request.
+ * 2. Queues a durable approval notification with the correct recipient email
+ *    and providerId in the same storage operation.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -29,15 +29,9 @@ vi.mock("../server/storage", () => ({
   storage: {
     getUser: vi.fn(),
     getProvider: vi.fn(),
-    updateProvider: vi.fn(),
+    completeLicenseVerificationWithNotification: vi.fn(),
     getPendingLicenseVerifications: vi.fn(),
-    createAuditLog: vi.fn().mockResolvedValue(undefined),
   },
-}));
-
-vi.mock("../server/services/email", () => ({
-  sendLicenseApprovalEmail: vi.fn().mockResolvedValue(undefined),
-  sendLicenseRejectionEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("../server/logger", () => ({
@@ -54,7 +48,6 @@ vi.mock("../server/logger", () => ({
 // ---------------------------------------------------------------------------
 
 import { storage } from "../server/storage";
-import { sendLicenseApprovalEmail } from "../server/services/email";
 import { registerAdminRoutes } from "../server/routes/admin";
 
 // ---------------------------------------------------------------------------
@@ -116,10 +109,7 @@ function makeOwnerUser() {
 beforeEach(() => {
   vi.mocked(storage.getUser).mockReset();
   vi.mocked(storage.getProvider).mockReset();
-  vi.mocked(storage.updateProvider).mockReset();
-  vi.mocked(storage.createAuditLog).mockResolvedValue(undefined as any);
-  vi.mocked(sendLicenseApprovalEmail).mockReset();
-  vi.mocked(sendLicenseApprovalEmail).mockResolvedValue(undefined);
+  vi.mocked(storage.completeLicenseVerificationWithNotification).mockReset();
 });
 
 // ---------------------------------------------------------------------------
@@ -143,7 +133,7 @@ describe("POST /api/admin/verifications/:providerId/approve", () => {
       return null;
     });
     vi.mocked(storage.getProvider).mockResolvedValue(pending as any);
-    vi.mocked(storage.updateProvider).mockResolvedValue(updated as any);
+    vi.mocked(storage.completeLicenseVerificationWithNotification).mockResolvedValue(updated as any);
 
     const app = buildApp();
     const res = await request(app)
@@ -155,17 +145,15 @@ describe("POST /api/admin/verifications/:providerId/approve", () => {
     expect(res.body.provider.licenseStatus).toBe("confirmed");
     expect(res.body.provider.isProfileVisible).toBe(true);
 
-    // storage must have been asked to write both fields together
-    expect(storage.updateProvider).toHaveBeenCalledWith(
-      pending.id,
+    expect(storage.completeLicenseVerificationWithNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        licenseStatus: "confirmed",
-        isProfileVisible: true,
-      })
+        providerId: pending.id,
+        outcome: "approved",
+      }),
     );
   });
 
-  it("calls sendLicenseApprovalEmail with the owner's email and the correct providerId", async () => {
+  it("queues an approval notification with the owner's email and providerId", async () => {
     const pending = makePendingProvider();
     const owner = makeOwnerUser();
     const updated = {
@@ -181,22 +169,21 @@ describe("POST /api/admin/verifications/:providerId/approve", () => {
       return null;
     });
     vi.mocked(storage.getProvider).mockResolvedValue(pending as any);
-    vi.mocked(storage.updateProvider).mockResolvedValue(updated as any);
+    vi.mocked(storage.completeLicenseVerificationWithNotification).mockResolvedValue(updated as any);
 
-    const app = buildApp();
-    const res = await request(app)
+    const res = await request(buildApp())
       .post(`/api/admin/verifications/${pending.id}/approve`)
       .set("x-test-user", ADMIN_USER_ID)
       .send();
 
     expect(res.status).toBe(200);
-
-    expect(sendLicenseApprovalEmail).toHaveBeenCalledOnce();
-    expect(sendLicenseApprovalEmail).toHaveBeenCalledWith(
+    expect(storage.completeLicenseVerificationWithNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        recipientEmail: owner.email,
-        providerId: pending.id,
-      })
+        notification: expect.objectContaining({
+          eventType: "license_approved",
+          payload: expect.objectContaining({ recipientEmail: owner.email, providerId: pending.id }),
+        }),
+      }),
     );
   });
 
@@ -218,7 +205,7 @@ describe("POST /api/admin/verifications/:providerId/approve", () => {
       return null;
     });
     vi.mocked(storage.getProvider).mockResolvedValue(pending as any);
-    vi.mocked(storage.updateProvider).mockResolvedValue({
+    vi.mocked(storage.completeLicenseVerificationWithNotification).mockResolvedValue({
       ...pending,
       licenseStatus: "confirmed",
       isProfileVisible: true,
@@ -233,9 +220,10 @@ describe("POST /api/admin/verifications/:providerId/approve", () => {
     expect(res.status).toBe(200);
     expect(storage.getUser).toHaveBeenCalledWith(CLAIMANT_OWNER_ID);
     expect(storage.getUser).not.toHaveBeenCalledWith(PROVIDER_OWNER_ID);
-    expect(sendLicenseApprovalEmail).toHaveBeenCalledWith(expect.objectContaining({
-      recipientEmail: claimant.email,
-      providerId: pending.id,
+    expect(storage.completeLicenseVerificationWithNotification).toHaveBeenCalledWith(expect.objectContaining({
+      notification: expect.objectContaining({
+        payload: expect.objectContaining({ recipientEmail: claimant.email, providerId: pending.id }),
+      }),
     }));
   });
 
@@ -254,7 +242,7 @@ describe("POST /api/admin/verifications/:providerId/approve", () => {
       return null;
     });
     vi.mocked(storage.getProvider).mockResolvedValue(pending as any);
-    vi.mocked(storage.updateProvider).mockResolvedValue(updated as any);
+    vi.mocked(storage.completeLicenseVerificationWithNotification).mockResolvedValue(updated as any);
 
     const app = buildApp();
     const res = await request(app)
@@ -264,9 +252,11 @@ describe("POST /api/admin/verifications/:providerId/approve", () => {
 
     expect(res.status).toBe(200);
 
-    // Both effects must have occurred — neither can be silently dropped
-    expect(storage.updateProvider).toHaveBeenCalledOnce();
-    expect(sendLicenseApprovalEmail).toHaveBeenCalledOnce();
+    // One storage operation owns both the status write and the outbox enqueue.
+    expect(storage.completeLicenseVerificationWithNotification).toHaveBeenCalledOnce();
+    expect(storage.completeLicenseVerificationWithNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ notification: expect.any(Object) }),
+    );
   });
 
   it("returns 409 when the provider is not in the pending-review queue", async () => {
@@ -288,8 +278,7 @@ describe("POST /api/admin/verifications/:providerId/approve", () => {
       .send();
 
     expect(res.status).toBe(409);
-    expect(storage.updateProvider).not.toHaveBeenCalled();
-    expect(sendLicenseApprovalEmail).not.toHaveBeenCalled();
+    expect(storage.completeLicenseVerificationWithNotification).not.toHaveBeenCalled();
   });
 
   it("returns 404 when the provider does not exist", async () => {
