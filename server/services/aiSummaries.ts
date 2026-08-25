@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import type { Provider } from "@shared/schema";
 import { createLogger } from "../logger";
-import { getPublicPricing } from "../lib/providerAccess";
+import { formatMinimizedProviderContext } from "./aiPrivacy";
 import {
   AI_REPLY_CACHE_TTL_MS,
   AI_SUMMARY_CACHE_TTL_MS,
@@ -23,33 +23,10 @@ interface AISummaryResult {
 }
 
 export function formatProviderForContext(provider: Provider): string {
-  const parts = [
-    `**${provider.name}**`,
-    `Type: ${provider.type || "Childcare"}`,
-    `Location: ${provider.city}, ${provider.state}`,
-  ];
-
-  if (provider.ageRangeMin !== undefined && provider.ageRangeMax !== undefined) {
-    const minYears = Math.floor(provider.ageRangeMin / 12);
-    const maxYears = Math.floor(provider.ageRangeMax / 12);
-    parts.push(`Ages: ${minYears}-${maxYears} years`);
-  }
-
-  const pricing = getPublicPricing(provider);
-  if (provider.showExactPrice === false) {
-    parts.push("Pricing: exact tuition is not publicly shared; do not state or infer a dollar amount");
-  } else if (pricing.monthlyPriceMin && pricing.monthlyPriceMax) {
-    parts.push(`Monthly price range: $${pricing.monthlyPriceMin}–$${pricing.monthlyPriceMax}`);
-  } else if (pricing.monthlyPrice) {
-    parts.push(`Monthly price: $${pricing.monthlyPrice}/month`);
-  }
-  if (provider.features && provider.features.length > 0) {
-    parts.push(`Features: ${provider.features.slice(0, 5).join(", ")}`);
-  }
-  if (provider.rating && Number(provider.rating) > 0) parts.push(`Rating: ${provider.rating}/5`);
-  if (provider.isVerifiedByGov) parts.push(`✓ Government Verified`);
-
-  return parts.join(" | ");
+  return formatMinimizedProviderContext(provider)
+    .replace("Program type:", "Type:")
+    .replace("Service area:", "Location:")
+    .replace("Ages served:", "Ages:");
 }
 
 export async function generateSearchSummary(
@@ -79,9 +56,7 @@ Guidelines:
 - Never infer, calculate, or disclose a dollar amount for a provider whose context says tuition is not publicly shared.
 - Keep responses under 150 words`;
 
-  const userPrompt = `A parent searched for: "${query}"
-
-Here are the top matching providers:
+  const userPrompt = `Here are the top matching public program records:
 ${providerContext}
 
 Total results found: ${providers.length}
@@ -94,9 +69,7 @@ Please provide:
   try {
     return await runBoundedCachedAI(
       createAICacheKey("search-summary", {
-        query,
         providerContext,
-        parsedContext,
         totalResults: providers.length,
       }),
       async (signal) => {

@@ -75,6 +75,7 @@ const provider = {
   ownerUserId: OWNER,
   userId: null,
   aiAutoReplyEnabled: true,
+  aiDataProcessingConsentAt: new Date("2026-08-25T00:00:00.000Z"),
   isActive: true,
   licenseStatus: "confirmed",
   isProfileVisible: true,
@@ -120,7 +121,7 @@ describe("AI draft endpoints", () => {
   it("rejects when AI auto-reply is disabled", async () => {
     (storage.getProvider as any).mockResolvedValue({ ...provider, aiAutoReplyEnabled: false });
     const res = await request(app).post("/api/threads/5/ai-draft").set("x-test-user", OWNER).expect(400);
-    expect(res.body.message).toMatch(/not enabled/i);
+    expect(res.body.message).toMatch(/enabled setting/i);
   });
 
   it("rejects when the latest message is from the provider", async () => {

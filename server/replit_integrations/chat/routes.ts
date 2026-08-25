@@ -6,6 +6,7 @@ import { chatStorage } from "./storage";
 import { z } from "zod";
 import { createLogger } from "../../logger";
 import { AI_REQUEST_TIMEOUT_MS, withTimeout } from "../../services/aiResilience";
+import { scrubRecentChatMessages, scrubTextForAI } from "../../services/aiPrivacy";
 
 const log = createLogger("chat-routes");
 
@@ -20,6 +21,9 @@ const createConversationSchema = z.object({
 
 const sendMessageSchema = z.object({
   content: z.string().min(1).max(4000),
+  aiDataConsent: z.literal(true, {
+    message: "Confirm that you understand your redacted message will be processed by an external AI service.",
+  }),
 });
 
 export function registerChatRoutes(app: Express): void {
@@ -84,15 +88,29 @@ export function registerChatRoutes(app: Express): void {
       }
       const { content } = parsed.data;
       const userId = req.user.claims.sub as string;
+      const scrubbedCurrentMessage = scrubTextForAI(content);
+      if (scrubbedCurrentMessage.hadSensitiveContent || !scrubbedCurrentMessage.text) {
+        return res.status(422).json({
+          ok: false,
+          message: "Please remove names or sensitive family, health, contact, address, or financial details before using AI chat.",
+        });
+      }
       const conversation = await chatStorage.getConversation(conversationId, userId);
       if (!conversation) return res.status(404).json({ error: "Conversation not found" });
 
       await chatStorage.createMessage(conversationId, "user", content);
       const messages = await chatStorage.getMessagesByConversation(conversationId, userId);
-      const chatMessages = messages.map((m) => ({
+       const scrubbedHistory = scrubRecentChatMessages(messages.map((m) => ({
         role: m.role as "user" | "assistant",
         content: m.content,
-      }));
+      })));
+       if (scrubbedHistory.hadSensitiveContent) {
+         return res.status(422).json({
+           ok: false,
+           message: "This conversation contains names or sensitive details. Start a new AI chat without personal information.",
+         });
+       }
+       const chatMessages = scrubbedHistory.messages;
 
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");

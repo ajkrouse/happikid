@@ -193,7 +193,7 @@ export default function Messages() {
     },
   });
 
-  const aiEnabled = !!threadDetail?.provider?.aiAutoReplyEnabled;
+  const aiEnabled = !!threadDetail?.provider?.aiAutoReplyEnabled && !!threadDetail?.provider?.aiDataProcessingConsentAt;
   const lastMessage = threadDetail?.messages?.[threadDetail.messages.length - 1];
   const lastIsFromParent = !!lastMessage && lastMessage.senderUserId !== user?.id;
   const currentDraft =
@@ -462,6 +462,9 @@ export default function Messages() {
                       </Badge>
                       <span className="text-xs text-gray-500">Review before sending — edit or discard</span>
                     </div>
+                    <p className="text-xs text-purple-800/80 mb-2">
+                      A minimized excerpt of the newest parent message and limited public program facts were processed by an external AI service to create this draft. Sensitive messages are withheld.
+                    </p>
                     <p className="text-sm text-gray-800 whitespace-pre-wrap break-words mb-2">
                       {currentDraft}
                     </p>

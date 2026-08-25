@@ -369,7 +369,10 @@ export function registerProviderRoutes(app: Express): void {
   // Toggle AI auto-reply for the authenticated provider's own listing
   app.patch("/api/providers/mine/ai-auto-reply", isAuthenticated, async (req: any, res) => {
     try {
-      const parsed = z.object({ enabled: z.boolean() }).safeParse(req.body);
+      const parsed = z.object({
+        enabled: z.boolean(),
+        consent: z.literal(true).optional(),
+      }).safeParse(req.body);
       if (!parsed.success) {
         return apiError(res, 400, "Invalid request", { errors: parsed.error.errors });
       }
@@ -378,10 +381,20 @@ export function registerProviderRoutes(app: Express): void {
       // listing creator from toggling AI replies on a listing someone else claimed.
       const providers = await storage.getProvidersByCanonicalOwner(req.user?.claims?.sub);
       if (providers.length === 0) return apiError(res, 404, "No provider profile found");
-      const updated = await storage.updateProvider(providers[0].id, {
+      const currentProvider = providers[0];
+      if (parsed.data.enabled && !parsed.data.consent && !currentProvider.aiDataProcessingConsentAt) {
+        return apiError(res, 400, "Confirm AI data processing before enabling AI draft replies");
+      }
+      const updated = await storage.updateProvider(currentProvider.id, {
         aiAutoReplyEnabled: parsed.data.enabled,
+        ...(parsed.data.enabled && !currentProvider.aiDataProcessingConsentAt
+          ? { aiDataProcessingConsentAt: new Date() }
+          : {}),
       } as any);
-      res.json({ aiAutoReplyEnabled: updated.aiAutoReplyEnabled });
+      res.json({
+        aiAutoReplyEnabled: updated.aiAutoReplyEnabled,
+        aiDataProcessingConsentAt: updated.aiDataProcessingConsentAt,
+      });
     } catch (error) {
       log.error({ err: error }, "Error updating AI auto-reply setting");
       apiError(res, 500, "Failed to update AI auto-reply setting");

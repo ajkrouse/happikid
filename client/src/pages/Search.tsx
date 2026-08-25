@@ -336,7 +336,7 @@ export default function SearchPage() {
                 </div>
                 <div>
                   <p className="font-medium text-brand-evergreen text-sm">Get personalized matches!</p>
-                  <p className="text-text-muted text-xs">Tell us about your family to unlock AI-powered recommendations.</p>
+                  <p className="text-text-muted text-xs">Tell us about your family to refine on-site matches. Family details are not sent to AI search summaries.</p>
                 </div>
               </div>
               <Button
@@ -379,6 +379,9 @@ export default function SearchPage() {
             }}
             currentQuery={searchQuery}
           />
+          <p className="mt-2 text-center text-xs text-text-muted">
+            AI insights use public program facts only; HappiKid does not send your family profile or full search text to the AI service.
+          </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">

@@ -1,0 +1,1 @@
+ALTER TABLE "providers" ADD COLUMN IF NOT EXISTS "ai_data_processing_consent_at" timestamp;

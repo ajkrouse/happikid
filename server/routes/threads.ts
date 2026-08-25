@@ -308,8 +308,8 @@ export function registerThreadRoutes(app: Express): void {
       if (!provider || ownerUserId !== userId) {
         return apiError(res, 403, "Only the provider can generate AI draft replies");
       }
-      if (!provider.aiAutoReplyEnabled) {
-        return apiError(res, 400, "AI auto-reply is not enabled for this provider");
+      if (!provider.aiAutoReplyEnabled || !provider.aiDataProcessingConsentAt) {
+        return apiError(res, 400, "AI draft replies require an enabled setting and confirmed data-processing consent");
       }
 
       const messages = await storage.getThreadMessages(threadId);

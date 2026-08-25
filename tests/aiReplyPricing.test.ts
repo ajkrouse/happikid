@@ -34,7 +34,7 @@ describe("buildProviderContext pricing visibility", () => {
   it("excludes fixed price when showExactPrice is false", () => {
     const ctx = buildProviderContext({ ...base, showExactPrice: false, monthlyPrice: "1850.00" });
     expect(ctx).not.toContain("1850");
-    expect(ctx).toMatch(/not shared publicly/i);
+    expect(ctx).toMatch(/not publicly shared/i);
     expect(ctx).toMatch(/do not state any dollar amount/i);
   });
 

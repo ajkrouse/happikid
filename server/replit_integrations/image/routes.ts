@@ -4,12 +4,16 @@ import { aiLimiter } from "../../middleware/rateLimiter";
 import { openai } from "./client";
 import { z } from "zod";
 import { createLogger } from "../../logger";
+import { scrubTextForAI } from "../../services/aiPrivacy";
 
 const log = createLogger("image-routes");
 
 const generateImageSchema = z.object({
   prompt: z.string().min(1).max(1000),
   size: z.enum(["1024x1024", "512x512", "256x256"]).optional().default("1024x1024"),
+  aiDataConsent: z.literal(true, {
+    message: "Confirm that you understand your redacted prompt will be processed by an external AI service.",
+  }),
 });
 
 export function registerImageRoutes(app: Express): void {
@@ -20,10 +24,16 @@ export function registerImageRoutes(app: Express): void {
         return res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
       }
       const { prompt, size } = parsed.data;
+      const scrubbedPrompt = scrubTextForAI(prompt, 1000);
+      if (scrubbedPrompt.hadSensitiveContent || !scrubbedPrompt.text) {
+        return res.status(422).json({
+          error: "Remove names or sensitive family, health, contact, address, or financial details before generating an image.",
+        });
+      }
 
       const response = await openai.images.generate({
         model: "gpt-image-1",
-        prompt,
+        prompt: scrubbedPrompt.text,
         n: 1,
         size,
       });

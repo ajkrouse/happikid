@@ -10,3 +10,9 @@ description: PostgreSQL immutability requirement for trigram indexes over provid
 **Why:** PostgreSQL rejects a direct `array_to_string(...)` index expression because it is not declared immutable, even when the input is a text array and the separator is constant.
 
 **How to apply:** Keep the helper migration-backed and use the same helper expression wherever feature text is searched with `ILIKE`; otherwise the planner cannot use the index.
+
+**Rule:** Do not rely on `drizzle-kit push` to preserve raw operator-class search indexes.
+
+**Why:** Schema synchronization cannot model the `gin_trgm_ops` indexes and can remove them while applying unrelated columns, silently degrading public search.
+
+**How to apply:** Keep these indexes in committed migrations and validate their presence after any development schema synchronization; restore them with idempotent index SQL if a sync removes them.

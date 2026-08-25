@@ -53,6 +53,9 @@ export function AIInsights({
         <p className="text-brand-evergreen leading-relaxed mb-4" data-testid="text-ai-summary">
           {summary}
         </p>
+        <p className="text-xs text-brand-evergreen/65 bg-white/70 border border-action-teal/15 rounded-md px-3 py-2 mb-4">
+          AI summary privacy: this uses public program facts only. Your family profile and full search text are not sent to the AI service.
+        </p>
 
         {highlights.length > 0 && (
           <div className="mb-4">

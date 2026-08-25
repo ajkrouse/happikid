@@ -66,6 +66,44 @@ describe("AI chat conversation ownership", () => {
     expect(chatStorage.createConversation).toHaveBeenCalledWith("Questions for care", "parent-a");
   });
 
+  it("requires explicit consent before sending a message to the external AI service", async () => {
+    const response = await request(buildApp())
+      .post("/api/conversations/44/messages")
+      .set("x-test-user", "parent-a")
+      .send({ content: "Help me choose care" });
+
+    expect(response.status).toBe(400);
+    expect(chatStorage.getConversation).not.toHaveBeenCalled();
+    expect(chatStorage.createMessage).not.toHaveBeenCalled();
+  });
+
+  it("withholds mixed sensitive chat input before it reaches conversation storage or the model", async () => {
+    const response = await request(buildApp())
+      .post("/api/conversations/44/messages")
+      .set("x-test-user", "parent-a")
+      .send({ content: "Help me choose care. My name is Jane Doe.", aiDataConsent: true });
+
+    expect(response.status).toBe(422);
+    expect(chatStorage.getConversation).not.toHaveBeenCalled();
+    expect(chatStorage.createMessage).not.toHaveBeenCalled();
+  });
+
+  it("withholds a safe new message when its retained history contains sensitive content", async () => {
+    vi.mocked(chatStorage.getConversation).mockResolvedValue({ id: 44, userId: "parent-a" } as any);
+    vi.mocked(chatStorage.getMessagesByConversation).mockResolvedValue([
+      { role: "user", content: "Help me choose care. My name is Jane Doe." },
+      { role: "user", content: "Do you offer lunch?" },
+    ] as any);
+
+    const response = await request(buildApp())
+      .post("/api/conversations/44/messages")
+      .set("x-test-user", "parent-a")
+      .send({ content: "Do you offer lunch?", aiDataConsent: true });
+
+    expect(response.status).toBe(422);
+    expect(response.body.message).toMatch(/conversation contains names or sensitive details/i);
+  });
+
   it("returns 404 instead of another account's conversation or message history", async () => {
     const app = buildApp();
 
@@ -87,7 +125,7 @@ describe("AI chat conversation ownership", () => {
     const message = await request(app)
       .post("/api/conversations/44/messages")
       .set("x-test-user", "parent-b")
-      .send({ content: "Please expose this chat" });
+      .send({ content: "Please expose this chat", aiDataConsent: true });
 
     expect(deletion.status).toBe(404);
     expect(chatStorage.deleteConversation).toHaveBeenCalledWith(44, "parent-b");

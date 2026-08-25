@@ -152,6 +152,7 @@ export const providers = pgTable("providers", {
   // AI-assisted replies — when enabled, incoming parent messages get an AI draft reply
   // surfaced in the provider's thread view (never auto-sent; provider reviews and sends)
   aiAutoReplyEnabled: boolean("ai_auto_reply_enabled").default(false),
+  aiDataProcessingConsentAt: timestamp("ai_data_processing_consent_at"),
 
   // Structured closed-date ranges — array of { from, to, reason } objects (ISO date strings)
   closedDates: jsonb("closed_dates").default(sql`'[]'::jsonb`),

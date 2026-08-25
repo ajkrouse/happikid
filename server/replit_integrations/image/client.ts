@@ -1,6 +1,6 @@
-import fs from "node:fs";
-import OpenAI, { toFile } from "openai";
+import OpenAI from "openai";
 import { Buffer } from "node:buffer";
+import { scrubTextForAI } from "../../services/aiPrivacy";
 
 export const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -13,11 +13,19 @@ export const openai = new OpenAI({
  */
 export async function generateImageBuffer(
   prompt: string,
-  size: "1024x1024" | "512x512" | "256x256" = "1024x1024"
+  size: "1024x1024" | "512x512" | "256x256" = "1024x1024",
+  options?: { aiDataConsent?: boolean },
 ): Promise<Buffer> {
+  if (!options?.aiDataConsent) {
+    throw new Error("External AI image generation requires explicit user consent.");
+  }
+  const scrubbedPrompt = scrubTextForAI(prompt, 1000);
+  if (scrubbedPrompt.hadSensitiveContent || !scrubbedPrompt.text) {
+    throw new Error("Image prompt contains personal or sensitive details and was not sent to the external AI service.");
+  }
   const response = await openai.images.generate({
     model: "gpt-image-1",
-    prompt,
+    prompt: scrubbedPrompt.text,
     size,
   });
   const base64 = response.data?.[0]?.b64_json ?? "";
@@ -29,31 +37,10 @@ export async function generateImageBuffer(
  * Uses gpt-image-1 model via Replit AI Integrations.
  */
 export async function editImages(
-  imageFiles: string[],
-  prompt: string,
-  outputPath?: string
+  _imageFiles: string[],
+  _prompt: string,
+  _outputPath?: string,
 ): Promise<Buffer> {
-  const images = await Promise.all(
-    imageFiles.map((file) =>
-      toFile(fs.createReadStream(file), file, {
-        type: "image/png",
-      })
-    )
-  );
-
-  const response = await openai.images.edit({
-    model: "gpt-image-1",
-    image: images,
-    prompt,
-  });
-
-  const imageBase64 = response.data?.[0]?.b64_json ?? "";
-  const imageBytes = Buffer.from(imageBase64, "base64");
-
-  if (outputPath) {
-    fs.writeFileSync(outputPath, imageBytes);
-  }
-
-  return imageBytes;
+  throw new Error("External AI image editing is disabled until HappiKid has a dedicated consent flow that can verify images contain no children, families, documents, or personal data.");
 }
 

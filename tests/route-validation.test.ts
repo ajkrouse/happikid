@@ -1796,3 +1796,51 @@ describe("POST /api/contact — validation", () => {
     expect(res.body).toMatchObject({ success: true });
   });
 });
+
+// ============================================================================
+// PATCH /api/providers/mine/ai-auto-reply
+// ============================================================================
+
+describe("PATCH /api/providers/mine/ai-auto-reply — AI data consent", () => {
+  beforeEach(() => {
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockReset();
+    vi.mocked(storage.updateProvider).mockReset();
+  });
+
+  it("rejects enabling drafts without affirmative consent", async () => {
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([
+      { ...storedProvider, aiAutoReplyEnabled: false, aiDataProcessingConsentAt: null } as any,
+    ]);
+
+    const response = await request(buildApp())
+      .patch("/api/providers/mine/ai-auto-reply")
+      .set(AUTH)
+      .send({ enabled: true });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/confirm ai data processing/i);
+    expect(storage.updateProvider).not.toHaveBeenCalled();
+  });
+
+  it("records consent when a provider explicitly enables review-only drafts", async () => {
+    vi.mocked(storage.getProvidersByCanonicalOwner).mockResolvedValue([
+      { ...storedProvider, aiAutoReplyEnabled: false, aiDataProcessingConsentAt: null } as any,
+    ]);
+    vi.mocked(storage.updateProvider).mockResolvedValue({
+      ...storedProvider,
+      aiAutoReplyEnabled: true,
+      aiDataProcessingConsentAt: new Date(),
+    } as any);
+
+    const response = await request(buildApp())
+      .patch("/api/providers/mine/ai-auto-reply")
+      .set(AUTH)
+      .send({ enabled: true, consent: true });
+
+    expect(response.status).toBe(200);
+    expect(storage.updateProvider).toHaveBeenCalledWith(1, expect.objectContaining({
+      aiAutoReplyEnabled: true,
+      aiDataProcessingConsentAt: expect.any(Date),
+    }));
+  });
+});
