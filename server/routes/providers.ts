@@ -24,6 +24,10 @@ import {
 } from "../lib/providerImageUpload";
 import { z } from "zod";
 import { createLogger } from "../logger";
+import {
+  formatProviderSearchValidationError,
+  parseProviderSearchQuery,
+} from "../lib/providerSearch";
 
 const log = createLogger("providers");
 
@@ -167,13 +171,6 @@ export function registerProviderRoutes(app: Express): void {
   // List providers with filtering + intelligent search
   app.get("/api/providers", async (req, res) => {
     try {
-      const {
-        type, borough, city, ageRange, ageRangeMin, ageRangeMax,
-        features, search, category, subcategory,
-        limit = 20, offset = 0, aiSummary: requestAiSummary, acceptsSubsidies, verifiedPricing,
-        enrollmentStatus, openOn,
-      } = req.query;
-
       const ageGroupMap: { [key: string]: [number, number] } = {
         infants: [0, 12],
         toddlers: [12, 36],
@@ -181,44 +178,55 @@ export function registerProviderRoutes(app: Express): void {
         "school-age": [60, 180],
       };
 
-      let convertedAgeRangeMin = ageRangeMin ? parseInt(ageRangeMin as string) : undefined;
-      let convertedAgeRangeMax = ageRangeMax ? parseInt(ageRangeMax as string) : undefined;
-      if (ageRange) {
-        const ag = ageGroupMap[ageRange as string];
-        if (ag) { convertedAgeRangeMin = ag[0]; convertedAgeRangeMax = ag[1]; }
+      let query;
+      try {
+        query = parseProviderSearchQuery(req.query);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return apiError(res, 400, "Invalid provider search parameters", {
+            details: formatProviderSearchValidationError(error),
+          });
+        }
+        throw error;
       }
 
+      const ageGroup = query.ageRange ? ageGroupMap[query.ageRange] : undefined;
       let filters: any = {
-        type: type as string,
-        borough: borough as string,
-        city: city as string,
-        ageRangeMin: convertedAgeRangeMin,
-        ageRangeMax: convertedAgeRangeMax,
-        features: features ? (features as string).split(",") : undefined,
-        search: search as string,
-        category: category as string,
-        subcategory: subcategory as string,
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
+        type: query.type,
+        borough: query.borough,
+        city: query.city,
+        ageRangeMin: ageGroup?.[0] ?? query.ageRangeMin,
+        ageRangeMax: ageGroup?.[1] ?? query.ageRangeMax,
+        features: query.features,
+        search: query.search,
+        category: query.category,
+        subcategory: query.subcategory,
+        limit: query.limit,
+        offset: query.offset,
         returnTotal: true,
-        acceptsSubsidies: acceptsSubsidies === "true",
-        verifiedPricing: verifiedPricing === "true",
-        enrollmentStatus: enrollmentStatus as string | undefined,
-        openOn: openOn as string | undefined,
+        acceptsSubsidies: query.acceptsSubsidies,
+        verifiedPricing: query.verifiedPricing,
+        enrollmentStatus: query.enrollmentStatus,
+        openOn: query.openOn,
+        priceRange: query.priceRange,
+        lat: query.lat,
+        lng: query.lng,
+        radius: query.radius,
+        sortBy: query.sortBy,
       };
 
-      if (search && (search as string).trim().length > 0) {
-        const parsed = intelligentSearch.parseQuery(search as string);
+      if (query.search && query.search.length > 0) {
+        const parsed = intelligentSearch.parseQuery(query.search);
         filters = {
           ...filters,
           type: filters.type || parsed.filters.type,
           borough: filters.borough || parsed.filters.borough,
           city: filters.city || parsed.filters.city,
-          ageRangeMin: filters.ageRangeMin || parsed.filters.ageRangeMin,
-          ageRangeMax: filters.ageRangeMax || parsed.filters.ageRangeMax,
+          ageRangeMin: filters.ageRangeMin ?? parsed.filters.ageRangeMin,
+          ageRangeMax: filters.ageRangeMax ?? parsed.filters.ageRangeMax,
           features: filters.features || parsed.filters.features,
           search: parsed.filters.search,
-          acceptsSubsidies: filters.acceptsSubsidies || parsed.filters.acceptsSubsidies,
+          acceptsSubsidies: filters.acceptsSubsidies ?? parsed.filters.acceptsSubsidies,
         };
         log.debug({
           originalQuery: parsed.originalQuery,
@@ -231,7 +239,7 @@ export function registerProviderRoutes(app: Express): void {
       log.debug({
         type: filters.type, borough: filters.borough, city: filters.city,
         ageRangeMin: filters.ageRangeMin, ageRangeMax: filters.ageRangeMax,
-        features: filters.features, search: filters.search, originalAgeRange: ageRange,
+        features: filters.features, search: filters.search, originalAgeRange: query.ageRange,
       }, "Provider filters received");
 
       const result = await storage.getProviders(filters);
@@ -242,8 +250,8 @@ export function registerProviderRoutes(app: Express): void {
             providers: await Promise.all(result.providers.map(toPublicProviderWithImages)),
           };
 
-      if (search && (search as string).trim().length > 0) {
-        const parsed = intelligentSearch.parseQuery(search as string);
+      if (query.search && query.search.length > 0) {
+        const parsed = intelligentSearch.parseQuery(query.search);
         const searchMetadata = {
           originalQuery: parsed.originalQuery,
           parsedTerms: parsed.matchedTerms,
@@ -252,13 +260,13 @@ export function registerProviderRoutes(app: Express): void {
           explanation: intelligentSearch.explainParsing(parsed),
         };
         let aiSummaryResult = null;
-        if (requestAiSummary === "true") {
+        if (query.aiSummary) {
           try {
             const providersArray = Array.isArray(publicResult)
               ? publicResult
               : publicResult.providers;
             aiSummaryResult = await generateSearchSummary(
-              search as string, providersArray as any,
+              query.search, providersArray as any,
               { matchedTerms: parsed.matchedTerms, confidence: parsed.confidence }
             );
           } catch (aiError) {

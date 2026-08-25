@@ -14,6 +14,8 @@ interface SearchFiltersProps {
     ageRange?: string;
     priceRange?: string;
     features?: string[];
+    category?: string;
+    subcategory?: string;
     acceptsSubsidies?: boolean;
     verifiedPricing?: boolean;
     enrollmentStatus?: string;

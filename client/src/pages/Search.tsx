@@ -62,6 +62,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import type { TaxonomyResponse, Category } from "../../../types/taxonomy";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  restoreSearchUrl,
+  serializeSearchUrl,
+  type SearchFiltersState,
+  type SearchSort,
+} from "@/lib/searchUrlState";
 
 function getTypeLabel(type: string): string {
   switch (type) {
@@ -79,38 +85,42 @@ export default function SearchPage() {
   const queryClient = useQueryClient();
 
   const [urlParsed, setUrlParsed] = useState(false);
+  const restoringUrlRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
-    debounceTimeoutRef.current = setTimeout(() => setDebouncedSearchQuery(searchQuery), 500);
+    debounceTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setCurrentPage(1);
+    }, 500);
     return () => { if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current); };
   }, [searchQuery]);
 
-  const [filters, setFilters] = useState<{
-    type?: string;
-    borough?: string;
-    city?: string;
-    ageRange?: string;
-    priceRange?: string;
-    features?: string[];
-    category?: string;
-    subcategory?: string;
-    acceptsSubsidies?: boolean;
-    verifiedPricing?: boolean;
-    enrollmentStatus?: string;
-    openOn?: string;
-  }>({});
-  const [sortBy, setSortBy] = useState("best-match");
+  const [filters, setFilters] = useState<SearchFiltersState>({});
+  const [sortBy, setSortBy] = useState<SearchSort>("best-match");
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [searchRadius, setSearchRadius] = useState(5);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
   const handleLocationSearch = (location: { lat: number; lng: number; radius: number }) => {
     setUserLocation({ lat: location.lat, lng: location.lng });
+    setSearchRadius(location.radius);
+    setCurrentPage(1);
     toast({ title: "Location Search", description: `Searching within ${location.radius} miles of your location` });
+  };
+
+  const applyFilters = (nextFilters: SearchFiltersState) => {
+    setFilters(nextFilters);
+    setCurrentPage(1);
+  };
+
+  const clearSearchFilters = () => {
+    setFilters({});
+    setCurrentPage(1);
   };
 
   const handleMapProviderSelect = (provider: Provider) => {
@@ -157,55 +167,51 @@ export default function SearchPage() {
   };
 
   const handleCategorySelect = (category: string, subcategory: string) => {
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set("category", category);
-    urlParams.set("subcategory", subcategory);
-    window.history.pushState({}, "", `${window.location.pathname}?${urlParams.toString()}`);
     setFilters((prev) => ({ ...prev, category, subcategory }));
     setCurrentPage(1);
-    refetch();
   };
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const q = urlParams.get("q");
-    const type = urlParams.get("type");
-    const borough = urlParams.get("borough");
-    const city = urlParams.get("city");
-    const features = urlParams.get("features");
-    const cost = urlParams.get("cost");
-    const ageRange = urlParams.get("ageRange");
-    const category = urlParams.get("category");
-    const subcategory = urlParams.get("subcategory");
-
-    const costToPrice: { [key: string]: string } = {
-      "1": "0-1000",
-      "2": "1000-2000",
-      "3": "2000-3000",
-      "4": "3000+",
-      "5": "3000+",
+    const restoreFromUrl = () => {
+      const restored = restoreSearchUrl(window.location.search);
+      restoringUrlRef.current = true;
+      setSearchQuery(restored.searchQuery);
+      setDebouncedSearchQuery(restored.searchQuery);
+      setFilters(restored.filters);
+      setSortBy(restored.sortBy);
+      setUserLocation(restored.userLocation);
+      setSearchRadius(restored.searchRadius);
+      setCurrentPage(1);
+      setUrlParsed(true);
     };
-
-    if (q) {
-      setSearchQuery(q);
-      setDebouncedSearchQuery(q);
-    }
-
-    const newFilters: typeof filters = {};
-    if (type) newFilters.type = type;
-    if (borough) newFilters.borough = borough;
-    if (city) newFilters.city = city;
-    if (features) newFilters.features = features.split(",");
-    if (cost) newFilters.priceRange = costToPrice[cost];
-    if (ageRange) newFilters.ageRange = ageRange;
-    if (category) newFilters.category = category;
-    if (subcategory) newFilters.subcategory = subcategory;
-
-    if (Object.keys(newFilters).length > 0) setFilters(newFilters);
-    setUrlParsed(true);
+    restoreFromUrl();
+    window.addEventListener("popstate", restoreFromUrl);
+    return () => window.removeEventListener("popstate", restoreFromUrl);
   }, []);
 
-  const { data: providerResponse, isLoading, refetch } = useQuery<any>({
+  useEffect(() => {
+    if (!urlParsed) return;
+    const query = serializeSearchUrl({
+      searchQuery,
+      filters,
+      sortBy,
+      userLocation,
+      searchRadius,
+    });
+    const path = `${window.location.pathname}${query ? `?${query}` : ""}`;
+    if (restoringUrlRef.current) {
+      restoringUrlRef.current = false;
+      if (window.location.search.slice(1) !== query) {
+        window.history.replaceState({}, "", path);
+      }
+      return;
+    }
+    if (window.location.search.slice(1) !== query) {
+      window.history.pushState({}, "", path);
+    }
+  }, [urlParsed, searchQuery, filters, sortBy, userLocation, searchRadius]);
+
+  const { data: providerResponse, isLoading, isError, refetch } = useQuery<any>({
     queryKey: [
       "/api/providers",
       {
@@ -216,10 +222,16 @@ export default function SearchPage() {
         ageRange: filters.ageRange,
         features: filters.features?.join(","),
         priceRange: filters.priceRange,
+        category: filters.category,
+        subcategory: filters.subcategory,
         acceptsSubsidies: filters.acceptsSubsidies ? "true" : undefined,
         verifiedPricing: filters.verifiedPricing ? "true" : undefined,
         enrollmentStatus: filters.enrollmentStatus || undefined,
         openOn: filters.openOn || undefined,
+        sortBy,
+        lat: userLocation?.lat,
+        lng: userLocation?.lng,
+        radius: userLocation ? searchRadius : undefined,
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
         aiSummary: debouncedSearchQuery ? "true" : undefined,
@@ -250,7 +262,10 @@ export default function SearchPage() {
 
   const categories = taxonomyData?.afterSchoolPrograms || [];
 
-  const handleSearch = () => { refetch(); };
+  const handleSearch = () => {
+    setDebouncedSearchQuery(searchQuery);
+    setCurrentPage(1);
+  };
 
   const handleProviderClick = (provider: Provider) => {
     setSelectedProvider(provider);
@@ -353,14 +368,18 @@ export default function SearchPage() {
           <ConversationalSearch
             value={searchQuery}
             onChange={setSearchQuery}
-            onSearch={(query) => { setSearchQuery(query); setTimeout(handleSearch, 100); }}
+            onSearch={(query) => {
+              setSearchQuery(query);
+              setDebouncedSearchQuery(query);
+              setCurrentPage(1);
+            }}
             currentQuery={searchQuery}
           />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="hidden lg:block lg:w-1/4">
-            <SearchFilters filters={filters} onFiltersChange={setFilters} onClearFilters={() => setFilters({})} verifiedPricingCount={verifiedPricingCount} />
+            <SearchFilters filters={filters} onFiltersChange={applyFilters} onClearFilters={clearSearchFilters} verifiedPricingCount={verifiedPricingCount} />
 
             {filters.type === "afterschool" && categories.length > 0 && (
               <div className="mt-6">
@@ -399,7 +418,7 @@ export default function SearchPage() {
                     <Button variant="outline" className="w-full border-2 border-brand-evergreen/10 text-brand-evergreen">
                       <SlidersHorizontal className="h-4 w-4 mr-2" />
                       Filters
-                      {(filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.acceptsSubsidies || filters.verifiedPricing || filters.enrollmentStatus || filters.openOn || (filters.features && filters.features.length > 0)) && (
+                      {(filters.type || filters.borough || filters.city || filters.ageRange || filters.priceRange || filters.category || filters.subcategory || filters.acceptsSubsidies || filters.verifiedPricing || filters.enrollmentStatus || filters.openOn || (filters.features && filters.features.length > 0)) && (
                         <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-action-teal text-white">Active</span>
                       )}
                     </Button>
@@ -409,7 +428,7 @@ export default function SearchPage() {
                       <SheetTitle>Narrow Your Search</SheetTitle>
                     </SheetHeader>
                     <div className="mt-4">
-                      <SearchFilters filters={filters} onFiltersChange={setFilters} onClearFilters={() => setFilters({})} verifiedPricingCount={verifiedPricingCount} />
+                      <SearchFilters filters={filters} onFiltersChange={applyFilters} onClearFilters={clearSearchFilters} verifiedPricingCount={verifiedPricingCount} />
                       {filters.type === "afterschool" && categories.length > 0 && (
                         <div className="mt-6">
                           <TaxonomyNavigator
@@ -461,7 +480,10 @@ export default function SearchPage() {
                       {" "}of {totalCount} have{" "}
                       <button
                         className="underline underline-offset-2 hover:text-action-teal transition-colors"
-                        onClick={() => setFilters((prev) => ({ ...prev, verifiedPricing: !prev.verifiedPricing }))}
+                        onClick={() => {
+                          setFilters((prev) => ({ ...prev, verifiedPricing: !prev.verifiedPricing }));
+                          setCurrentPage(1);
+                        }}
                         aria-pressed={!!filters.verifiedPricing}
                       >
                         verified pricing
@@ -485,12 +507,8 @@ export default function SearchPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          const urlParams = new URLSearchParams(window.location.search);
-                          urlParams.delete("category");
-                          urlParams.delete("subcategory");
-                          window.history.pushState({}, "", `${window.location.pathname}?${urlParams.toString()}`);
                           setFilters((prev) => ({ ...prev, category: undefined, subcategory: undefined }));
-                          refetch();
+                          setCurrentPage(1);
                         }}
                         data-testid="button-clear-category"
                       >
@@ -514,7 +532,10 @@ export default function SearchPage() {
                     )}
                   </Button>
 
-                  <Select value={sortBy} onValueChange={setSortBy}>
+                  <Select value={sortBy} onValueChange={(value) => {
+                    setSortBy(value as SearchSort);
+                    setCurrentPage(1);
+                  }}>
                     <SelectTrigger className="w-48 rounded-lg border-2 border-brand-evergreen/10">
                       <SelectValue />
                     </SelectTrigger>
@@ -523,7 +544,9 @@ export default function SearchPage() {
                       <SelectItem value="highest-rated">Highest Rated</SelectItem>
                       <SelectItem value="lowest-price">Price: Low to High</SelectItem>
                       <SelectItem value="highest-price">Price: High to Low</SelectItem>
-                      <SelectItem value="nearest">Nearest</SelectItem>
+                      <SelectItem value="nearest" disabled={!userLocation}>
+                        Nearest{!userLocation ? " (use location)" : ""}
+                      </SelectItem>
                       <SelectItem value="newest">Newest Listings</SelectItem>
                     </SelectContent>
                   </Select>
@@ -630,7 +653,16 @@ export default function SearchPage() {
               </div>
             )}
 
-            {!isLoading && providers.length > 0 && (
+            {isError && !isLoading && (
+              <Card className="text-center py-12 rounded-2xl shadow-lg border-2 border-red-200 bg-white">
+                <CardContent>
+                  <h3 className="text-xl font-headline font-bold text-brand-evergreen mb-2">We couldn&apos;t complete that search</h3>
+                  <p className="text-text-muted">Please adjust your filters or try again.</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {!isLoading && !isError && providers.length > 0 && (
               viewMode === "map" ? (
                 <div className="h-[600px]">
                   <LazyErrorBoundary fallback={
@@ -646,6 +678,7 @@ export default function SearchPage() {
                       onProviderSelect={handleMapProviderSelect}
                       onLocationSearch={handleLocationSearch}
                       userLocation={userLocation}
+                      radius={searchRadius}
                     />
                   </LazyErrorBoundary>
                 </div>
@@ -666,7 +699,7 @@ export default function SearchPage() {
               )
             )}
 
-            {!isLoading && providers.length === 0 && (
+            {!isLoading && !isError && providers.length === 0 && (
               <Card className="text-center py-16 rounded-2xl shadow-lg border-2 border-brand-evergreen/10 bg-white">
                 <CardContent>
                   <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center bg-brand-sage">
@@ -689,7 +722,15 @@ export default function SearchPage() {
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button
                       className="rounded-lg px-6 text-white font-semibold bg-action-clay hover:bg-action-clay/90"
-                      onClick={() => { setSearchQuery(""); setFilters({}); setCurrentPage(1); refetch(); }}
+                      onClick={() => {
+                        setSearchQuery("");
+                        setDebouncedSearchQuery("");
+                        setFilters({});
+                        setSortBy("best-match");
+                        setUserLocation(null);
+                        setSearchRadius(5);
+                        setCurrentPage(1);
+                      }}
                     >
                       Clear Filters
                     </Button>

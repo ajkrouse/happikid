@@ -6,6 +6,7 @@ import { Provider } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { mapCenterForLocation } from '@/lib/mapLocation';
 import { 
   MapPin, 
   Star, 
@@ -48,6 +49,7 @@ interface MapViewProps {
   onProviderSelect?: (provider: Provider) => void;
   onLocationSearch?: (location: { lat: number; lng: number; radius: number }) => void;
   userLocation?: { lat: number; lng: number } | null;
+  radius?: number;
 }
 
 // Component to handle map centering
@@ -65,11 +67,20 @@ export default function MapView({
   providers, 
   onProviderSelect, 
   onLocationSearch,
-  userLocation 
+  userLocation,
+  radius = 5,
 }: MapViewProps) {
-  const [searchRadius, setSearchRadius] = useState([5]); // Default 5 mile radius
-  const [mapCenter, setMapCenter] = useState<[number, number]>([40.7589, -73.9851]); // NYC default
+  const [searchRadius, setSearchRadius] = useState([radius]);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(() => mapCenterForLocation(userLocation));
   const [isLocating, setIsLocating] = useState(false);
+
+  useEffect(() => {
+    setSearchRadius([radius]);
+  }, [radius]);
+
+  useEffect(() => {
+    setMapCenter(mapCenterForLocation(userLocation));
+  }, [userLocation]);
 
   // Get user's current location
   const handleGetLocation = () => {
@@ -118,34 +129,21 @@ export default function MapView({
     }
   };
 
-  // Deterministic pseudo-random offset based on provider ID — stable across re-renders
-  const seededOffset = (seed: number, scale: number): number => {
-    const x = Math.sin(seed) * 10000;
-    return (x - Math.floor(x) - 0.5) * scale;
-  };
-
-  // Memoize all provider coordinates so markers never jump on re-render
+  // Only plot coordinates saved for the provider. Approximate borough markers
+  // make a nearby/nearest search look wrong, so records without a geocode are
+  // intentionally omitted from the map until they can be accurately located.
   const providerCoordinates = useMemo(() => {
-    const boroughCoords: Record<string, [number, number]> = {
-      'Manhattan': [40.7831, -73.9712],
-      'Brooklyn': [40.6782, -73.9442],
-      'Queens': [40.7282, -73.7949],
-      'Bronx': [40.8448, -73.8648],
-      'Staten Island': [40.5795, -74.1502],
-      'NYC': [40.7589, -73.9851],
-    };
-
     const map = new Map<number, [number, number] | null>();
     providers.forEach((provider) => {
-      const base = boroughCoords[provider.borough || 'NYC'];
-      if (base) {
-        map.set(provider.id, [
-          base[0] + seededOffset(provider.id, 0.02),
-          base[1] + seededOffset(provider.id + 1000, 0.02),
-        ]);
-      } else {
-        map.set(provider.id, null);
-      }
+      const { lat, lng } = provider;
+      const hasValidCoordinates =
+        typeof lat === "number" &&
+        typeof lng === "number" &&
+        Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        lat >= -90 && lat <= 90 &&
+        lng >= -180 && lng <= 180;
+      map.set(provider.id, hasValidCoordinates ? [lat as number, lng as number] : null);
     });
     return map;
   }, [providers]);

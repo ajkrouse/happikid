@@ -66,6 +66,7 @@ import {
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql, like, inArray, getTableColumns, isNull } from "drizzle-orm";
 import { isStoredProviderImagePath } from "./lib/providerImageUpload";
+import type { ProviderSearchQuery } from "./lib/providerSearch";
 
 export interface FavoriteWriteResult {
   favorite: Favorite;
@@ -109,6 +110,11 @@ export interface IStorage {
     verifiedPricing?: boolean;
     enrollmentStatus?: string;
     openOn?: string;
+    priceRange?: ProviderSearchQuery["priceRange"];
+    lat?: number;
+    lng?: number;
+    radius?: number;
+    sortBy?: ProviderSearchQuery["sortBy"];
   }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number; verifiedPricingCount: number }>;
   getProvider(id: number): Promise<Provider | undefined>;
   getProviderWithDetails(id: number): Promise<Provider & { images: ProviderImage[]; reviews: Review[] } | undefined>;
@@ -369,6 +375,11 @@ export class DatabaseStorage implements IStorage {
     verifiedPricing?: boolean;
     enrollmentStatus?: string;
     openOn?: string;
+    priceRange?: ProviderSearchQuery["priceRange"];
+    lat?: number;
+    lng?: number;
+    radius?: number;
+    sortBy?: ProviderSearchQuery["sortBy"];
   }): Promise<ProviderWithScore[] | { providers: ProviderWithScore[]; total: number; verifiedPricingCount: number }> {
     try {
       let conditions: any[] = [eq(providers.isActive, true)];
@@ -413,23 +424,26 @@ export class DatabaseStorage implements IStorage {
         try {
           const taxonomy = await this.getAfterSchoolTaxonomy();
           const category = taxonomy.find((c: any) => c.slug === filters.category);
-          if (category) {
-            const subcategory = category.subcategories.find((s: any) => s.slug === filters.subcategory);
-            if (subcategory && subcategory.keywords && subcategory.keywords.length > 0) {
-              // Build OR'ed ILIKE clauses for each keyword
-              const keywordConditions = subcategory.keywords.map((keyword: string) =>
-                sql`(
-                  ${providers.name} ILIKE ${`%${keyword}%`} OR 
-                  ${providers.description} ILIKE ${`%${keyword}%`} OR
-                  provider_features_search_text(${providers.features}) ILIKE ${`%${keyword}%`}
-                )`
-              );
-              conditions.push(or(...keywordConditions));
-            }
+          const subcategory = category?.subcategories.find((s: any) => s.slug === filters.subcategory);
+          if (!subcategory?.keywords?.length) {
+            // A stale URL or incomplete taxonomy must never silently broaden the
+            // search to all providers.
+            conditions.push(sql`FALSE`);
+          } else {
+            const keywordConditions = subcategory.keywords.map((keyword: string) =>
+              sql`(
+                ${providers.name} ILIKE ${`%${keyword}%`} OR
+                ${providers.description} ILIKE ${`%${keyword}%`} OR
+                provider_features_search_text(${providers.features}) ILIKE ${`%${keyword}%`}
+              )`
+            );
+            conditions.push(or(...keywordConditions));
           }
         } catch (error) {
           log.error({ err: error }, "Error fetching taxonomy for filtering");
-          // Continue without taxonomy filtering
+          // Taxonomy lookup is part of this filter. Returning no results is safer
+          // than exposing an unfiltered marketplace response on a failed lookup.
+          conditions.push(sql`FALSE`);
         }
       }
 
@@ -480,6 +494,42 @@ export class DatabaseStorage implements IStorage {
         OR
         (${providers.monthlyPrice} IS NOT NULL AND ${providers.monthlyPrice}::numeric > 0)
       )`;
+      const priceMinSql = sql`COALESCE(${providers.monthlyPriceMin}::numeric, ${providers.monthlyPrice}::numeric)`;
+      const priceMaxSql = sql`COALESCE(${providers.monthlyPriceMax}::numeric, ${providers.monthlyPrice}::numeric)`;
+
+      if (filters?.priceRange) {
+        switch (filters.priceRange) {
+          case "0-1000":
+            conditions.push(sql`${priceMinSql} <= 1000`);
+            break;
+          case "1000-2000":
+            conditions.push(sql`${priceMinSql} <= 2000 AND ${priceMaxSql} >= 1000`);
+            break;
+          case "2000-3000":
+            conditions.push(sql`${priceMinSql} <= 3000 AND ${priceMaxSql} >= 2000`);
+            break;
+          case "3000+":
+            conditions.push(sql`${priceMaxSql} >= 3000`);
+            break;
+        }
+      }
+
+      const hasLocation = filters?.lat !== undefined && filters?.lng !== undefined;
+      const distanceSql = hasLocation
+        ? sql`3959 * acos(
+            LEAST(1, GREATEST(-1,
+              cos(radians(${filters!.lat!})) * cos(radians(${providers.lat})) *
+              cos(radians(${providers.lng}) - radians(${filters!.lng!})) +
+              sin(radians(${filters!.lat!})) * sin(radians(${providers.lat}))
+            ))
+          )`
+        : undefined;
+
+      if (distanceSql && filters?.radius !== undefined) {
+        conditions.push(
+          sql`${providers.lat} IS NOT NULL AND ${providers.lng} IS NOT NULL AND ${distanceSql} <= ${filters.radius}`
+        );
+      }
 
       // Capture base conditions before the verifiedPricing filter so we can count
       // how many providers in the current result set have verified pricing regardless
@@ -492,6 +542,43 @@ export class DatabaseStorage implements IStorage {
 
       // Import provider_scores table for ranking
       const { providerScores } = await import("@shared/schema");
+      const defaultOrdering = [
+        desc(sql`COALESCE(${providerScores.overallScore}, 0)`),
+        desc(sql`COALESCE(${providers.rating}::numeric, 0)`),
+        desc(sql`COALESCE(${providers.reviewCount}, 0)`),
+        asc(providers.id),
+      ];
+      const orderBy = (() => {
+        switch (filters?.sortBy) {
+          case "highest-rated":
+            return [
+              desc(sql`COALESCE(${providers.rating}::numeric, 0)`),
+              desc(sql`COALESCE(${providers.reviewCount}, 0)`),
+              asc(providers.id),
+            ];
+          case "lowest-price":
+            return [
+              sql`${priceMinSql} ASC NULLS LAST`,
+              sql`${priceMaxSql} ASC NULLS LAST`,
+              asc(providers.id),
+            ];
+          case "highest-price":
+            return [
+              sql`${priceMaxSql} DESC NULLS LAST`,
+              sql`${priceMinSql} DESC NULLS LAST`,
+              asc(providers.id),
+            ];
+          case "newest":
+            return [desc(providers.createdAt), desc(providers.id)];
+          case "nearest":
+            return distanceSql
+              ? [asc(distanceSql), ...defaultOrdering]
+              : defaultOrdering;
+          case "best-match":
+          default:
+            return defaultOrdering;
+        }
+      })();
 
       // If returnTotal is requested, get total count + verified-pricing count
       if (filters?.returnTotal) {
@@ -517,11 +604,7 @@ export class DatabaseStorage implements IStorage {
           .from(providers)
           .leftJoin(providerScores, eq(providers.id, providerScores.providerId))
           .where(and(...conditions))
-          .orderBy(
-            desc(sql`COALESCE(${providerScores.overallScore}, 0)`),
-            desc(providers.rating),
-            desc(providers.reviewCount)
-          )
+          .orderBy(...orderBy)
           .limit(filters?.limit || 20)
           .offset(filters?.offset || 0);
 
@@ -539,11 +622,7 @@ export class DatabaseStorage implements IStorage {
         .from(providers)
         .leftJoin(providerScores, eq(providers.id, providerScores.providerId))
         .where(and(...conditions))
-        .orderBy(
-          desc(sql`COALESCE(${providerScores.overallScore}, 0)`),
-          desc(providers.rating),
-          desc(providers.reviewCount)
-        )
+        .orderBy(...orderBy)
         .limit(filters?.limit || 20)
         .offset(filters?.offset || 0);
 
