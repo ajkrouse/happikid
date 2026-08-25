@@ -187,7 +187,7 @@ describe("ComparisonModal — Monthly Price row text", () => {
     expect(screen.getByText(expectedText)).toBeInTheDocument();
   });
 
-  it("hides the dollar amount but keeps the Verified badge when showExactPrice is false", () => {
+  it("hides the dollar amount and treats hidden tuition as unavailable", () => {
     const provider = makeProvider({
       monthlyPrice: "2000",
       showExactPrice: false,
@@ -196,8 +196,7 @@ describe("ComparisonModal — Monthly Price row text", () => {
 
     // The amount text should not appear
     expect(screen.queryByText(/\$2,000\s*-\s*\$2,000/)).not.toBeInTheDocument();
-    // But the verification badge should still appear (provider has explicit price)
-    expect(screen.getByText("✓ Verified")).toBeInTheDocument();
+    expect(screen.getByText("Tuition not disclosed")).toBeInTheDocument();
   });
 
   it("shows 'Est. range' badge when the provider has no explicit pricing", () => {
@@ -350,8 +349,7 @@ describe("ComparisonModal — price row updates when provider props change (rere
 
     // Price amount should be hidden
     expect(screen.queryByText("$2,000 - $2,000")).not.toBeInTheDocument();
-    // But the Verified badge should remain (provider still has explicit pricing data)
-    expect(screen.getByText("✓ Verified")).toBeInTheDocument();
+    expect(screen.getByText("Tuition not disclosed")).toBeInTheDocument();
   });
 
   it("shows the price amount again when showExactPrice transitions from false to true", () => {

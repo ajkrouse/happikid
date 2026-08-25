@@ -66,7 +66,15 @@ function toSavedGroupsResponse(state: Awaited<ReturnType<typeof storage.getSaved
 export function registerFavoriteRoutes(app: Express): void {
   app.get("/api/favorites", isAuthenticated, async (req: any, res) => {
     try {
-      res.json(await storage.getFavoritesByUserId(req.user?.claims?.sub));
+      const favorites = await storage.getFavoritesByUserId(req.user?.claims?.sub);
+      res.json(
+        favorites
+          .filter(({ provider }) => isPublicProvider(provider))
+          .map(({ provider, ...favorite }) => ({
+            ...favorite,
+            provider: toPublicProvider(provider as any),
+          })),
+      );
     } catch (error) {
       log.error({ err: error }, "Error fetching favorites");
       apiError(res, 500, "Failed to fetch favorites");

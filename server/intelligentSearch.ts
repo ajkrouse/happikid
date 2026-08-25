@@ -14,6 +14,8 @@ interface ParsedSearchQuery {
     features?: string[];
     search?: string;
     acceptsSubsidies?: boolean;
+    priceMin?: number;
+    priceMax?: number;
   };
   originalQuery: string;
   matchedTerms: string[];
@@ -205,6 +207,35 @@ export class IntelligentSearchService {
         } else {
           suggestions.push('Try filtering by price range $3000+');
         }
+      }
+    }
+
+    // Translate explicit monthly budget language into the same validated
+    // min/max filters accepted by the provider search route. Do not guess for
+    // vague terms beyond the existing suggestions above.
+    const normalizeAmount = (raw: string) => Number(raw.replace(/[$,\s]/g, ""));
+    const betweenMatch = query.match(/(?:between|from)\s*\$?([\d,]+)\s*(?:and|to|-)\s*\$?([\d,]+)(?:\s*(?:per|a)\s*(?:month|mo))?/i);
+    const underMatch = query.match(/(?:under|below|less than|up to|max(?:imum)? of?)\s*\$?([\d,]+)(?:\s*(?:per|a)\s*(?:month|mo))?/i);
+    const overMatch = query.match(/(?:over|above|more than|at least|min(?:imum)? of?)\s*\$?([\d,]+)(?:\s*(?:per|a)\s*(?:month|mo))?/i);
+    if (betweenMatch) {
+      const min = normalizeAmount(betweenMatch[1]);
+      const max = normalizeAmount(betweenMatch[2]);
+      if (Number.isFinite(min) && Number.isFinite(max) && min <= max) {
+        filters.priceMin = min;
+        filters.priceMax = max;
+        matchedTerms.push(`monthly budget: $${min.toLocaleString()}-$${max.toLocaleString()}`);
+      }
+    } else if (underMatch) {
+      const max = normalizeAmount(underMatch[1]);
+      if (Number.isFinite(max)) {
+        filters.priceMax = max;
+        matchedTerms.push(`monthly budget: up to $${max.toLocaleString()}`);
+      }
+    } else if (overMatch) {
+      const min = normalizeAmount(overMatch[1]);
+      if (Number.isFinite(min)) {
+        filters.priceMin = min;
+        matchedTerms.push(`monthly budget: $${min.toLocaleString()}+`);
       }
     }
     

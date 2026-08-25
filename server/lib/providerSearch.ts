@@ -27,6 +27,16 @@ const strictInteger = (min: number, max: number) =>
     z.number().int().min(min).max(max),
   );
 
+const strictPrice = z.preprocess(
+  (value) => {
+    if (typeof value === "string" && /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(value)) {
+      return Number(value);
+    }
+    return value;
+  },
+  z.number().finite().min(0).max(100_000),
+);
+
 const strictBoolean = z.preprocess(
   (value) => value === "true" ? true : value === "false" ? false : value,
   z.boolean(),
@@ -62,6 +72,8 @@ const rawProviderSearchQuerySchema = z.object({
   enrollmentStatus: z.enum(providerSearchEnrollmentStatuses).optional(),
   openOn: strictDate.optional(),
   priceRange: z.enum(providerSearchPriceRanges).optional(),
+  priceMin: strictPrice.optional(),
+  priceMax: strictPrice.optional(),
   // `cost` is retained for old shared links and is converted below.
   cost: z.enum(["1", "2", "3", "4", "5"]).optional(),
   lat: z.preprocess(
@@ -117,6 +129,13 @@ export function parseProviderSearchQuery(query: unknown): ProviderSearchQuery {
       code: z.ZodIssueCode.custom,
       message: "ageRangeMin cannot exceed ageRangeMax",
       path: ["ageRangeMin"],
+    }]);
+  }
+  if (parsed.priceMin !== undefined && parsed.priceMax !== undefined && parsed.priceMin > parsed.priceMax) {
+    throw new z.ZodError([{
+      code: z.ZodIssueCode.custom,
+      message: "priceMin cannot exceed priceMax",
+      path: ["priceMin"],
     }]);
   }
   if ((parsed.category === undefined) !== (parsed.subcategory === undefined)) {

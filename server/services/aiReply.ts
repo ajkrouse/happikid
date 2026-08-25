@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { Provider, ThreadMessage } from "@shared/schema";
 import { createLogger } from "../logger";
+import { getPublicPricing } from "../lib/providerAccess";
 
 const log = createLogger("ai-reply");
 
@@ -38,14 +39,15 @@ export function buildProviderContext(provider: Provider): string {
   // Pricing — respect the provider's exact-price visibility preference.
   // When exact pricing is hidden, NO numeric price (fixed or range) may enter the
   // model context; the profile publicly shows only a non-numeric cost level.
+  const pricing = getPublicPricing(provider);
   if (provider.showExactPrice === false) {
     lines.push(
       "Pricing: exact tuition amounts are not shared publicly. Do not state any dollar amount; invite the parent to ask us directly for current tuition details."
     );
-  } else if (provider.monthlyPrice) {
-    lines.push(`Monthly price: $${provider.monthlyPrice}`);
-  } else if (provider.monthlyPriceMin && provider.monthlyPriceMax) {
-    lines.push(`Monthly price range: $${provider.monthlyPriceMin}–$${provider.monthlyPriceMax}`);
+  } else if (pricing.monthlyPriceMin && pricing.monthlyPriceMax) {
+    lines.push(`Monthly price range: $${pricing.monthlyPriceMin}–$${pricing.monthlyPriceMax}`);
+  } else if (pricing.monthlyPrice) {
+    lines.push(`Monthly price: $${pricing.monthlyPrice}`);
   }
   if (provider.acceptsSubsidies) lines.push(`Accepts subsidies / financial assistance: yes`);
 

@@ -38,9 +38,45 @@ const BOROUGH_COLORS: Record<string, string> = {
 export function hasPricingData(
   provider: Pick<Provider, "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax">
 ): boolean {
-  if (provider.monthlyPriceMin && provider.monthlyPriceMax) return true;
+  if (
+    Number(provider.monthlyPriceMin) > 0 &&
+    Number(provider.monthlyPriceMax) > 0 &&
+    Number(provider.monthlyPriceMin) <= Number(provider.monthlyPriceMax)
+  ) return true;
   if (provider.monthlyPrice && Number(provider.monthlyPrice) > 0) return true;
   return false;
+}
+
+/**
+ * Returns true only for provider-entered exact pricing that families are
+ * allowed to use. Estimates are intentionally excluded from filters, score
+ * calculations, and price sorts.
+ */
+export function hasPublicPricingData(
+  provider: Pick<Provider, "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax" | "showExactPrice">,
+): boolean {
+  return provider.showExactPrice !== false && hasPricingData(provider);
+}
+
+/**
+ * Provides an approved numeric price range, or null when the price is hidden,
+ * missing, or malformed. Family-facing price decisions must use this rather
+ * than reading database fields directly.
+ */
+export function getPublicPriceRange(
+  provider: Pick<Provider, "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax" | "showExactPrice">,
+): { min: number; max: number } | null {
+  if (!hasPublicPricingData(provider)) return null;
+  if (
+    Number(provider.monthlyPriceMin) > 0 &&
+    Number(provider.monthlyPriceMax) > 0 &&
+    Number(provider.monthlyPriceMin) <= Number(provider.monthlyPriceMax)
+  ) {
+    return { min: Number(provider.monthlyPriceMin), max: Number(provider.monthlyPriceMax) };
+  }
+
+  const fixedPrice = Number(provider.monthlyPrice);
+  return fixedPrice > 0 ? { min: fixedPrice, max: fixedPrice } : null;
 }
 
 /**
@@ -51,20 +87,20 @@ export function hasPricingData(
  *  3. Type × location estimate fallback
  */
 export function getCostRange(
-  provider: Pick<Provider, "type" | "borough" | "city" | "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax">
+  provider: Pick<Provider, "type" | "borough" | "city" | "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax"> & {
+    showExactPrice?: boolean | null;
+  },
 ): { min: number; max: number } {
   // Explicit range wins
-  if (provider.monthlyPriceMin && provider.monthlyPriceMax) {
+  const publicPriceRange = getPublicPriceRange({
+    ...provider,
+    showExactPrice: provider.showExactPrice ?? true,
+  });
+  if (publicPriceRange) {
     return {
-      min: Number(provider.monthlyPriceMin),
-      max: Number(provider.monthlyPriceMax),
+      min: publicPriceRange.min,
+      max: publicPriceRange.max,
     };
-  }
-
-  // Fixed price — use as both bounds
-  const fixedPrice = Number(provider.monthlyPrice);
-  if (fixedPrice > 0) {
-    return { min: fixedPrice, max: fixedPrice };
   }
 
   // Fallback: type × location estimate
@@ -122,6 +158,6 @@ export function formatCostRange(
   provider: Pick<Provider, "type" | "borough" | "city" | "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax" | "showExactPrice">
 ): { range: { min: number; max: number }; showAmounts: boolean } {
   const range = getCostRange(provider);
-  const showAmounts = provider.showExactPrice !== false;
+  const showAmounts = hasPublicPricingData(provider);
   return { range, showAmounts };
 }

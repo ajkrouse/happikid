@@ -112,6 +112,63 @@ describe("GET /api/providers search contract", () => {
     }));
   });
 
+  it("accepts validated numeric budget bounds and rejects inverted bounds", async () => {
+    const response = await request(app()).get("/api/providers").query({
+      priceMin: "1200",
+      priceMax: "2200.50",
+    });
+
+    expect(response.status).toBe(200);
+    expect(storage.getProviders).toHaveBeenCalledWith(expect.objectContaining({
+      priceMin: 1200,
+      priceMax: 2200.5,
+    }));
+
+    const invalid = await request(app()).get("/api/providers").query({
+      priceMin: "2200",
+      priceMax: "1200",
+    });
+    expect(invalid.status).toBe(400);
+  });
+
+  it("passes only redacted provider pricing to family-facing AI summaries", async () => {
+    const hiddenProvider = {
+      id: 1,
+      name: "Private Tuition",
+      isActive: true,
+      licenseStatus: "confirmed",
+      isProfileVisible: true,
+      isProfilePublic: true,
+      showExactPrice: false,
+      monthlyPrice: "1950",
+      monthlyPriceMin: "1700",
+      monthlyPriceMax: "2200",
+    };
+    vi.mocked(storage.getProviders).mockResolvedValueOnce({
+      providers: [hiddenProvider],
+      total: 1,
+      verifiedPricingCount: 0,
+    } as any);
+    const { generateSearchSummary } = await import("../server/services/aiSummaries");
+    vi.mocked(generateSearchSummary).mockResolvedValueOnce(null);
+
+    const response = await request(app()).get("/api/providers").query({
+      search: "daycare",
+      aiSummary: "true",
+    });
+
+    expect(response.status).toBe(200);
+    expect(generateSearchSummary).toHaveBeenCalledWith(
+      "daycare",
+      [expect.objectContaining({
+        monthlyPrice: null,
+        monthlyPriceMin: null,
+        monthlyPriceMax: null,
+      })],
+      expect.anything(),
+    );
+  });
+
   it.each([
     { priceRange: "free" },
     { enrollmentStatus: "open" },

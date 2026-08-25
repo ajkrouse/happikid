@@ -137,6 +137,8 @@ export interface IStorage {
     enrollmentStatus?: string;
     openOn?: string;
     priceRange?: ProviderSearchQuery["priceRange"];
+    priceMin?: number;
+    priceMax?: number;
     lat?: number;
     lng?: number;
     radius?: number;
@@ -406,6 +408,8 @@ export class DatabaseStorage implements IStorage {
     enrollmentStatus?: string;
     openOn?: string;
     priceRange?: ProviderSearchQuery["priceRange"];
+    priceMin?: number;
+    priceMax?: number;
     lat?: number;
     lng?: number;
     radius?: number;
@@ -517,15 +521,30 @@ export class DatabaseStorage implements IStorage {
         );
       }
 
-      // Verified pricing SQL expression — matches the hasPricingData() rule in client/src/lib/providerPricing.ts:
-      // a provider has verified pricing when it has an explicit price range OR a positive fixed monthly price.
-      const verifiedPricingSql = sql`(
-        (${providers.monthlyPriceMin} IS NOT NULL AND ${providers.monthlyPriceMax} IS NOT NULL)
-        OR
-        (${providers.monthlyPrice} IS NOT NULL AND ${providers.monthlyPrice}::numeric > 0)
-      )`;
-      const priceMinSql = sql`COALESCE(${providers.monthlyPriceMin}::numeric, ${providers.monthlyPrice}::numeric)`;
-      const priceMaxSql = sql`COALESCE(${providers.monthlyPriceMax}::numeric, ${providers.monthlyPrice}::numeric)`;
+       // Public pricing is an explicit provider opt-in plus a complete positive
+       // fixed amount or range. Do not let hidden or malformed numeric fields
+       // influence a family-facing filter, count, or sort before DTO redaction.
+       const hasPublicRangeSql = sql`(
+         ${providers.monthlyPriceMin}::numeric > 0
+         AND ${providers.monthlyPriceMax}::numeric > 0
+         AND ${providers.monthlyPriceMin}::numeric <= ${providers.monthlyPriceMax}::numeric
+       )`;
+       const hasPublicFixedPriceSql = sql`${providers.monthlyPrice}::numeric > 0`;
+       const verifiedPricingSql = sql`(
+         COALESCE(${providers.showExactPrice}, true)
+         AND (${hasPublicRangeSql} OR ${hasPublicFixedPriceSql})
+       )`;
+       const publicExactPriceSql = sql`COALESCE(${providers.showExactPrice}, true)`;
+       const priceMinSql = sql`CASE
+         WHEN ${publicExactPriceSql} AND ${hasPublicRangeSql} THEN ${providers.monthlyPriceMin}::numeric
+         WHEN ${publicExactPriceSql} AND ${hasPublicFixedPriceSql} THEN ${providers.monthlyPrice}::numeric
+         ELSE NULL
+       END`;
+       const priceMaxSql = sql`CASE
+         WHEN ${publicExactPriceSql} AND ${hasPublicRangeSql} THEN ${providers.monthlyPriceMax}::numeric
+         WHEN ${publicExactPriceSql} AND ${hasPublicFixedPriceSql} THEN ${providers.monthlyPrice}::numeric
+         ELSE NULL
+       END`;
 
       if (filters?.priceRange) {
         switch (filters.priceRange) {
@@ -543,6 +562,12 @@ export class DatabaseStorage implements IStorage {
             break;
         }
       }
+       if (filters?.priceMin !== undefined) {
+         conditions.push(sql`${priceMaxSql} >= ${filters.priceMin}`);
+       }
+       if (filters?.priceMax !== undefined) {
+         conditions.push(sql`${priceMinSql} <= ${filters.priceMax}`);
+       }
 
       const hasLocation = filters?.lat !== undefined && filters?.lng !== undefined;
       const distanceSql = hasLocation

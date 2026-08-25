@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { Provider } from "@shared/schema";
 import { createLogger } from "../logger";
+import { getPublicPricing } from "../lib/providerAccess";
 
 const log = createLogger("ai-summaries");
 
@@ -15,7 +16,7 @@ interface AISummaryResult {
   followUpSuggestions: string[];
 }
 
-function formatProviderForContext(provider: Provider): string {
+export function formatProviderForContext(provider: Provider): string {
   const parts = [
     `**${provider.name}**`,
     `Type: ${provider.type || "Childcare"}`,
@@ -28,7 +29,14 @@ function formatProviderForContext(provider: Provider): string {
     parts.push(`Ages: ${minYears}-${maxYears} years`);
   }
 
-  if (provider.monthlyPrice) parts.push(`Price: $${provider.monthlyPrice}/month`);
+  const pricing = getPublicPricing(provider);
+  if (provider.showExactPrice === false) {
+    parts.push("Pricing: exact tuition is not publicly shared; do not state or infer a dollar amount");
+  } else if (pricing.monthlyPriceMin && pricing.monthlyPriceMax) {
+    parts.push(`Monthly price range: $${pricing.monthlyPriceMin}–$${pricing.monthlyPriceMax}`);
+  } else if (pricing.monthlyPrice) {
+    parts.push(`Monthly price: $${pricing.monthlyPrice}/month`);
+  }
   if (provider.features && provider.features.length > 0) {
     parts.push(`Features: ${provider.features.slice(0, 5).join(", ")}`);
   }
@@ -61,6 +69,8 @@ Guidelines:
 - Highlight key differentiators between providers
 - Be encouraging and supportive
 - Focus on what matters to parents: safety, quality, convenience
+- State tuition amounts only when a provider context explicitly includes a public price or range.
+- Never infer, calculate, or disclose a dollar amount for a provider whose context says tuition is not publicly shared.
 - Keep responses under 150 words`;
 
   const userPrompt = `A parent searched for: "${query}"

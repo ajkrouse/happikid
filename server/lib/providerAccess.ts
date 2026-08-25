@@ -10,6 +10,56 @@ import {
   providerImageContentUrl,
 } from "./providerImageUpload";
 
+type PricingProvider = Pick<
+  Provider,
+  "monthlyPrice" | "monthlyPriceMin" | "monthlyPriceMax" | "showExactPrice"
+>;
+
+export type PublicPricing = {
+  monthlyPrice: string | null;
+  monthlyPriceMin: string | null;
+  monthlyPriceMax: string | null;
+  hasPublicPricing: boolean;
+};
+
+function isPositiveAmount(value: unknown): value is string {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount > 0;
+}
+
+/**
+ * Exact tuition is public only when the provider opted in and supplied a
+ * complete, valid fixed amount or range. This is deliberately the single
+ * policy used by family DTOs and AI-facing public context.
+ */
+export function getPublicPricing(provider: PricingProvider): PublicPricing {
+  if (provider.showExactPrice === false) {
+    return {
+      monthlyPrice: null,
+      monthlyPriceMin: null,
+      monthlyPriceMax: null,
+      hasPublicPricing: false,
+    };
+  }
+
+  const hasPublicRange =
+    isPositiveAmount(provider.monthlyPriceMin) &&
+    isPositiveAmount(provider.monthlyPriceMax) &&
+    Number(provider.monthlyPriceMin) <= Number(provider.monthlyPriceMax);
+  const hasPublicFixedPrice = isPositiveAmount(provider.monthlyPrice);
+
+  return {
+    monthlyPrice: hasPublicFixedPrice ? provider.monthlyPrice : null,
+    monthlyPriceMin: hasPublicRange ? provider.monthlyPriceMin : null,
+    monthlyPriceMax: hasPublicRange ? provider.monthlyPriceMax : null,
+    hasPublicPricing: hasPublicRange || hasPublicFixedPrice,
+  };
+}
+
+export function hasPublicPricing(provider: PricingProvider): boolean {
+  return getPublicPricing(provider).hasPublicPricing;
+}
+
 /**
  * A provider is family-visible only after it is active, license-confirmed, and
  * explicitly published. Keep this rule in one place so public routes cannot
@@ -50,7 +100,7 @@ export function isCanonicalProviderOwner(
  * public endpoints must never return those raw records.
  */
 export function toPublicProvider(provider: Provider & Record<string, unknown>) {
-  const hideExactPrice = provider.showExactPrice === false;
+  const pricing = getPublicPricing(provider);
   const publicProvider = {
     id: provider.id,
     name: provider.name,
@@ -67,9 +117,9 @@ export function toPublicProvider(provider: Provider & Record<string, unknown>) {
     ageRangeMin: provider.ageRangeMin,
     ageRangeMax: provider.ageRangeMax,
     capacity: provider.capacity,
-    monthlyPrice: hideExactPrice ? null : provider.monthlyPrice,
-    monthlyPriceMin: hideExactPrice ? null : provider.monthlyPriceMin,
-    monthlyPriceMax: hideExactPrice ? null : provider.monthlyPriceMax,
+    monthlyPrice: pricing.monthlyPrice,
+    monthlyPriceMin: pricing.monthlyPriceMin,
+    monthlyPriceMax: pricing.monthlyPriceMax,
     showExactPrice: provider.showExactPrice,
     hoursOpen: provider.hoursOpen,
     hoursClose: provider.hoursClose,

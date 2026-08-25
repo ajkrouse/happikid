@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/select";
 import { ProviderContributions } from "./ProviderContributions";
 import { ReviewVoting } from "./ReviewVoting";
-import { getCostRange, getCostLevel, getBoroughColor, hasPricingData } from "@/lib/providerPricing";
+import { getCostRange, getCostLevel, getBoroughColor, hasPublicPricingData } from "@/lib/providerPricing";
 import { ClosedDatesCalendar, type ClosedDateEntry } from "./ClosedDatesCalendar";
 import { ProviderImageGallery } from "./ProviderImageGallery";
 
@@ -91,8 +91,8 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
 
     const costRange = getCostRange(provider);
     const dollarSigns = getCostLevel(costRange);
-    const verified = hasPricingData(provider);
-    const showAmounts = provider.showExactPrice !== false;
+    const hasPublicPrice = hasPublicPricingData(provider);
+    const showAmounts = hasPublicPrice;
     
     // Always show the $$ meter first
     const dollarMeter = (
@@ -117,8 +117,8 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
             <div className="text-gray-600">per month</div>
           </>
         )}
-        <div className={`text-xs mt-1 font-medium ${verified ? 'text-green-600' : 'text-gray-400'}`}>
-          {verified ? '✓ Verified pricing' : 'Estimated range'}
+        <div className={`text-xs mt-1 font-medium ${hasPublicPrice ? 'text-green-600' : 'text-gray-400'}`}>
+          {hasPublicPrice ? '✓ Verified pricing' : provider.showExactPrice === false ? 'Tuition not disclosed' : 'Estimated range'}
         </div>
       </div>
     );

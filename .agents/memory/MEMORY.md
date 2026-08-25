@@ -4,3 +4,4 @@
 - [Schema change checklist](schema-change-checklist.md) — db:push isn't enough (commit drizzle-kit generate output); canonical-owner lookups; strip party-private fields from list endpoints; hidden pricing never enters AI prompts
 - [Feature search indexes](feature-search-indexes.md) — PostgreSQL requires an immutable helper before trigram-indexing a text-array search expression.
 - [Provider image lifecycle](provider-image-lifecycle.md) — stage media separately from permanent files; queue failed permanent-object cleanup durably before retrying it.
+- [Public pricing policy](public-pricing-policy.md) — exact tuition needs explicit opt-in and valid values before it can affect family discovery, UI, saved views, or AI.

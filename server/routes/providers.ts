@@ -209,6 +209,8 @@ export function registerProviderRoutes(app: Express): void {
         enrollmentStatus: query.enrollmentStatus,
         openOn: query.openOn,
         priceRange: query.priceRange,
+        priceMin: query.priceMin,
+        priceMax: query.priceMax,
         lat: query.lat,
         lng: query.lng,
         radius: query.radius,
@@ -227,6 +229,8 @@ export function registerProviderRoutes(app: Express): void {
           features: filters.features || parsed.filters.features,
           search: parsed.filters.search,
           acceptsSubsidies: filters.acceptsSubsidies ?? parsed.filters.acceptsSubsidies,
+          priceMin: filters.priceMin ?? parsed.filters.priceMin,
+          priceMax: filters.priceMax ?? parsed.filters.priceMax,
         };
         log.debug({
           originalQuery: parsed.originalQuery,

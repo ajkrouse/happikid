@@ -42,19 +42,22 @@ const storage = new DatabaseStorage();
 let idRange: number;
 let idFixed: number;
 let idUnverified: number;
+let idHidden: number;
+let idMalformedRangeWithFixed: number;
 
 async function insertTestProvider(overrides: {
   name: string;
   monthly_price: string;
   monthly_price_min: string | null;
   monthly_price_max: string | null;
+  show_exact_price?: boolean;
 }): Promise<number> {
   const rows = await db.execute(sql`
     INSERT INTO providers (
       name, address, borough, city, state, zip_code,
       type, age_range_min, age_range_max,
       monthly_price, monthly_price_min, monthly_price_max,
-      is_active, license_status, is_profile_visible
+      is_active, license_status, is_profile_visible, show_exact_price
     ) VALUES (
       ${overrides.name},
       '123 Test St',
@@ -70,7 +73,8 @@ async function insertTestProvider(overrides: {
       ${overrides.monthly_price_max},
       true,
       'confirmed',
-      true
+      true,
+      ${overrides.show_exact_price ?? true}
     )
     RETURNING id
   `);
@@ -101,6 +105,21 @@ beforeAll(async () => {
     monthly_price_min: null,
     monthly_price_max: null,
   });
+
+  // Provider 4: private numeric pricing must never become a public pricing match.
+  idHidden = await insertTestProvider({
+    name: "Hidden Price Provider",
+    monthly_price: "900",
+    monthly_price_min: null,
+    monthly_price_max: null,
+    show_exact_price: false,
+  });
+  idMalformedRangeWithFixed = await insertTestProvider({
+    name: "Malformed Range Fixed Price Provider",
+    monthly_price: "1500",
+    monthly_price_min: "3000",
+    monthly_price_max: "2000",
+  });
 });
 
 afterAll(async () => {
@@ -128,6 +147,7 @@ describe("DatabaseStorage.getProviders() — verifiedPricing filter", () => {
 
     // The unverified provider must be excluded
     expect(ids).not.toContain(idUnverified);
+    expect(ids).not.toContain(idHidden);
   });
 
   it("enabling the filter reduces results compared to the unfiltered query", async () => {
@@ -145,8 +165,8 @@ describe("DatabaseStorage.getProviders() — verifiedPricing filter", () => {
 
     // The filter must narrow the result set
     expect(filteredCount).toBeLessThan(unfilteredCount);
-    expect(unfilteredCount).toBe(3);
-    expect(filteredCount).toBe(2);
+    expect(unfilteredCount).toBe(5);
+    expect(filteredCount).toBe(3);
   });
 
   it("restores the full result set when verifiedPricing is omitted (filter cleared)", async () => {
@@ -185,5 +205,34 @@ describe("DatabaseStorage.getProviders() — verifiedPricing filter", () => {
     const ids = rows.map((p) => p.id);
 
     expect(ids).not.toContain(idUnverified);
+  });
+
+  it("does not let hidden exact tuition affect public price filters, counts, or sorting", async () => {
+    const [budgetResult, lowestResult, metadataResult] = await Promise.all([
+      storage.getProviders({ city: TEST_CITY, priceMax: 1000, limit: 50 }),
+      storage.getProviders({ city: TEST_CITY, sortBy: "lowest-price", limit: 50 }),
+      storage.getProviders({ city: TEST_CITY, returnTotal: true, limit: 50 }),
+    ]);
+
+    const budgetIds = (Array.isArray(budgetResult) ? budgetResult : budgetResult.providers).map((p) => p.id);
+    const lowestIds = (Array.isArray(lowestResult) ? lowestResult : lowestResult.providers).map((p) => p.id);
+    const metadata = metadataResult as { verifiedPricingCount: number };
+
+    expect(budgetIds).not.toContain(idHidden);
+    expect(lowestIds.indexOf(idHidden)).toBeGreaterThan(lowestIds.indexOf(idFixed));
+    expect(Number(metadata.verifiedPricingCount)).toBe(3);
+  });
+
+  it("uses a valid fixed price when legacy range bounds are malformed", async () => {
+    const [budgetResult, lowestResult] = await Promise.all([
+      storage.getProviders({ city: TEST_CITY, priceMin: 1400, priceMax: 1600, limit: 50 }),
+      storage.getProviders({ city: TEST_CITY, sortBy: "lowest-price", limit: 50 }),
+    ]);
+
+    const budgetIds = (Array.isArray(budgetResult) ? budgetResult : budgetResult.providers).map((p) => p.id);
+    const lowestIds = (Array.isArray(lowestResult) ? lowestResult : lowestResult.providers).map((p) => p.id);
+
+    expect(budgetIds).toContain(idMalformedRangeWithFixed);
+    expect(lowestIds.indexOf(idMalformedRangeWithFixed)).toBeLessThan(lowestIds.indexOf(idRange));
   });
 });

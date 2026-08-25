@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
-import { getCostRange, getCostLevel, getBoroughColor, hasPricingData } from "@/lib/providerPricing";
+import { getCostRange, getCostLevel, getBoroughColor, hasPublicPricingData } from "@/lib/providerPricing";
 import { getClosingSoonEntry, formatClosureDateRange, isClosedToday } from "@/lib/closingSoon";
 import { getPrimaryProviderImage } from "@/lib/providerImages";
 
@@ -93,8 +93,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
   const renderCostDisplay = (provider: Provider) => {
     const costRange = getCostRange(provider);
     const dollarSigns = getCostLevel(costRange);
-    const verified = hasPricingData(provider);
-    const showAmounts = provider.showExactPrice !== false;
+    const hasPublicPrice = hasPublicPricingData(provider);
+    const showAmounts = hasPublicPrice;
     
     const dollarMeter = (
       <div
@@ -122,8 +122,8 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
             ${costRange.min.toLocaleString()} - ${costRange.max.toLocaleString()}/mo
           </div>
         )}
-        <div className={`text-xs mt-0.5 font-medium ${verified ? 'text-green-600' : 'text-gray-400'}`}>
-          {verified ? '✓ Verified pricing' : 'Est. range'}
+        <div className={`text-xs mt-0.5 font-medium ${hasPublicPrice ? 'text-green-600' : 'text-gray-400'}`}>
+          {hasPublicPrice ? '✓ Verified pricing' : provider.showExactPrice === false ? 'Tuition not disclosed' : 'Est. range'}
         </div>
       </div>
     );

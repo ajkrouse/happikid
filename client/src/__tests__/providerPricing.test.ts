@@ -4,6 +4,8 @@ import {
   getCostRange,
   getCostLevel,
   getBoroughColor,
+  getPublicPriceRange,
+  hasPublicPricingData,
 } from "@/lib/providerPricing";
 
 // Minimal provider shape used across tests
@@ -40,6 +42,29 @@ describe("hasPricingData", () => {
 
   it("returns false when only one of min/max is set and monthlyPrice is 0", () => {
     expect(hasPricingData({ monthlyPrice: "0", monthlyPriceMin: "1500", monthlyPriceMax: null })).toBe(false);
+  });
+});
+
+describe("public pricing visibility", () => {
+  it("does not return a usable numeric range when exact tuition is hidden", () => {
+    const provider = {
+      monthlyPrice: "2200",
+      monthlyPriceMin: "1800",
+      monthlyPriceMax: "2500",
+      showExactPrice: false,
+    };
+    expect(hasPublicPricingData(provider)).toBe(false);
+    expect(getPublicPriceRange(provider)).toBeNull();
+  });
+
+  it("returns the public range before a fixed fallback", () => {
+    const provider = {
+      monthlyPrice: "2200",
+      monthlyPriceMin: "1800",
+      monthlyPriceMax: "2500",
+      showExactPrice: true,
+    };
+    expect(getPublicPriceRange(provider)).toEqual({ min: 1800, max: 2500 });
   });
 });
 

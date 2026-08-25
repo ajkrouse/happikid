@@ -14,6 +14,7 @@ vi.mock("../server/replitAuth", () => ({
 vi.mock("../server/storage", () => ({
   storage: {
     addFavorite: vi.fn(),
+    getFavoritesByUserId: vi.fn(),
   },
 }));
 
@@ -60,5 +61,62 @@ describe("POST /api/favorites/:providerId", () => {
     expect(storage.addFavorite).toHaveBeenCalledTimes(2);
     expect(storage.addFavorite).toHaveBeenNthCalledWith(1, "parent_1", 7);
     expect(storage.addFavorite).toHaveBeenNthCalledWith(2, "parent_1", 7);
+  });
+});
+
+describe("GET /api/favorites", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("redacts hidden tuition and omits no-longer-public providers", async () => {
+    vi.mocked(storage.getFavoritesByUserId).mockResolvedValue([
+      {
+        userId: "parent_1",
+        providerId: 7,
+        createdAt: new Date(),
+        provider: {
+          id: 7,
+          name: "Private Tuition",
+          isActive: true,
+          licenseStatus: "confirmed",
+          isProfileVisible: true,
+          isProfilePublic: true,
+          showExactPrice: false,
+          monthlyPrice: "1900",
+          monthlyPriceMin: "1700",
+          monthlyPriceMax: "2200",
+        },
+      },
+      {
+        userId: "parent_1",
+        providerId: 8,
+        createdAt: new Date(),
+        provider: {
+          id: 8,
+          name: "Unpublished",
+          isActive: true,
+          licenseStatus: "confirmed",
+          isProfileVisible: false,
+          isProfilePublic: true,
+        },
+      },
+    ] as any);
+
+    const response = await request(buildApp())
+      .get("/api/favorites")
+      .set("x-test-user", "parent_1");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0]).toMatchObject({
+      providerId: 7,
+      provider: {
+        id: 7,
+        monthlyPrice: null,
+        monthlyPriceMin: null,
+        monthlyPriceMax: null,
+      },
+    });
   });
 });

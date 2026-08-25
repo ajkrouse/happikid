@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Provider } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
-import { getCostRange, hasPricingData } from "@/lib/providerPricing";
+import { getCostRange, getPublicPriceRange, hasPublicPricingData } from "@/lib/providerPricing";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoriteGroups } from "@/hooks/useFavoriteGroups";
 import { 
@@ -142,7 +142,9 @@ export default function ComparisonModal({
   };
 
   const formatPrice = (provider: Provider) => {
-    const { min, max } = getCostRange(provider);
+    const priceRange = getPublicPriceRange(provider);
+    if (!priceRange) return "Tuition not disclosed";
+    const { min, max } = priceRange;
     return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
   };
 
@@ -208,21 +210,26 @@ export default function ComparisonModal({
       icon: DollarSign,
       getValue: (p) => formatPrice(p),
       renderValue: (p) => {
-        const verified = hasPricingData(p);
-        const showAmounts = p.showExactPrice !== false;
+        const hasPublicPrice = hasPublicPricingData(p);
+        const estimatedRange = !hasPublicPrice && p.showExactPrice !== false
+          ? getCostRange(p)
+          : null;
         return (
           <div>
-            {showAmounts && <div>{formatPrice(p)}</div>}
-            <div className={`text-xs mt-0.5 font-medium ${verified ? 'text-green-600' : 'text-gray-400'}`}>
-              {verified ? '✓ Verified' : 'Est. range'}
+            {hasPublicPrice && <div>{formatPrice(p)}</div>}
+            {estimatedRange && (
+              <div>${estimatedRange.min.toLocaleString()} - ${estimatedRange.max.toLocaleString()}</div>
+            )}
+            <div className={`text-xs mt-0.5 font-medium ${hasPublicPrice ? 'text-green-600' : 'text-gray-400'}`}>
+              {hasPublicPrice ? '✓ Verified' : p.showExactPrice === false ? 'Tuition not disclosed' : 'Est. range'}
             </div>
           </div>
         );
       },
       getScore: (p, prefs) => {
-        const priceMin = Number(p.monthlyPriceMin) || Number(p.monthlyPrice) || 0;
-        const priceMax = Number(p.monthlyPriceMax) || Number(p.monthlyPrice) || 0;
-        if (!priceMin && !priceMax) return 0;
+        const priceRange = getPublicPriceRange(p);
+        if (!priceRange) return 0;
+        const { min: priceMin, max: priceMax } = priceRange;
         const avgPrice = (priceMin + priceMax) / 2;
         const budgetRanges = { low: [0, 1500], medium: [1500, 3000], high: [3000, Infinity] };
         const range = budgetRanges[prefs.budget as keyof typeof budgetRanges];
@@ -328,8 +335,8 @@ export default function ComparisonModal({
       case 'fit':
         return calculateFitScore(b) - calculateFitScore(a);
       case 'price':
-        const priceA = Number(a.monthlyPriceMin) || Number(a.monthlyPrice) || Infinity;
-        const priceB = Number(b.monthlyPriceMin) || Number(b.monthlyPrice) || Infinity;
+        const priceA = getPublicPriceRange(a)?.min ?? Infinity;
+        const priceB = getPublicPriceRange(b)?.min ?? Infinity;
         return priceA - priceB;
       case 'rating':
         const ratingA = Number(a.rating) || 0;
