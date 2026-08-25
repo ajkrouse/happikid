@@ -112,6 +112,7 @@ function buildApp() {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(storage.getProvider).mockResolvedValue(provider() as any);
+  vi.mocked(storage.getProviderImage).mockResolvedValue(image() as any);
   vi.mocked(storage.getProviderImages).mockResolvedValue([]);
   objectStorageMocks.getProviderImageUploadURL.mockResolvedValue({
     uploadURL: "https://storage.example.test/signed-upload",
@@ -247,6 +248,61 @@ describe("provider image upload lifecycle", () => {
     expect(detail.body.images).toEqual([expect.objectContaining({ imageUrl: publicUrl })]);
     expect(search.status).toBe(200);
     expect(search.body[0].images).toEqual([expect.objectContaining({ imageUrl: publicUrl })]);
+  });
+
+  it("serves public image listings and stored content without authentication", async () => {
+    vi.mocked(storage.getProviderImages).mockResolvedValue([image()] as any);
+    vi.mocked(storage.getProviderImage).mockResolvedValue(image() as any);
+    const objectFile = { path: objectPath };
+    objectStorageMocks.getObjectEntityFile.mockResolvedValue(objectFile);
+    objectStorageMocks.downloadObject.mockImplementation((_file, res) => {
+      res.status(204).end();
+    });
+    const app = buildApp();
+
+    const listing = await request(app).get("/api/providers/7/images");
+    const content = await request(app).get("/api/providers/7/images/19/content");
+
+    expect(listing.status).toBe(200);
+    expect(listing.body).toEqual([expect.objectContaining({
+      id: 19,
+      imageUrl: "/api/providers/7/images/19/content",
+    })]);
+    expect(content.status).toBe(204);
+    expect(objectStorageMocks.getObjectEntityFile).toHaveBeenCalledWith(objectPath);
+    expect(objectStorageMocks.downloadObject).toHaveBeenCalledWith(objectFile, expect.anything());
+  });
+
+  it("does not expose image listings or content for hidden providers or another provider's image", async () => {
+    const app = buildApp();
+
+    vi.mocked(storage.getProvider).mockResolvedValueOnce(provider({ isProfilePublic: false }) as any);
+    const hiddenListing = await request(app).get("/api/providers/7/images");
+    expect(hiddenListing.status).toBe(404);
+
+    vi.mocked(storage.getProvider).mockResolvedValueOnce(provider({ isProfilePublic: false }) as any);
+    const hiddenContent = await request(app).get("/api/providers/7/images/19/content");
+    expect(hiddenContent.status).toBe(404);
+    expect(objectStorageMocks.getObjectEntityFile).not.toHaveBeenCalled();
+    expect(objectStorageMocks.downloadObject).not.toHaveBeenCalled();
+
+    vi.mocked(storage.getProvider).mockResolvedValue(provider() as any);
+    vi.mocked(storage.getProviderImage).mockResolvedValue(image({ providerId: 8 }) as any);
+    const crossProviderContent = await request(app).get("/api/providers/7/images/19/content");
+    expect(crossProviderContent.status).toBe(404);
+    expect(objectStorageMocks.getObjectEntityFile).not.toHaveBeenCalled();
+  });
+
+  it("redirects legacy external image URLs through the public content endpoint", async () => {
+    vi.mocked(storage.getProviderImage).mockResolvedValue(
+      image({ imageUrl: "https://cdn.example.test/provider-photo.jpg" }) as any,
+    );
+
+    const response = await request(buildApp()).get("/api/providers/7/images/19/content");
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe("https://cdn.example.test/provider-photo.jpg");
+    expect(objectStorageMocks.getObjectEntityFile).not.toHaveBeenCalled();
   });
 
   it("deletes the database record and its stored object, while rejecting cross-provider image IDs", async () => {

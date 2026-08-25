@@ -89,4 +89,52 @@ describe("useFavoriteGroups", () => {
     expect(localStorage.getItem("favoriteGroups")).toBeNull();
     expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ title: "Saved groups restored" }));
   });
+
+  it("persists named comparison groups for an account and restores them in a new session", async () => {
+    authState.isAuthenticated = true;
+    authState.user = { id: "parent-persistence" };
+    let persisted = { revision: 0, groups: [] as Array<{
+      id: string;
+      name: string;
+      providerIds: number[];
+      providers: [];
+      createdAt: string;
+      updatedAt: string;
+    }> };
+    apiRequestMock.mockImplementation(async (method: string, _url: string, body?: any) => {
+      if (method === "GET") return response(persisted);
+      if (method === "PUT") {
+        persisted = {
+          revision: body.revision + 1,
+          groups: body.groups.map((group: { name: string; providerIds: number[] }, index: number) => ({
+            id: `saved-${index + 1}`,
+            name: group.name,
+            providerIds: group.providerIds,
+            providers: [],
+            createdAt: "2026-08-25T00:00:00.000Z",
+            updatedAt: "2026-08-25T00:00:00.000Z",
+          })),
+        };
+        return response(persisted);
+      }
+      throw new Error(`Unexpected ${method}`);
+    });
+
+    const firstSession = renderHook(() => useFavoriteGroups(), { wrapper });
+    await waitFor(() => expect(firstSession.result.current.isLoadingGroups).toBe(false));
+    await act(async () => {
+      await firstSession.result.current.saveGroups({ "Top choices": [7, 8] });
+    });
+
+    await waitFor(() => expect(firstSession.result.current.groups).toEqual({ "Top choices": [7, 8] }));
+    expect(apiRequestMock).toHaveBeenCalledWith("PUT", "/api/favorite-groups", {
+      groups: [{ name: "Top choices", providerIds: [7, 8] }],
+      revision: 0,
+    });
+    firstSession.unmount();
+
+    const secondSession = renderHook(() => useFavoriteGroups(), { wrapper });
+    await waitFor(() => expect(secondSession.result.current.groups).toEqual({ "Top choices": [7, 8] }));
+    expect(apiRequestMock).toHaveBeenCalledWith("GET", "/api/favorite-groups");
+  });
 });
