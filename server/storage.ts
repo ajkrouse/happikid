@@ -8,6 +8,9 @@ import {
   reviews,
   inquiries,
   favorites,
+  savedProviderGroups,
+  savedProviderGroupItems,
+  savedProviderGroupVersions,
   providerImages,
   providerImageCleanupJobs,
   providerLocations,
@@ -26,6 +29,7 @@ import {
   type Inquiry,
   type InsertInquiry,
   type Favorite,
+  type SavedProviderGroup,
   type ProviderImage,
   type ProviderImageCleanupJob,
   type InsertProviderImage,
@@ -71,6 +75,28 @@ import type { ProviderSearchQuery } from "./lib/providerSearch";
 export interface FavoriteWriteResult {
   favorite: Favorite;
   created: boolean;
+}
+
+export interface SavedProviderGroupInput {
+  name: string;
+  providerIds: number[];
+}
+
+export interface SavedProviderGroupWithProviders extends SavedProviderGroup {
+  providerIds: number[];
+  providers: Provider[];
+}
+
+export interface SavedProviderGroupsState {
+  groups: SavedProviderGroupWithProviders[];
+  revision: number;
+}
+
+export class SavedProviderGroupsConflictError extends Error {
+  constructor() {
+    super("Saved groups were updated in another session");
+    this.name = "SavedProviderGroupsConflictError";
+  }
 }
 
 function validateProviderClosedDates<T extends { closedDates?: unknown }>(provider: T): T {
@@ -131,6 +157,10 @@ export interface IStorage {
   addFavorite(userId: string, providerId: number): Promise<FavoriteWriteResult>;
   removeFavorite(userId: string, providerId: number): Promise<void>;
   isFavorite(userId: string, providerId: number): Promise<boolean>;
+  getSavedProviderGroupsByUserId(userId: string): Promise<SavedProviderGroupWithProviders[]>;
+  getSavedProviderGroupsState(userId: string): Promise<SavedProviderGroupsState>;
+  replaceSavedProviderGroups(userId: string, groups: SavedProviderGroupInput[], expectedRevision: number): Promise<SavedProviderGroupsState>;
+  mergeSavedProviderGroups(userId: string, groups: SavedProviderGroupInput[]): Promise<SavedProviderGroupsState>;
   
   // Inquiry operations
   getInquiry(id: number): Promise<Inquiry | undefined>;
@@ -757,9 +787,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async removeFavorite(userId: string, providerId: number): Promise<void> {
-    await db
-      .delete(favorites)
-      .where(and(eq(favorites.userId, userId), eq(favorites.providerId, providerId)));
+    await db.transaction(async (tx) => {
+      // A provider cannot remain in a saved group after its individual
+      // favorite is removed. This cleanup happens server-side so another
+      // browser cannot leave stale group membership behind.
+      const groups = await tx
+        .select({ id: savedProviderGroups.id })
+        .from(savedProviderGroups)
+        .where(eq(savedProviderGroups.userId, userId));
+      if (groups.length > 0) {
+        await tx
+          .delete(savedProviderGroupItems)
+          .where(and(
+            inArray(savedProviderGroupItems.groupId, groups.map((group) => group.id)),
+            eq(savedProviderGroupItems.providerId, providerId),
+          ));
+      }
+      await tx
+        .delete(favorites)
+        .where(and(eq(favorites.userId, userId), eq(favorites.providerId, providerId)));
+    });
   }
 
   async isFavorite(userId: string, providerId: number): Promise<boolean> {
@@ -768,6 +815,157 @@ export class DatabaseStorage implements IStorage {
       .from(favorites)
       .where(and(eq(favorites.userId, userId), eq(favorites.providerId, providerId)));
     return !!favorite;
+  }
+
+  async getSavedProviderGroupsByUserId(userId: string): Promise<SavedProviderGroupWithProviders[]> {
+    const rows = await db
+      .select({
+        group: savedProviderGroups,
+        item: savedProviderGroupItems,
+        provider: providers,
+      })
+      .from(savedProviderGroups)
+      .leftJoin(savedProviderGroupItems, eq(savedProviderGroupItems.groupId, savedProviderGroups.id))
+      .leftJoin(providers, eq(providers.id, savedProviderGroupItems.providerId))
+      .where(eq(savedProviderGroups.userId, userId))
+      .orderBy(desc(savedProviderGroups.updatedAt), asc(savedProviderGroupItems.position));
+
+    const grouped = new Map<string, SavedProviderGroupWithProviders>();
+    for (const row of rows) {
+      let group = grouped.get(row.group.id);
+      if (!group) {
+        group = {
+          ...row.group,
+          providerIds: [],
+          providers: [],
+        };
+        grouped.set(row.group.id, group);
+      }
+      if (row.item && row.provider) {
+        group.providerIds.push(row.item.providerId);
+        group.providers.push(row.provider);
+      }
+    }
+    return Array.from(grouped.values());
+  }
+
+  async getSavedProviderGroupsState(userId: string): Promise<SavedProviderGroupsState> {
+    const [groups, version] = await Promise.all([
+      this.getSavedProviderGroupsByUserId(userId),
+      db
+        .select({ revision: savedProviderGroupVersions.revision })
+        .from(savedProviderGroupVersions)
+        .where(eq(savedProviderGroupVersions.userId, userId))
+        .then((rows) => rows[0]),
+    ]);
+    return { groups, revision: version?.revision ?? 0 };
+  }
+
+  async replaceSavedProviderGroups(
+    userId: string,
+    inputGroups: SavedProviderGroupInput[],
+    expectedRevision: number,
+  ): Promise<SavedProviderGroupsState> {
+    const groups = inputGroups.map((group) => ({
+      name: group.name.trim(),
+      providerIds: Array.from(new Set(group.providerIds)),
+    })).filter((group) => group.name.length > 0 && group.providerIds.length > 0);
+
+    await db.transaction(async (tx) => {
+      await tx
+        .insert(savedProviderGroupVersions)
+        .values({ userId })
+        .onConflictDoNothing();
+      const claimedRevision = await tx
+        .update(savedProviderGroupVersions)
+        .set({
+          revision: sql`${savedProviderGroupVersions.revision} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(savedProviderGroupVersions.userId, userId),
+          eq(savedProviderGroupVersions.revision, expectedRevision),
+        ))
+        .returning({ revision: savedProviderGroupVersions.revision });
+      if (claimedRevision.length === 0) throw new SavedProviderGroupsConflictError();
+
+      const existing = await tx
+        .select()
+        .from(savedProviderGroups)
+        .where(eq(savedProviderGroups.userId, userId));
+      const existingByName = new Map(existing.map((group) => [group.name, group]));
+      const retainedIds = new Set<string>();
+
+      for (const group of groups) {
+        const current = existingByName.get(group.name);
+        const savedGroup = current
+          ? (await tx
+            .update(savedProviderGroups)
+            .set({ updatedAt: new Date() })
+            .where(eq(savedProviderGroups.id, current.id))
+            .returning())[0]
+          : (await tx
+            .insert(savedProviderGroups)
+            .values({ userId, name: group.name })
+            .returning())[0];
+
+        retainedIds.add(savedGroup.id);
+        await tx
+          .delete(savedProviderGroupItems)
+          .where(eq(savedProviderGroupItems.groupId, savedGroup.id));
+
+        // Saving a group also establishes the underlying individual favorites.
+        // This keeps both views consistent without re-counting an existing
+        // favorite as a new analytics event.
+        await tx
+          .insert(favorites)
+          .values(group.providerIds.map((providerId) => ({ userId, providerId })))
+          .onConflictDoNothing();
+        await tx
+          .insert(savedProviderGroupItems)
+          .values(group.providerIds.map((providerId, position) => ({
+            groupId: savedGroup.id,
+            providerId,
+            position,
+          })));
+      }
+
+      const obsoleteIds = existing
+        .filter((group) => !retainedIds.has(group.id))
+        .map((group) => group.id);
+      if (obsoleteIds.length > 0) {
+        await tx.delete(savedProviderGroups).where(inArray(savedProviderGroups.id, obsoleteIds));
+      }
+    });
+
+    return this.getSavedProviderGroupsState(userId);
+  }
+
+  async mergeSavedProviderGroups(
+    userId: string,
+    incomingGroups: SavedProviderGroupInput[],
+  ): Promise<SavedProviderGroupsState> {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const current = await this.getSavedProviderGroupsState(userId);
+      const merged = new Map<string, number[]>(
+        current.groups.map((group) => [group.name, group.providerIds]),
+      );
+      for (const group of incomingGroups) {
+        const name = group.name.trim();
+        if (!name) continue;
+        merged.set(name, Array.from(new Set([...(merged.get(name) ?? []), ...group.providerIds])));
+      }
+      try {
+        return await this.replaceSavedProviderGroups(
+          userId,
+          Array.from(merged.entries()).map(([name, providerIds]) => ({ name, providerIds })),
+          current.revision,
+        );
+      } catch (error) {
+        if (!(error instanceof SavedProviderGroupsConflictError) || attempt === 2) throw error;
+      }
+    }
+    throw new SavedProviderGroupsConflictError();
   }
 
   // Inquiry operations

@@ -46,6 +46,7 @@ interface ComparisonModalProps {
   onClose: () => void;
   onSelectProvider: (provider: Provider) => void;
   onRemoveProvider: (providerId: number) => void;
+  onLoadComparison?: (providers: Provider[]) => void;
   onGroupsSaved?: () => void; // Callback to refresh saved groups
 }
 
@@ -74,6 +75,7 @@ export default function ComparisonModal({
   onClose, 
   onSelectProvider,
   onRemoveProvider,
+  onLoadComparison,
   onGroupsSaved
 }: ComparisonModalProps) {
   const { isAuthenticated } = useAuth();
@@ -107,20 +109,20 @@ export default function ComparisonModal({
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
 
-  const { groups: favoriteGroups, saveGroups } = useFavoriteGroups();
+  const { groups: favoriteGroups, groupRecords, saveGroups } = useFavoriteGroups();
 
   // Sync savedGroups UI state from hook whenever modal opens
   useEffect(() => {
     if (isOpen && isAuthenticated) {
-      const groupsArray = Object.entries(favoriteGroups).map(([name]) => ({
-        id: name,
-        name,
-        providers: [] as Provider[],
-        createdAt: new Date(),
+      const groupsArray = groupRecords.map((group) => ({
+        id: group.id,
+        name: group.name,
+        providers: group.providers,
+        createdAt: new Date(group.createdAt),
       }));
       setSavedGroups(groupsArray);
     }
-  }, [isOpen, isAuthenticated, favoriteGroups]);
+  }, [isOpen, isAuthenticated, groupRecords]);
 
   const getTypeLabel = (type: string) => {
     const labels = {
@@ -362,21 +364,13 @@ export default function ComparisonModal({
     setTimeout(() => saveNameInputRef.current?.select(), 50);
   };
 
-  const handleConfirmSave = () => {
+  const handleConfirmSave = async () => {
     const name = saveComparisonName.trim();
     if (!name) return;
 
-    const newGroup = {
-      id: Date.now().toString(),
-      name,
-      providers: [...providers],
-      createdAt: new Date(),
-    };
-
     const updatedGroups = { ...favoriteGroups, [name]: providers.map(p => p.id) };
-    saveGroups(updatedGroups);
-
-    setSavedGroups(prev => [...prev, newGroup]);
+    const saved = await saveGroups(updatedGroups);
+    if (!saved) return;
     onGroupsSaved?.();
     setShowSaveDialog(false);
     setSaveComparisonName('');
@@ -441,7 +435,7 @@ export default function ComparisonModal({
   };
 
   // Saved Groups Functions
-  const handleSaveGroup = () => {
+  const handleSaveGroup = async () => {
     if (!isAuthenticated) {
       toast({
         title: "Sign In Required",
@@ -470,18 +464,10 @@ export default function ComparisonModal({
       return;
     }
     
-    const newGroup = {
-      id: Date.now().toString(),
-      name: newGroupName.trim(),
-      providers: [...providers],
-      createdAt: new Date()
-    };
-    
-    const updatedGroups = { ...favoriteGroups, [newGroup.name]: providers.map(p => p.id) };
-    saveGroups(updatedGroups);
-    
-    // Update local state immediately to show the new group
-    setSavedGroups(prev => [...prev, newGroup]);
+    const name = newGroupName.trim();
+    const updatedGroups = { ...favoriteGroups, [name]: providers.map(p => p.id) };
+    const saved = await saveGroups(updatedGroups);
+    if (!saved) return;
     setNewGroupName('');
     
     // Trigger callback to refresh groups in Search component
@@ -490,26 +476,44 @@ export default function ComparisonModal({
     // Show success toast
     toast({
       title: "Comparison Saved!",
-      description: `"${newGroup.name}" has been saved to your comparison groups.`,
+      description: `"${name}" has been saved to your comparison groups.`,
       duration: 3000,
     });
   };
 
-  const handleRenameGroup = (groupId: string, newName: string) => {
-    setSavedGroups(prev => prev.map(group => 
-      group.id === groupId ? { ...group, name: newName } : group
-    ));
+  const handleRenameGroup = async (groupId: string, rawNewName: string) => {
+    const group = savedGroups.find((candidate) => candidate.id === groupId);
+    const newName = rawNewName.trim();
+    if (!group || !newName || newName === group.name) {
+      setEditingGroupId(null);
+      return;
+    }
+    if (favoriteGroups[newName]) {
+      toast({ title: "Group name already used", description: "Choose a different name for this group.", variant: "destructive" });
+      return;
+    }
+    const updatedGroups = { ...favoriteGroups, [newName]: favoriteGroups[group.name] ?? [] };
+    delete updatedGroups[group.name];
+    if (!await saveGroups(updatedGroups)) return;
     setEditingGroupId(null);
   };
 
-  const handleDeleteGroup = (groupId: string) => {
-    setSavedGroups(prev => prev.filter(group => group.id !== groupId));
+  const handleDeleteGroup = async (groupId: string) => {
+    const group = savedGroups.find((candidate) => candidate.id === groupId);
+    if (!group) return;
+    const updatedGroups = { ...favoriteGroups };
+    delete updatedGroups[group.name];
+    await saveGroups(updatedGroups);
   };
 
   const handleLoadGroup = (group: typeof savedGroups[0]) => {
-    // Replace current providers with saved group providers
-    providers.forEach(provider => onRemoveProvider(provider.id));
-    group.providers.forEach(provider => onSelectProvider(provider));
+    if (onLoadComparison) {
+      onLoadComparison(group.providers);
+    } else {
+      providers.forEach(provider => onRemoveProvider(provider.id));
+      group.providers.forEach(provider => onSelectProvider(provider));
+    }
+    setShowSavedGroups(false);
   };
 
   // Comprehensive priority examples that appear dynamically

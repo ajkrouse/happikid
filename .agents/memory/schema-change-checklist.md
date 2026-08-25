@@ -11,6 +11,12 @@ description: What every new DB column/table needs beyond db:push to pass review 
 
 **How to apply:** After editing shared/schema.ts, run generate, verify the new SQL file and journal entry, and commit them with the code.
 
+**Rule:** Do not use `db:push` as a replacement for migrations on a database with SQL-only indexes or functions. It reconciles the Drizzle schema and can remove database objects that are defined only in retained migration SQL.
+
+**Why:** Marketplace trigram indexes are created in custom migrations, not in the ORM schema; a schema push removed them from the development database and degraded the public search plan until the migrations' DDL was restored.
+
+**How to apply:** Use versioned migrations for schema deployment. If a local schema push is unavoidable, rerun and verify any custom migration DDL afterwards.
+
 # Provider ownership in routes
 
 **Rule:** Any route resolving "my listing" must use `getProvidersByCanonicalOwner` (ownerUserId wins; userId only when ownerUserId IS NULL), not `getProvidersByUserId`. `/api/providers/mine` now does this.

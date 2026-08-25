@@ -131,6 +131,7 @@ export function FavoritesSection({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorite-groups"] });
       queryClient.invalidateQueries({ queryKey: [`/api/favorites/${itemToRemove?.provider.id}/check`] });
       toast({ title: "Removed from favorites", description: `${itemToRemove?.provider.name} has been removed from your favorites.` });
       setItemToRemove(null);

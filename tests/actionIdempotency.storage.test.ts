@@ -75,6 +75,30 @@ describe("DatabaseStorage high-frequency actions", () => {
     expect(Number(provider.favoriteAdds)).toBe(1);
   });
 
+  it("persists saved groups across fresh storage reads and cleans membership when a favorite is removed", async () => {
+    const saved = await storage.replaceSavedProviderGroups(TEST_USER_ID, [{
+      name: "Top choices",
+      providerIds: [providerId],
+    }], 0);
+    expect(saved.groups).toHaveLength(1);
+    expect(saved.groups[0]).toMatchObject({ name: "Top choices", providerIds: [providerId] });
+
+    const reloaded = await new DatabaseStorage().getSavedProviderGroupsByUserId(TEST_USER_ID);
+    expect(reloaded).toHaveLength(1);
+    expect(reloaded[0]).toMatchObject({ name: "Top choices", providerIds: [providerId] });
+
+    await storage.removeFavorite(TEST_USER_ID, providerId);
+
+    const afterRemoval = await new DatabaseStorage().getSavedProviderGroupsByUserId(TEST_USER_ID);
+    expect(afterRemoval).toHaveLength(1);
+    expect(afterRemoval[0].providerIds).toEqual([]);
+    const remainingFavorite = await db
+      .select()
+      .from(favorites)
+      .where(and(eq(favorites.userId, TEST_USER_ID), eq(favorites.providerId, providerId)));
+    expect(remainingFavorite).toEqual([]);
+  });
+
   it("records one concurrent daily view and increments analytics once", async () => {
     const results = await Promise.all(
       Array.from({ length: 12 }, () => storage.trackProfileView(providerId, TEST_VIEWER_KEY)),

@@ -216,6 +216,35 @@ export const favorites = pgTable("favorites", {
   pk: primaryKey({ columns: [table.userId, table.providerId] }),
 }));
 
+// Parent-owned saved favorites and comparison groups. Group membership is
+// server-side so it remains available after a parent changes devices.
+export const savedProviderGroups = pgTable("saved_provider_groups", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 80 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userNameUnique: unique("saved_provider_groups_user_name_uniq").on(table.userId, table.name),
+  userUpdatedIdx: index("saved_provider_groups_user_updated_idx").on(table.userId, table.updatedAt),
+}));
+
+export const savedProviderGroupItems = pgTable("saved_provider_group_items", {
+  groupId: uuid("group_id").notNull().references(() => savedProviderGroups.id, { onDelete: "cascade" }),
+  providerId: integer("provider_id").notNull().references(() => providers.id, { onDelete: "cascade" }),
+  position: integer("position").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.groupId, table.providerId] }),
+  groupPositionUnique: unique("saved_provider_group_items_group_position_uniq").on(table.groupId, table.position),
+}));
+
+export const savedProviderGroupVersions = pgTable("saved_provider_group_versions", {
+  userId: varchar("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  revision: integer("revision").notNull().default(0),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Inquiries
 export const inquiries = pgTable("inquiries", {
   id: serial("id").primaryKey(),
@@ -383,10 +412,12 @@ export const providerBadges = pgTable("provider_badges", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   providers: many(providers),
   reviews: many(reviews),
   favorites: many(favorites),
+  savedProviderGroups: many(savedProviderGroups),
+  savedProviderGroupVersion: one(savedProviderGroupVersions),
   inquiries: many(inquiries),
   providerUpdates: many(providerUpdates),
   providerPhotos: many(providerPhotos),
@@ -401,6 +432,7 @@ export const providersRelations = relations(providers, ({ one, many }) => ({
   images: many(providerImages),
   reviews: many(reviews),
   favorites: many(favorites),
+  savedProviderGroupItems: many(savedProviderGroupItems),
   inquiries: many(inquiries),
   locations: many(providerLocations),
   programs: many(providerPrograms),
@@ -441,6 +473,20 @@ export const reviewVotesRelations = relations(reviewVotes, ({ one }) => ({
 export const favoritesRelations = relations(favorites, ({ one }) => ({
   user: one(users, { fields: [favorites.userId], references: [users.id] }),
   provider: one(providers, { fields: [favorites.providerId], references: [providers.id] }),
+}));
+
+export const savedProviderGroupsRelations = relations(savedProviderGroups, ({ one, many }) => ({
+  user: one(users, { fields: [savedProviderGroups.userId], references: [users.id] }),
+  items: many(savedProviderGroupItems),
+}));
+
+export const savedProviderGroupVersionsRelations = relations(savedProviderGroupVersions, ({ one }) => ({
+  user: one(users, { fields: [savedProviderGroupVersions.userId], references: [users.id] }),
+}));
+
+export const savedProviderGroupItemsRelations = relations(savedProviderGroupItems, ({ one }) => ({
+  group: one(savedProviderGroups, { fields: [savedProviderGroupItems.groupId], references: [savedProviderGroups.id] }),
+  provider: one(providers, { fields: [savedProviderGroupItems.providerId], references: [providers.id] }),
 }));
 
 export const inquiriesRelations = relations(inquiries, ({ one }) => ({
@@ -776,6 +822,8 @@ export type InsertInquiry = z.infer<typeof insertInquirySchema>;
 export type ProviderImage = typeof providerImages.$inferSelect;
 export type InsertProviderImage = z.infer<typeof insertProviderImageSchema>;
 export type Favorite = typeof favorites.$inferSelect;
+export type SavedProviderGroup = typeof savedProviderGroups.$inferSelect;
+export type SavedProviderGroupItem = typeof savedProviderGroupItems.$inferSelect;
 export type ProviderLocation = typeof providerLocations.$inferSelect;
 export type InsertProviderLocation = z.infer<typeof insertProviderLocationSchema>;
 export type ProviderProgram = typeof providerPrograms.$inferSelect;

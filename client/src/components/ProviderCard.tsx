@@ -8,7 +8,7 @@ import { Heart, MapPin, Star, Phone, Mail, Users, Plus, MessageSquare } from "lu
 import { Provider, ProviderWithScore } from "@shared/schema";
 import { ProviderBadge, BadgeType } from "@/components/ProviderBadge";
 import { MessageProviderModal } from "@/components/MessageProviderModal";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,23 +50,9 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       await apiRequest("DELETE", `/api/favorites/${provider.id}`);
     },
     onSuccess: () => {
-      const savedGroups = localStorage.getItem('favoriteGroups');
-      if (savedGroups) {
-        const groups = JSON.parse(savedGroups);
-        const updatedGroups: {[key: string]: number[]} = {};
-        
-        Object.keys(groups).forEach(groupName => {
-          const updatedProviders = groups[groupName].filter((id: number) => id !== provider.id);
-          if (updatedProviders.length > 0) {
-            updatedGroups[groupName] = updatedProviders;
-          }
-        });
-        
-        saveGroups(updatedGroups);
-      }
-      
       queryClient.invalidateQueries({ queryKey: [`/api/favorites/${provider.id}/check`] });
       queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/favorite-groups"] });
       toast({
         title: "Removed from favorites",
         description: `${provider.name} removed from your favorites.`,
@@ -143,16 +129,20 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
     );
   };
 
-  const handleAddToGroup = (groupName: string) => {
+  const handleAddToGroup = async (groupName: string) => {
     const newGroups = {
       ...groups,
       [groupName]: [...(groups[groupName] || []), provider.id]
     };
-    saveGroups(newGroups);
-    addFavoriteMutation.mutate();
+    try {
+      await addFavoriteMutation.mutateAsync();
+      await saveGroups(newGroups);
+    } catch {
+      // The mutation toast already explains why the favorite was not saved.
+    }
   };
 
-  const handleCreateNewGroup = () => {
+  const handleCreateNewGroup = async () => {
     if (!newGroupName.trim()) {
       toast({
         title: "Invalid group name",
@@ -166,8 +156,12 @@ export default function ProviderCard({ provider, onViewDetails, onRequestInfo, o
       ...groups,
       [newGroupName.trim()]: [provider.id]
     };
-    saveGroups(newGroups);
-    addFavoriteMutation.mutate();
+    try {
+      await addFavoriteMutation.mutateAsync();
+      await saveGroups(newGroups);
+    } catch {
+      // The mutation toast already explains why the favorite was not saved.
+    }
   };
 
   const handleSaveUngrouped = () => {

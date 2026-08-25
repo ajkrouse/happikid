@@ -164,6 +164,7 @@ export default function SearchPage() {
 
   const handleGroupsSaved = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/favorite-groups"] });
   };
 
   const handleCategorySelect = (category: string, subcategory: string) => {
@@ -850,6 +851,7 @@ export default function SearchPage() {
             onClose={() => setShowComparisonModal(false)}
             onSelectProvider={handleSelectProvider}
             onRemoveProvider={handleRemoveFromComparison}
+                onLoadComparison={setComparisonProviders}
             onGroupsSaved={handleGroupsSaved}
           />
         </LazyErrorBoundary>
