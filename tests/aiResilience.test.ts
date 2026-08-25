@@ -64,6 +64,33 @@ describe("AI request resilience", () => {
     expect(operation).toHaveBeenCalledTimes(2);
   });
 
+  it("does not cache empty model responses", async () => {
+    const operation = vi.fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce("recovered");
+
+    await expect(runBoundedCachedAI("empty-response", operation)).resolves.toBeNull();
+    await expect(runBoundedCachedAI("empty-response", operation)).resolves.toBe("recovered");
+    expect(operation).toHaveBeenCalledTimes(2);
+  });
+
+  it("expires successful responses after their configured TTL", async () => {
+    vi.useFakeTimers();
+    const operation = vi.fn().mockResolvedValue("fresh");
+
+    await expect(runBoundedCachedAI("expiring-response", operation, { ttlMs: 1_000 }))
+      .resolves.toBe("fresh");
+    await vi.advanceTimersByTimeAsync(999);
+    await expect(runBoundedCachedAI("expiring-response", operation, { ttlMs: 1_000 }))
+      .resolves.toBe("fresh");
+    expect(operation).toHaveBeenCalledOnce();
+
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(runBoundedCachedAI("expiring-response", operation, { ttlMs: 1_000 }))
+      .resolves.toBe("fresh");
+    expect(operation).toHaveBeenCalledTimes(2);
+  });
+
   it("uses distinct cache keys when any prompt-affecting result count changes", () => {
     const base = { query: "daycare", providerContext: "1. Sunny Days", parsedContext: { confidence: 1 } };
 

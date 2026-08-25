@@ -61,6 +61,7 @@ describe("notification outbox worker", () => {
       new Date(now.getTime() + retryDelayMs(1)),
       false,
     );
+    expect(storage.completeNotificationOutboxEvent).not.toHaveBeenCalled();
   });
 
   it("retains exhausted events as permanently failed for diagnosis", async () => {
@@ -77,6 +78,7 @@ describe("notification outbox worker", () => {
       expect.any(Date),
       true,
     );
+    expect(storage.completeNotificationOutboxEvent).not.toHaveBeenCalled();
   });
 
   it("does not duplicate delivery when a second worker finds no unlocked rows", async () => {

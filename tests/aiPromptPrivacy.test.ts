@@ -16,7 +16,7 @@ vi.mock("openai", () => ({
 
 import { clearAICache } from "../server/services/aiResilience";
 import { redactTextForAI, buildRedactedRecentChatMessages } from "../server/services/aiPrivacy";
-import { generateSearchSummary } from "../server/services/aiSummaries";
+import { generateProviderComparison, generateSearchSummary } from "../server/services/aiSummaries";
 import { generateReplyDraft } from "../server/services/aiReply";
 
 const provider: any = {
@@ -97,6 +97,18 @@ describe("AI prompt minimization", () => {
 
     expect(draft).toBeNull();
     expect(mocks.createCompletion).not.toHaveBeenCalled();
+  });
+
+  it("returns graceful fallbacks when the model is unavailable", async () => {
+    mocks.createCompletion.mockRejectedValue(new Error("upstream unavailable"));
+
+    await expect(generateSearchSummary("daycare", [provider])).resolves.toBeNull();
+    await expect(generateProviderComparison([provider, { ...provider, id: 2 }])).resolves.toBeNull();
+    await expect(generateReplyDraft(
+      provider,
+      [{ senderUserId: "parent", body: "Could you share your daily pickup time?" }] as any,
+      "provider-owner",
+    )).resolves.toBeNull();
   });
 
   it("redacts sensitive values from generic chat and image text before model processing", () => {
