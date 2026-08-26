@@ -1,10 +1,12 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-# Install dependencies
-npm install --legacy-peer-deps
+# Reconcile dependencies without interactive audit/funding prompts.
+npm install --legacy-peer-deps --no-audit --no-fund
 
-# Run database migrations (applies any new versioned migration files)
-npx drizzle-kit migrate --config drizzle.config.ts
+# Do not replay migrations here. This project has a legacy database whose
+# schema predates the Drizzle journal, and production schema changes are applied
+# by Replit Publish rather than application or reconciliation startup.
+npm run build
 
 echo "Post-merge setup complete."

@@ -13,4 +13,4 @@ Production schema changes must use Replit's Publish-time development→productio
 
 **Why:** Existing databases can contain the current schema without matching Drizzle journal entries. Replaying from the baseline at container startup can attempt to recreate existing enums/tables, crash the app, and fail the Autoscale health check even after Publish already confirmed there is no schema diff.
 
-**How to apply:** Keep production build/start commands focused on compiling and serving the HTTP application. Diagnose schema issues with the read-only Publish diff, make schema-source changes in development, and re-publish; never add deploy-time or startup-time migration commands.
+**How to apply:** Keep production build/start and automated post-merge reconciliation focused on dependencies, compilation, and serving the HTTP application. Diagnose schema issues with the read-only Publish diff, make schema-source changes in development, and re-publish; never add automatic migration replay.
