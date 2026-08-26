@@ -38,10 +38,15 @@ export function registerReviewRoutes(app: Express): void {
     try {
       const providerId = strictPathInt(req.params.id);
       if (!providerId) return apiError(res, 400, "Invalid provider ID");
+      const userId = req.user?.claims?.sub as string;
+      const requester = await storage.getUser(userId);
+      if (!requester || requester.role !== "parent") {
+        return apiError(res, 403, "Only parent accounts can submit reviews");
+      }
       const provider = await storage.getProvider(providerId);
       if (!provider || !isPublicProvider(provider)) return apiError(res, 404, "Provider not found");
       const reviewData = reviewClientCreateSchema.parse({
-        ...req.body, providerId, userId: req.user?.claims?.sub,
+        ...req.body, providerId, userId,
       });
       res.status(201).json(toPublicReview(await storage.createReview(reviewData)));
     } catch (error) {

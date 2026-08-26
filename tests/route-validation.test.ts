@@ -745,6 +745,12 @@ describe("POST /api/claims — validation", () => {
 
 describe("POST /api/providers/:id/reviews — validation", () => {
   beforeEach(() => {
+    vi.mocked(storage.getUser).mockReset();
+    vi.mocked(storage.getUser).mockResolvedValue({
+      id: "user_owner",
+      role: "parent",
+    } as any);
+    vi.mocked(storage.getProvider).mockClear();
     vi.mocked(storage.createReview).mockReset();
   });
 
@@ -765,6 +771,23 @@ describe("POST /api/providers/:id/reviews — validation", () => {
       .set(AUTH)
       .send({ rating: "five stars", content: "Excellent" });
     expect(res.status).toBe(400);
+    expect(storage.createReview).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: "missing", body: { rating: 5 } },
+    { label: "blank", body: { rating: 5, content: "   " } },
+  ])("rejects $label review text → 400", async ({ body }) => {
+    const app = buildApp();
+    const res = await request(app)
+      .post("/api/providers/1/reviews")
+      .set(AUTH)
+      .send(body);
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/invalid review data/i),
+    });
     expect(storage.createReview).not.toHaveBeenCalled();
   });
 
@@ -789,6 +812,26 @@ describe("POST /api/providers/:id/reviews — validation", () => {
       .send({ rating: 4, title: "Great place", content: "Really loved it." });
     expect(res.status).toBe(201);
     expect(storage.createReview).toHaveBeenCalled();
+  });
+
+  it.each(["provider", "admin"])("returns 403 for a %s account", async (role) => {
+    vi.mocked(storage.getUser).mockResolvedValue({
+      id: "user_owner",
+      role,
+    } as any);
+
+    const res = await request(buildApp())
+      .post("/api/providers/1/reviews")
+      .set(AUTH)
+      .send({ rating: 4, content: "A review from the wrong account type." });
+
+    expect(res.status).toBe(403);
+    expect(res.body).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/only parent accounts/i),
+    });
+    expect(storage.getProvider).not.toHaveBeenCalled();
+    expect(storage.createReview).not.toHaveBeenCalled();
   });
 });
 

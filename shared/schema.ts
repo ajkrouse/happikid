@@ -770,6 +770,7 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
 /** Client-safe schema for review creation — strips isVerified so clients cannot self-mark reviews as verified. */
 export const reviewClientCreateSchema = insertReviewSchema.omit({ isVerified: true }).extend({
   rating: z.number().finite().int().min(1, "Rating must be between 1 and 5").max(5, "Rating must be between 1 and 5"),
+  content: z.string().trim().min(1, "Review text is required"),
 });
 
 export const insertInquirySchema = createInsertSchema(inquiries).omit({

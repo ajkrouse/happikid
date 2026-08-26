@@ -286,6 +286,13 @@ describe("claimed provider ownership", () => {
 });
 
 describe("review integrity", () => {
+  beforeEach(() => {
+    vi.mocked(storage.getUser).mockResolvedValue({
+      id: "parent",
+      role: "parent",
+    } as any);
+  });
+
   it.each([1, 5])("accepts the rating boundary %s", async (rating) => {
     vi.mocked(storage.getProvider).mockResolvedValue(publicProvider() as any);
     vi.mocked(storage.createReview).mockResolvedValue({
@@ -302,7 +309,7 @@ describe("review integrity", () => {
     const res = await request(buildApp())
       .post("/api/providers/7/reviews")
       .set("x-test-user", "parent")
-      .send({ rating, title: "Boundary rating" });
+      .send({ rating, title: "Boundary rating", content: "A valid review." });
 
     expect(res.status).toBe(201);
     expect(res.body).toMatchObject({ id: 1, rating });
@@ -346,7 +353,7 @@ describe("review integrity", () => {
     const res = await request(buildApp())
       .post("/api/providers/7/reviews")
       .set("x-test-user", "parent")
-      .send({ rating, title: "Invalid rating" });
+      .send({ rating, title: "Invalid rating", content: "Valid review text." });
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ ok: false, message: expect.stringMatching(/invalid review data/i) });

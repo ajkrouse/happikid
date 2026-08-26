@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ProviderContributions } from "./ProviderContributions";
 import { ReviewVoting } from "./ReviewVoting";
 import { getCostRange, getCostLevel, getBoroughColor, hasPublicPricingData } from "@/lib/providerPricing";
@@ -70,6 +71,12 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     childAge: "",
     message: "",
     inquiryType: "info" as "info" | "tour" | "enrollment",
+  });
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewData, setReviewData] = useState({
+    rating: 0,
+    title: "",
+    content: "",
   });
 
   // Function to convert 24-hour time to 12-hour AM/PM format
@@ -284,6 +291,111 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
     submitInquiryMutation.mutate();
   };
 
+  const submitReviewMutation = useMutation({
+    mutationFn: async () => {
+      if (!provider) return null;
+      const response = await apiRequest("POST", `/api/providers/${provider.id}/reviews`, {
+        rating: reviewData.rating,
+        title: reviewData.title.trim() || null,
+        content: reviewData.content.trim(),
+      });
+      return response.json() as Promise<Review>;
+    },
+    onSuccess: (newReview) => {
+      if (!provider || !newReview) return;
+
+      // Keep the open profile responsive while the server returns the
+      // authoritative provider aggregate. The invalidation below then
+      // reconciles this optimistic list and rating with the database.
+      const providerQueryKey = [`/api/providers/${provider.id}`];
+      const cachedProvider = queryClient.getQueryData?.<Provider & {
+        reviews?: Review[];
+      }>(providerQueryKey);
+      if (cachedProvider) {
+        const existingReviews = Array.isArray(cachedProvider.reviews)
+          ? cachedProvider.reviews
+          : [];
+        const previousCount = cachedProvider.reviewCount || existingReviews.length;
+        const previousRating = Number(cachedProvider.rating) || 0;
+        const nextCount = previousCount + 1;
+        const nextRating = ((previousRating * previousCount) + newReview.rating) / nextCount;
+        queryClient.setQueryData?.(providerQueryKey, {
+          ...cachedProvider,
+          rating: nextRating.toFixed(2),
+          reviewCount: nextCount,
+          reviews: [newReview, ...existingReviews],
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: providerQueryKey });
+      queryClient.invalidateQueries({ queryKey: ["/api/providers"] });
+      setShowReviewForm(false);
+      setReviewData({ rating: 0, title: "", content: "" });
+      toast({
+        title: "Review submitted!",
+        description: "Thank you for sharing your experience with this provider.",
+      });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.message || "";
+      const isDuplicate =
+        errorMessage.includes("409") ||
+        /already reviewed/i.test(errorMessage);
+      toast({
+        title: isDuplicate ? "Review already submitted" : "Unable to submit review",
+        description: isDuplicate
+          ? "You can only submit one review for each provider."
+          : "We couldn't submit your review. Please check your details and try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleReviewClick = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to share a review.",
+        action: (
+          <Button size="sm" onClick={() => signIn()} className="ml-2">
+            Sign In
+          </Button>
+        ),
+        duration: 5000,
+      });
+      return;
+    }
+    if (user?.role !== "parent") {
+      toast({
+        title: "Parent account required",
+        description: "Only parent accounts can submit provider reviews.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowReviewForm((isShowing) => !isShowing);
+  };
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewData.rating) {
+      toast({
+        title: "Rating required",
+        description: "Please choose a rating from one to five stars.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!reviewData.content.trim()) {
+      toast({
+        title: "Review text required",
+        description: "Please share a few words about your experience.",
+        variant: "destructive",
+      });
+      return;
+    }
+    submitReviewMutation.mutate();
+  };
+
   const getFeatureIcon = (feature: string) => {
     const icons: Record<string, any> = {
       "Organic Meals": Leaf,
@@ -407,9 +519,106 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                 )}
 
                 {/* Reviews */}
-                {typedProviderDetails?.reviews && typedProviderDetails.reviews.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4">What Parents Say</h3>
+                <div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold">What Parents Say</h3>
+                      {(!typedProviderDetails?.reviews || typedProviderDetails.reviews.length === 0) && (
+                        <p className="text-sm text-gray-600 mt-1">Be the first parent to share your experience.</p>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={handleReviewClick}
+                      data-testid="button-write-review"
+                    >
+                      <Star className="h-4 w-4 mr-2" />
+                      {showReviewForm ? "Hide Review Form" : "Write a Review"}
+                    </Button>
+                  </div>
+
+                  {showReviewForm && isAuthenticated && user?.role === "parent" && (
+                    <Card className="mb-4 border-primary/30">
+                      <CardContent className="p-4">
+                        <form onSubmit={handleReviewSubmit} className="space-y-4">
+                          <div>
+                            <Label>Rating *</Label>
+                            <RadioGroup
+                              value={reviewData.rating ? String(reviewData.rating) : ""}
+                              onValueChange={(value) => setReviewData((previous) => ({
+                                ...previous,
+                                rating: Number(value),
+                              }))}
+                              className="flex items-center gap-1 mt-2"
+                              aria-label="Rating"
+                            >
+                              {[1, 2, 3, 4, 5].map((rating) => (
+                                <div key={rating}>
+                                  <RadioGroupItem
+                                    id={`review-rating-${rating}`}
+                                    value={String(rating)}
+                                  aria-label={`${rating} star${rating === 1 ? "" : "s"}`}
+                                    className="peer sr-only"
+                                  />
+                                  <Label
+                                    htmlFor={`review-rating-${rating}`}
+                                    className="block cursor-pointer rounded-sm p-1 peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+                                  >
+                                  <Star
+                                    className={`h-7 w-7 ${
+                                      rating <= reviewData.rating
+                                        ? "text-yellow-400 fill-current"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                  </Label>
+                                </div>
+                              ))}
+                            </RadioGroup>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="review-title">Review title (optional)</Label>
+                            <Input
+                              id="review-title"
+                              value={reviewData.title}
+                              onChange={(e) => setReviewData((previous) => ({ ...previous, title: e.target.value }))}
+                              placeholder="What stood out?"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="review-content">Your review *</Label>
+                            <Textarea
+                              id="review-content"
+                              value={reviewData.content}
+                              onChange={(e) => setReviewData((previous) => ({ ...previous, content: e.target.value }))}
+                              rows={4}
+                              placeholder="Tell other parents about your experience..."
+                            />
+                          </div>
+
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setShowReviewForm(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="submit"
+                              disabled={submitReviewMutation.isPending}
+                            >
+                              {submitReviewMutation.isPending ? "Submitting..." : "Submit Review"}
+                            </Button>
+                          </div>
+                        </form>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {typedProviderDetails?.reviews && typedProviderDetails.reviews.length > 0 && (
                     <div className="space-y-4">
                       {typedProviderDetails.reviews.slice(0, 3).map((review: Review) => (
                         <Card key={review.id}>
@@ -437,8 +646,8 @@ export default function ProviderModal({ provider, isOpen, onClose }: ProviderMod
                         </Card>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* User Contributions */}
                 <ProviderContributions providerId={currentProvider.id} provider={currentProvider} />
