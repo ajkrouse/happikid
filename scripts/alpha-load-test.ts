@@ -2,7 +2,8 @@
  * Bounded alpha load simulation for provider discovery and inbox reads.
  *
  * This intentionally has conservative defaults and requires no credentials for
- * public search. Set LOAD_TEST_COOKIE to exercise authenticated inbox routes.
+ * public search. Set LOAD_TEST_COOKIE, or the dedicated
+ * RELEASE_SMOKE_PARENT_COOKIE secret, to exercise authenticated inbox routes.
  *
  * Examples:
  *   npm run alpha:load
@@ -31,7 +32,13 @@ const concurrency = readPositiveInt("LOAD_TEST_CONCURRENCY", 24);
 const inboxConcurrency = readPositiveInt("LOAD_TEST_INBOX_CONCURRENCY", 8);
 const timeoutMs = readPositiveInt("LOAD_TEST_TIMEOUT_MS", 5000);
 const p95BudgetMs = readPositiveInt("LOAD_TEST_P95_MS", 1500);
-const cookie = process.env.LOAD_TEST_COOKIE;
+export function readAuthenticatedInboxCookie(
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  return env.LOAD_TEST_COOKIE || env.RELEASE_SMOKE_PARENT_COOKIE;
+}
+
+const cookie = readAuthenticatedInboxCookie();
 const runAiProbe = process.env.LOAD_TEST_AI_PROBE === "true";
 
 const searchQueries = [
@@ -159,7 +166,10 @@ async function main(): Promise<void> {
     printSummary("authenticated inbox", inboxResults);
     assertHealthy("authenticated inbox", inboxResults, [200]);
   } else {
-    console.log("authenticated inbox: skipped (set LOAD_TEST_COOKIE to run it)");
+    console.log(
+      "authenticated inbox: skipped " +
+        "(set LOAD_TEST_COOKIE or RELEASE_SMOKE_PARENT_COOKIE in the secret manager to run it)",
+    );
   }
 
   if (runAiProbe) {

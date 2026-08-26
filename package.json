@@ -13,6 +13,7 @@
     "check": "npm run typecheck",
     "alpha:check": "npm run test:server && npm run test:client && npm run typecheck && npm run build",
     "alpha:load": "tsx scripts/alpha-load-test.ts",
+    "release:smoke:preflight": "tsx scripts/release-smoke-preflight.ts",
     "db:push": "drizzle-kit push",
     "test:client": "vitest run --config vitest.client.config.ts"
   },

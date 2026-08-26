@@ -138,6 +138,11 @@ inbox. Record the inquiry ID, review visibility, uploaded-image approval, email
 receipt, destination URL, and corresponding notification-outbox state. A
 successful SMTP transport check alone is not evidence of message delivery.
 
+The secure setup and rotation procedure for those resources is documented in
+`RELEASE_SMOKE_RUNBOOK.md`. Run `npm run release:smoke:preflight` after the
+dedicated staging sessions are stored in the staging Secrets environment; it
+verifies distinct role sessions without printing their values.
+
 ### Merged parent and notification journey verification
 
 Verified August 26, 2026 after Tasks #220, #221, and #222 were merged:

@@ -62,3 +62,6 @@ timeoutMs = 120000
 
 [userenv.shared]
 APP_BASE_URL = "https://happikid.com"
+
+[userenv.development]
+RELEASE_SMOKE_ENV = "staging"
