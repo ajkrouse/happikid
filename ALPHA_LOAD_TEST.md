@@ -99,6 +99,21 @@ Safety simulations pass when:
 
 ## Latest results
 
+### Merged parent and notification journey verification
+
+Verified August 26, 2026 after Tasks #220, #221, and #222 were merged:
+
+- merged server journey/security/notification checks: **171 tests passed**
+- merged client review/dashboard/smoke checks: **48 tests passed**
+- parent review submission is covered from provider profile through successful
+  refresh, validation, duplicate handling, and parent-only access
+- parent inquiry history and provider replies are covered through the dashboard
+  query and ownership-safe API journey
+- missing SMTP configuration remains retryable in the outbox
+- temporary SMTP failures retry with bounded backoff
+- timed-out sends are retried without completion
+- exhausted events remain permanently failed for diagnosis
+
 ### Live provider search
 
 Run against the active Replit development workflow with 24 concurrent workers:
@@ -106,15 +121,22 @@ Run against the active Replit development workflow with 24 concurrent workers:
 - requests: **50**
 - responses: **50 × 200**
 - network/timeouts: **0**
-- p50: **143 ms**
-- p95: **417 ms**
-- maximum: **425 ms**
+- p50: **171 ms**
+- p95: **498 ms**
+- maximum: **554 ms**
 - budget: **1,500 ms p95**
 
 The run exceeded the default 20-connection pool's size without surfacing a
 connection timeout or server error. This is a black-box verification that pool
 queueing held under this bounded load; the application does not currently
 export live pool wait-count or saturation metrics.
+
+### Production startup smoke check
+
+The production bundle was started with `npm start` after the merged changes.
+The server served on port 5000 and returned **HTTP 200** for `/`. No startup
+migration or database DDL was executed. The normal development workflow was
+restored successfully afterward.
 
 ### Messaging and safeguards
 
@@ -128,7 +150,9 @@ export live pool wait-count or saturation metrics.
 The live authenticated inbox portion was not run because no staging session
 cookie was configured. The script is ready to run it when a staging test
 account is available; concurrent inbox route behavior is covered
-deterministically in the automated suite.
+deterministically in the automated suite. The production smoke check validates
+startup and the public root only; it does not replace a real browser flow
+through OIDC, object storage, SMTP delivery, or admin approval.
 
 ## Database pool configuration reviewed
 
