@@ -255,7 +255,7 @@ beforeEach(() => {
     state.inquiries.find((inquiry) => inquiry.id === id));
   storageMock.replyToInquiry.mockImplementation(async (id: number, reply: string) => {
     const inquiry = state.inquiries.find((item) => item.id === id);
-    Object.assign(inquiry, { reply, status: "responded" });
+    Object.assign(inquiry, { providerReply: reply, repliedAt: new Date(), status: "responded" });
     return inquiry;
   });
   storageMock.updateInquiryStatus.mockImplementation(async (id: number, status: string) => {
@@ -390,6 +390,17 @@ describe("parent discovery and engagement journey", () => {
     expect(inquiry.status).toBe(201);
     expect(inquiry.body).toMatchObject({ userId: "parent", providerId: 7, status: "pending" });
 
+    const providerReply = await request(app)
+      .post(`/api/inquiries/${inquiry.body.id}/reply`)
+      .set("x-test-user", "legacy-creator")
+      .send({ reply: "Yes, we have fall openings. We'd be happy to tell you more." });
+    expect(providerReply.status).toBe(200);
+    expect(providerReply.body).toMatchObject({
+      id: inquiry.body.id,
+      status: "responded",
+      providerReply: "Yes, we have fall openings. We'd be happy to tell you more.",
+    });
+
     const tour = await request(app)
       .post("/api/providers/7/tour-requests")
       .set("x-test-user", "parent")
@@ -402,12 +413,19 @@ describe("parent discovery and engagement journey", () => {
     expect(tour.status).toBe(201);
     expect(tour.body).toMatchObject({ parentUserId: "parent", providerId: 7, status: "pending" });
 
-    const [parentInquiries, parentTours, parentThreads] = await Promise.all([
+    const [parentInquiries, parentTours, parentThreads, otherParentInquiries] = await Promise.all([
       request(app).get("/api/inquiries/user").set("x-test-user", "parent"),
       request(app).get("/api/tour-requests").set("x-test-user", "parent"),
       request(app).get("/api/threads").set("x-test-user", "parent"),
+      request(app).get("/api/inquiries/user").set("x-test-user", "intruder"),
     ]);
     expect(parentInquiries.body).toHaveLength(1);
+    expect(parentInquiries.body[0]).toMatchObject({
+      providerName: "Sunshine Center",
+      status: "responded",
+      providerReply: "Yes, we have fall openings. We'd be happy to tell you more.",
+    });
+    expect(otherParentInquiries.body).toEqual([]);
     expect(parentTours.body).toHaveLength(1);
     expect(parentThreads.body).toEqual([]);
   });

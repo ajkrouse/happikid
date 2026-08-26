@@ -552,7 +552,11 @@ function stubFetchAuthenticated() {
       );
     }
     // Data endpoints — return empty collections so the page can finish loading
-    if (url.includes("/api/threads") || url.includes("/api/tour-requests")) {
+    if (
+      url.includes("/api/threads") ||
+      url.includes("/api/tour-requests") ||
+      url.includes("/api/inquiries/user")
+    ) {
       return new Response(JSON.stringify([]), { status: 200 });
     }
     return new Response(JSON.stringify(null), { status: 401 });
@@ -667,6 +671,9 @@ function stubFetchWithData() {
     }
     if (url.includes("/api/tour-requests")) {
       return new Response(JSON.stringify([stubTourRequest]), { status: 200 });
+    }
+    if (url.includes("/api/inquiries/user")) {
+      return new Response(JSON.stringify([]), { status: 200 });
     }
     return new Response(JSON.stringify(null), { status: 401 });
   });

@@ -27,7 +27,18 @@ export function registerInquiryRoutes(app: Express): void {
 
   app.get("/api/inquiries/user", isAuthenticated, async (req: any, res) => {
     try {
-      res.json(await storage.getInquiriesByUserId(req.user?.claims?.sub));
+      const userId = req.user?.claims?.sub;
+      const inquiries = await storage.getInquiriesByUserId(userId);
+      const inquiriesWithProviderNames = await Promise.all(
+        inquiries.map(async (inquiry) => {
+          const provider = await storage.getProvider(inquiry.providerId);
+          return {
+            ...inquiry,
+            providerName: provider?.name ?? "Provider",
+          };
+        }),
+      );
+      res.json(inquiriesWithProviderNames);
     } catch (error) {
       log.error({ err: error }, "Error fetching user inquiries");
       apiError(res, 500, "Failed to fetch inquiries");

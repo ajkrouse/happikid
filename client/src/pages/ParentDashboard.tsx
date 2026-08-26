@@ -8,6 +8,7 @@ import Navigation from "@/components/Navigation";
 import {
   CalendarCheck,
   MessageSquare,
+  AlertCircle,
   Clock,
   CheckCircle2,
   XCircle,
@@ -21,8 +22,23 @@ export default function ParentDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: tourRequests = [], isLoading: isLoadingTours } = useQuery<any[]>({
+  const {
+    data: tourRequests = [],
+    isLoading: isLoadingTours,
+    isError: isToursError,
+    refetch: refetchTours,
+  } = useQuery<any[]>({
     queryKey: ["/api/tour-requests"],
+    enabled: isAuthenticated,
+  });
+
+  const {
+    data: inquiries = [],
+    isLoading: isLoadingInquiries,
+    isError: isInquiriesError,
+    refetch: refetchInquiries,
+  } = useQuery<any[]>({
+    queryKey: ["/api/inquiries/user"],
     enabled: isAuthenticated,
   });
 
@@ -85,6 +101,33 @@ export default function ParentDashboard() {
     return map[status] ?? "bg-gray-100 text-gray-500";
   };
 
+  const inquiryStatusBadge = (status: string) => {
+    const map: Record<string, string> = {
+      pending: "bg-amber-100 text-amber-700",
+      responded: "bg-green-100 text-green-700",
+      closed: "bg-gray-100 text-gray-500",
+    };
+    return map[status] ?? "bg-gray-100 text-gray-500";
+  };
+
+  const inquiryTypeLabel = (type: string) => {
+    const map: Record<string, string> = {
+      info: "General question",
+      tour: "Tour inquiry",
+      enrollment: "Enrollment inquiry",
+    };
+    return map[type] ?? "Inquiry";
+  };
+
+  const inquiryStatusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      pending: "Waiting for reply",
+      responded: "Provider replied",
+      closed: "Closed",
+    };
+    return map[status] ?? status;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -115,6 +158,15 @@ export default function ParentDashboard() {
             {isLoadingTours ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
+              </div>
+            ) : isToursError ? (
+              <div className="text-center py-8 text-red-700">
+                <AlertCircle className="h-10 w-10 mx-auto mb-3 opacity-70" />
+                <p className="font-medium">We couldn't load your tour requests.</p>
+                <p className="text-sm mt-1 mb-4 text-gray-500">Please try again.</p>
+                <Button variant="outline" onClick={() => refetchTours()}>
+                  Try again
+                </Button>
               </div>
             ) : tourRequests.length === 0 ? (
               <div className="text-center py-10 text-gray-500">
@@ -184,6 +236,100 @@ export default function ParentDashboard() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Inquiries */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageSquare className="h-5 w-5 text-blue-500" />
+              My Inquiries
+              {inquiries.filter((inquiry: any) => inquiry.status === "pending").length > 0 && (
+                <Badge className="bg-amber-500 text-white text-xs">
+                  {inquiries.filter((inquiry: any) => inquiry.status === "pending").length} awaiting reply
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Questions you've sent to childcare providers and their replies
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingInquiries ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
+                <span className="sr-only">Loading your inquiries</span>
+              </div>
+            ) : isInquiriesError ? (
+              <div className="text-center py-8 text-red-700">
+                <AlertCircle className="h-10 w-10 mx-auto mb-3 opacity-70" />
+                <p className="font-medium">We couldn't load your inquiries.</p>
+                <p className="text-sm mt-1 mb-4 text-gray-500">Your messages are safe. Please try again.</p>
+                <Button variant="outline" onClick={() => refetchInquiries()}>
+                  Try again
+                </Button>
+              </div>
+            ) : inquiries.length === 0 ? (
+              <div className="text-center py-10 text-gray-500">
+                <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-25" />
+                <p className="font-medium text-gray-700">No inquiries yet</p>
+                <p className="text-sm mt-1 mb-4">
+                  Contact a provider to ask a question about their program.
+                </p>
+                <Button asChild variant="outline">
+                  <Link href="/search">Browse Providers</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {inquiries.map((inquiry: any) => (
+                  <div key={inquiry.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="font-semibold text-brand-evergreen">
+                            {inquiry.providerName ?? `Provider #${inquiry.providerId}`}
+                          </span>
+                          <Badge className={`text-xs ${inquiryStatusBadge(inquiry.status)}`}>
+                            {inquiryStatusLabel(inquiry.status)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-2">
+                          {inquiryTypeLabel(inquiry.inquiryType)}
+                        </p>
+                        {inquiry.message && (
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Your message:</span>{" "}
+                            {inquiry.message}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400 mt-2">
+                          Sent {new Date(inquiry.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    {inquiry.providerReply ? (
+                      <div className="bg-blue-50 border border-blue-100 rounded-md p-3 text-sm text-blue-900">
+                        <p className="text-xs font-medium text-blue-600 mb-1">
+                          Reply from {inquiry.providerName ?? "the provider"}
+                          {inquiry.repliedAt && (
+                            <span className="font-normal text-blue-500">
+                              {" "}· {new Date(inquiry.repliedAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </p>
+                        <p>{inquiry.providerReply}</p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">
+                        This provider hasn't replied yet.
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
