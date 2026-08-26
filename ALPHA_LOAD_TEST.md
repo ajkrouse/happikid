@@ -99,6 +99,45 @@ Safety simulations pass when:
 
 ## Latest results
 
+### Real-browser staging alpha gate
+
+Attempted August 26, 2026 against the active Replit development workflow with
+Chromium 140.0.7339.16.
+
+**Gate result: blocked — do not invite external families based on this run.**
+
+The portion that could be exercised without test-account credentials passed:
+
+- the landing page and provider search rendered in a real browser
+- the parent dashboard, provider dashboard, admin verifications, and messages
+  pages all showed the expected signed-out guard
+- the browser reported no JavaScript runtime exceptions on those routes
+- `/api/auth/user` returned the expected `401` while signed out
+- the sign-in route preserved the parent-dashboard return target and redirected
+  to the Replit OIDC authorization endpoint
+- the bounded live provider-search probe returned **5 × 200**, with **159 ms
+  p95** against a **1,500 ms** budget
+- SMTP connection, greeting, and authentication verification passed
+- SMTP, object-storage, and canonical-base-URL configuration were present
+
+The end-to-end staging acceptance paths were **not completed**:
+
+- no staging session cookie or separate parent, provider, and admin test
+  identities were available in the workspace
+- Replit's OIDC page returned a Cloudflare `403` to the headless browser
+  container, so the browser could not complete interactive sign-in
+- without those role sessions, the parent inquiry/reply and review journeys
+  could not be submitted in staging
+- provider image upload and admin approval could not be exercised
+- SMTP transport health was verified, but no designated test recipient inbox
+  was available to confirm delivery or open a real notification link
+
+Before inviting external families, repeat this section from a normal browser
+network with separate staging parent, provider, and admin accounts plus a test
+inbox. Record the inquiry ID, review visibility, uploaded-image approval, email
+receipt, destination URL, and corresponding notification-outbox state. A
+successful SMTP transport check alone is not evidence of message delivery.
+
 ### Merged parent and notification journey verification
 
 Verified August 26, 2026 after Tasks #220, #221, and #222 were merged:
