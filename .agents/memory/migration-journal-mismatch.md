@@ -9,8 +9,8 @@ The development database contains older tables that are not recorded in the Driz
 
 **How to apply:** Commit every new migration normally and validate it against a clean database or by safely applying only the new additive schema in development. Do not use `db:push` as a substitute for versioned migrations.
 
-Production releases must run the committed migration set before starting the HTTP server, but the everyday development command intentionally does not replay migrations. Use the explicit release-mode development command only when testing that migration gate against an appropriate schema.
+Production schema changes must use Replit's Publish-time development→production schema diff. The application build and startup commands must not replay Drizzle migrations or perform any other DDL.
 
-**Why:** The legacy development database cannot safely replay its incomplete journal, while allowing production to bypass migrations would serve application code against an unverified schema.
+**Why:** Existing databases can contain the current schema without matching Drizzle journal entries. Replaying from the baseline at container startup can attempt to recreate existing enums/tables, crash the app, and fail the Autoscale health check even after Publish already confirmed there is no schema diff.
 
-**How to apply:** Keep the production release bootstrap fail-closed. Do not “fix” a local migration failure by disabling the release migration gate or adding broad schema synchronization.
+**How to apply:** Keep production build/start commands focused on compiling and serving the HTTP application. Diagnose schema issues with the read-only Publish diff, make schema-source changes in development, and re-publish; never add deploy-time or startup-time migration commands.

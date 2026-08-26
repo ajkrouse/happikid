@@ -5,10 +5,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "dev:release": "NODE_ENV=development tsx server/start.ts",
-    "build": "vite build && esbuild server/start.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/start.js",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js",
     "db:migrate": "tsx server/db/migrate-cli.ts",
-    "start": "NODE_ENV=production node dist/start.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "test:server": "vitest run tests/",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck",
