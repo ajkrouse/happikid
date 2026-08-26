@@ -4,6 +4,7 @@ import {
   NOTIFICATION_MAX_ATTEMPTS,
   processNotificationOutboxBatch,
   retryDelayMs,
+  dispatchNotification,
   type LeasedNotification,
   type NotificationOutboxStorage,
 } from "../server/services/notificationOutbox";
@@ -62,6 +63,64 @@ describe("notification outbox worker", () => {
       false,
     );
     expect(storage.completeNotificationOutboxEvent).not.toHaveBeenCalled();
+  });
+
+  it("retries a timed-out SMTP send without marking it delivered", async () => {
+    const storage = fakeStorage([job]);
+    const dispatch = vi.fn().mockRejectedValue(new Error("SMTP socket timed out"));
+    const now = new Date("2026-08-25T12:00:00.000Z");
+
+    await expect(processNotificationOutboxBatch(storage, "worker-a", {
+      dispatch,
+      now: () => now,
+    })).resolves.toEqual({ delivered: 0, retried: 1, failed: 0 });
+
+    expect(storage.completeNotificationOutboxEvent).not.toHaveBeenCalled();
+    expect(storage.retryNotificationOutboxEvent).toHaveBeenCalledWith(
+      job.id,
+      "worker-a",
+      "SMTP socket timed out",
+      new Date(now.getTime() + retryDelayMs(job.attempts)),
+      false,
+    );
+  });
+
+  it("keeps an event retryable when SMTP configuration is missing", async () => {
+    const storage = fakeStorage([job]);
+    const originalSmtp = {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    };
+    delete process.env.SMTP_HOST;
+    delete process.env.SMTP_PORT;
+    delete process.env.SMTP_USER;
+    delete process.env.SMTP_PASS;
+
+    try {
+      await expect(processNotificationOutboxBatch(storage, "worker-a", {
+        dispatch: dispatchNotification,
+      })).resolves.toEqual({ delivered: 0, retried: 1, failed: 0 });
+    } finally {
+      if (originalSmtp.host === undefined) delete process.env.SMTP_HOST;
+      else process.env.SMTP_HOST = originalSmtp.host;
+      if (originalSmtp.port === undefined) delete process.env.SMTP_PORT;
+      else process.env.SMTP_PORT = originalSmtp.port;
+      if (originalSmtp.user === undefined) delete process.env.SMTP_USER;
+      else process.env.SMTP_USER = originalSmtp.user;
+      if (originalSmtp.pass === undefined) delete process.env.SMTP_PASS;
+      else process.env.SMTP_PASS = originalSmtp.pass;
+    }
+
+    expect(storage.completeNotificationOutboxEvent).not.toHaveBeenCalled();
+    expect(storage.retryNotificationOutboxEvent).toHaveBeenCalledWith(
+      job.id,
+      "worker-a",
+      expect.stringContaining("SMTP configuration is invalid"),
+      expect.any(Date),
+      false,
+    );
   });
 
   it("retains exhausted events as permanently failed for diagnosis", async () => {

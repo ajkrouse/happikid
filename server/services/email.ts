@@ -1,18 +1,74 @@
 /**
  * Email notification service.
- * Logs emails to console in development (no SMTP config required).
- * In production, configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS env vars.
+ * SMTP configuration is required in every environment where notifications are
+ * dispatched. A missing configuration must fail the send so a durable outbox
+ * event remains retryable instead of being marked delivered.
  */
 import nodemailer from "nodemailer";
 import { createLogger } from "../logger";
 
 const log = createLogger("email");
 
+// These must all be comfortably shorter than the notification outbox lease
+// (currently two minutes). That prevents an SMTP operation from still using a
+// worker's lease after another worker is allowed to recover the event.
+export const SMTP_CONNECTION_TIMEOUT_MS = 30_000;
+export const SMTP_GREETING_TIMEOUT_MS = 30_000;
+export const SMTP_SOCKET_TIMEOUT_MS = 30_000;
+
 export interface EmailOptions {
   to: string;
   subject: string;
   html: string;
   text?: string;
+}
+
+export class EmailConfigurationError extends Error {
+  readonly code = "EMAIL_SMTP_NOT_CONFIGURED";
+
+  constructor(message: string) {
+    super(message);
+    this.name = "EmailConfigurationError";
+  }
+}
+
+interface SmtpConfiguration {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  from: string;
+}
+
+function readSmtpConfiguration(environment: NodeJS.ProcessEnv = process.env): SmtpConfiguration {
+  const host = environment.SMTP_HOST?.trim();
+  const user = environment.SMTP_USER?.trim();
+  const pass = environment.SMTP_PASS;
+  const portValue = environment.SMTP_PORT ?? "587";
+  const port = Number(portValue);
+  const missing: string[] = [];
+
+  if (!host) missing.push("SMTP_HOST");
+  if (!user) missing.push("SMTP_USER");
+  if (!pass) missing.push("SMTP_PASS");
+
+  const invalid = !Number.isInteger(port) || port < 1 || port > 65_535;
+  if (!host || !user || !pass || invalid) {
+    const details = [
+      missing.length ? `missing ${missing.join(", ")}` : "",
+      invalid ? "SMTP_PORT must be an integer between 1 and 65535" : "",
+    ].filter(Boolean).join("; ");
+    log.error({ missing, invalidPort: invalid }, "Email notifications unavailable");
+    throw new EmailConfigurationError(`SMTP configuration is invalid: ${details}`);
+  }
+
+  return {
+    host,
+    port,
+    user,
+    pass,
+    from: environment.SMTP_FROM ?? "HappiKid <noreply@happikid.com>",
+  };
 }
 
 /** Escape characters that have special meaning in HTML. */
@@ -38,19 +94,7 @@ function getCanonicalBaseUrl(): string {
 }
 
 async function sendEmail(opts: EmailOptions): Promise<void> {
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT ?? "587");
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM ?? "HappiKid <noreply@happikid.com>";
-
-  if (!host || !user || !pass) {
-    // SMTP not configured — log only non-sensitive delivery diagnostics.
-    // Never log message body or recipient details to avoid leaking private
-    // conversation content into application logs.
-    log.info("[EMAIL] SMTP not configured — notification skipped");
-    return;
-  }
+  const { host, port, user, pass, from } = readSmtpConfiguration();
 
   try {
     const transporter = nodemailer.createTransport({
@@ -58,6 +102,9 @@ async function sendEmail(opts: EmailOptions): Promise<void> {
       port,
       secure: port === 465,
       auth: { user, pass },
+      connectionTimeout: SMTP_CONNECTION_TIMEOUT_MS,
+      greetingTimeout: SMTP_GREETING_TIMEOUT_MS,
+      socketTimeout: SMTP_SOCKET_TIMEOUT_MS,
     });
     await transporter.sendMail({
       from,

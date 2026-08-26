@@ -306,6 +306,49 @@ describe("sendNewMessageNotification — email content", () => {
       threadId: 99,
     })).rejects.toThrow("SMTP unavailable");
   });
+
+  it("rejects when SMTP configuration is missing instead of silently succeeding", async () => {
+    delete process.env.SMTP_HOST;
+    delete process.env.SMTP_USER;
+    delete process.env.SMTP_PASS;
+
+    await expect(sendNewMessageNotification({
+      recipientEmail: "provider@example.com",
+      recipientName: "Jane Provider",
+      senderName: "Alex Parent",
+      providerName: "Sunshine Daycare",
+      messagePreview: "Hello!",
+      threadId: 99,
+    })).rejects.toMatchObject({ code: "EMAIL_SMTP_NOT_CONFIGURED" });
+    expect(mockSendMail).not.toHaveBeenCalled();
+  });
+
+  it("passes SMTP operation timeouts to nodemailer", async () => {
+    await sendNewMessageNotification({
+      recipientEmail: "provider@example.com",
+      recipientName: "Jane Provider",
+      senderName: "Alex Parent",
+      providerName: "Sunshine Daycare",
+      messagePreview: "Hello!",
+      threadId: 99,
+    });
+
+    expect(vi.mocked((await import("nodemailer")).default.createTransport)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        connectionTimeout: expect.any(Number),
+        greetingTimeout: expect.any(Number),
+        socketTimeout: expect.any(Number),
+      }),
+    );
+    const transportOptions = vi.mocked((await import("nodemailer")).default.createTransport).mock.calls.at(-1)?.[0] as {
+      connectionTimeout: number;
+      greetingTimeout: number;
+      socketTimeout: number;
+    };
+    expect(transportOptions.connectionTimeout).toBeLessThan(120_000);
+    expect(transportOptions.greetingTimeout).toBeLessThan(120_000);
+    expect(transportOptions.socketTimeout).toBeLessThan(120_000);
+  });
 });
 
 // ===========================================================================

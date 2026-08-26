@@ -95,7 +95,18 @@ export async function processNotificationOutboxBatch(
       await storage.retryNotificationOutboxEvent(job.id, workerId, message, availableAt, permanentlyFailed);
       if (permanentlyFailed) result.failed += 1;
       else result.retried += 1;
-      log.warn({ notificationId: job.id, attempts: job.attempts, permanentlyFailed }, "Notification delivery failed");
+      const logContext = {
+        notificationId: job.id,
+        eventType: job.eventType,
+        attempts: job.attempts,
+        permanentlyFailed,
+        error: message,
+      };
+      if (permanentlyFailed) {
+        log.error(logContext, "Notification permanently failed");
+      } else {
+        log.warn(logContext, "Notification delivery failed; will retry");
+      }
     }
   }
 
