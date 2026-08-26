@@ -14,6 +14,7 @@ export const RELEASE_SMOKE_ROLES = [
 ] as const;
 
 type SmokeRole = (typeof RELEASE_SMOKE_ROLES)[number]["name"];
+export const LIVE_TARGET_CONFIRMATION = "I_UNDERSTAND_THIS_TARGET_IS_LIVE";
 
 export interface ReleaseSmokeFetchResponse {
   ok: boolean;
@@ -62,7 +63,10 @@ function validateCookieHeader(value: string, envKey: string): void {
   }
 }
 
-function getTargetUrl(env: NodeJS.ProcessEnv): URL {
+function getTargetUrl(
+  env: NodeJS.ProcessEnv,
+  targetMode: "staging" | "live",
+): URL {
   const raw = readRequired(env, "RELEASE_SMOKE_BASE_URL");
   if (!raw) {
     throw new Error("RELEASE_SMOKE_BASE_URL is required");
@@ -86,8 +90,23 @@ function getTargetUrl(env: NodeJS.ProcessEnv): URL {
   if (productionHosts.length === 0) {
     throw new Error("RELEASE_SMOKE_PRODUCTION_HOSTS is required as a production safety guard");
   }
-  if (productionHosts.includes(target.hostname.toLowerCase())) {
-    throw new Error("RELEASE_SMOKE_BASE_URL must not target a production hostname");
+  const isProductionTarget = productionHosts.includes(target.hostname.toLowerCase());
+  if (targetMode === "staging" && isProductionTarget) {
+    throw new Error(
+      "RELEASE_SMOKE_BASE_URL must not target a production hostname in staging mode",
+    );
+  }
+  if (targetMode === "live") {
+    if (readRequired(env, "RELEASE_SMOKE_ALLOW_LIVE_TARGET") !== LIVE_TARGET_CONFIRMATION) {
+      throw new Error(
+        `live mode requires RELEASE_SMOKE_ALLOW_LIVE_TARGET=${LIVE_TARGET_CONFIRMATION}`,
+      );
+    }
+    if (!isProductionTarget) {
+      throw new Error(
+        "live mode requires RELEASE_SMOKE_BASE_URL to match a production hostname",
+      );
+    }
   }
 
   return target;
@@ -95,14 +114,16 @@ function getTargetUrl(env: NodeJS.ProcessEnv): URL {
 
 function validateConfiguration(env: NodeJS.ProcessEnv): {
   target: URL;
+  targetMode: "staging" | "live";
   inbox: string;
   cookies: Record<SmokeRole, string>;
 } {
-  if (readRequired(env, "RELEASE_SMOKE_ENV") !== "staging") {
-    throw new Error('RELEASE_SMOKE_ENV must be exactly "staging"');
+  const targetMode = readRequired(env, "RELEASE_SMOKE_ENV");
+  if (targetMode !== "staging" && targetMode !== "live") {
+    throw new Error('RELEASE_SMOKE_ENV must be exactly "staging" or "live"');
   }
 
-  const target = getTargetUrl(env);
+  const target = getTargetUrl(env, targetMode);
   const inbox = readRequired(env, "RELEASE_SMOKE_TEST_INBOX");
   if (!inbox || !isEmailAddress(inbox)) {
     throw new Error("RELEASE_SMOKE_TEST_INBOX must be a designated test email address");
@@ -123,7 +144,7 @@ function validateConfiguration(env: NodeJS.ProcessEnv): {
     throw new Error("Each smoke-test role must use a different staging session");
   }
 
-  return { target, inbox, cookies };
+  return { target, targetMode, inbox, cookies };
 }
 
 function returnedRole(user: unknown): string | undefined {
@@ -140,7 +161,7 @@ export async function runReleaseSmokePreflight(
   env: NodeJS.ProcessEnv = process.env,
   fetchImpl: ReleaseSmokeFetch = fetch as ReleaseSmokeFetch,
 ): Promise<ReleaseSmokePreflightResult> {
-  const { target, inbox, cookies } = validateConfiguration(env);
+  const { target, targetMode, inbox, cookies } = validateConfiguration(env);
   const roles = {} as Record<SmokeRole, string>;
   const failures: string[] = [];
 
@@ -152,7 +173,7 @@ export async function runReleaseSmokePreflight(
       });
 
       if (!response.ok) {
-        failures.push(`${name} staging session was rejected (HTTP ${response.status})`);
+        failures.push(`${name} ${targetMode} session was rejected (HTTP ${response.status})`);
         continue;
       }
 
@@ -160,20 +181,20 @@ export async function runReleaseSmokePreflight(
       try {
         user = await response.json();
       } catch {
-        failures.push(`${name} staging session returned an invalid user response`);
+        failures.push(`${name} ${targetMode} session returned an invalid user response`);
         continue;
       }
 
       const actualRole = returnedRole(user);
       if (actualRole !== name) {
         failures.push(
-          `${name} staging session returned role ${actualRole ?? "unknown"}`,
+          `${name} ${targetMode} session returned role ${actualRole ?? "unknown"}`,
         );
         continue;
       }
       roles[name] = actualRole;
     } catch {
-      failures.push(`${name} staging session could not reach the target`);
+      failures.push(`${name} ${targetMode} session could not reach the target`);
     }
   }
 

@@ -1,12 +1,15 @@
 # Safe Release Smoke Runbook
 
-This runbook is for a **staging deployment only**. It creates a repeatable
-release check without asking anyone to share a personal password, personal
-session cookie, or mailbox.
+This runbook is for a **staging deployment by default**. A single-deployment
+workspace may use the explicitly opt-in `live` mode described below, but that
+mode can create test records, notifications, uploads, and approvals in the
+published application.
 
 ## Account and inbox ownership
 
-Create these resources in the staging environment through the normal
+Create these resources in the staging environment—or, only when using the
+single-deployment live mode, create clearly marked test resources in the
+published environment—through the normal
 organization-approved account process:
 
 | Resource | Required role | Ownership rule |
@@ -28,13 +31,25 @@ Store only the following values in the Replit Secrets manager for the staging
 environment. Do not put them in `.env`, shell history, source files, tickets,
 screenshots, or chat:
 
-- `RELEASE_SMOKE_ENV=staging` (a non-secret guard value)
+- `RELEASE_SMOKE_ENV=staging` (the default non-secret guard value)
 - `RELEASE_SMOKE_BASE_URL=https://<staging-host>` (a staging URL, not production)
 - `RELEASE_SMOKE_PRODUCTION_HOSTS=<comma-separated-production-hostnames>`
 - `RELEASE_SMOKE_TEST_INBOX=<managed-test-inbox>`
 - `RELEASE_SMOKE_PARENT_COOKIE=<parent-session-cookie>`
 - `RELEASE_SMOKE_PROVIDER_COOKIE=<provider-session-cookie>`
 - `RELEASE_SMOKE_ADMIN_COOKIE=<admin-session-cookie>`
+
+For a workspace with no separate staging deployment, use this additional
+configuration only after accepting that the checks run against live data:
+
+- `RELEASE_SMOKE_ENV=live`
+- `RELEASE_SMOKE_ALLOW_LIVE_TARGET=I_UNDERSTAND_THIS_TARGET_IS_LIVE`
+- `RELEASE_SMOKE_BASE_URL=https://<published-production-host>`
+
+Live mode is fail-closed unless the URL hostname is also listed in
+`RELEASE_SMOKE_PRODUCTION_HOSTS`. Never use a personal session or a real
+customer mailbox in live mode. The role sessions must still be three distinct,
+dedicated test identities, and cleanup is mandatory.
 
 The production-host list is a non-secret safety guard and must be refreshed
 when published domains change. The three session values are obtained only
@@ -48,7 +63,7 @@ user responses.
 
 ## Establishing role sessions
 
-1. Open the staging URL from a normal browser network. Do not use the
+1. Open the configured staging or live URL from a normal browser network. Do not use the
    containerized headless browser for the interactive OIDC step; Replit OIDC
    may return a Cloudflare `403` to that network even when the application is
    healthy.
@@ -64,7 +79,7 @@ user responses.
    npm run release:smoke:preflight
    ```
 
-   A successful result confirms the target is marked staging, all three
+   A successful result confirms the target mode is allowed, all three
    sessions are distinct, and the application reports the expected role for
    each session. A failure is a release blocker; do not work around it by
    changing role values or bypassing authorization.

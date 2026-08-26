@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  LIVE_TARGET_CONFIRMATION,
   runReleaseSmokePreflight,
   type ReleaseSmokeFetch,
 } from "../scripts/release-smoke-preflight";
@@ -69,7 +70,52 @@ describe("release smoke preflight", () => {
     const fetchImpl = vi.fn();
     await expect(
       runReleaseSmokePreflight({ ...baseEnv, RELEASE_SMOKE_BASE_URL: "https://happikid.com" }, fetchImpl),
-    ).rejects.toThrow("must not target a production hostname");
+    ).rejects.toThrow("must not target a production hostname in staging mode");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("allows the published host only in explicit live mode with exact confirmation", async () => {
+    const fetchImpl = roleFetch({
+      parent: "parent",
+      provider: "provider",
+      admin: "admin",
+    });
+
+    await expect(
+      runReleaseSmokePreflight({
+        ...baseEnv,
+        RELEASE_SMOKE_ENV: "live",
+        RELEASE_SMOKE_BASE_URL: "https://happikid-ajkrouse.replit.app",
+        RELEASE_SMOKE_ALLOW_LIVE_TARGET: LIVE_TARGET_CONFIRMATION,
+      }, fetchImpl),
+    ).resolves.toMatchObject({
+      baseUrl: "https://happikid-ajkrouse.replit.app",
+      roles: { parent: "parent", provider: "provider", admin: "admin" },
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+
+  it("rejects live mode without the exact confirmation", async () => {
+    const fetchImpl = vi.fn();
+    await expect(
+      runReleaseSmokePreflight({
+        ...baseEnv,
+        RELEASE_SMOKE_ENV: "live",
+        RELEASE_SMOKE_BASE_URL: "https://happikid-ajkrouse.replit.app",
+      }, fetchImpl),
+    ).rejects.toThrow("requires RELEASE_SMOKE_ALLOW_LIVE_TARGET");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("rejects live mode when pointed at a non-production hostname", async () => {
+    const fetchImpl = vi.fn();
+    await expect(
+      runReleaseSmokePreflight({
+        ...baseEnv,
+        RELEASE_SMOKE_ENV: "live",
+        RELEASE_SMOKE_ALLOW_LIVE_TARGET: LIVE_TARGET_CONFIRMATION,
+      }, fetchImpl),
+    ).rejects.toThrow("live mode requires RELEASE_SMOKE_BASE_URL to match a production hostname");
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 

@@ -64,5 +64,6 @@ timeoutMs = 120000
 APP_BASE_URL = "https://happikid.com"
 
 [userenv.development]
-RELEASE_SMOKE_ENV = "staging"
+RELEASE_SMOKE_ENV = "live"
 RELEASE_SMOKE_PRODUCTION_HOSTS = "happikid.com,happikid-ajkrouse.replit.app"
+RELEASE_SMOKE_ALLOW_LIVE_TARGET = "I_UNDERSTAND_THIS_TARGET_IS_LIVE"
