@@ -41,6 +41,27 @@ function isEmailAddress(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function validateCookieHeader(value: string, envKey: string): void {
+  if (/[\r\n]/.test(value)) {
+    throw new Error(`${envKey} must not contain line breaks`);
+  }
+  if (/^cookie\s*:/i.test(value)) {
+    throw new Error(`${envKey} must omit the Cookie: header name`);
+  }
+  const pairs = value.split(";").map((pair) => pair.trim()).filter(Boolean);
+  if (
+    pairs.length === 0 ||
+    pairs.some((pair) => {
+      const separator = pair.indexOf("=");
+      return separator < 1 || separator === pair.length - 1;
+    })
+  ) {
+    throw new Error(
+      `${envKey} must contain a complete cookie pair such as connect.sid=<redacted>`,
+    );
+  }
+}
+
 function getTargetUrl(env: NodeJS.ProcessEnv): URL {
   const raw = readRequired(env, "RELEASE_SMOKE_BASE_URL");
   if (!raw) {
@@ -56,6 +77,17 @@ function getTargetUrl(env: NodeJS.ProcessEnv): URL {
 
   if (target.protocol !== "https:") {
     throw new Error("RELEASE_SMOKE_BASE_URL must use HTTPS");
+  }
+
+  const productionHosts = (env.RELEASE_SMOKE_PRODUCTION_HOSTS ?? "")
+    .split(",")
+    .map((host) => host.trim().toLowerCase())
+    .filter(Boolean);
+  if (productionHosts.length === 0) {
+    throw new Error("RELEASE_SMOKE_PRODUCTION_HOSTS is required as a production safety guard");
+  }
+  if (productionHosts.includes(target.hostname.toLowerCase())) {
+    throw new Error("RELEASE_SMOKE_BASE_URL must not target a production hostname");
   }
 
   return target;
@@ -82,6 +114,7 @@ function validateConfiguration(env: NodeJS.ProcessEnv): {
       if (!cookie) {
         throw new Error(`${envKey} is required and must be stored as a secret`);
       }
+      validateCookieHeader(cookie, envKey);
       return [name, cookie];
     }),
   ) as Record<SmokeRole, string>;
@@ -109,31 +142,43 @@ export async function runReleaseSmokePreflight(
 ): Promise<ReleaseSmokePreflightResult> {
   const { target, inbox, cookies } = validateConfiguration(env);
   const roles = {} as Record<SmokeRole, string>;
+  const failures: string[] = [];
 
   for (const { name } of RELEASE_SMOKE_ROLES) {
-    const response = await fetchImpl(`${target.origin}/api/auth/user`, {
-      headers: { Cookie: cookies[name] },
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    if (!response.ok) {
-      throw new Error(`${name} staging session was rejected (HTTP ${response.status})`);
-    }
-
-    let user: unknown;
     try {
-      user = await response.json();
-    } catch {
-      throw new Error(`${name} staging session returned an invalid user response`);
-    }
+      const response = await fetchImpl(`${target.origin}/api/auth/user`, {
+        headers: { Cookie: cookies[name] },
+        signal: AbortSignal.timeout(10_000),
+      });
 
-    const actualRole = returnedRole(user);
-    if (actualRole !== name) {
-      throw new Error(
-        `${name} staging session returned role ${actualRole ?? "unknown"}`,
-      );
+      if (!response.ok) {
+        failures.push(`${name} staging session was rejected (HTTP ${response.status})`);
+        continue;
+      }
+
+      let user: unknown;
+      try {
+        user = await response.json();
+      } catch {
+        failures.push(`${name} staging session returned an invalid user response`);
+        continue;
+      }
+
+      const actualRole = returnedRole(user);
+      if (actualRole !== name) {
+        failures.push(
+          `${name} staging session returned role ${actualRole ?? "unknown"}`,
+        );
+        continue;
+      }
+      roles[name] = actualRole;
+    } catch {
+      failures.push(`${name} staging session could not reach the target`);
     }
-    roles[name] = actualRole;
+  }
+
+  if (failures.length > 0) {
+    throw new Error(`role checks failed: ${failures.join("; ")}`);
   }
 
   return {

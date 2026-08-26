@@ -65,3 +65,4 @@ APP_BASE_URL = "https://happikid.com"
 
 [userenv.development]
 RELEASE_SMOKE_ENV = "staging"
+RELEASE_SMOKE_PRODUCTION_HOSTS = "happikid.com,happikid-ajkrouse.replit.app"

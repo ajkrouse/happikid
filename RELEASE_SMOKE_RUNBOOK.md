@@ -30,15 +30,19 @@ screenshots, or chat:
 
 - `RELEASE_SMOKE_ENV=staging` (a non-secret guard value)
 - `RELEASE_SMOKE_BASE_URL=https://<staging-host>` (a staging URL, not production)
+- `RELEASE_SMOKE_PRODUCTION_HOSTS=<comma-separated-production-hostnames>`
 - `RELEASE_SMOKE_TEST_INBOX=<managed-test-inbox>`
 - `RELEASE_SMOKE_PARENT_COOKIE=<parent-session-cookie>`
 - `RELEASE_SMOKE_PROVIDER_COOKIE=<provider-session-cookie>`
 - `RELEASE_SMOKE_ADMIN_COOKIE=<admin-session-cookie>`
 
-The three session values are obtained only after signing into the dedicated
-staging identities. Treat them as credentials: grant access to the smallest
-possible release-testing group, never print them, and remove them when the
-staging session is retired. The preflight checks only presence, distinctness,
+The production-host list is a non-secret safety guard and must be refreshed
+when published domains change. The three session values are obtained only
+after signing into the dedicated staging identities. Store each as the complete
+cookie header value, such as `connect.sid=<redacted>`, without the `Cookie:`
+prefix. Treat them as credentials: grant access to the smallest possible
+release-testing group, never print them, and remove them when the staging
+session is retired. The preflight checks only syntax, presence, distinctness,
 and the role returned by the application; it does not print cookie values or
 user responses.
 
